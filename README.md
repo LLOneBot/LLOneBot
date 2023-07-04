@@ -3,8 +3,12 @@
 LiteLoaderQQNT的插件模板，包含插件创建方法，编写建议，还有技巧  
 LiteLoaderQQNT本体：[LiteLoaderQQNT](https://github.com/mo-jinran/BetterQQNT)
 
+Telegram闲聊群：https://t.me/LiteLoaderQQNT
+
 
 # 插件编写指南文档
+
+文档目前还不算完善，但能看，也欢迎各位来完善/修复错误
 
 - [了解数据目录结构](https://github.com/mo-jinran/LiteLoaderQQNT-Plugin-Template/wiki/1.了解数据目录结构)
     - [LiteLoader的数据目录](https://github.com/mo-jinran/LiteLoaderQQNT-Plugin-Template/wiki/1.了解数据目录结构#liteloader的数据目录)
