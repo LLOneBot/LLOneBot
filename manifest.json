@@ -11,6 +11,11 @@
             "link": "https://github.com/mo-jinran"
         }
     ],
+    "platform": [
+        "win32",
+        "linux",
+        "darwin"
+    ],
     "injects": {
         "renderer": "./src/renderer.js",
         "main": "./src/main.js",
