@@ -8,6 +8,9 @@ Telegram闲聊群：https://t.me/LiteLoaderQQNT
 
 # 插件编写指南文档
 
+使用此模板生成仓库后，一定要记得更换许可证！  
+或是修改许可证，将信息更换为你的！
+
 文档目前还不算完善，但能看，也欢迎各位来完善/修复错误
 
 - [了解数据目录结构](https://github.com/mo-jinran/LiteLoaderQQNT-Plugin-Template/wiki/1.了解数据目录结构)
