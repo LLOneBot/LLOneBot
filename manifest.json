@@ -1,16 +1,19 @@
 {
-    "manifest_version": 1,
+    "manifest_version": 2,
     "type": "extension",
     "name": "插件模板",
     "slug": "plugin_template",
     "description": "LiteLoaderQQNT的插件模板",
     "version": "0.1.0",
-    "author": [
-        {
-            "name": "沫烬染",
-            "link": "https://github.com/mo-jinran"
-        }
-    ],
+    "thumbnail": "./default_icon.png",
+    "author": {
+        "name": "沫烬染",
+        "link": "https://github.com/mo-jinran"
+    },
+    "repository": {
+        "repo": "LiteLoaderQQNT-Plugin-Template",
+        "branch": "main"
+    },
     "platform": [
         "win32",
         "linux",
