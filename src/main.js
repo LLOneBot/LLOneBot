@@ -2,7 +2,7 @@
 
 
 // 加载插件时触发
-function onLoad(plugin, liteloader) {
+function onLoad(plugin) {
 
 }
 
