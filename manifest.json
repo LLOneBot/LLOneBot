@@ -11,7 +11,7 @@
         "link": "https://github.com/mo-jinran"
     },
     "repository": {
-        "repo": "LiteLoaderQQNT-Plugin-Template",
+        "repo": "mo-jinran/LiteLoaderQQNT-Plugin-Template",
         "branch": "main",
         "use_release": {
             "tag": "latest",
