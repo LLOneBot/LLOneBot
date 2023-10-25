@@ -1,0 +1,1 @@
+npx tsc src/renderer.ts --outDir dist

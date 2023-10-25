@@ -3,7 +3,7 @@
 
 // 页面加载完成时触发
 function onLoad() {
-
+    LLAPI.on("new-messages")
 }
 
 
