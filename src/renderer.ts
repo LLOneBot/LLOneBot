@@ -1,24 +1,12 @@
-/// <reference path="./global.d.ts" />
+/// <reference path="./llapi.d.ts" />
 
 // import express from "express";
-
 
 const host = "http://localhost:5000"
 
 let self_qq: string = ""
 
 let uid_maps: Record<string, string> = {}  // 一串加密的字符串 -> qq号
-
-let groups: Group[] = []
-let friends: User[] = []
-
-function getFriend(qq: string){
-    return friends.find(friend => friend.uid == qq)
-}
-
-function getGroup(qq: string){
-    return groups.find(group => group.uid == qq)
-}
 
 function onLoad(){
     LLAPI.getAccountInfo().then(accountInfo => {
@@ -29,53 +17,7 @@ function onLoad(){
         groups = groupsList
     })
 
-//     const app = express();
-//     const port = 3000;
-//
-//     // 中间件，用于解析POST请求的请求体
-//     app.use(express.urlencoded({ extended: true }));
-//     app.use(express.json());
-//
-//     // 处理POST请求的路由
-//     app.post('/', (req: any, res: any) => {
-//         let json_data: {action: string, params: {
-//                 user_id: string,
-//                 group_id: string,
-//                 message: SendMessage[];
-//             }} = req.body;
-//         let peer: Peer| null = null;
-//         if (json_data.action == "send_private_msg"){
-//             let friend = getFriend(json_data.params.user_id)
-//             if (friend) {
-//                 peer = {
-//                     chatType: "private",
-//                     name: friend.nickName,
-//                     uid: friend.uin
-//                 }
-//             }
-//         }
-//         else if (json_data.action == "send_group_msg"){
-//             let group = getGroup(json_data.params.group_id)
-//             if (group){
-//                 peer = {
-//                     chatType: "group",
-//                     name: group.name,
-//                     uid: group.uid
-//                 }
-//             }
-//         }
-//         if (peer) {
-//             LLAPI.sendMessage(peer, json_data.params.message).then(res => console.log("消息发送成功:", res),
-//                 err => console.log("消息发送失败", json_data, err))
-//         }
-//         console.log(req.body); // 输出POST请求的请求体数据
-//         res.send('POST请求已收到');
-//     });
-//
-// // 启动服务器监听指定端口
-//     app.listen(port, () => {
-//         console.log(`服务器已启动，监听端口 ${port}`);
-//     });
+
 
     LLAPI.on("new-messages", (messages) => {
         console.log("收到新消息", messages)
