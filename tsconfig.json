@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "module": "esnext",
+    "target": "es6",
+    "module": "es6",
     "outDir": "./dist",
     "strict": true,
-    "declaration": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node"
