@@ -10,16 +10,32 @@ declare type Peer = {
 }
 
 interface MessageElement{
-    elements:{
-        type: "text",
-        content: string,
-        raw: {
-            textElement: {
-                atType: AtType
-                atUid: string
+    raw: {
+        elements:{
+            raw: {
+                replyElement: {
+                    senderUid: string,  // 原消息发送者QQ号
+                    sourceMsgIsIncPic: boolean;  // 原消息是否有图片
+                    sourceMsgText: string;
+                    sourceMsgIdInRecords: string;  // 原消息id
+                },
+                textElement: {
+                    atType: AtType
+                    atUid: string,
+                    content: string
+                },
+                picElement: {
+                    sourcePath: string // 图片本地路径
+                    picWidth: number
+                    picHeight: number
+                    fileSize: number
+                    fileName: string
+                    fileUuid: string
+                }
             }
-        }
-    }[]
+        }[]
+    }
+
     peer: Peer,
     sender: {
         uid: string  // 一串加密的字符串
@@ -41,6 +57,14 @@ declare type Group = {
     name: string;
 }
 
+declare type SendMessage = {
+    type: "text",
+    content: string,
+} | {
+    type: "image",
+    file: string,
+}
+
 declare var LLAPI: {
     on(event: "new-messages", callback: (data: MessageElement[]) => void): void;
     getAccountInfo(): Promise<{
@@ -50,15 +74,7 @@ declare var LLAPI: {
 
     // uid是一串加密的字符串, 收到群消息的时候，可以用此函数获取群成员的qq号
     getUserInfo(uid: string): Promise<User>;
-    sendMessage(peer: Peer, message:
-        {
-            type: "text",
-            content: string,}|
-        {
-            type: "image",
-            file: string,
-        }
-    ): void
+    sendMessage(peer: Peer, message: SendMessage[]): Promise<void>;
     getGroupsList(forced: boolean): Promise<Group[]>
     getFriendsList(forced: boolean): Promise<User[]>
 };
