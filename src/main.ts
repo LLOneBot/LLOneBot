@@ -2,18 +2,35 @@
 
 const express = require("express")
 const {ipcMain, webContents} = require('electron');
+const fs = require('fs');
 
 const CHANNEL_SEND_MSG = "llonebot_sendMsg"
 
-function sendIPCCallSendQQMsg(postData: PostDataSendMsg) {
+let groups: Group[] = []
+let friends: User[] = []
+let groupMembers: {group_id: string, groupMembers: User[]}[] = []
+
+function sendIPCMsg(channel: string, data: any){
     let contents = webContents.getAllWebContents();
     for (const content of contents) {
         try {
-            content.send(CHANNEL_SEND_MSG, postData)
+            content.send(channel, data)
         } catch (e) {
         }
     }
 }
+
+function sendIPCCallSendQQMsg(postData: PostDataSendMsg) {
+    sendIPCMsg(CHANNEL_SEND_MSG, postData);
+}
+
+function log(msg: string){
+    fs.appendFile("d:\\llonebot.log", msg + "\n", (err: any) => {
+
+    })
+}
+
+
 
 function startExpress(event: any) {
     // const original_send = (window.webContents.__qqntim_original_object && window.webContents.__qqntim_original_object.send) || window.webContents.send;
@@ -30,8 +47,48 @@ function startExpress(event: any) {
     // 处理POST请求的路由
     app.post('/', (req: any, res: any) => {
         let jsonData: PostDataSendMsg = req.body;
-        sendIPCCallSendQQMsg(jsonData);
-        res.send('POST请求已收到');
+        let resData = {
+            status: 0,
+            retcode: 0,
+            data: {},
+            message: ''
+        }
+        if (jsonData.action == "send_private_msg" || jsonData.action == "send_group_msg") {
+            sendIPCCallSendQQMsg(jsonData);
+        }
+        else if (jsonData.action == "get_group_list"){
+            resData["data"] = groups.map(group => {
+                return {
+                    group_id: group.uid,
+                    group_name: group.name
+                }
+            })
+        }
+        else if (jsonData.action == "get_group_member_list"){
+            let group = groupMembers.find(group => group.group_id == jsonData.params.group_id)
+            if (group){
+                resData["data"] = group.groupMembers.map(member => {
+                    return {
+                        user_id: member.uin,
+                        user_name: member.nickName,
+                        user_display_name: ""
+                    }
+
+                })
+            }
+            else{
+                resData["data"] = []
+            }
+        }
+        else if (jsonData.action == "get_friend_list"){
+            resData["data"] = friends.map(friend=>{
+                return {
+                    user_id: friend.uin,
+                    user_name: friend.nickName,
+                }
+            })
+        }
+        res.send(resData)
     });
     app.listen(port, () => {
         console.log(`服务器已启动，监听端口 ${port}`);
@@ -43,6 +100,48 @@ function startExpress(event: any) {
 function onLoad(plugin: any) {
     ipcMain.on("startExpress", (event: any, arg: any) => {
         startExpress(event)
+    })
+
+    ipcMain.on("updateGroups", (event: any, arg: Group[]) => {
+        groups = arg
+    })
+
+    ipcMain.on("updateFriends", (event: any, arg: User[]) => {
+        friends = arg
+    })
+
+    ipcMain.on("updateGroupMembers", (event: any, arg: {groupMembers: User[], group_id: string}) => {
+        let existMembers = groupMembers.find(group => group.group_id == arg.group_id)
+        if (existMembers){
+            existMembers.groupMembers = arg.groupMembers
+        }
+        else{
+            groupMembers.push(arg);
+        }
+    })
+
+    ipcMain.on("postOnebotData", (event: any, arg: any) => {
+            // try {
+            //     // const fetch2 = require("./electron-fetch");
+            // }catch (e) {
+            //     log(e)
+            // }
+        log("开始post新消息事件到服务器")
+        try {
+            fetch("http://192.168.1.5:5000/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(arg)
+            }).then((res: any) => {
+                log("新消息事件上传");
+            }, (err: any) => {
+                log("新消息事件上传失败:" + err + JSON.stringify(arg));
+            });
+        }catch (e: any){
+            log(e.toString())
+        }
     })
 }
 
