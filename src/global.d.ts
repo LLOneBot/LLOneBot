@@ -12,26 +12,25 @@ declare type Peer = {
 interface MessageElement {
     raw: {
         elements: {
-            raw: {
-                replyElement: {
-                    senderUid: string,  // 原消息发送者QQ号
-                    sourceMsgIsIncPic: boolean;  // 原消息是否有图片
-                    sourceMsgText: string;
-                    sourceMsgIdInRecords: string;  // 原消息id
-                },
-                textElement: {
-                    atType: AtType
-                    atUid: string,
-                    content: string
-                },
-                picElement: {
-                    sourcePath: string // 图片本地路径
-                    picWidth: number
-                    picHeight: number
-                    fileSize: number
-                    fileName: string
-                    fileUuid: string
-                }
+
+            replyElement: {
+                senderUid: string,  // 原消息发送者QQ号
+                sourceMsgIsIncPic: boolean;  // 原消息是否有图片
+                sourceMsgText: string;
+                sourceMsgIdInRecords: string;  // 原消息id
+            },
+            textElement: {
+                atType: AtType
+                atUid: string,
+                content: string
+            },
+            picElement: {
+                sourcePath: string // 图片本地路径
+                picWidth: number
+                picHeight: number
+                fileSize: number
+                fileName: string
+                fileUuid: string
             }
         }[]
     }
@@ -45,10 +44,10 @@ interface MessageElement {
 }
 
 declare type User = {
-    avatarUrl: string;
-    bio: string;  // 签名
+    avatarUrl?: string;
+    bio?: string;  // 签名
     nickName: string;
-    uid: string;  // 加密的字符串
+    uid?: string;  // 加密的字符串
     uin: string; // QQ号
 }
 
@@ -62,7 +61,7 @@ declare type SendMessage = {
     content: string,
 } | {
     type: "image",
-    file: string,
+    file: string, // 这是本地路径？
 }
 
 declare var LLAPI: {
@@ -89,6 +88,10 @@ declare type PostDataSendMsg = {
 }
 
 declare var llonebot: {
+    postData: (data: any) => void
     listenSendMessage: (handle: (msg: PostDataSendMsg) => void) => void
+    updateGroups: (groups: Group[]) => void
+    updateFriends: (friends: User[]) => void
+    updateGroupMembers: (data: { groupMembers: User[], group_id: string }) => void
     startExpress: () => void
 };

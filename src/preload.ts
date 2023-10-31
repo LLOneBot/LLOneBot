@@ -5,8 +5,20 @@ const {ipcRenderer} = require('electron');
 
 // 在window对象下导出只读对象
 contextBridge.exposeInMainWorld("llonebot", {
+    postData: (data: any) => {
+        ipcRenderer.send("postOnebotData", data);
+    },
+    updateGroups: (groups: Group[]) => {
+        ipcRenderer.send("updateGroups", groups);
+    },
+    updateFriends: (friends: User[]) => {
+        ipcRenderer.send("updateFriends", friends);
+    },
+    updateGroupMembers: (data: {groupMembers: User[], group_id: string}) => {
+        ipcRenderer.send("updateGroupMembers", data);
+    },
     listenSendMessage: (handle: (jsonData: PostDataSendMsg) => void) => {
-        ipcRenderer.on("sendMsg", (event: any, args: PostDataSendMsg) => {
+        ipcRenderer.on("llonebot_sendMsg", (event: any, args: PostDataSendMsg) => {
             handle(args)
         })
     },
