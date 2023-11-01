@@ -16,9 +16,6 @@ contextBridge.exposeInMainWorld("llonebot", {
     updateFriends: (friends: User[]) => {
         ipcRenderer.send("updateFriends", friends);
     },
-    updateGroupMembers: (data: {groupMembers: User[], group_id: string}) => {
-        ipcRenderer.send("updateGroupMembers", data);
-    },
     listenSendMessage: (handle: (jsonData: PostDataSendMsg) => void) => {
         ipcRenderer.on("llonebot_sendMsg", (event: any, args: PostDataSendMsg) => {
             handle(args)

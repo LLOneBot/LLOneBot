@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-mac": "tsc && npm run deploy-mac",
-    "deploy-mac": "cp dist/* ~/Library/Containers/com.tencent.qq/Data/Documents/LiteLoaderQQNT/plugins/LLOnebot/"
+    "deploy-mac": "cp dist/* ~/Library/Containers/com.tencent.qq/Data/Documents/LiteLoaderQQNT/plugins/LLOnebot/",
+    "build-win": "tsc && npm run deploy-win",
+    "deploy-win": "cmd /c \"copy dist\\* %USERPROFILE%\\documents\\LiteLoaderQQNT\\plugins\\LLOnebot\\\""
   },
   "author": "",
   "license": "ISC",
