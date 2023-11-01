@@ -4,6 +4,7 @@ import {Group, GroupMemberInfo, MessageElement, Peer, PostDataSendMsg, SendMessa
 
 declare var LLAPI: {
     on(event: "new-messages", callback: (data: MessageElement[]) => void): void;
+    on(event: "context-msg-menu", callback: (event: any, target: any, msgIds:any) => void): void;
     getAccountInfo(): Promise<{
         uid: string  // qq
         uin: string  // 一串加密的字符串
@@ -14,7 +15,8 @@ declare var LLAPI: {
     sendMessage(peer: Peer, message: SendMessage[]): Promise<void>;
     getGroupsList(forced: boolean): Promise<Group[]>
     getFriendsList(forced: boolean): Promise<User[]>
-    getGroupMemberList(group_id: string, num: number): Promise<{result: { infos: Record<string, GroupMemberInfo> }}>
+    getGroupMemberList(group_id: string, num: number): Promise<{result: { infos: Map<string, GroupMemberInfo> }}>
+    getPeer(): Promise<Peer>
 };
 
 
@@ -28,6 +30,7 @@ declare var llonebot: {
     updateFriends: (friends: User[]) => void
     updateGroupMembers: (data: { groupMembers: User[], group_id: string }) => void
     startExpress: () => void
+    log(data: any): void
 };
 
 declare global {

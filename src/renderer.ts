@@ -2,7 +2,7 @@
 
 // import express from "express";
 // const { ipcRenderer } = require('electron');
-import {AtType, Group, MessageElement, Peer, PostDataSendMsg, User} from "./types";
+import {Group, MessageElement, Peer, PostDataSendMsg, User} from "./types";
 
 const host = "http://localhost:5000"
 
@@ -10,9 +10,9 @@ let self_qq: string = ""
 let groups: Group[] = []
 let friends: User[] = []
 let uid_maps: Record<string, User> = {}  // 一串加密的字符串 -> qq号
-async function getUserInfo(uid: string): Promise<User>{
+async function getUserInfo(uid: string): Promise<User> {
     let user = uid_maps[uid]
-    if (!user){
+    if (!user) {
         // 从服务器获取用户信息
         user = await window.LLAPI.getUserInfo(uid)
         uid_maps[uid] = user
@@ -24,13 +24,65 @@ function getFriend(qq: string) {
     return friends.find(friend => friend.uid == qq)
 }
 
-function getGroup(qq: string) {
-    return groups.find(group => group.uid == qq)
+async function getGroup(qq: string) {
+    let group = groups.find(group => group.uid == qq)
+    if (!group) {
+        await getGroups();
+        group = groups.find(group => group.uid == qq)
+    }
+    return group
+}
+
+async function getGroups() {
+    let __groups = await window.LLAPI.getGroupsList(false)
+    for (let group of __groups) {
+        group.members = [];
+        let existGroup = groups.find(g => g.uid == group.uid)
+        if (!existGroup) {
+            console.log("更新群列表", groups)
+            groups.push(group)
+            window.llonebot.updateGroups(groups)
+        }
+    }
+    return groups
+}
+
+async function getGroupMembers(group_qq: string, forced: boolean = false) {
+    let group = await getGroup(group_qq)
+    if (!group?.members || group!.members!.length == 0 || forced) {
+        let res = (await window.LLAPI.getGroupMemberList(group_qq + "_groupMemberList_MainWindow", 5000))
+        // console.log(`更新群${group}成员列表 await`, _res)
+        // window.LLAPI.getGroupMemberList(group_qq + "_groupMemberList_MainWindow", 5000).then(res =>{
+        let members = res.result.infos.values();
+        if (members && forced) {
+            group!.members = []
+        }
+        for (const member of members) {
+            if (!group!.members!.find(m => m.uid == member.uid)) {
+                group!.members!.push(member)
+            }
+        }
+        window.llonebot.updateGroups(groups)
+        console.log(`更新群${group}成员列表`, group)
+        // })
+    }
+    return group?.members
+}
+
+async function getGroupMember(group_qq: string, member_uid: string) {
+    let members = await getGroupMembers(group_qq)
+    if (members) {
+        let member = members.find(member => member.uid == member_uid)
+        if (!member) {
+            members = await getGroupMembers(group_qq, true)
+            member = members?.find(member => member.uid == member_uid)
+        }
+        return member
+    }
 }
 
 
-
-function forwardMessage(message: MessageElement) {
+async function forwardMessage(message: MessageElement) {
     try {
         let onebot_message_data: any = {
             self: {
@@ -43,20 +95,13 @@ function forwardMessage(message: MessageElement) {
             sub_type: "",
             message: []
         }
-        let group: Group
+        // let group: Group
         if (message.peer.chatType == "group") {
             let group_id = message.peer.uid
-            group = groups.find(group => group.uid == group_id)!
+            let group = (await getGroup(group_id))!
             onebot_message_data["group_id"] = message.peer.uid
-            let groupMember = group.members!.find(member => member.uid == message.sender.uid)
-            if (groupMember) {
-                console.log("群成员信息存在，使用群成员信息")
-                onebot_message_data["user_id"] = groupMember.uin
-            }
-            else{
-                console.log("群成员信息不存在，使用原始uid")
-                onebot_message_data["user_id"] = message.sender.uid
-            }
+            let groupMember = await getGroupMember(group_id, message.sender.uid)
+            onebot_message_data["user_id"] = groupMember!.uin
             console.log("收到群消息", onebot_message_data)
         } else if (message.peer.chatType == "private") {
             onebot_message_data["user_id"] = message.peer.uid
@@ -66,13 +111,13 @@ function forwardMessage(message: MessageElement) {
                 data: {}
             }
 
-            if (element.textElement?.atType == AtType.atUser) {
+            if (element.textElement?.atType == 2) {
                 message_data["type"] = "at"
                 if (element.textElement.atUid != "0") {
                     message_data["data"]["mention"] = element.textElement.atUid
                 } else {
                     let uid = element.textElement.atNtUid
-                    let atMember = group!.members!.find(member => member.uid == uid)
+                    let atMember = await getGroupMember(message.peer.uid, uid)
                     message_data["data"]["mention"] = atMember!.uin
                 }
             } else if (element.textElement) {
@@ -98,77 +143,115 @@ function forwardMessage(message: MessageElement) {
 
 async function handleNewMessage(messages: MessageElement[]) {
     for (let message of messages) {
-        if (message.peer.chatType == "group") {
-            let group = groups.find(group => group.uid == message.peer.uid)
-            if (!group) {
-                let members = (await window.LLAPI.getGroupMemberList(message.peer.uid + "_groupMemberList_MainWindow", 5000)).result.infos
-                let membersList = Object.values(members)
-                group = {
-                    name: message.peer.name,
-                    uid: message.peer.uid,
-                    members: membersList
-                }
-                groups.push(group)
-                window.llonebot.updateGroups(groups);
-            }
-        }
-        forwardMessage(message);
+        console.log("new message raw", message)
+        forwardMessage(message).then();
     }
 }
 
-async function getGroups(){
-    groups = await window.LLAPI.getGroupsList(false)
-    for (let group of groups) {
-        group.members = [];
+async function listenSendMessage(postData: PostDataSendMsg) {
+    if (postData.action == "send_private_msg" || postData.action == "send_group_msg") {
+        let peer: Peer | null = null;
+        if (postData.action == "send_private_msg") {
+            let friend = getFriend(postData.params.user_id)
+            if (friend) {
+                peer = {
+                    chatType: "private",
+                    name: friend.nickName,
+                    uid: friend.uin
+                }
+            }
+        } else if (postData.action == "send_group_msg") {
+            let group = await getGroup(postData.params.group_id)
+            if (group) {
+                peer = {
+                    chatType: "group",
+                    name: group.name,
+                    uid: group.uid
+                }
+            } else {
+                console.log("未找到群, 发送群消息失败", postData)
+            }
+        }
+        if (peer) {
+            window.LLAPI.sendMessage(peer, postData.params.message).then(res => console.log("消息发送成功:", res),
+                err => console.log("消息发送失败", postData, err))
+        }
     }
-    window.llonebot.updateGroups(groups)
 }
+
+let chatListEle: HTMLCollectionOf<Element>
 
 function onLoad() {
     window.llonebot.startExpress();
     window.llonebot.listenSendMessage((postData: PostDataSendMsg) => {
-        if (postData.action == "send_private_msg" || postData.action == "send_group_msg") {
-            let peer: Peer | null = null;
-            if (postData.action == "send_private_msg") {
-                let friend = getFriend(postData.params.user_id)
-                if (friend) {
-                    peer = {
-                        chatType: "private",
-                        name: friend.nickName,
-                        uid: friend.uin
-                    }
-                }
-            } else if (postData.action == "send_group_msg") {
-                let group = getGroup(postData.params.group_id)
-                if (group) {
-                    peer = {
-                        chatType: "group",
-                        name: group.name,
-                        uid: group.uid
-                    }
-                }
-            }
-            if (peer) {
-                window.LLAPI.sendMessage(peer, postData.params.message).then(res => console.log("消息发送成功:", res),
-                    err => console.log("消息发送失败", postData, err))
-            }
-        }
+        listenSendMessage(postData).then()
     });
     getGroups().then()
-    function onNewMessages(messages: MessageElement[]){
-        async function func(messages: MessageElement[]){
+
+    function onNewMessages(messages: MessageElement[]) {
+        async function func(messages: MessageElement[]) {
             console.log("收到新消息", messages)
             if (!self_qq) {
                 self_qq = (await window.LLAPI.getAccountInfo()).uin
             }
             await handleNewMessage(messages);
         }
-        func(messages).then(() => {})
+
+        func(messages).then(() => {
+        })
+        console.log("chatListEle", chatListEle)
     }
 
     window.LLAPI.on("new-messages", onNewMessages);
 
+    window.LLAPI.on("context-msg-menu", (event, target, msgIds) => {
+        console.log(event);
+        window.LLAPI.getPeer().then(peer => {
+            // console.log("current peer", peer)
+            if (peer && peer.chatType == "group") {
+                getGroupMembers(peer.uid, false).then()
+            }
+        })
+    })
+
     // console.log("getAccountInfo", LLAPI.getAccountInfo());
+    function getChatListEle() {
+        chatListEle = document.getElementsByClassName("viewport-list__inner")
+        console.log("chatListEle", chatListEle)
+        if (chatListEle.length == 0) {
+            setTimeout(getChatListEle, 500)
+        } else {
+            // try {
+            //     // 选择要观察的目标节点
+            //     const targetNode = chatListEle[0];
+            //
+            //     // 创建一个观察器实例并传入回调函数
+            //     const observer = new MutationObserver(function (mutations) {
+            //         mutations.forEach(function (mutation) {
+            //             // console.log("chat list changed", mutation.type); // 输出 mutation 的类型
+            //             // 获得当前聊天窗口
+            //             window.LLAPI.getPeer().then(peer => {
+            //                 // console.log("current peer", peer)
+            //                 if (peer && peer.chatType == "group"){
+            //                     getGroupMembers(peer.uid, false).then()
+            //                 }
+            //             })
+            //         });
+            //     });
+            //
+            //     // 配置观察选项
+            //     const config = {attributes: true, childList: true, subtree: true};
+            //
+            //     // 传入目标节点和观察选项
+            //     observer.observe(targetNode, config);
+            //
+            // }catch (e) {
+            //     window.llonebot.log(e)
+            // }
+        }
+    }
+
+    getChatListEle();
 }
 
 // 打开设置界面时触发

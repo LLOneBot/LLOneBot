@@ -10,7 +10,6 @@ const CHANNEL_SEND_MSG = "llonebot_sendMsg"
 
 let groups: Group[] = []
 let friends: User[] = []
-let groupMembers: {group_id: string, groupMembers: User[]}[] = []
 
 function sendIPCMsg(channel: string, data: any){
     let contents = webContents.getAllWebContents();
@@ -68,16 +67,16 @@ function startExpress(event: any) {
             })
         }
         else if (jsonData.action == "get_group_member_list"){
-            let group = groupMembers.find(group => group.group_id == jsonData.params.group_id)
+            let group = groups.find(group => group.uid == jsonData.params.group_id)
             if (group){
-                resData["data"] = group.groupMembers.map(member => {
+                resData["data"] = group?.members?.map(member => {
                     return {
                         user_id: member.uin,
-                        user_name: member.nickName,
-                        user_display_name: ""
+                        user_name: member.cardName || member.nick,
+                        user_display_name: member.cardName || member.nick
                     }
 
-                })
+                }) || []
             }
             else{
                 resData["data"] = []
@@ -111,16 +110,6 @@ function onLoad(plugin: any) {
 
     ipcMain.on("updateFriends", (event: any, arg: User[]) => {
         friends = arg
-    })
-
-    ipcMain.on("updateGroupMembers", (event: any, arg: {groupMembers: User[], group_id: string}) => {
-        let existMembers = groupMembers.find(group => group.group_id == arg.group_id)
-        if (existMembers){
-            existMembers.groupMembers = arg.groupMembers
-        }
-        else{
-            groupMembers.push(arg);
-        }
     })
 
     ipcMain.on("postOnebotData", (event: any, arg: any) => {
