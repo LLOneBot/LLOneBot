@@ -74,6 +74,9 @@ export type MessageElement = {
 export type SendMessage = {
     type: "text",
     content: string,
+    atType?: AtType,
+    atUid?: string,
+    atNtUid?: string
 } | {
     type: "image",
     file: string, // 本地路径

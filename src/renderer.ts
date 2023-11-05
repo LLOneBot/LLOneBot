@@ -2,7 +2,8 @@
 
 // import express from "express";
 // const { ipcRenderer } = require('electron');
-import {Group, MessageElement, Peer, PostDataSendMsg, User} from "./types";
+import {AtType, Group, MessageElement, Peer, PostDataSendMsg, User} from "./types";
+
 
 const host = "http://localhost:5000"
 
@@ -50,12 +51,13 @@ async function getGroups() {
 async function getGroupMembers(group_qq: string, forced: boolean = false) {
     let group = await getGroup(group_qq)
     if (!group?.members || group!.members!.length == 0 || forced) {
-        let res = (await window.LLAPI.getGroupMemberList(group_qq + "_groupMemberList_MainWindow", 5000))
+        let res = (await window.LLAPI.getGroupMemberList(group_qq, 5000))
         // console.log(`更新群${group}成员列表 await`, _res)
         // window.LLAPI.getGroupMemberList(group_qq + "_groupMemberList_MainWindow", 5000).then(res =>{
         let members = res.result.infos.values();
+        console.log("getGroupMemberList api response：", res)
         if (members && forced) {
-            group!.members = []
+            group.members = []
         }
         for (const member of members) {
             if (!group!.members!.find(m => m.uid == member.uid)) {
@@ -63,7 +65,7 @@ async function getGroupMembers(group_qq: string, forced: boolean = false) {
             }
         }
         window.llonebot.updateGroups(groups)
-        console.log(`更新群${group}成员列表`, group)
+        console.log(`更新群${group.name}成员列表`, group)
         // })
     }
     return group?.members
@@ -89,8 +91,11 @@ async function forwardMessage(message: MessageElement) {
                 platform: "qq",
                 user_id: self_qq
             },
+            self_id: self_qq,
             time: 0,
             type: "message",
+            post_type: "message",
+            message_type: message.peer.chatType,
             detail_type: message.peer.chatType,
             sub_type: "",
             message: []
@@ -111,28 +116,27 @@ async function forwardMessage(message: MessageElement) {
                 data: {},
                 type: "unknown"
             }
-
-            if (element.textElement?.atType == 2) {
-                message_data["type"] = "at"
-                if (element.textElement.atUid != "0") {
-                    message_data["data"]["mention"] = element.textElement.atUid
-                } else {
-                    let uid = element.textElement.atNtUid
-                    let atMember = await getGroupMember(message.peer.uid, uid)
-                    message_data["data"]["mention"] = atMember!.uin
+                if (element.textElement?.atType == 2) {
+                    message_data["type"] = "at"
+                    if (element.textElement.atUid != "0") {
+                        message_data["data"]["mention"] = element.textElement.atUid
+                    } else {
+                        let uid = element.textElement.atNtUid
+                        let atMember = await getGroupMember(message.peer.uid, uid)
+                        message_data["data"]["mention"] = atMember!.uin
+                    }
+                } else if (element.textElement) {
+                    message_data["type"] = "text"
+                    message_data["data"]["text"] = element.textElement.content
+                } else if (element.picElement) {
+                    message_data["type"] = "image"
+                    message_data["data"]["file_id"] = element.picElement.fileUuid
+                    message_data["data"]["path"] = element.picElement.sourcePath
+                } else if (element.replyElement) {
+                    message_data["type"] = "reply"
+                    message_data["data"]["reply"] = element.replyElement.sourceMsgIdInRecords
                 }
-            } else if (element.textElement) {
-                message_data["type"] = "text"
-                message_data["data"]["text"] = element.textElement.content
-            } else if (element.picElement) {
-                message_data["type"] = "image"
-                message_data["data"]["file_id"] = element.picElement.fileUuid
-                message_data["data"]["path"] = element.picElement.sourcePath
-            } else if (element.replyElement) {
-                message_data["type"] = "reply"
-                message_data["data"]["reply"] = element.replyElement.sourceMsgIdInRecords
-            }
-            onebot_message_data.message.push(message_data)
+                onebot_message_data.message.push(message_data)
         }
 
         console.log("发送上传消息给ipc main", onebot_message_data)
@@ -169,11 +173,20 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                     name: group.name,
                     uid: group.uid
                 }
+                for (let message of postData.params.message){
+                    if (message.type == "text" && message.atType == 2){
+                        let atUid = message.atUid
+                        let group = await getGroup(postData.params.group_id)
+                        let atMember = group.members.find(member => member.uin == atUid)
+                        message.atNtUid = atMember.uid
+                    }
+                }
             } else {
                 console.log("未找到群, 发送群消息失败", postData)
             }
         }
         if (peer) {
+            console.log("发送消息", postData)
             window.LLAPI.sendMessage(peer, postData.params.message).then(res => console.log("消息发送成功:", res),
                 err => console.log("消息发送失败", postData, err))
         }
@@ -187,7 +200,28 @@ function onLoad() {
     window.llonebot.listenSendMessage((postData: PostDataSendMsg) => {
         listenSendMessage(postData).then()
     });
-    getGroups().then()
+
+    async function getGroupsMembers(groupsArg: Group[]) {
+        // 批量获取群成员列表
+        let failedGroups: Group[] = []
+        for (const group of groupsArg) {
+            let handledGroup = await getGroupMembers(group.uid, true)
+            if (handledGroup.length == 0) {
+                failedGroups.push(group)
+            }
+        }
+        if (failedGroups.length > 0) {
+            console.log("获取群成员列表失败，重试", failedGroups.map(group => group.name))
+            setTimeout(() => {
+                getGroupsMembers(failedGroups).then()
+            }, 1000)
+        }
+        else{
+            console.log("全部群成员获取完毕", groups)
+        }
+    }
+
+
 
     function onNewMessages(messages: MessageElement[]) {
         async function func(messages: MessageElement[]) {
@@ -203,41 +237,51 @@ function onLoad() {
         console.log("chatListEle", chatListEle)
     }
 
-    window.LLAPI.on("new-messages", onNewMessages);
-
-    try {
-        window.LLAPI.add_qmenu((qContextMenu: Node) => {
-            let btn = document.createElement("a")
-            btn.className = "q-context-menu-item q-context-menu-item--normal vue-component"
-            btn.setAttribute("aria-disabled", "false")
-            btn.setAttribute("role", "menuitem")
-            btn.setAttribute("tabindex", "-1")
-            btn.onclick = ()=>{
-                // window.LLAPI.getPeer().then(peer => {
-                //     // console.log("current peer", peer)
-                //     if (peer && peer.chatType == "group") {
-                //         getGroupMembers(peer.uid, true).then(()=> {
-                //             console.log("获取群成员列表成功", groups);
-                //             alert("获取群成员列表成功")
-                //         })
-                //     }
-                // })
-                window.LLAPI.getGroupMemberList("164461995", 5000).then(res =>{
-                    console.log("获取群成员列表结果", res)
-                })
-            }
-            btn.innerText = "获取群成员列表"
-            console.log(qContextMenu)
-            // qContextMenu.appendChild(btn)
-            // qContextMenu.insertAdjacentHTML("beforeend", btn)
+    getGroups().then(()=>{
+        getGroupsMembers(groups).then(()=>{
+            window.LLAPI.on("new-messages", onNewMessages);
         })
-    }catch (e){
-        console.log(e)
-    }
+    })
+
+    window.LLAPI.add_qmenu((qContextMenu: Node) => {
+        let btn = document.createElement("a")
+        btn.className = "q-context-menu-item q-context-menu-item--normal vue-component"
+        btn.setAttribute("aria-disabled", "false")
+        btn.setAttribute("role", "menuitem")
+        btn.setAttribute("tabindex", "-1")
+        btn.onclick = ()=>{
+            // window.LLAPI.getPeer().then(peer => {
+            //     // console.log("current peer", peer)
+            //     if (peer && peer.chatType == "group") {
+            //         getGroupMembers(peer.uid, true).then(()=> {
+            //             console.log("获取群成员列表成功", groups);
+            //             alert("获取群成员列表成功")
+            //         })
+            //     }
+            // })
+            async function func() {
+                for (const group of groups) {
+                    await getGroupMembers(group.uid, true)
+                }
+            }
+            func().then(()=> {
+                console.log("获取群成员列表结果", groups);
+                // 找到members数量为空的群
+                groups.map(group => {
+                    if (group.members.length == 0) {
+                        console.log(`${group.name}群成员为空`)
+                    }
+                })
+                window.llonebot.updateGroups(groups)
+            })
+        }
+        btn.innerText = "获取群成员列表"
+        console.log(qContextMenu)
+        qContextMenu.appendChild(btn)
+    })
 
     window.LLAPI.on("context-msg-menu", (event, target, msgIds) => {
-        // console.log("msg menu", event, target, msgIds);
-        // 消息右键菜单添加一个获取群成员列表的按钮
+        console.log("msg menu", event, target, msgIds);
     })
 
     // console.log("getAccountInfo", LLAPI.getAccountInfo());
@@ -247,33 +291,33 @@ function onLoad() {
         if (chatListEle.length == 0) {
             setTimeout(getChatListEle, 500)
         } else {
-            // try {
-            //     // 选择要观察的目标节点
-            //     const targetNode = chatListEle[0];
-            //
-            //     // 创建一个观察器实例并传入回调函数
-            //     const observer = new MutationObserver(function (mutations) {
-            //         mutations.forEach(function (mutation) {
-            //             // console.log("chat list changed", mutation.type); // 输出 mutation 的类型
-            //             // 获得当前聊天窗口
-            //             window.LLAPI.getPeer().then(peer => {
-            //                 // console.log("current peer", peer)
-            //                 if (peer && peer.chatType == "group"){
-            //                     getGroupMembers(peer.uid, false).then()
-            //                 }
-            //             })
-            //         });
-            //     });
-            //
-            //     // 配置观察选项
-            //     const config = {attributes: true, childList: true, subtree: true};
-            //
-            //     // 传入目标节点和观察选项
-            //     observer.observe(targetNode, config);
-            //
-            // }catch (e) {
-            //     window.llonebot.log(e)
-            // }
+            try {
+                // 选择要观察的目标节点
+                const targetNode = chatListEle[0];
+
+                // 创建一个观察器实例并传入回调函数
+                const observer = new MutationObserver(function (mutations) {
+                    mutations.forEach(function (mutation) {
+                        // console.log("chat list changed", mutation.type); // 输出 mutation 的类型
+                        // 获得当前聊天窗口
+                        window.LLAPI.getPeer().then(peer => {
+                            // console.log("current peer", peer)
+                            if (peer && peer.chatType == "group"){
+                                getGroupMembers(peer.uid, false).then()
+                            }
+                        })
+                    });
+                });
+
+                // 配置观察选项
+                const config = {attributes: true, childList: true, subtree: true};
+
+                // 传入目标节点和观察选项
+                observer.observe(targetNode, config);
+
+            }catch (e) {
+                window.llonebot.log(e)
+            }
         }
     }
 

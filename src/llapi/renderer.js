@@ -605,10 +605,10 @@ class Destructor {
             elementId: "",
             textElement: {
                 content: element.content,
-                atType: 0,
-                atUid: "",
+                atType: element.atType || 0,
+                atUid: element.atUid || "",
                 atTinyId: "",
-                atNtUid: "",
+                atNtUid: element.atNtUid,
             },
         };
     }

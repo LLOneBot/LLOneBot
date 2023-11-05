@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "ESNext",
     "module": "commonjs",
     "outDir": "./dist",
     "strict": false,
@@ -9,9 +9,7 @@
     "moduleResolution": "node",
 //    "declaration": false
   },
-  "include": [
-    "src"
-  ],
+  "files": ["src/main.ts", "src/preload.ts"],
   "exclude": [
     "node_modules"
   ]
