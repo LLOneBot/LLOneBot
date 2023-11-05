@@ -31,7 +31,7 @@ declare var llonebot: {
     updateFriends: (friends: User[]) => void
     updateGroupMembers: (data: { groupMembers: User[], group_id: string }) => void
     startExpress: () => void
-    log(data: any): void
+    log(data: any): void,
 };
 
 declare global {

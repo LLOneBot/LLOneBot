@@ -1,10 +1,13 @@
 {
-  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "module": "es6",
     "target": "es6",
-    "outDir": "dist2/"
+    "module": "es6",
+    "outDir": "../dist",
+    "strict": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node"
   },
   "files": ["renderer.ts"],
-  "exclude": ["main.ts", "preload.ts"]
+//  "exclude": ["main.ts", "preload.ts"]
 }

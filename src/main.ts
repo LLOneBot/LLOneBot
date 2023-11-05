@@ -66,7 +66,14 @@ function startExpress(event: any) {
             resData["data"] = groups.map(group => {
                 return {
                     group_id: group.uid,
-                    group_name: group.name
+                    group_name: group.name,
+                    group_members: group.members.map(member => {
+                        return {
+                            user_id: member.uin,
+                            user_name: member.cardName || member.nick,
+                            user_display_name: member.cardName || member.nick
+                        }
+                    })
                 }
             })
         }
@@ -74,10 +81,29 @@ function startExpress(event: any) {
             let group = groups.find(group => group.uid == jsonData.params.group_id)
             if (group){
                 resData["data"] = group?.members?.map(member => {
+                    let role = "member"
+                    switch (member.role) {
+                        case 4: {
+                            role = "owner"
+                            break;
+                        }
+                        case 3:{
+                            role = "admin"
+                            break
+                        }
+                        case 2:{
+                            role = "member"
+                            break
+                        }
+
+                    }
                     return {
                         user_id: member.uin,
-                        user_name: member.cardName || member.nick,
-                        user_display_name: member.cardName || member.nick
+                        user_name: member.nick,
+                        user_display_name: member.cardName || member.nick,
+                        nickname: member.nick,
+                        card: member.cardName,
+                        role
                     }
 
                 }) || []
@@ -96,7 +122,7 @@ function startExpress(event: any) {
         }
         res.send(resData)
     });
-    app.listen(port, () => {
+    app.listen(port,"0.0.0.0", () => {
         console.log(`服务器已启动，监听端口 ${port}`);
     });
 }
@@ -109,6 +135,28 @@ function onLoad(plugin: any) {
     })
 
     ipcMain.on("updateGroups", (event: any, arg: Group[]) => {
+        for(const group of arg){
+            let existGroup = groups.find(g => g.uid == group.uid)
+            if (existGroup){
+                if (!existGroup.members){
+                    existGroup.members = []
+                }
+                existGroup.name = group.name
+                for (const member of group.members || []){
+                    let existMember = existGroup.members?.find(m => m.uin == member.uin)
+                    if (existMember){
+                        existMember.nick = member.nick
+                        existMember.cardName = member.cardName
+                    }
+                    else{
+                        existGroup.members?.push(member)
+                    }
+                }
+            }
+            else{
+                groups.push(group)
+            }
+        }
         groups = arg
     })
 
