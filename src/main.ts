@@ -1,14 +1,9 @@
 // 运行在 Electron 主进程 下的插件入口
 
-import {Group, PostDataSendMsg, User} from "./types";
-// type {Group, PostDataSendMsg, User} = import( "./types");
-// type Group = import( "./types").Group;
-// type PostDataSendMsg = import( "./types").PostDataSendMsg;
-// type User = import( "./types").User;
-
-const express = require("express")
-const {ipcMain, webContents} = require('electron');
 const fs = require('fs');
+import {ipcMain, webContents} from 'electron';
+const express = require("express");
+import {Group, PostDataSendMsg, User} from "./types";
 
 const CHANNEL_SEND_MSG = "llonebot_sendMsg"
 
@@ -237,7 +232,13 @@ function onBrowserWindowCreated(window: any, plugin: any) {
 
 
 // 这两个函数都是可选的
-module.exports = {
-    onLoad,
-    onBrowserWindowCreated
+// module.exports = {
+//     onLoad,
+//     onBrowserWindowCreated
+// }
+// function onLoad(plugin: any) {
+//
+// }
+export {
+    onLoad, onBrowserWindowCreated
 }
