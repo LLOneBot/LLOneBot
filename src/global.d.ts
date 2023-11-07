@@ -1,7 +1,6 @@
 import {Group, GroupMemberInfo, MessageElement, Peer, PostDataSendMsg, SendMessage, User} from "./types";
 
 
-
 declare var LLAPI: {
     on(event: "new-messages", callback: (data: MessageElement[]) => void): void;
     on(event: "context-msg-menu", callback: (event: any, target: any, msgIds:any) => void): void;

@@ -5,12 +5,13 @@
     "outDir": "./dist",
     "strict": false,
     "esModuleInterop": true,
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
-//    "declaration": false
   },
-  "files": ["src/main.ts", "src/preload.ts"],
+  "include": ["src/*"],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "src/types.ts"
   ]
 }

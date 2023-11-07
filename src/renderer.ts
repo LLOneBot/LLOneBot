@@ -116,7 +116,7 @@ async function forwardMessage(message: MessageElement) {
                 data: {},
                 type: "unknown"
             }
-                if (element.textElement?.atType == 2) {
+                if (element.textElement?.atType == AtType.atUser) {
                     message_data["type"] = "at"
                     if (element.textElement.atUid != "0") {
                         message_data["data"]["mention"] = element.textElement.atUid
@@ -192,7 +192,7 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                 if (message.type == "at"){
                     // @ts-ignore
                     message.type = "text"
-                    message.atType = 2
+                    message.atType = AtType.atUser
                     let atUid = message.data?.qq || message.atUid
                     let group = await getGroup(postData.params.group_id)
                     let atMember = group.members.find(member => member.uin == atUid)
