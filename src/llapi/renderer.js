@@ -7,6 +7,8 @@
  * 
  * Copyright (c) 2023 by Night-stars-1, All Rights Reserved. 
  */
+import path from "node:path";
+
 const plugin_path = LiteLoader.plugins.LLAPI.path.plugin;
 const ipcRenderer = LLAPI_PRE.ipcRenderer_LL;
 const ipcRenderer_on = LLAPI_PRE.ipcRenderer_LL_on;
@@ -344,6 +346,7 @@ class Api extends EventEmitter {
                     elements.map(async (element) => {
                         if (element.type == "text") return destructor.destructTextElement(element);
                         else if (element.type == "image") return destructor.destructImageElement(element, await media.prepareImageElement(element.file));
+                        else if (element.type == "voice") return destructor.destructPttElement(element, await media.prepareVoiceElement(element.file));
                         else if (element.type == "face") return destructor.destructFaceElement(element);
                         else if (element.type == "raw") return destructor.destructRawElement(element);
                         else return null;
@@ -644,6 +647,14 @@ class Destructor {
             picElement: picElement,
         };
     }
+
+    destructPttElement(element, pttElement) {
+        return {
+            elementType: 4,
+            elementId: "",
+            pttElement
+        }
+    }
     
     destructFaceElement(element) {
         return {
@@ -811,6 +822,41 @@ class Destructor {
 const destructor = new Destructor();
 
 class Media {
+    async prepareVoiceElement(file) {
+        const type = await ntCall("ns-fsApi", "getFileType", [file]);
+        const md5 = await ntCall("ns-fsApi", "getFileMd5", [file]);
+        const fileName = `${md5}.${type.ext}`;
+        const filePath = await ntCall("ns-ntApi", "nodeIKernelMsgService/getRichMediaFilePath", [
+            {
+                md5HexStr: md5,
+                fileName: fileName,
+                elementType: 4,
+                elementSubType: 0,
+                thumbSize: 0,
+                needCreate: true,
+                fileType: 1,  // 这个未知
+            },
+        ]);
+        const fileSize = await ntCall("ns-fsApi", "getFileSize", [file]);
+        return {
+            canConvert2Text: true,
+            fileName: fileName,
+            filePath: filePath,
+            md5HexStr: md5,
+            fileId: 0,
+            fileSubId: '',
+            fileSize: fileSize,
+            duration: 2,
+            formatType: 1,
+            voiceType: 1,
+            voiceChangeType: 0,
+            playState: 1,
+            waveAmplitudes: [
+                99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99,
+            ],
+        }
+    }
+
     async prepareImageElement(file) {
         const type = await ntCall("ns-fsApi", "getFileType", [file]);
         const md5 = await ntCall("ns-fsApi", "getFileMd5", [file]);

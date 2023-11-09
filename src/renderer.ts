@@ -203,7 +203,7 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                 else if (message.type == "text"){
                     message.content = message.data?.text || message.content
                 }
-                else if (message.type == "image"){
+                else if (message.type == "image" || message.type == "voice"){
                     message.file = message.data?.file || message.file
                 }
             }
