@@ -6,6 +6,7 @@ const express = require("express");
 import {Group, PostDataSendMsg, User} from "./types";
 
 const CHANNEL_SEND_MSG = "llonebot_sendMsg"
+const CHANNEL_RECALL_MSG = "llonebot_recallMsg"
 
 let groups: Group[] = []
 let friends: User[] = []
@@ -114,6 +115,9 @@ function startExpress(event: any) {
                 }
             })
         }
+        else if (jsonData.action == "delete_msg"){
+            sendIPCMsg(CHANNEL_RECALL_MSG, jsonData as {message_id: string})
+        }
         return resData
     }
     // 处理POST请求的路由
@@ -150,6 +154,12 @@ function startExpress(event: any) {
                 jsonData.action = "send_private_msg"
             }
         }
+        let resData = handlePost(jsonData)
+        res.send(resData)
+    })
+    app.post('/delete_msg', (req: any, res: any) => {
+        let jsonData: PostDataSendMsg = req.body;
+        jsonData.action = "delete_msg"
         let resData = handlePost(jsonData)
         res.send(resData)
     })
