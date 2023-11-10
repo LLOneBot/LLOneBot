@@ -10,6 +10,7 @@ const host = "http://localhost:5000"
 let self_qq: string = ""
 let groups: Group[] = []
 let friends: User[] = []
+let msgHistory: MessageElement[] = []
 let uid_maps: Record<string, User> = {}  // 一串加密的字符串 -> qq号
 async function getUserInfo(uid: string): Promise<User> {
     let user = uid_maps[uid]
@@ -97,6 +98,7 @@ async function forwardMessage(message: MessageElement) {
             post_type: "message",
             message_type: message.peer.chatType,
             detail_type: message.peer.chatType,
+            message_id: message.raw.msgId,
             sub_type: "",
             message: []
         }
@@ -140,7 +142,7 @@ async function forwardMessage(message: MessageElement) {
                 }
                 onebot_message_data.message.push(message_data)
         }
-
+        msgHistory.push(message)
         console.log("发送上传消息给ipc main", onebot_message_data)
         window.llonebot.postData(onebot_message_data);
     } catch (e) {
@@ -206,12 +208,23 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                 else if (message.type == "image" || message.type == "voice"){
                     message.file = message.data?.file || message.file
                 }
+                else if (message.type == "reply"){
+                    let msgId = message.data?.id || message.msgId
+                    let replyMessage = msgHistory.find(msg => msg.raw.msgId == msgId)
+                    message.msgId = msgId
+                    message.msgSeq = replyMessage?.raw.msgSeq || ""
+                }
             }
             console.log("发送消息", postData)
             window.LLAPI.sendMessage(peer, postData.params.message).then(res => console.log("消息发送成功:", res),
                 err => console.log("消息发送失败", postData, err))
         }
     }
+}
+
+function recallMessage(msgId: string) {
+    let msg = msgHistory.find(msg => msg.raw.msgId == msgId)
+    window.LLAPI.recallMessage(msg.peer, [msgId]).then()
 }
 
 let chatListEle: HTMLCollectionOf<Element>
@@ -221,6 +234,9 @@ function onLoad() {
     window.llonebot.listenSendMessage((postData: PostDataSendMsg) => {
         listenSendMessage(postData).then()
     });
+    window.llonebot.listenRecallMessage((arg: { message_id: string }) => {
+        recallMessage(arg.message_id)
+    })
 
     async function getGroupsMembers(groupsArg: Group[]) {
         // 批量获取群成员列表

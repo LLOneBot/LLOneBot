@@ -337,13 +337,14 @@ class Api extends EventEmitter {
         }]
      */
     async sendMessage(peer, elements) {
-        ntCall("ns-ntApi", "nodeIKernelMsgService/sendMsg", [
+        return ntCall("ns-ntApi", "nodeIKernelMsgService/sendMsg", [
             {
                 msgId: "0",
                 peer: destructor.destructPeer(peer),
                 msgElements: await Promise.all(
                     elements.map(async (element) => {
                         if (element.type == "text") return destructor.destructTextElement(element);
+                        else if (element.type == "reply") return destructor.destructReplyElement(element);
                         else if (element.type == "image") return destructor.destructImageElement(element, await media.prepareImageElement(element.file));
                         else if (element.type == "voice") return destructor.destructPttElement(element, await media.prepareVoiceElement(element.file));
                         else if (element.type == "face") return destructor.destructFaceElement(element);
@@ -351,6 +352,15 @@ class Api extends EventEmitter {
                         else return null;
                     }),
                 ),
+            },
+            null,
+        ]);
+    }
+    async recallMessage(peer, msgIds) {
+        ntCall("ns-ntApi", "nodeIKernelMsgService/recallMsg", [
+            {
+                msgIds,
+                peer: destructor.destructPeer(peer),
             },
             null,
         ]);
@@ -652,6 +662,18 @@ class Destructor {
             elementType: 4,
             elementId: "",
             pttElement
+        }
+    }
+    destructReplyElement(element) {
+        return {
+            elementType: 7,
+            elementId: "",
+            replyElement: {
+                replayMsgSeq: element.msgSeq, // raw.msgSeq
+                replayMsgId: element.msgId,  // raw.msgId
+                senderUin: element.senderUin,
+                senderUinStr: element.senderUinStr,
+            }
         }
     }
     

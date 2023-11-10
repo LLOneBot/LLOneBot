@@ -2,6 +2,7 @@ export enum AtType {
     notAt = 0,
     atUser = 2
 }
+
 export type GroupMemberInfo = {
     avatarPath: string;
     cardName: string;
@@ -38,8 +39,9 @@ export type Peer = {
 
 export type MessageElement = {
     raw: {
+        msgId: string,
+        msgSeq: string,
         elements: {
-
             replyElement: {
                 senderUid: string,  // 原消息发送者QQ号
                 sourceMsgIsIncPic: boolean;  // 原消息是否有图片
@@ -114,10 +116,18 @@ export type SendMessage = {
     data?: {
         qq: string // at的qq号
     }
+} | {
+    type: "reply",
+    msgId: string,
+    msgSeq: string,
+    senderUin: string,
+    data: {
+        id: string,
+    }
 }
 
 export type PostDataSendMsg = {
-    action: "send_private_msg" | "send_group_msg" | "get_group_list",
+    action: "send_private_msg" | "send_group_msg" | "get_group_list" | "get_friend_list" | "delete_msg",
     message_type?: "private" | "group"
     params?: {
         user_id: string,

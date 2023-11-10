@@ -10,6 +10,7 @@ const {ipcRenderer} = require('electron');
 
 // 在window对象下导出只读对象
 contextBridge.exposeInMainWorld("llonebot", {
+
     postData: (data: any) => {
         ipcRenderer.send("postOnebotData", data);
     },
@@ -21,6 +22,11 @@ contextBridge.exposeInMainWorld("llonebot", {
     },
     listenSendMessage: (handle: (jsonData: PostDataSendMsg) => void) => {
         ipcRenderer.on("llonebot_sendMsg", (event: any, args: PostDataSendMsg) => {
+            handle(args)
+        })
+    },
+    listenRecallMessage: (handle: (jsonData: {message_id: string}) => void) => {
+        ipcRenderer.on("llonebot_recallMsg", (event: any, args: {message_id: string}) => {
             handle(args)
         })
     },
