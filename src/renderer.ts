@@ -258,8 +258,6 @@ function onLoad() {
         }
     }
 
-
-
     function onNewMessages(messages: MessageElement[]) {
         async function func(messages: MessageElement[]) {
             console.log("收到新消息", messages)
@@ -277,6 +275,7 @@ function onLoad() {
     getGroups().then(()=>{
         getGroupsMembers(groups).then(()=>{
             window.LLAPI.on("new-messages", onNewMessages);
+            window.LLAPI.on("new-send-messages", onNewMessages);
         })
     })
 

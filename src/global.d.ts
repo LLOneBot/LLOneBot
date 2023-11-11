@@ -2,7 +2,7 @@ import {Group, GroupMemberInfo, MessageElement, Peer, PostDataSendMsg, SendMessa
 
 
 declare var LLAPI: {
-    on(event: "new-messages", callback: (data: MessageElement[]) => void): void;
+    on(event: "new-messages" | "new-send-messages", callback: (data: MessageElement[]) => void): void;
     on(event: "context-msg-menu", callback: (event: any, target: any, msgIds:any) => void): void;
     getAccountInfo(): Promise<{
         uid: string  // qq
