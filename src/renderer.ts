@@ -138,7 +138,7 @@ async function forwardMessage(message: MessageElement) {
                     message_data["data"]["file"] = element.picElement.sourcePath
                 } else if (element.replyElement) {
                     message_data["type"] = "reply"
-                    message_data["data"]["reply"] = element.replyElement.sourceMsgIdInRecords
+                    message_data["data"]["id"] = msgHistory.find(msg => msg.raw.msgSeq == element.replyElement.replayMsgSeq)?.raw.msgId
                 }
                 onebot_message_data.message.push(message_data)
         }

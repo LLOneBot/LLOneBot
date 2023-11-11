@@ -46,7 +46,7 @@ export type MessageElement = {
                 senderUid: string,  // 原消息发送者QQ号
                 sourceMsgIsIncPic: boolean;  // 原消息是否有图片
                 sourceMsgText: string;
-                sourceMsgIdInRecords: string;  // 原消息id
+                replayMsgSeq: string;  // 源消息的msgSeq，可以通过这个找到源消息的msgId
             },
             textElement: {
                 atType: AtType
