@@ -138,3 +138,8 @@ export type PostDataSendMsg = {
     group_id: string,
     message: SendMessage[];
 }
+
+export type Config = {
+    port: number,
+    host: string,
+}

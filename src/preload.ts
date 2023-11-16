@@ -1,6 +1,6 @@
 // Electron 主进程 与 渲染进程 交互的桥梁
 
-import {Group, PostDataSendMsg, User} from "./types";
+import {Config, Group, PostDataSendMsg, User} from "./types";
 // type Group = import( "./types").Group;
 // type PostDataSendMsg = import( "./types").PostDataSendMsg;
 // type User = import( "./types").User;
@@ -35,6 +35,12 @@ contextBridge.exposeInMainWorld("llonebot", {
     },
     log: (data: any) => {
         ipcRenderer.send("log", data);
+    },
+    setConfig: (config: Config)=>{
+        ipcRenderer.send("llonebot_setConfig", config);
+    },
+    getConfig: async () => {
+        return ipcRenderer.invoke("llonebot_getConfig");
     }
     // startExpress,
 });
