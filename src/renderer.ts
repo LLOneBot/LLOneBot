@@ -361,8 +361,42 @@ function onLoad() {
 }
 
 // 打开设置界面时触发
-function onConfigView(view: any) {
-
+async function onConfigView(view: any) {
+    // 插件本体的路径
+    // const plugin_path = (window as any).LiteLoader.plugins.LLOneBot.path;
+    const {port, host} = await window.llonebot.getConfig()
+    const html = `
+    <section>
+        <div>
+            <label>监听端口</label>
+            <input id="port" type="number" value="${port}"/>
+        </div>
+        <div>
+            <label>事件上报地址(http)</label>
+            <input id="host" type="text" value="${host}"/>
+        </div>
+        <button id="save">保存(重启QQ后生效)</button>
+    </section>
+    `
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    doc.getElementById("save")?.addEventListener("click",
+        () => {
+            const portEle: HTMLInputElement = document.getElementById("port") as HTMLInputElement
+            const hostEle: HTMLInputElement = document.getElementById("host") as HTMLInputElement
+            // const port = doc.querySelector("input[type=number]")?.value
+            // const host = doc.querySelector("input[type=text]")?.value
+            // 获取端口和host
+            const port = portEle.value
+            const host = hostEle.value
+            if (port && host) {
+                window.llonebot.setConfig({
+                    port: parseInt(port),
+                    host: host
+                })
+            }
+        })
+    doc.querySelectorAll("section").forEach((node) => view.appendChild(node));
 }
 
 export {

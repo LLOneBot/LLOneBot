@@ -1,4 +1,4 @@
-import {Group, GroupMemberInfo, MessageElement, Peer, PostDataSendMsg, SendMessage, User} from "./types";
+import {Config, Group, GroupMemberInfo, MessageElement, Peer, PostDataSendMsg, SendMessage, User} from "./types";
 
 
 declare var LLAPI: {
@@ -31,11 +31,14 @@ declare var llonebot: {
     updateGroupMembers: (data: { groupMembers: User[], group_id: string }) => void
     startExpress: () => void
     log(data: any): void,
+    setConfig(config: Config):void;
+    getConfig():Promise<Config>;
 };
 
 declare global {
     interface Window {
         LLAPI: typeof LLAPI;
         llonebot: typeof llonebot;
+        LiteLoader: any;
     }
 }
