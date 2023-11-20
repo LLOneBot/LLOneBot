@@ -1,4 +1,4 @@
-import {Config, Group, GroupMemberInfo, MessageElement, Peer, PostDataSendMsg, SendMessage, User} from "./types";
+import {Config, Group, GroupMemberInfo, MessageElement, Peer, PostDataSendMsg, SendMessage, User} from "./common/types";
 
 
 declare var LLAPI: {
@@ -9,7 +9,7 @@ declare var LLAPI: {
         uin: string  // 一串加密的字符串
     }>
 
-    // uid是一串加密的字符串, 收到群消息的时候，可以用此函数获取群成员的qq号
+    // uid是一串加密的字符串
     getUserInfo(uid: string): Promise<User>;
     sendMessage(peer: Peer, message: SendMessage[]): Promise<any>;
     recallMessage(peer: Peer, msgIds: string[]): Promise<void>;

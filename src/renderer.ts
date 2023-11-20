@@ -2,10 +2,7 @@
 
 // import express from "express";
 // const { ipcRenderer } = require('electron');
-import {AtType, Group, MessageElement, Peer, PostDataSendMsg, User} from "./types";
-
-
-const host = "http://localhost:5000"
+import {AtType, Group, MessageElement, Peer, PostDataSendMsg, User} from "./common/types";
 
 let self_qq: string = ""
 let groups: Group[] = []
@@ -85,8 +82,8 @@ async function getGroupMember(group_qq: string, member_uid: string) {
 }
 
 
-async function forwardMessage(message: MessageElement) {
-    try {
+async function handleNewMessage(messages: MessageElement[]) {
+    for (let message of messages) {
         let onebot_message_data: any = {
             self: {
                 platform: "qq",
@@ -118,42 +115,33 @@ async function forwardMessage(message: MessageElement) {
                 data: {},
                 type: "unknown"
             }
-                if (element.textElement?.atType == AtType.atUser) {
-                    message_data["type"] = "at"
-                    if (element.textElement.atUid != "0") {
-                        message_data["data"]["mention"] = element.textElement.atUid
-                    } else {
-                        let uid = element.textElement.atNtUid
-                        let atMember = await getGroupMember(message.peer.uid, uid)
-                        message_data["data"]["mention"] = atMember!.uin
-                        message_data["data"]["qq"] = atMember!.uin
-                    }
-                } else if (element.textElement) {
-                    message_data["type"] = "text"
-                    message_data["data"]["text"] = element.textElement.content
-                } else if (element.picElement) {
-                    message_data["type"] = "image"
-                    message_data["data"]["file_id"] = element.picElement.fileUuid
-                    message_data["data"]["path"] = element.picElement.sourcePath
-                    message_data["data"]["file"] = element.picElement.sourcePath
-                } else if (element.replyElement) {
-                    message_data["type"] = "reply"
-                    message_data["data"]["id"] = msgHistory.find(msg => msg.raw.msgSeq == element.replyElement.replayMsgSeq)?.raw.msgId
+            if (element.textElement?.atType == AtType.atUser) {
+                message_data["type"] = "at"
+                if (element.textElement.atUid != "0") {
+                    message_data["data"]["mention"] = element.textElement.atUid
+                } else {
+                    let uid = element.textElement.atNtUid
+                    let atMember = await getGroupMember(message.peer.uid, uid)
+                    message_data["data"]["mention"] = atMember!.uin
+                    message_data["data"]["qq"] = atMember!.uin
                 }
-                onebot_message_data.message.push(message_data)
+            } else if (element.textElement) {
+                message_data["type"] = "text"
+                message_data["data"]["text"] = element.textElement.content
+            } else if (element.picElement) {
+                message_data["type"] = "image"
+                message_data["data"]["file_id"] = element.picElement.fileUuid
+                message_data["data"]["path"] = element.picElement.sourcePath
+                message_data["data"]["file"] = element.picElement.sourcePath
+            } else if (element.replyElement) {
+                message_data["type"] = "reply"
+                message_data["data"]["id"] = msgHistory.find(msg => msg.raw.msgSeq == element.replyElement.replayMsgSeq)?.raw.msgId
+            }
+            onebot_message_data.message.push(message_data)
         }
         msgHistory.push(message)
         console.log("发送上传消息给ipc main", onebot_message_data)
         window.llonebot.postData(onebot_message_data);
-    } catch (e) {
-        console.log("上传消息事件失败", e)
-    }
-}
-
-async function handleNewMessage(messages: MessageElement[]) {
-    for (let message of messages) {
-        console.log("new message raw", message)
-        forwardMessage(message).then();
     }
 }
 
