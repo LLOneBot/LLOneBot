@@ -12,6 +12,6 @@
   "include": ["src/*"],
   "exclude": [
     "node_modules",
-    "src/types.ts"
+    "src/common/types.ts"
   ]
 }
