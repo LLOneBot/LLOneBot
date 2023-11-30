@@ -3,6 +3,7 @@
 // import express from "express";
 // const { ipcRenderer } = require('electron');
 import {AtType, Group, MessageElement, OnebotGroupMemberRole, Peer, PostDataSendMsg, User} from "./common/types";
+import * as stream from "stream";
 
 let self_qq: string = ""
 let groups: Group[] = []
@@ -219,8 +220,7 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                     let localFilePath = `${Date.now()}${ext}`
                     if (uri.protocol == "file:") {
                         localFilePath = url.split("file://")[1]
-                    }
-                    else{
+                    } else {
                         await window.llonebot.downloadFile({uri: url, localFilePath: localFilePath})
                     }
                     message.file = localFilePath
@@ -388,41 +388,77 @@ function onLoad() {
 
 // 打开设置界面时触发
 async function onConfigView(view: any) {
-    // 插件本体的路径
-    // const plugin_path = (window as any).LiteLoader.plugins.LLOneBot.path;
-    const {port, host} = await window.llonebot.getConfig()
+    const {port, hosts} = await window.llonebot.getConfig()
+
+    function creatHostEleStr(host: string) {
+        let eleStr = `
+            <div class="hostItem vertical-list-item">
+                <h2>事件上报地址(http)</h2>
+                <input class="host" type="text" value="${host}" 
+                style="width:60%;padding: 5px"
+                placeholder="不支持localhost,如果是本机请填写局域网ip"/>
+            </div>
+            `
+        return eleStr
+    }
+
+    let hostsEleStr = ""
+    for (const host of hosts) {
+        hostsEleStr += creatHostEleStr(host);
+    }
     const html = `
-    <section>
-        <div>
-            <label>监听端口</label>
+    <section class="wrap">
+        <div class="vertical-list-item">
+            <h2>监听端口</h2>
             <input id="port" type="number" value="${port}"/>
         </div>
         <div>
-            <label>事件上报地址(http)</label>
-            <input id="host" type="text" value="${host}"/>
+            <button id="addHost" class="q-button">添加上报地址</button>
         </div>
-        <button id="save">保存(重启QQ后生效)</button>
+        <div id="hostItems">
+            ${hostsEleStr}
+        </div>
+        <button id="save" class="q-button">保存(监听端口重启QQ后生效)</button>
     </section>
     `
+
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, "text/html");
+
+
+    function addHostEle(initValue: string = "") {
+        let addressDoc = parser.parseFromString(creatHostEleStr(initValue), "text/html");
+        let addressEle = addressDoc.querySelector("div")
+        let hostItemsEle = document.getElementById("hostItems");
+        hostItemsEle.appendChild(addressEle);
+    }
+
+
+    doc.getElementById("addHost").addEventListener("click", () => addHostEle())
+
     doc.getElementById("save")?.addEventListener("click",
         () => {
             const portEle: HTMLInputElement = document.getElementById("port") as HTMLInputElement
-            const hostEle: HTMLInputElement = document.getElementById("host") as HTMLInputElement
+            const hostEles: HTMLCollectionOf<HTMLInputElement> = document.getElementsByClassName("host") as HTMLCollectionOf<HTMLInputElement>;
             // const port = doc.querySelector("input[type=number]")?.value
             // const host = doc.querySelector("input[type=text]")?.value
             // 获取端口和host
             const port = portEle.value
-            const host = hostEle.value
-            if (port && host) {
-                window.llonebot.setConfig({
-                    port: parseInt(port),
-                    host: host
-                })
+            let hosts: string[] = [];
+            for (const hostEle of hostEles) {
+                if (hostEle.value) {
+                    hosts.push(hostEle.value);
+                }
             }
+            window.llonebot.setConfig({
+                port: parseInt(port),
+                hosts: hosts
+            })
+            alert("保存成功");
         })
     doc.querySelectorAll("section").forEach((node) => view.appendChild(node));
+
+
 }
 
 export {

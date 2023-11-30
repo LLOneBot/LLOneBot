@@ -11,10 +11,14 @@ export class ConfigUtil{
 
     getConfig(): Config{
         if (!fs.existsSync(this.configPath)) {
-            return {"port":3000, "host": "http://localhost:5000/"}
+            return {port:3000, hosts: ["http://192.168.1.2:5000/"]}
         } else {
             const data = fs.readFileSync(this.configPath, "utf-8");
-            return JSON.parse(data);
+            let jsonData =JSON.parse(data);
+            if (!jsonData.hosts){
+                jsonData.hosts = []
+            }
+            return jsonData;
         }
     }
 }
