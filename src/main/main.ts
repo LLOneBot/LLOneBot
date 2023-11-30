@@ -89,21 +89,23 @@ function onLoad(plugin: any) {
     })
 
     ipcMain.on(CHANNEL_POST_ONEBOT_DATA, (event: any, arg: any) => {
-        try {
-            fetch(configUtil.getConfig().host, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-self-id": selfInfo.user_id
-                },
-                body: JSON.stringify(arg)
-            }).then((res: any) => {
-                log("新消息事件上传");
-            }, (err: any) => {
-                log("新消息事件上传失败:" + err + JSON.stringify(arg));
-            });
-        } catch (e: any) {
-            log(e.toString())
+        for(const host of configUtil.getConfig().hosts) {
+            try {
+                fetch(host, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-self-id": selfInfo.user_id
+                    },
+                    body: JSON.stringify(arg)
+                }).then((res: any) => {
+                    log("新消息事件上传");
+                }, (err: any) => {
+                    log("新消息事件上传失败:" + err + JSON.stringify(arg));
+                });
+            } catch (e: any) {
+                log(e.toString())
+            }
         }
     })
 

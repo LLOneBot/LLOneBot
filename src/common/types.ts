@@ -156,5 +156,5 @@ export type PostDataSendMsg = {
 
 export type Config = {
     port: number,
-    host: string,
+    hosts: string[],
 }
