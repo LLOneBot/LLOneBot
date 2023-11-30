@@ -5,9 +5,10 @@ import * as path from "path";
 const fs = require('fs');
 import {ipcMain} from 'electron';
 
-import {Config, Group, User} from "../common/types";
+import {Config, Group, SelfInfo, User} from "../common/types";
 import {
-    CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_POST_ONEBOT_DATA,
+    CHANNEL_DOWNLOAD_FILE,
+    CHANNEL_GET_CONFIG, CHANNEL_GET_SELF_INFO, CHANNEL_LOG, CHANNEL_POST_ONEBOT_DATA,
     CHANNEL_SET_CONFIG,
     CHANNEL_START_HTTP_SERVER, CHANNEL_UPDATE_FRIENDS,
     CHANNEL_UPDATE_GROUPS
@@ -15,7 +16,7 @@ import {
 import {ConfigUtil} from "./config";
 import {startExpress} from "./HttpServer";
 import {log} from "./utils";
-import {friends, groups} from "./data";
+import {friends, groups, selfInfo} from "./data";
 
 
 
@@ -30,6 +31,24 @@ function onLoad(plugin: any) {
     }
     ipcMain.handle(CHANNEL_GET_CONFIG, (event: any, arg: any) => {
         return configUtil.getConfig()
+    })
+    ipcMain.handle(CHANNEL_DOWNLOAD_FILE, async (event: any, arg: {uri: string, localFilePath: string}) => {
+        let url = new URL(arg.uri);
+        if (url.protocol == "base64:"){
+            // base64转成文件
+            let base64Data = arg.uri.split("base64://")[1]
+            const buffer = Buffer.from(base64Data, 'base64');
+
+            fs.writeFileSync(arg.localFilePath, buffer);
+        }
+        else if (url.protocol == "http:" || url.protocol == "https:") {
+            // 下载文件
+            let res = await fetch(url)
+            let blob = await res.blob();
+            let buffer = await blob.arrayBuffer();
+            fs.writeFileSync(arg.localFilePath, Buffer.from(buffer));
+        }
+        return arg.localFilePath;
     })
     ipcMain.on(CHANNEL_SET_CONFIG, (event: any, arg: Config) => {
         fs.writeFileSync(configFilePath, JSON.stringify(arg, null, 2), "utf-8")
@@ -74,7 +93,8 @@ function onLoad(plugin: any) {
             fetch(configUtil.getConfig().host, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "x-self-id": selfInfo.user_id
                 },
                 body: JSON.stringify(arg)
             }).then((res: any) => {
@@ -91,7 +111,10 @@ function onLoad(plugin: any) {
         log(arg)
     })
 
-
+    ipcMain.on(CHANNEL_GET_SELF_INFO, (event: any, arg: SelfInfo) => {
+        selfInfo.user_id = arg.user_id;
+        selfInfo.nickname = arg.nickname;
+    })
 }
 
 

@@ -17,6 +17,18 @@ export type GroupMemberInfo = {
     uin: string; // QQ号
 }
 
+export const OnebotGroupMemberRole = {
+    4: 'owner',
+    3: 'admin',
+    2: 'member'
+}
+
+
+export type SelfInfo = {
+    user_id: string;
+    nickname: string;
+}
+
 export type User = {
     avatarUrl?: string;
     bio?: string;  // 签名
@@ -126,8 +138,11 @@ export type SendMessage = {
     }
 }
 
+export type PostDataAction = "send_private_msg" | "send_group_msg" | "get_group_list"
+| "get_friend_list" | "delete_msg" | "get_login_info"
+
 export type PostDataSendMsg = {
-    action: "send_private_msg" | "send_group_msg" | "get_group_list" | "get_friend_list" | "delete_msg",
+    action: PostDataAction
     message_type?: "private" | "group"
     params?: {
         user_id: string,
