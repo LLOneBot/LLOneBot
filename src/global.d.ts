@@ -1,16 +1,25 @@
-import {Config, Group, GroupMemberInfo, MessageElement, Peer, PostDataSendMsg, SendMessage, User} from "./common/types";
+import {
+    Config,
+    Group,
+    GroupMemberInfo,
+    MessageElement,
+    Peer,
+    PostDataSendMsg,
+    SelfInfo,
+    SendMessage,
+    User
+} from "./common/types";
 
 
 declare var LLAPI: {
     on(event: "new-messages" | "new-send-messages", callback: (data: MessageElement[]) => void): void;
     on(event: "context-msg-menu", callback: (event: any, target: any, msgIds:any) => void): void;
     getAccountInfo(): Promise<{
-        uid: string  // qq
-        uin: string  // 一串加密的字符串
+        uid: string  // 一串加密的字符串
+        uin: string  // qq
     }>
 
-    // uid是一串加密的字符串
-    getUserInfo(uid: string): Promise<User>;
+    getUserInfo(uid: string): Promise<User>; // uid是一串加密的字符串
     sendMessage(peer: Peer, message: SendMessage[]): Promise<any>;
     recallMessage(peer: Peer, msgIds: string[]): Promise<void>;
     getGroupsList(forced: boolean): Promise<Group[]>
@@ -33,6 +42,8 @@ declare var llonebot: {
     log(data: any): void,
     setConfig(config: Config):void;
     getConfig():Promise<Config>;
+    setSelfInfo(selfInfo: SelfInfo):void;
+    downloadFile(arg: {uri: string, localFilePath: string}):Promise<string>;
 };
 
 declare global {

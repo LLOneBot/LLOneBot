@@ -2,7 +2,7 @@
 
 // import express from "express";
 // const { ipcRenderer } = require('electron');
-import {AtType, Group, MessageElement, Peer, PostDataSendMsg, User} from "./common/types";
+import {AtType, Group, MessageElement, OnebotGroupMemberRole, Peer, PostDataSendMsg, User} from "./common/types";
 
 let self_qq: string = ""
 let groups: Group[] = []
@@ -99,16 +99,26 @@ async function handleNewMessage(messages: MessageElement[]) {
             sub_type: "",
             message: []
         }
-        // let group: Group
         if (message.peer.chatType == "group") {
             let group_id = message.peer.uid
             let group = (await getGroup(group_id))!
             onebot_message_data["group_id"] = message.peer.uid
             let groupMember = await getGroupMember(group_id, message.sender.uid)
             onebot_message_data["user_id"] = groupMember!.uin
+            onebot_message_data.sender = {
+                user_id: groupMember!.uin,
+                nickname: groupMember!.nick,
+                card: groupMember!.cardName,
+                role: OnebotGroupMemberRole[groupMember!.role]
+            }
             console.log("收到群消息", onebot_message_data)
         } else if (message.peer.chatType == "private") {
             onebot_message_data["user_id"] = message.peer.uid
+            let friend = getFriend(message.sender.uid)
+            onebot_message_data.sender = {
+                user_id: friend!.uin,
+                nickname: friend!.nickName
+            }
         }
         for (let element of message.raw.elements) {
             let message_data: any = {
@@ -132,7 +142,11 @@ async function handleNewMessage(messages: MessageElement[]) {
                 message_data["type"] = "image"
                 message_data["data"]["file_id"] = element.picElement.fileUuid
                 message_data["data"]["path"] = element.picElement.sourcePath
-                message_data["data"]["file"] = element.picElement.sourcePath
+                let startS = "file://"
+                if (!element.picElement.sourcePath.startsWith("/")) {
+                    startS += "/"
+                }
+                message_data["data"]["file"] = startS + element.picElement.sourcePath
             } else if (element.replyElement) {
                 message_data["type"] = "reply"
                 message_data["data"]["id"] = msgHistory.find(msg => msg.raw.msgSeq == element.replyElement.replayMsgSeq)?.raw.msgId
@@ -148,7 +162,7 @@ async function handleNewMessage(messages: MessageElement[]) {
 async function listenSendMessage(postData: PostDataSendMsg) {
     if (postData.action == "send_private_msg" || postData.action == "send_group_msg") {
         let peer: Peer | null = null;
-        if (!postData.params){
+        if (!postData.params) {
             postData.params = {
                 message: postData.message,
                 user_id: postData.user_id,
@@ -178,8 +192,8 @@ async function listenSendMessage(postData: PostDataSendMsg) {
             }
         }
         if (peer) {
-            for (let message of postData.params.message){
-                if (message.type == "at"){
+            for (let message of postData.params.message) {
+                if (message.type == "at") {
                     // @ts-ignore
                     message.type = "text"
                     message.atType = AtType.atUser
@@ -189,20 +203,35 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                     message.atNtUid = atMember.uid
                     message.atUid = atUid
                     message.content = `@${atMember.cardName || atMember.nick}`
-                }
-                else if (message.type == "text"){
+                } else if (message.type == "text") {
                     message.content = message.data?.text || message.content
-                }
-                else if (message.type == "image" || message.type == "voice"){
-                    message.file = message.data?.file || message.file
-                }
-                else if (message.type == "reply"){
+                } else if (message.type == "image" || message.type == "voice") {
+                    // todo: 收到的应该是uri格式的，需要转成本地的, uri格式有三种，http, file, base64
+                    let url = message.data?.file || message.file
+                    let uri = new URL(url);
+                    let ext: string;
+                    if (message.type == "image") {
+                        ext = ".png"
+                    }
+                    if (message.type == "voice") {
+                        ext = ".amr"
+                    }
+                    let localFilePath = `${Date.now()}${ext}`
+                    if (uri.protocol == "file:") {
+                        localFilePath = url.split("file://")[1]
+                    }
+                    else{
+                        await window.llonebot.downloadFile({uri: url, localFilePath: localFilePath})
+                    }
+                    message.file = localFilePath
+                } else if (message.type == "reply") {
                     let msgId = message.data?.id || message.msgId
                     let replyMessage = msgHistory.find(msg => msg.raw.msgId == msgId)
                     message.msgId = msgId
                     message.msgSeq = replyMessage?.raw.msgSeq || ""
                 }
             }
+            // 发送完之后要删除下载的文件
             console.log("发送消息", postData)
             window.LLAPI.sendMessage(peer, postData.params.message).then(res => console.log("消息发送成功:", res),
                 err => console.log("消息发送失败", postData, err))
@@ -240,8 +269,7 @@ function onLoad() {
             setTimeout(() => {
                 getGroupsMembers(failedGroups).then()
             }, 1000)
-        }
-        else{
+        } else {
             console.log("全部群成员获取完毕", groups)
         }
     }
@@ -260,10 +288,19 @@ function onLoad() {
         console.log("chatListEle", chatListEle)
     }
 
-    getGroups().then(()=>{
-        getGroupsMembers(groups).then(()=>{
+    getGroups().then(() => {
+        getGroupsMembers(groups).then(() => {
             window.LLAPI.on("new-messages", onNewMessages);
             window.LLAPI.on("new-send-messages", onNewMessages);
+        })
+    })
+
+    window.LLAPI.getAccountInfo().then(accountInfo => {
+        window.LLAPI.getUserInfo(accountInfo.uid).then(userInfo => {
+            window.llonebot.setSelfInfo({
+                user_id: accountInfo.uin,
+                nickname: userInfo.nickName
+            })
         })
     })
 
@@ -273,7 +310,7 @@ function onLoad() {
         btn.setAttribute("aria-disabled", "false")
         btn.setAttribute("role", "menuitem")
         btn.setAttribute("tabindex", "-1")
-        btn.onclick = ()=>{
+        btn.onclick = () => {
             // window.LLAPI.getPeer().then(peer => {
             //     // console.log("current peer", peer)
             //     if (peer && peer.chatType == "group") {
@@ -288,7 +325,8 @@ function onLoad() {
                     await getGroupMembers(group.uid, true)
                 }
             }
-            func().then(()=> {
+
+            func().then(() => {
                 console.log("获取群成员列表结果", groups);
                 // 找到members数量为空的群
                 groups.map(group => {
@@ -326,7 +364,7 @@ function onLoad() {
                         // 获得当前聊天窗口
                         window.LLAPI.getPeer().then(peer => {
                             // console.log("current peer", peer)
-                            if (peer && peer.chatType == "group"){
+                            if (peer && peer.chatType == "group") {
                                 getGroupMembers(peer.uid, false).then()
                             }
                         })
@@ -339,7 +377,7 @@ function onLoad() {
                 // 传入目标节点和观察选项
                 observer.observe(targetNode, config);
 
-            }catch (e) {
+            } catch (e) {
                 window.llonebot.log(e)
             }
         }

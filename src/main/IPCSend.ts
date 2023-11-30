@@ -1,4 +1,4 @@
-import {webContents} from 'electron';
+import {ipcMain, webContents} from 'electron';
 import {PostDataSendMsg} from "../common/types";
 import {CHANNEL_RECALL_MSG, CHANNEL_SEND_MSG} from "../common/IPCChannel";
 
