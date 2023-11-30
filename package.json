@@ -9,9 +9,9 @@
     "build-main": "webpack --config webpack.main.config.js",
     "build-preload": "webpack --config webpack.preload.config.js",
     "build-renderer": "webpack --config webpack.renderer.config.js",
-    "build-mac": "npm run build && npm run deploy-mac",
+    "build-mac": "npm run build && cp manifest.json dist/ && npm run deploy-mac",
     "deploy-mac": "cp dist/* ~/Library/Containers/com.tencent.qq/Data/Documents/LiteLoaderQQNT/plugins/LLOnebot/",
-    "build-win": "npm run build && npm run deploy-win",
+    "build-win": "npm run build && cp manifest.json dist/ && npm run deploy-win",
     "deploy-win": "cmd /c \"copy dist\\* %USERPROFILE%\\documents\\LiteLoaderQQNT\\plugins\\LLOnebot\\\""
   },
   "author": "",
