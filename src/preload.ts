@@ -3,7 +3,7 @@
 import {Config, Group, PostDataSendMsg, SelfInfo, User} from "./common/types";
 import {
     CHANNEL_DOWNLOAD_FILE,
-    CHANNEL_GET_CONFIG, CHANNEL_GET_SELF_INFO, CHANNEL_LOG, CHANNEL_POST_ONEBOT_DATA,
+    CHANNEL_GET_CONFIG, CHANNEL_SET_SELF_INFO, CHANNEL_LOG, CHANNEL_POST_ONEBOT_DATA,
     CHANNEL_RECALL_MSG, CHANNEL_SEND_MSG,
     CHANNEL_SET_CONFIG,
     CHANNEL_START_HTTP_SERVER, CHANNEL_UPDATE_FRIENDS, CHANNEL_UPDATE_GROUPS
@@ -48,7 +48,7 @@ contextBridge.exposeInMainWorld("llonebot", {
         return ipcRenderer.invoke(CHANNEL_GET_CONFIG);
     },
     setSelfInfo(selfInfo: SelfInfo){
-        ipcRenderer.send(CHANNEL_GET_SELF_INFO, selfInfo)
+        ipcRenderer.invoke(CHANNEL_SET_SELF_INFO, selfInfo)
     },
     downloadFile: async (arg: {uri: string, localFilePath: string}) => {
         return ipcRenderer.invoke(CHANNEL_DOWNLOAD_FILE, arg);

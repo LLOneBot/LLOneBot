@@ -139,7 +139,7 @@ export type SendMessage = {
 }
 
 export type PostDataAction = "send_private_msg" | "send_group_msg" | "get_group_list"
-| "get_friend_list" | "delete_msg" | "get_login_info"
+| "get_friend_list" | "delete_msg" | "get_login_info" | "get_group_member_list" | "get_group_member_info"
 
 export type PostDataSendMsg = {
     action: PostDataAction

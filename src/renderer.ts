@@ -247,7 +247,7 @@ function recallMessage(msgId: string) {
 let chatListEle: HTMLCollectionOf<Element>
 
 function onLoad() {
-    window.llonebot.startExpress();
+
     window.llonebot.listenSendMessage((postData: PostDataSendMsg) => {
         listenSendMessage(postData).then()
     });
@@ -300,7 +300,8 @@ function onLoad() {
             window.llonebot.setSelfInfo({
                 user_id: accountInfo.uin,
                 nickname: userInfo.nickName
-            })
+            });
+            window.llonebot.startExpress();
         })
     })
 

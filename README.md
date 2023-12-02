@@ -1,6 +1,6 @@
 # LLOneBot API
 
-将NTQQLiteLoaderAPI封装成OneBot11/12标准的API
+将NTQQLiteLoaderAPI封装成OneBot11/12标准的API, V12没有完整测试
 
 ## 安装方法
 
@@ -37,5 +37,16 @@
 - [x] 发送语音(只测试了silk编码的amr)
 - [ ] 转发消息记录
 - [ ] xml
+
+支持的api:
+- [x] get_login_info
+- [x] send_msg
+- [x] send_group_msg
+- [x] send_private_msg
+- [x] delete_msg
+- [x] get_group_list
+- [x] get_group_member_list
+- [x] get_group_member_info
+- [x] get_friend_list
 
 **自己发送成功的消息也会上报，可以用于获取需要撤回消息的id**

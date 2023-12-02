@@ -1,16 +1,18 @@
 // 运行在 Electron 主进程 下的插件入口
 
 import * as path from "path";
-
-const fs = require('fs');
 import {ipcMain} from 'electron';
 
 import {Config, Group, SelfInfo, User} from "../common/types";
 import {
     CHANNEL_DOWNLOAD_FILE,
-    CHANNEL_GET_CONFIG, CHANNEL_GET_SELF_INFO, CHANNEL_LOG, CHANNEL_POST_ONEBOT_DATA,
+    CHANNEL_GET_CONFIG,
+    CHANNEL_SET_SELF_INFO,
+    CHANNEL_LOG,
+    CHANNEL_POST_ONEBOT_DATA,
     CHANNEL_SET_CONFIG,
-    CHANNEL_START_HTTP_SERVER, CHANNEL_UPDATE_FRIENDS,
+    CHANNEL_START_HTTP_SERVER,
+    CHANNEL_UPDATE_FRIENDS,
     CHANNEL_UPDATE_GROUPS
 } from "../common/IPCChannel";
 import {ConfigUtil} from "./config";
@@ -18,19 +20,22 @@ import {startExpress} from "./HttpServer";
 import {log} from "./utils";
 import {friends, groups, selfInfo} from "./data";
 
+const fs = require('fs');
 
 
 // 加载插件时触发
 function onLoad(plugin: any) {
 
-    const configFilePath = path.join(plugin.path.data, "config.json")
-    let configUtil = new ConfigUtil(configFilePath)
+    function getConfigUtil() {
+        const configFilePath = path.join(plugin.path.data, `config_${selfInfo.user_id}.json`)
+        return new ConfigUtil(configFilePath)
+    }
 
     if (!fs.existsSync(plugin.path.data)) {
         fs.mkdirSync(plugin.path.data, {recursive: true});
     }
     ipcMain.handle(CHANNEL_GET_CONFIG, (event: any, arg: any) => {
-        return configUtil.getConfig()
+        return getConfigUtil().getConfig()
     })
     ipcMain.handle(CHANNEL_DOWNLOAD_FILE, async (event: any, arg: {uri: string, localFilePath: string}) => {
         let url = new URL(arg.uri);
@@ -51,11 +56,11 @@ function onLoad(plugin: any) {
         return arg.localFilePath;
     })
     ipcMain.on(CHANNEL_SET_CONFIG, (event: any, arg: Config) => {
-        fs.writeFileSync(configFilePath, JSON.stringify(arg, null, 2), "utf-8")
+        getConfigUtil().setConfig(arg)
     })
 
     ipcMain.on(CHANNEL_START_HTTP_SERVER, (event: any, arg: any) => {
-        startExpress(configUtil.getConfig().port)
+        startExpress(getConfigUtil().getConfig().port)
     })
 
     ipcMain.on(CHANNEL_UPDATE_GROUPS, (event: any, arg: Group[]) => {
@@ -89,7 +94,7 @@ function onLoad(plugin: any) {
     })
 
     ipcMain.on(CHANNEL_POST_ONEBOT_DATA, (event: any, arg: any) => {
-        for(const host of configUtil.getConfig().hosts) {
+        for(const host of getConfigUtil().getConfig().hosts) {
             try {
                 fetch(host, {
                     method: "POST",
@@ -113,7 +118,7 @@ function onLoad(plugin: any) {
         log(arg)
     })
 
-    ipcMain.on(CHANNEL_GET_SELF_INFO, (event: any, arg: SelfInfo) => {
+    ipcMain.handle(CHANNEL_SET_SELF_INFO, (event: any, arg: SelfInfo) => {
         selfInfo.user_id = arg.user_id;
         selfInfo.nickname = arg.nickname;
     })
