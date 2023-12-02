@@ -5,6 +5,7 @@ import {OnebotGroupMemberRole, PostDataAction, PostDataSendMsg} from "../common/
 import {friends, groups, selfInfo} from "./data";
 
 function handlePost(jsonData: any) {
+    jsonData.params = jsonData;
     let resData = {
         status: 0,
         retcode: 0,
@@ -14,6 +15,12 @@ function handlePost(jsonData: any) {
     if (jsonData.action == "get_login_info") {
         resData["data"] = selfInfo
     } else if (jsonData.action == "send_private_msg" || jsonData.action == "send_group_msg") {
+        if (jsonData.action == "send_private_msg") {
+            jsonData.message_type = "private"
+        }
+        else {
+            jsonData.message_type = "group"
+        }
         sendIPCSendQQMsg(jsonData);
     } else if (jsonData.action == "get_group_list") {
         resData["data"] = groups.map(group => {
@@ -97,8 +104,8 @@ export function startExpress(port: number) {
             res.send(resData)
         });
     }
-    const actionList = ["get_login_info", "send_private_msg", "send_group_msg",
-        "get_group_list", "get_friend_list", "delete_msg"]
+    const actionList: PostDataAction[] = ["get_login_info", "send_private_msg", "send_group_msg",
+        "get_group_list", "get_friend_list", "delete_msg", "get_group_member_list", "get_group_member_info"]
 
     for (const action of actionList) {
         parseToOnebot12(action as PostDataAction)

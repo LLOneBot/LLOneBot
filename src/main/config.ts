@@ -21,4 +21,8 @@ export class ConfigUtil{
             return jsonData;
         }
     }
+
+    setConfig(config: Config){
+        fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), "utf-8")
+    }
 }
