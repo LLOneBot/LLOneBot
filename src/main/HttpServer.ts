@@ -1,11 +1,15 @@
 import {sendIPCRecallQQMsg, sendIPCSendQQMsg} from "./IPCSend";
 
 const express = require("express");
+const bodyParser = require('body-parser');
 import {OnebotGroupMemberRole, PostDataAction, PostDataSendMsg} from "../common/types";
 import {friends, groups, selfInfo} from "./data";
 
 function handlePost(jsonData: any) {
-    jsonData.params = jsonData;
+    if (!jsonData.params) {
+        jsonData.params = jsonData
+
+    }
     let resData = {
         status: 0,
         retcode: 0,
@@ -93,7 +97,8 @@ function handlePost(jsonData: any) {
 export function startExpress(port: number) {
     const app = express();
     // 中间件，用于解析POST请求的请求体
-    app.use(express.urlencoded({extended: true}));
+    app.use(express.urlencoded({extended: true, limit: "50mb"}));
+    app.use(bodyParser({limit: '50mb'}))
     app.use(express.json());
 
     function parseToOnebot12(action: PostDataAction) {
