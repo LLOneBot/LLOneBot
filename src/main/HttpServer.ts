@@ -97,8 +97,8 @@ function handlePost(jsonData: any) {
 export function startExpress(port: number) {
     const app = express();
     // 中间件，用于解析POST请求的请求体
-    app.use(express.urlencoded({extended: true, limit: "50mb"}));
-    app.use(bodyParser({limit: '50mb'}))
+    app.use(express.urlencoded({extended: true, limit: "500mb"}));
+    app.use(bodyParser({limit: '500mb'}))
     app.use(express.json());
 
     function parseToOnebot12(action: PostDataAction) {
