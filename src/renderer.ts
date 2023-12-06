@@ -340,7 +340,7 @@ function onLoad() {
         }
         btn.innerText = "获取群成员列表"
         console.log(qContextMenu)
-        qContextMenu.appendChild(btn)
+        // qContextMenu.appendChild(btn)
     })
 
     window.LLAPI.on("context-msg-menu", (event, target, msgIds) => {
