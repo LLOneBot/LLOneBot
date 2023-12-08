@@ -50,3 +50,9 @@
 - [x] get_friend_list
 
 **自己发送成功的消息也会上报，可以用于获取需要撤回消息的id**
+
+## 示例
+
+![](doc/image/example.jpg)
+
+*暂时不支持`"message": "hello"`这种message为字符串的形式*
