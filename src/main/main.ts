@@ -53,6 +53,7 @@ function onLoad(plugin: any) {
             let buffer = await blob.arrayBuffer();
             fs.writeFileSync(arg.localFilePath, Buffer.from(buffer));
         }
+        // todo: 需要识别gif格式
         return arg.localFilePath;
     })
     ipcMain.on(CHANNEL_SET_CONFIG, (event: any, arg: Config) => {

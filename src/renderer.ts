@@ -20,8 +20,25 @@ async function getUserInfo(uid: string): Promise<User> {
     return user
 }
 
-function getFriend(qq: string) {
-    return friends.find(friend => friend.uid == qq)
+async function getFriends(){
+    let _friends = await window.LLAPI.getFriendsList(false)
+    for (let friend of _friends) {
+        let existFriend = friends.find(f => f.uin == friend.uin)
+        if (!existFriend) {
+            friends.push(friend)
+        }
+    }
+    window.llonebot.updateFriends(friends)
+    return friends
+}
+
+async function getFriend(qq: string) {
+    let friend = friends.find(friend => friend.uin == qq)
+    if (!friend) {
+        await getFriends();
+        friend = friends.find(friend => friend.uin == qq);
+    }
+    return friend;
 }
 
 async function getGroup(qq: string) {
@@ -39,11 +56,11 @@ async function getGroups() {
         group.members = [];
         let existGroup = groups.find(g => g.uid == group.uid)
         if (!existGroup) {
-            console.log("更新群列表", groups)
+            // console.log("更新群列表", groups)
             groups.push(group)
-            window.llonebot.updateGroups(groups)
         }
     }
+    window.llonebot.updateGroups(groups)
     return groups
 }
 
@@ -115,7 +132,7 @@ async function handleNewMessage(messages: MessageElement[]) {
             console.log("收到群消息", onebot_message_data)
         } else if (message.peer.chatType == "private") {
             onebot_message_data["user_id"] = message.peer.uid
-            let friend = getFriend(message.sender.uid)
+            let friend = await getFriend(message.sender.uid)
             onebot_message_data.sender = {
                 user_id: friend!.uin,
                 nickname: friend!.nickName
@@ -171,12 +188,12 @@ async function listenSendMessage(postData: PostDataSendMsg) {
             }
         }
         if (postData.action == "send_private_msg") {
-            let friend = getFriend(postData.params.user_id)
+            let friend = await getFriend(postData.params.user_id)
             if (friend) {
                 peer = {
                     chatType: "private",
                     name: friend.nickName,
-                    uid: friend.uin
+                    uid: friend.uid
                 }
             }
         } else if (postData.action == "send_group_msg") {
@@ -212,6 +229,7 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                     let uri = new URL(url);
                     let ext: string;
                     if (message.type == "image") {
+                        // todo: 需要识别gif格式
                         ext = ".png"
                     }
                     if (message.type == "voice") {
@@ -233,7 +251,7 @@ async function listenSendMessage(postData: PostDataSendMsg) {
             }
             // 发送完之后要删除下载的文件
             console.log("发送消息", postData)
-            window.LLAPI.sendMessage(peer, postData.params.message).then(res => console.log("消息发送成功:", res),
+            window.LLAPI.sendMessage(peer, postData.params.message).then(res => console.log("消息发送成功:", peer, postData.params.message),
                 err => console.log("消息发送失败", postData, err))
         }
     }
@@ -249,8 +267,8 @@ let chatListEle: HTMLCollectionOf<Element>
 function onLoad() {
 
     window.llonebot.listenSendMessage((postData: PostDataSendMsg) => {
-        listenSendMessage(postData).then()
-    });
+        listenSendMessage(postData).then().catch(err => console.log("listenSendMessage err", err))
+    })
     window.llonebot.listenRecallMessage((arg: { message_id: string }) => {
         recallMessage(arg.message_id)
     })
@@ -287,7 +305,7 @@ function onLoad() {
         })
         console.log("chatListEle", chatListEle)
     }
-
+    getFriends().then();
     getGroups().then(() => {
         getGroupsMembers(groups).then(() => {
             window.LLAPI.on("new-messages", onNewMessages);
