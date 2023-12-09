@@ -1,10 +1,48 @@
-import {sendIPCRecallQQMsg, sendIPCSendQQMsg} from "./IPCSend";
-
 const express = require("express");
 const bodyParser = require('body-parser');
-import {OnebotGroupMemberRole, PostDataAction, PostDataSendMsg} from "../common/types";
+import {sendIPCRecallQQMsg, sendIPCSendQQMsg} from "./IPCSend";
+import {OnebotGroupMemberRole, PostDataAction, PostDataSendMsg, SendMessage} from "../common/types";
 import {friends, groups, selfInfo} from "./data";
-import judgeMessage from "./utils";
+
+// @SiberianHusky 2021-08-15
+function checkSendMessage(sendMsgList: SendMessage[]) {
+    function checkUri(uri: string): boolean {
+        const pattern = /^(file:\/\/|http:\/\/|https:\/\/|base64:\/\/)/;
+        return pattern.test(uri);
+    }
+
+    for (let msg of sendMsgList) {
+        if (msg["type"] && msg["data"]) {
+            let type = msg["type"];
+            let data = msg["data"];
+            if (type === "text" && !data["text"]) {
+                return 400;
+            } else if (["image", "voice"].includes(type)) {
+                if (!data["file"]) {
+                    return 400;
+                }
+                else{
+                    if (checkUri(data["file"])) {
+                        return 200;
+                    }
+                    else{
+                        return 400;
+                    }
+                }
+
+            } else if (type === "at" && !data["qq"]) {
+                return 400;
+            } else if (type === "reply" && !data["id"]) {
+                return 400;
+            }
+        }
+        else{
+            return 400
+        }
+    }
+    return 200;
+}
+// ==end==
 
 function handlePost(jsonData: any) {
     if (!jsonData.params) {
@@ -22,20 +60,18 @@ function handlePost(jsonData: any) {
     } else if (jsonData.action == "send_private_msg" || jsonData.action == "send_group_msg") {
         if (jsonData.action == "send_private_msg") {
             jsonData.message_type = "private"
-        }
-        else {
+        } else {
             jsonData.message_type = "group"
         }
         // @SiberianHuskY 2021-10-20 22:00:00
-        resData.status=judgeMessage(jsonData.message)||0;
-        if(resData.status==200){
-            resData.message="发送成功";
-            resData.data=jsonData.message;
+        resData.status = checkSendMessage(jsonData.message);
+        if (resData.status == 200) {
+            resData.message = "发送成功";
+            resData.data = jsonData.message;
             sendIPCSendQQMsg(jsonData);
-        }
-        else{
-            resData.message="发送失败";
-            resData.data=jsonData.message;
+        } else {
+            resData.message = "发送失败, 请检查消息格式";
+            resData.data = jsonData.message;
         }
         // == end ==
     } else if (jsonData.action == "get_group_list") {
@@ -53,8 +89,7 @@ function handlePost(jsonData: any) {
                 })
             }
         })
-    }
-    else if (jsonData.action == "get_group_info") {
+    } else if (jsonData.action == "get_group_info") {
         let group = groups.find(group => group.uid == jsonData.params.group_id)
         if (group) {
             resData["data"] = {
@@ -63,10 +98,9 @@ function handlePost(jsonData: any) {
                 member_count: group.members.length,
             }
         }
-    }
-    else if (jsonData.action == "get_group_member_info") {
+    } else if (jsonData.action == "get_group_member_info") {
         let member = groups.find(group => group.uid == jsonData.params.group_id)?.members?.find(member => member.uin == jsonData.params.user_id)
-        resData["data"] ={
+        resData["data"] = {
             user_id: member.uin,
             user_name: member.nick,
             user_display_name: member.cardName || member.nick,
@@ -74,8 +108,7 @@ function handlePost(jsonData: any) {
             card: member.cardName,
             role: OnebotGroupMemberRole[member.role],
         }
-    }
-    else if (jsonData.action == "get_group_member_list") {
+    } else if (jsonData.action == "get_group_member_list") {
         let group = groups.find(group => group.uid == jsonData.params.group_id)
         if (group) {
             resData["data"] = group?.members?.map(member => {
@@ -121,6 +154,7 @@ export function startExpress(port: number) {
             res.send(resData)
         });
     }
+
     const actionList: PostDataAction[] = ["get_login_info", "send_private_msg", "send_group_msg",
         "get_group_list", "get_friend_list", "delete_msg", "get_group_member_list", "get_group_member_info"]
 
