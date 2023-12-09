@@ -4,6 +4,7 @@ const express = require("express");
 const bodyParser = require('body-parser');
 import {OnebotGroupMemberRole, PostDataAction, PostDataSendMsg} from "../common/types";
 import {friends, groups, selfInfo} from "./data";
+import judgeMessage from "./utils";
 
 function handlePost(jsonData: any) {
     if (!jsonData.params) {
@@ -25,7 +26,18 @@ function handlePost(jsonData: any) {
         else {
             jsonData.message_type = "group"
         }
-        sendIPCSendQQMsg(jsonData);
+        // @SiberianHuskY 2021-10-20 22:00:00
+        resData.status=judgeMessage(jsonData.message)||0;
+        if(resData.status==200){
+            resData.message="发送成功";
+            resData.data=jsonData.message;
+            sendIPCSendQQMsg(jsonData);
+        }
+        else{
+            resData.message="发送失败";
+            resData.data=jsonData.message;
+        }
+        // == end ==
     } else if (jsonData.action == "get_group_list") {
         resData["data"] = groups.map(group => {
             return {
