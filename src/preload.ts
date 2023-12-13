@@ -3,10 +3,18 @@
 import {Config, Group, PostDataSendMsg, SelfInfo, User} from "./common/types";
 import {
     CHANNEL_DOWNLOAD_FILE,
-    CHANNEL_GET_CONFIG, CHANNEL_SET_SELF_INFO, CHANNEL_LOG, CHANNEL_POST_ONEBOT_DATA,
-    CHANNEL_RECALL_MSG, CHANNEL_SEND_MSG,
+    CHANNEL_GET_CONFIG,
+    CHANNEL_SET_SELF_INFO,
+    CHANNEL_LOG,
+    CHANNEL_POST_ONEBOT_DATA,
+    CHANNEL_RECALL_MSG,
+    CHANNEL_SEND_MSG,
     CHANNEL_SET_CONFIG,
-    CHANNEL_START_HTTP_SERVER, CHANNEL_UPDATE_FRIENDS, CHANNEL_UPDATE_GROUPS, CHANNEL_DELETE_FILE
+    CHANNEL_START_HTTP_SERVER,
+    CHANNEL_UPDATE_FRIENDS,
+    CHANNEL_UPDATE_GROUPS,
+    CHANNEL_DELETE_FILE,
+    CHANNEL_GET_RUNNING_STATUS
 } from "./common/IPCChannel";
 
 
@@ -55,6 +63,9 @@ contextBridge.exposeInMainWorld("llonebot", {
     },
     deleteFile: async (localFilePath: string[]) => {
         ipcRenderer.send(CHANNEL_DELETE_FILE, localFilePath);
+    },
+    getRunningStatus: () => {
+        return ipcRenderer.invoke(CHANNEL_GET_RUNNING_STATUS);
     }
     // startExpress,
 });
