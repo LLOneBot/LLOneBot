@@ -13,7 +13,7 @@ import {
     CHANNEL_SET_CONFIG,
     CHANNEL_START_HTTP_SERVER,
     CHANNEL_UPDATE_FRIENDS,
-    CHANNEL_UPDATE_GROUPS, CHANNEL_DELETE_FILE
+    CHANNEL_UPDATE_GROUPS, CHANNEL_DELETE_FILE, CHANNEL_GET_RUNNING_STATUS
 } from "../common/IPCChannel";
 import {ConfigUtil} from "./config";
 import {startExpress} from "./HttpServer";
@@ -22,10 +22,12 @@ import {friends, groups, selfInfo} from "./data";
 
 const fs = require('fs');
 
+let running = false;
+
 
 // 加载插件时触发
 function onLoad(plugin: any) {
-
+    log("main onLoaded");
     function getConfigUtil() {
         const configFilePath = path.join(plugin.path.data, `config_${selfInfo.user_id}.json`)
         return new ConfigUtil(configFilePath)
@@ -122,12 +124,17 @@ function onLoad(plugin: any) {
     ipcMain.handle(CHANNEL_SET_SELF_INFO, (event: any, arg: SelfInfo) => {
         selfInfo.user_id = arg.user_id;
         selfInfo.nickname = arg.nickname;
+        running = true;
     })
 
     ipcMain.on(CHANNEL_DELETE_FILE, (event: any, arg: string[]) => {
         for (const path of arg) {
             fs.unlinkSync(path);
         }
+    })
+
+    ipcMain.handle(CHANNEL_GET_RUNNING_STATUS, (event: any, arg: any) => {
+        return running;
     })
 }
 

@@ -4,6 +4,7 @@
 // const { ipcRenderer } = require('electron');
 import {AtType, Group, MessageElement, OnebotGroupMemberRole, Peer, PostDataSendMsg, User} from "./common/types";
 import * as stream from "stream";
+import {raw} from "express";
 
 let self_qq: string = ""
 let groups: Group[] = []
@@ -30,6 +31,8 @@ async function getFriends() {
     }
     window.llonebot.updateFriends(friends)
     return friends
+
+
 }
 
 async function getFriend(qq: string) {
@@ -254,7 +257,9 @@ async function listenSendMessage(postData: PostDataSendMsg) {
             console.log("发送消息", postData)
             window.LLAPI.sendMessage(peer, postData.params.message).then(res => {
                     console.log("消息发送成功:", peer, postData.params.message)
-                    window.llonebot.deleteFile(sendFiles);
+                    if (sendFiles.length) {
+                        window.llonebot.deleteFile(sendFiles);
+                    }
                 },
                 err => console.log("消息发送失败", postData, err))
         }
@@ -268,14 +273,11 @@ function recallMessage(msgId: string) {
 
 let chatListEle: HTMLCollectionOf<Element>
 
-function onLoad() {
-
-    window.llonebot.listenSendMessage((postData: PostDataSendMsg) => {
-        listenSendMessage(postData).then().catch(err => console.log("listenSendMessage err", err))
-    })
-    window.llonebot.listenRecallMessage((arg: { message_id: string }) => {
-        recallMessage(arg.message_id)
-    })
+async function onLoad(arg: any) {
+    let runningStatus = await window.llonebot.getRunningStatus();
+    if (runningStatus) {
+        return;
+    }
 
     async function getGroupsMembers(groupsArg: Group[]) {
         // 批量获取群成员列表
@@ -292,9 +294,12 @@ function onLoad() {
                 getGroupsMembers(failedGroups).then()
             }, 1000)
         } else {
-            console.log("全部群成员获取完毕", groups)
+            window.llonebot.log("全部群成员获取完毕")
         }
     }
+    await getFriends();
+    await getGroups();
+    await getGroupsMembers(groups);
 
     function onNewMessages(messages: MessageElement[]) {
         async function func(messages: MessageElement[]) {
@@ -307,26 +312,31 @@ function onLoad() {
 
         func(messages).then(() => {
         })
-        console.log("chatListEle", chatListEle)
+        // console.log("chatListEle", chatListEle)
     }
+    window.LLAPI.on("new-messages", onNewMessages);
+    window.LLAPI.on("new-send-messages", onNewMessages);
 
-    getFriends().then();
-    getGroups().then(() => {
-        getGroupsMembers(groups).then(() => {
-            window.LLAPI.on("new-messages", onNewMessages);
-            window.LLAPI.on("new-send-messages", onNewMessages);
-        })
-    })
+    let accountInfo = await window.LLAPI.getAccountInfo();
+    window.llonebot.log("getAccountInfo " + JSON.stringify(accountInfo));
+    if (!accountInfo.uid) {
+        return;
+    }
+    let selfInfo = await window.LLAPI.getUserInfo(accountInfo.uid);
+    window.llonebot.setSelfInfo({
+        user_id: accountInfo.uin,
+        nickname: selfInfo.nickName
+    });
+    window.llonebot.log("selfInfo " + JSON.stringify(selfInfo))
+    window.llonebot.startExpress();
 
-    window.LLAPI.getAccountInfo().then(accountInfo => {
-        window.LLAPI.getUserInfo(accountInfo.uid).then(userInfo => {
-            window.llonebot.setSelfInfo({
-                user_id: accountInfo.uin,
-                nickname: userInfo.nickName
-            });
-            window.llonebot.startExpress();
-        })
+    window.llonebot.listenSendMessage((postData: PostDataSendMsg) => {
+        listenSendMessage(postData).then().catch(err => console.log("listenSendMessage err", err))
     })
+    window.llonebot.listenRecallMessage((arg: { message_id: string }) => {
+        recallMessage(arg.message_id)
+    })
+    window.llonebot.log("llonebot loaded");
 
     window.LLAPI.add_qmenu((qContextMenu: Node) => {
         let btn = document.createElement("a")
