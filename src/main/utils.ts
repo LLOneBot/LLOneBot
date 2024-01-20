@@ -6,3 +6,11 @@ export function log(msg: any) {
 
     })
 }
+
+export function isGIF(path: string) {
+    const buffer = Buffer.alloc(4);
+    const fd = fs.openSync(path, 'r');
+    fs.readSync(fd, buffer, 0, 4, 0);
+    fs.closeSync(fd);
+    return buffer.toString() === 'GIF8'
+}

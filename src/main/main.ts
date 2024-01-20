@@ -17,7 +17,7 @@ import {
 } from "../common/IPCChannel";
 import {ConfigUtil} from "./config";
 import {startExpress} from "./HttpServer";
-import {log} from "./utils";
+import {isGIF, log} from "./utils";
 import {friends, groups, selfInfo} from "./data";
 
 const fs = require('fs');
@@ -55,7 +55,10 @@ function onLoad(plugin: any) {
             let buffer = await blob.arrayBuffer();
             fs.writeFileSync(arg.localFilePath, Buffer.from(buffer));
         }
-        // todo: 需要识别gif格式
+        if (isGIF(arg.localFilePath)) {
+            fs.renameSync(arg.localFilePath, arg.localFilePath + ".gif");
+            arg.localFilePath += ".gif";
+        }
         return arg.localFilePath;
     })
     ipcMain.on(CHANNEL_SET_CONFIG, (event: any, arg: Config) => {
