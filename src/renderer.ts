@@ -227,7 +227,7 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                     message.content = `@${atMember.cardName || atMember.nick}`
                 } else if (message.type == "text") {
                     message.content = message.data?.text || message.content
-                } else if (message.type == "image" || message.type == "voice") {
+                } else if (message.type == "image" || message.type == "voice" || message.type == "record") {
                     // todo: 收到的应该是uri格式的，需要转成本地的, uri格式有三种，http, file, base64
                     let url = message.data?.file || message.file
                     let uri = new URL(url);
@@ -235,7 +235,8 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                     if (message.type == "image") {
                         ext = ".png"
                     }
-                    if (message.type == "voice") {
+                    if (message.type == "voice" || message.type == "record") {
+                        message.type = "voice"
                         ext = ".amr"
                     }
                     let localFilePath = `${Date.now()}${ext}`
