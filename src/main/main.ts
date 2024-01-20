@@ -19,6 +19,7 @@ import {ConfigUtil} from "./config";
 import {startExpress} from "./HttpServer";
 import {isGIF, log} from "./utils";
 import {friends, groups, selfInfo} from "./data";
+import {} from "../global";
 
 const fs = require('fs');
 
@@ -26,15 +27,17 @@ let running = false;
 
 
 // 加载插件时触发
-function onLoad(plugin: any) {
+function onLoad() {
     log("main onLoaded");
+    // const config_dir = browserWindow.LiteLoader.plugins["LLOneBot"].path.data;
+    const config_dir = global.LiteLoader.plugins["LLOneBot"].path.data;
     function getConfigUtil() {
-        const configFilePath = path.join(plugin.path.data, `config_${selfInfo.user_id}.json`)
+        const configFilePath = path.join(config_dir, `config_${selfInfo.user_id}.json`)
         return new ConfigUtil(configFilePath)
     }
 
-    if (!fs.existsSync(plugin.path.data)) {
-        fs.mkdirSync(plugin.path.data, {recursive: true});
+    if (!fs.existsSync(config_dir)) {
+        fs.mkdirSync(config_dir, {recursive: true});
     }
     ipcMain.handle(CHANNEL_GET_CONFIG, (event: any, arg: any) => {
         return getConfigUtil().getConfig()
@@ -143,12 +146,17 @@ function onLoad(plugin: any) {
 
 
 // 创建窗口时触发
-function onBrowserWindowCreated(window: any, plugin: any) {
+function onBrowserWindowCreated(window: any) {
 
 }
 
+try {
+    onLoad();
+} catch (e: any) {
+    console.log(e.toString())
+}
 
 // 这两个函数都是可选的
 export {
-    onLoad, onBrowserWindowCreated
+    onBrowserWindowCreated
 }

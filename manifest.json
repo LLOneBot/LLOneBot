@@ -1,19 +1,19 @@
 {
-    "manifest_version": 3,
+    "manifest_version": 4,
     "type": "extension",
     "name": "LLOneBot",
     "slug": "LLOneBot",
     "description": "LiteLoaderQQNT的OneBotApi",
-    "version": "1.2.7",
+    "version": "2.0.0",
     "thumbnail": "./icon.png",
-    "author": {
+    "authors": [{
         "name": "linyuchen",
         "link": "https://github.com/linyuchen"
-    },
+    }],
     "repository": {
         "repo": "linyuchen/LLOneBot",
         "branch": "main",
-        "use_release": {
+        "release": {
             "tag": "latest",
             "name": "LLOneBot.zip"
         }
