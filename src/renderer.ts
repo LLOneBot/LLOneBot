@@ -233,7 +233,6 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                     let uri = new URL(url);
                     let ext: string;
                     if (message.type == "image") {
-                        // todo: 需要识别gif格式
                         ext = ".png"
                     }
                     if (message.type == "voice") {
@@ -243,7 +242,7 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                     if (uri.protocol == "file:") {
                         localFilePath = url.split("file://")[1]
                     } else {
-                        await window.llonebot.downloadFile({uri: url, localFilePath: localFilePath})
+                        localFilePath = await window.llonebot.downloadFile({uri: url, localFilePath: localFilePath})
                     }
                     message.file = localFilePath
                     sendFiles.push(localFilePath);
