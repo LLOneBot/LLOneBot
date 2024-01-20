@@ -114,7 +114,7 @@ export type SendMessage = {
         text: string, // 纯文本
     }
 } | {
-    type: "image" | "voice",
+    type: "image" | "voice" | "record",
     file: string, // 本地路径
     data?: {
         file: string // 本地路径
