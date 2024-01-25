@@ -116,7 +116,9 @@ async function handleNewMessage(messages: MessageElement[]) {
             detail_type: message.peer.chatType,
             message_id: message.raw.msgId,
             sub_type: "",
-            message: []
+            message: [],
+            raw_message: "",
+            font: 14
         }
         if (message.peer.chatType == "group") {
             let group_id = message.peer.uid
