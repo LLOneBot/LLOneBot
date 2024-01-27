@@ -1,8 +1,6 @@
 name: "publish"
 on:
   push:
-    branches:
-      - main
     tags:
       - "v*"
 
@@ -35,4 +33,4 @@ jobs:
       with:
         artifacts: "LLOneBot.zip"
         draft: true
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.RELEASE_TOKEN }}
