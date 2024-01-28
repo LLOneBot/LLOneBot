@@ -245,9 +245,9 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                         localFilePath = url.split("file://")[1]
                     } else {
                         localFilePath = await window.llonebot.downloadFile({uri: url, localFilePath: localFilePath})
+                        sendFiles.push(localFilePath);
                     }
                     message.file = localFilePath
-                    sendFiles.push(localFilePath);
                 } else if (message.type == "reply") {
                     let msgId = message.data?.id || message.msgId
                     let replyMessage = msgHistory.find(msg => msg.raw.msgId == msgId)
