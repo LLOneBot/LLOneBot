@@ -1,7 +1,6 @@
 import {log} from "./utils";
 
 const express = require("express");
-const bodyParser = require('body-parser');
 import {sendIPCRecallQQMsg, sendIPCSendQQMsg} from "./IPCSend";
 import {OnebotGroupMemberRole, PostDataAction, PostDataSendMsg, SendMessage} from "../common/types";
 import {friends, groups, selfInfo} from "./data";
@@ -146,8 +145,7 @@ export function startExpress(port: number) {
     const app = express();
     // 中间件，用于解析POST请求的请求体
     app.use(express.urlencoded({extended: true, limit: "500mb"}));
-    app.use(bodyParser({limit: '500mb'}))
-    app.use(express.json());
+    app.use(express.json({limit: '500mb'}));
 
     function parseToOnebot12(action: PostDataAction) {
         app.post('/' + action, (req: any, res: any) => {
