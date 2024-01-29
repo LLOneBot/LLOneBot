@@ -102,6 +102,7 @@ async function getGroupMember(group_qq: string, member_uid: string) {
 
 
 async function handleNewMessage(messages: MessageElement[]) {
+    // console.log("llonebot 收到消息:", messages);
     for (let message of messages) {
         let onebot_message_data: any = {
             self: {
@@ -132,10 +133,10 @@ async function handleNewMessage(messages: MessageElement[]) {
                 card: groupMember!.cardName,
                 role: OnebotGroupMemberRole[groupMember!.role]
             }
-            console.log("收到群消息", onebot_message_data)
-        } else if (message.peer.chatType == "private") {
-            onebot_message_data["user_id"] = message.peer.uid
-            let friend = await getFriend(message.sender.uid)
+            // console.log("收到群消息", onebot_message_data)
+        } else if (message.peer.chatType == "private" || message.peer.chatType == "friend") {
+            onebot_message_data["user_id"] = message.raw.senderUin;
+            let friend = await getFriend(message.raw.senderUin)
             onebot_message_data.sender = {
                 user_id: friend!.uin,
                 nickname: friend!.nickName
@@ -229,7 +230,7 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                 } else if (message.type == "text") {
                     message.content = message.data?.text || message.content
                 } else if (message.type == "image" || message.type == "voice" || message.type == "record") {
-                    // todo: 收到的应该是uri格式的，需要转成本地的, uri格式有三种，http, file, base64
+                    // 收到的是uri格式的，需要转成本地的, uri格式有三种，http, file, base64
                     let url = message.data?.file || message.file
                     let uri = new URL(url);
                     let ext: string;
