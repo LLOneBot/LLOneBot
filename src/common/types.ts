@@ -44,7 +44,7 @@ export type Group = {
 }
 
 export type Peer = {
-    chatType: "private" | "group"
+    chatType: "private" | "group" | "friend"
     name: string
     uid: string  // qq号
 }
@@ -53,6 +53,7 @@ export type MessageElement = {
     raw: {
         msgId: string,
         msgSeq: string,
+        senderUin: string; // 发送者QQ号
         elements: {
             replyElement: {
                 senderUid: string,  // 原消息发送者QQ号
@@ -98,7 +99,6 @@ export type MessageElement = {
             }
         }[]
     }
-
     peer: Peer,
     sender: {
         uid: string  // 一串加密的字符串
