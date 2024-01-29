@@ -4,14 +4,14 @@
     "name": "LLOneBot",
     "slug": "LLOneBot",
     "description": "LiteLoaderQQNT的OneBotApi",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "thumbnail": "./icon.png",
     "authors": [{
         "name": "linyuchen",
         "link": "https://github.com/linyuchen"
     }],
     "repository": {
-        "repo": "linyuchen/LLOneBot",
+        "repo": "linyuchen/LiteLoaderQQNT-OneBotApi",
         "branch": "main",
         "release": {
             "tag": "latest",
