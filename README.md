@@ -6,7 +6,7 @@
 
 ## 安装方法
 
-1.安装[NTQQLiteLoader](https://liteloaderqqnt.github.io/guide/install.html)
+1.安装[LiteLoaderQQNT](https://liteloaderqqnt.github.io/guide/install.html)
 
 2.安装修改后的[LiteLoaderQQNT-Plugin-LLAPI](https://github.com/linyuchen/LiteLoaderQQNT-Plugin-LLAPI)，原版的功能有缺陷
 
@@ -56,6 +56,57 @@
 ![](doc/image/example.jpg)
 
 *暂时不支持`"message": "hello"`这种message为字符串的形式*
+
+## 一些坑
+
+<details>
+    <summary>下载了插件但是没有看到在NTQQ中生效</summary>
+<br/>
+    检查是否下载的是插件release的版本，如果是源码的话需要自行编译。依然不生效请查阅<a href="https://liteloaderqqnt.github.io/guide/plugins.html">LiteLoaderQQNT的文档</a>
+</details>
+<br/>
+
+<details>
+    <summary>调用接口报404</summary>
+<br/>
+    目前没有支持全部的onebot规范接口，请检查是否调用了不支持的接口，并且所有接口都只支持POST方法，调用GET方法会报404
+</details>
+<br/>
+
+<details>
+    <summary>发送不了图片和语音</summary>
+<br/>
+    检查当前操作用户是否有LiteLoaderQQNT/data/LLOneBot的写入权限，如Windows把QQ上安装到C盘有可能会出现无权限导致发送失败
+</details>
+<br/>
+
+<details>
+    <summary>不支持cq码</summary>
+<br/>
+    cq码已经过时了，没有支持的打算(主要是我不用这玩意儿，加上我懒)
+</details>
+<br/>
+
+<details>
+    <summary>onebot 12对接不了</summary>
+<br/>
+    onebot 12只写了部分兼容，没有完整测试，不保证能用，慎用
+</details>
+<br/>
+
+<details>
+    <summary>QQ多开时事件没有上报</summary>
+<br/>
+    小概率事件，有可能是IPC通信串台了(不确定)，重启QQ可解决，目前正在想办法修复
+</details>
+<br/>
+
+<details>
+    <summary>如何查看日志</summary>
+<br/>
+    LiteLoaderQQNT/data/LLOneBot/*.log
+</details>
+<br/>
 
 ## onebot11文档
 <https://11.onebot.dev/>
