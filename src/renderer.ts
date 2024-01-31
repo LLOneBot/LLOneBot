@@ -144,7 +144,7 @@ async function handleNewMessage(messages: MessageElement[]) {
         if (message.raw.chatType == ChatType.group) {
             let group_id = message.peer.uid
             let group = (await getGroup(group_id))!
-            onebot_message_data.message_type = onebot_message_data.sub_type = "group"
+            onebot_message_data.detail_type = onebot_message_data.message_type = onebot_message_data.sub_type = "group"
             onebot_message_data["group_id"] = message.peer.uid
             let groupMember = await getGroupMember(group_id, message.sender.uid)
             onebot_message_data["user_id"] = groupMember!.uin
@@ -157,7 +157,8 @@ async function handleNewMessage(messages: MessageElement[]) {
             // console.log("收到群消息", onebot_message_data)
         } else if (message.raw.chatType == ChatType.friend) {
             onebot_message_data["user_id"] = message.raw.senderUin;
-            onebot_message_data.message_type = onebot_message_data.sub_type = "friend"
+            onebot_message_data.detail_type = onebot_message_data.message_type = "private"
+            onebot_message_data.sub_type = "friend"
             let friend = await getFriend(message.raw.senderUin);
             onebot_message_data.sender = {
                 user_id: friend!.uin,
@@ -168,7 +169,7 @@ async function handleNewMessage(messages: MessageElement[]) {
             let senderUid = message.sender.uid;
             let sender = await getUserInfo(senderUid);
             onebot_message_data["user_id"] = senderQQ;
-            onebot_message_data.message_type = "friend"
+            onebot_message_data.detail_type = onebot_message_data.message_type = "private"
             onebot_message_data.sub_type = "group";
             onebot_message_data.sender = {
                 user_id: senderQQ,
