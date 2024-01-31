@@ -20,13 +20,16 @@
 
 目前只支持http协议POST方法，不支持websocket，事件上报也是http协议
 
+主要功能:
+- [x] 发送好友消息
+- [x] 发送临时消息
+- [x] 发送群消息
+- [x] 获取好友列表
 - [x] 获取群列表
 - [x] 获取群成员列表
-- [x] 获取好友列表
-- [x] 发送群消息
-- [x] 发送好友消息
 - [x] 撤回消息
 - [x] 上报好友消息
+- [x] 上报临时消息
 - [x] 上报群消息
 
 消息格式支持:
@@ -102,11 +105,25 @@
 <br/>
 
 <details>
+    <summary>QQ变得很卡</summary>
+<br/>
+    这是你的群特别多导致的，因为启动后会批量获取群成员列表，获取完之后就正常了
+</details>
+<br/>
+
+<details>
     <summary>如何查看日志</summary>
 <br/>
     LiteLoaderQQNT/data/LLOneBot/*.log
 </details>
 <br/>
+
+## TODO
+
+- [x] 接口返回更详细的错误信息，目前消息发不出去也会返回发送成功(这河里吗)
+- [ ] 转发消息记录 
+- [ ] 支持websocket，等个有缘人提PR实现
+- [ ] 重构摆脱LLAPI，目前调用LLAPI只能在renderer进程调用，需重构成在main进程调用
 
 ## onebot11文档
 <https://11.onebot.dev/>

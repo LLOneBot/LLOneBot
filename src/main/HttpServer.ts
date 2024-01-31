@@ -3,7 +3,7 @@ import {log} from "./utils";
 const express = require("express");
 const bodyParser = require('body-parser');
 import {sendIPCRecallQQMsg, sendIPCSendQQMsg} from "./IPCSend";
-import {OnebotGroupMemberRole, PostDataAction, PostDataSendMsg, SendMessage} from "../common/types";
+import {OnebotGroupMemberRole, PostDataAction, PostDataSendMsg, SendMessage, SendMsgResult} from "../common/types";
 import {friends, groups, selfInfo} from "./data";
 
 // @SiberianHusky 2021-08-15
@@ -19,7 +19,7 @@ function checkSendMessage(sendMsgList: SendMessage[]) {
             let data = msg["data"];
             if (type === "text" && !data["text"]) {
                 return 400;
-            } else if (["image", "voice"].includes(type)) {
+            } else if (["image", "voice", "record"].includes(type)) {
                 if (!data["file"]) {
                     return 400;
                 }
@@ -46,7 +46,7 @@ function checkSendMessage(sendMsgList: SendMessage[]) {
 }
 // ==end==
 
-function handlePost(jsonData: any) {
+function handlePost(jsonData: any, handleSendResult: (data: SendMsgResult)=>void) {
     log("API receive post:" + JSON.stringify(jsonData))
     if (!jsonData.params) {
         jsonData.params = JSON.parse(JSON.stringify(jsonData));
@@ -58,6 +58,7 @@ function handlePost(jsonData: any) {
         data: {},
         message: ''
     }
+
     if (jsonData.action == "get_login_info") {
         resData["data"] = selfInfo
     } else if (jsonData.action == "send_private_msg" || jsonData.action == "send_group_msg") {
@@ -71,7 +72,8 @@ function handlePost(jsonData: any) {
         if (resData.status == 200) {
             resData.message = "发送成功";
             resData.data = jsonData.message;
-            sendIPCSendQQMsg(jsonData);
+            sendIPCSendQQMsg(jsonData, handleSendResult);
+            return;
         } else {
             resData.message = "发送失败, 请检查消息格式";
             resData.data = jsonData.message;
@@ -153,8 +155,10 @@ export function startExpress(port: number) {
         app.post('/' + action, (req: any, res: any) => {
             let jsonData: PostDataSendMsg = req.body;
             jsonData.action = action
-            let resData = handlePost(jsonData)
-            res.send(resData)
+            let resData = handlePost(jsonData, (data:SendMsgResult)=>{res.send(data)})
+            if (resData){
+                res.send(resData)
+            }
         });
     }
 
@@ -173,8 +177,10 @@ export function startExpress(port: number) {
     // 处理POST请求的路由
     app.post('/', (req: any, res: any) => {
         let jsonData: PostDataSendMsg = req.body;
-        let resData = handlePost(jsonData)
-        res.send(resData)
+        let resData = handlePost(jsonData, (data:SendMsgResult)=>{res.send(data)})
+        if (resData){
+            res.send(resData)
+        }
     });
     app.post('/send_msg', (req: any, res: any) => {
         let jsonData: PostDataSendMsg = req.body;
@@ -189,11 +195,13 @@ export function startExpress(port: number) {
                 jsonData.action = "send_private_msg"
             }
         }
-        let resData = handlePost(jsonData)
-        res.send(resData)
+        let resData = handlePost(jsonData, (data:SendMsgResult)=>{res.send(data)})
+        if (resData){
+            res.send(resData)
+        }
     })
 
     app.listen(port, "0.0.0.0", () => {
-        console.log(`服务器已启动，监听端口 ${port}`);
+        console.log(`llonebot started 0.0.0.0:${port}`);
     });
 }
