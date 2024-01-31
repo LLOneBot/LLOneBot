@@ -3,6 +3,12 @@ export enum AtType {
     atUser = 2
 }
 
+export enum ChatType {
+    friend = 1,
+    group = 2,
+    temp = 100
+}
+
 export type GroupMemberInfo = {
     avatarPath: string;
     cardName: string;
@@ -44,7 +50,7 @@ export type Group = {
 }
 
 export type Peer = {
-    chatType: "private" | "group" | "friend"
+    chatType: ChatType
     name: string
     uid: string  // qq号
 }
@@ -52,8 +58,10 @@ export type Peer = {
 export type MessageElement = {
     raw: {
         msgId: string,
+        msgTime: string,
         msgSeq: string,
         senderUin: string; // 发送者QQ号
+        chatType: ChatType,
         elements: {
             replyElement: {
                 senderUid: string,  // 原消息发送者QQ号
@@ -139,7 +147,7 @@ export type SendMessage = {
 }
 
 export type PostDataAction = "send_private_msg" | "send_group_msg" | "get_group_list"
-| "get_friend_list" | "delete_msg" | "get_login_info" | "get_group_member_list" | "get_group_member_info"
+    | "get_friend_list" | "delete_msg" | "get_login_info" | "get_group_member_list" | "get_group_member_info"
 
 export type PostDataSendMsg = {
     action: PostDataAction
@@ -152,9 +160,17 @@ export type PostDataSendMsg = {
     user_id: string,
     group_id: string,
     message: SendMessage[];
+    ipc_uuid?: string
 }
 
 export type Config = {
     port: number,
     hosts: string[],
+}
+
+export type SendMsgResult = {
+    status: number,
+    retcode: number,
+    data: any,
+    message: string,
 }

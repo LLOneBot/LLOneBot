@@ -6,7 +6,7 @@ import {
     Peer,
     PostDataSendMsg,
     SelfInfo,
-    SendMessage,
+    SendMessage, SendMsgResult,
     User
 } from "./common/types";
 
@@ -43,9 +43,10 @@ declare var llonebot: {
     setConfig(config: Config):void;
     getConfig():Promise<Config>;
     setSelfInfo(selfInfo: SelfInfo):void;
-    downloadFile(arg: {uri: string, localFilePath: string}):Promise<string>;
+    downloadFile(arg: {uri: string, fileName: string}):Promise<{errMsg: string, path: string}>;
     deleteFile(path: string[]):Promise<void>;
     getRunningStatus(): Promise<boolean>;
+    sendSendMsgResult(sessionId: string, msgResult: SendMsgResult): void;
 };
 
 declare global {

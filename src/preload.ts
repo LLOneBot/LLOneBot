@@ -1,6 +1,6 @@
 // Electron 主进程 与 渲染进程 交互的桥梁
 
-import {Config, Group, PostDataSendMsg, SelfInfo, User} from "./common/types";
+import {Config, Group, PostDataSendMsg, SelfInfo, SendMsgResult, User} from "./common/types";
 import {
     CHANNEL_DOWNLOAD_FILE,
     CHANNEL_GET_CONFIG,
@@ -32,6 +32,9 @@ contextBridge.exposeInMainWorld("llonebot", {
     },
     updateFriends: (friends: User[]) => {
         ipcRenderer.send(CHANNEL_UPDATE_FRIENDS, friends);
+    },
+    sendSendMsgResult: (sessionId: string, msgResult: SendMsgResult)=>{
+        ipcRenderer.send(sessionId, msgResult);
     },
     listenSendMessage: (handle: (jsonData: PostDataSendMsg) => void) => {
         ipcRenderer.send(CHANNEL_LOG, "发送消息API已注册");
