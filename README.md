@@ -7,7 +7,7 @@
 
 ## 安装方法
 
-1.安装[NTQQLiteLoader](https://liteloaderqqnt.github.io/guide/install.html)
+1.安装[LiteLoaderQQNT](https://liteloaderqqnt.github.io/guide/install.html)
 
 2.安装修改后的[LiteLoaderQQNT-Plugin-LLAPI](https://github.com/linyuchen/LiteLoaderQQNT-Plugin-LLAPI/releases)，原版的功能有缺陷
 
@@ -21,13 +21,16 @@
 
 目前只支持http协议POST方法，不支持websocket，事件上报也是http协议
 
+主要功能:
+- [x] 发送好友消息
+- [x] 发送临时消息
+- [x] 发送群消息
+- [x] 获取好友列表
 - [x] 获取群列表
 - [x] 获取群成员列表
-- [x] 获取好友列表
-- [x] 发送群消息
-- [x] 发送好友消息
 - [x] 撤回消息
 - [x] 上报好友消息
+- [x] 上报临时消息
 - [x] 上报群消息
 
 消息格式支持:
@@ -57,6 +60,71 @@
 ![](doc/image/example.jpg)
 
 *暂时不支持`"message": "hello"`这种message为字符串的形式*
+
+## 一些坑
+
+<details>
+    <summary>下载了插件但是没有看到在NTQQ中生效</summary>
+<br/>
+    检查是否下载的是插件release的版本，如果是源码的话需要自行编译。依然不生效请查阅<a href="https://liteloaderqqnt.github.io/guide/plugins.html">LiteLoaderQQNT的文档</a>
+</details>
+<br/>
+
+<details>
+    <summary>调用接口报404</summary>
+<br/>
+    目前没有支持全部的onebot规范接口，请检查是否调用了不支持的接口，并且所有接口都只支持POST方法，调用GET方法会报404
+</details>
+<br/>
+
+<details>
+    <summary>发送不了图片和语音</summary>
+<br/>
+    检查当前操作用户是否有LiteLoaderQQNT/data/LLOneBot的写入权限，如Windows把QQ上安装到C盘有可能会出现无权限导致发送失败
+</details>
+<br/>
+
+<details>
+    <summary>不支持cq码</summary>
+<br/>
+    cq码已经过时了，没有支持的打算(主要是我不用这玩意儿，加上我懒)
+</details>
+<br/>
+
+<details>
+    <summary>onebot 12对接不了</summary>
+<br/>
+    onebot 12只写了部分兼容，没有完整测试，不保证能用，慎用
+</details>
+<br/>
+
+<details>
+    <summary>QQ多开时事件没有上报</summary>
+<br/>
+    小概率事件，有可能是IPC通信串台了(不确定)，重启QQ可解决，目前正在想办法修复
+</details>
+<br/>
+
+<details>
+    <summary>QQ变得很卡</summary>
+<br/>
+    这是你的群特别多导致的，因为启动后会批量获取群成员列表，获取完之后就正常了
+</details>
+<br/>
+
+<details>
+    <summary>如何查看日志</summary>
+<br/>
+    LiteLoaderQQNT/data/LLOneBot/*.log
+</details>
+<br/>
+
+## TODO
+
+- [x] 接口返回更详细的错误信息，目前消息发不出去也会返回发送成功(这河里吗)
+- [ ] 转发消息记录 
+- [ ] 支持websocket，等个有缘人提PR实现
+- [ ] 重构摆脱LLAPI，目前调用LLAPI只能在renderer进程调用，需重构成在main进程调用
 
 ## onebot11文档
 <https://11.onebot.dev/>

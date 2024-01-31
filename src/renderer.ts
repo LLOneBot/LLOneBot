@@ -2,15 +2,31 @@
 
 // import express from "express";
 // const { ipcRenderer } = require('electron');
-import {AtType, Group, MessageElement, OnebotGroupMemberRole, Peer, PostDataSendMsg, User} from "./common/types";
-import * as stream from "stream";
-import {raw} from "express";
+import {
+    AtType,
+    ChatType,
+    Group,
+    MessageElement,
+    OnebotGroupMemberRole,
+    Peer,
+    PostDataSendMsg, SendMsgResult,
+    User
+} from "./common/types";
 
 let self_qq: string = ""
 let groups: Group[] = []
 let friends: User[] = []
 let msgHistory: MessageElement[] = []
 let uid_maps: Record<string, User> = {}  // 一串加密的字符串 -> qq号
+
+function getStrangerByUin(uin: string) {
+    for (const key in uid_maps) {
+        if (uid_maps[key].uin === uin) {
+            return uid_maps[key];
+        }
+    }
+}
+
 async function getUserInfo(uid: string): Promise<User> {
     let user = uid_maps[uid]
     if (!user) {
@@ -80,6 +96,11 @@ async function getGroupMembers(group_qq: string, forced: boolean = false) {
             if (!group!.members!.find(m => m.uid == member.uid)) {
                 group!.members!.push(member)
             }
+            uid_maps[member.uid] = {
+                uin: member.uin,
+                uid: member.uid,
+                nickName: member.nick
+            };
         }
         window.llonebot.updateGroups(groups)
         console.log(`更新群${group.name}成员列表`, group)
@@ -100,9 +121,8 @@ async function getGroupMember(group_qq: string, member_uid: string) {
     }
 }
 
-
 async function handleNewMessage(messages: MessageElement[]) {
-    // console.log("llonebot 收到消息:", messages);
+    console.log("llonebot 收到消息:", messages);
     for (let message of messages) {
         let onebot_message_data: any = {
             self: {
@@ -110,7 +130,7 @@ async function handleNewMessage(messages: MessageElement[]) {
                 user_id: self_qq
             },
             self_id: self_qq,
-            time: 0,
+            time: parseInt(message.raw.msgTime || "0"),
             type: "message",
             post_type: "message",
             message_type: message.peer.chatType,
@@ -121,9 +141,10 @@ async function handleNewMessage(messages: MessageElement[]) {
             raw_message: "",
             font: 14
         }
-        if (message.peer.chatType == "group") {
+        if (message.raw.chatType == ChatType.group) {
             let group_id = message.peer.uid
             let group = (await getGroup(group_id))!
+            onebot_message_data.message_type = onebot_message_data.sub_type = "group"
             onebot_message_data["group_id"] = message.peer.uid
             let groupMember = await getGroupMember(group_id, message.sender.uid)
             onebot_message_data["user_id"] = groupMember!.uin
@@ -134,12 +155,24 @@ async function handleNewMessage(messages: MessageElement[]) {
                 role: OnebotGroupMemberRole[groupMember!.role]
             }
             // console.log("收到群消息", onebot_message_data)
-        } else if (message.peer.chatType == "private" || message.peer.chatType == "friend") {
+        } else if (message.raw.chatType == ChatType.friend) {
             onebot_message_data["user_id"] = message.raw.senderUin;
-            let friend = await getFriend(message.raw.senderUin)
+            onebot_message_data.message_type = onebot_message_data.sub_type = "friend"
+            let friend = await getFriend(message.raw.senderUin);
             onebot_message_data.sender = {
                 user_id: friend!.uin,
                 nickname: friend!.nickName
+            }
+        } else if (message.raw.chatType == ChatType.temp) {
+            let senderQQ = message.raw.senderUin;
+            let senderUid = message.sender.uid;
+            let sender = await getUserInfo(senderUid);
+            onebot_message_data["user_id"] = senderQQ;
+            onebot_message_data.message_type = "friend"
+            onebot_message_data.sub_type = "group";
+            onebot_message_data.sender = {
+                user_id: senderQQ,
+                nickname: sender.nickName
             }
         }
         for (let element of message.raw.elements) {
@@ -168,12 +201,16 @@ async function handleNewMessage(messages: MessageElement[]) {
                 if (!element.picElement.sourcePath.startsWith("/")) {
                     startS += "/"
                 }
+                // todo: 转成base64
                 message_data["data"]["file"] = startS + element.picElement.sourcePath
             } else if (element.replyElement) {
                 message_data["type"] = "reply"
                 message_data["data"]["id"] = msgHistory.find(msg => msg.raw.msgSeq == element.replyElement.replayMsgSeq)?.raw.msgId
             }
             onebot_message_data.message.push(message_data)
+        }
+        if (msgHistory.length > 10000) {
+            msgHistory.splice(0, 100)
         }
         msgHistory.push(message)
         console.log("发送上传消息给ipc main", onebot_message_data)
@@ -183,6 +220,12 @@ async function handleNewMessage(messages: MessageElement[]) {
 
 async function listenSendMessage(postData: PostDataSendMsg) {
     console.log("收到发送消息请求", postData);
+    let sendMsgResult: SendMsgResult = {
+        retcode: 0,
+        status: 0,
+        data: {},
+        message: "发送成功"
+    }
     if (postData.action == "send_private_msg" || postData.action == "send_group_msg") {
         let peer: Peer | null = null;
         if (!postData.params) {
@@ -195,22 +238,41 @@ async function listenSendMessage(postData: PostDataSendMsg) {
         if (postData.action == "send_private_msg") {
             let friend = await getFriend(postData.params.user_id)
             if (friend) {
+                console.log("好友消息", postData)
                 peer = {
-                    chatType: "private",
+                    chatType: ChatType.friend,
                     name: friend.nickName,
                     uid: friend.uid
+                }
+            } else {
+                // 临时消息
+                console.log("发送临时消息", postData)
+                let receiver = getStrangerByUin(postData.params.user_id);
+                if (receiver) {
+                    peer = {
+                        chatType: ChatType.temp,
+                        name: receiver.nickName,
+                        uid: receiver.uid
+                    }
+                } else {
+                    sendMsgResult.status = -1;
+                    sendMsgResult.retcode = -1;
+                    sendMsgResult.message = `发送失败，未找到对象${postData.params.user_id}，检查他是否为好友或是群友`;
                 }
             }
         } else if (postData.action == "send_group_msg") {
             let group = await getGroup(postData.params.group_id)
             if (group) {
                 peer = {
-                    chatType: "group",
+                    chatType: ChatType.group,
                     name: group.name,
                     uid: group.uid
                 }
 
             } else {
+                sendMsgResult.status = -1;
+                sendMsgResult.retcode = -1;
+                sendMsgResult.message = `发送失败，未找到群${postData.params.group_id}`;
                 console.log("未找到群, 发送群消息失败", postData)
             }
         }
@@ -245,10 +307,23 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                     if (uri.protocol == "file:") {
                         localFilePath = url.split("file://")[1]
                     } else {
-                        localFilePath = await window.llonebot.downloadFile({uri: url, localFilePath: localFilePath})
-                        sendFiles.push(localFilePath);
+                        const {errMsg, path} = await window.llonebot.downloadFile({
+                            uri: url,
+                            fileName: `${Date.now()}${ext}`
+                        })
+                        console.log("下载文件结果", errMsg, path)
+                        if (errMsg) {
+                            console.log("下载文件失败", errMsg);
+                            sendMsgResult.status = -1;
+                            sendMsgResult.retcode = -1;
+                            sendMsgResult.message = `发送失败，下载文件失败，${errMsg}`;
+                            break;
+                        } else {
+                            localFilePath = path;
+                        }
                     }
                     message.file = localFilePath
+                    sendFiles.push(localFilePath);
                 } else if (message.type == "reply") {
                     let msgId = message.data?.id || message.msgId
                     let replyMessage = msgHistory.find(msg => msg.raw.msgId == msgId)
@@ -257,13 +332,27 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                 }
             }
             console.log("发送消息", postData)
+            if (sendMsgResult.status !== 0) {
+                window.llonebot.sendSendMsgResult(postData.ipc_uuid, sendMsgResult)
+                return;
+            }
             window.LLAPI.sendMessage(peer, postData.params.message).then(res => {
                     console.log("消息发送成功:", peer, postData.params.message)
                     if (sendFiles.length) {
                         window.llonebot.deleteFile(sendFiles);
                     }
+                    window.llonebot.sendSendMsgResult(postData.ipc_uuid, sendMsgResult)
                 },
-                err => console.log("消息发送失败", postData, err))
+                err => {
+                    sendMsgResult.status = -1;
+                    sendMsgResult.retcode = -1;
+                    sendMsgResult.message = `发送失败，${err}`;
+                    window.llonebot.sendSendMsgResult(postData.ipc_uuid, sendMsgResult)
+                    console.log("消息发送失败", postData, err)
+                })
+        } else {
+            console.log(sendMsgResult, postData);
+            window.llonebot.sendSendMsgResult(postData.ipc_uuid, sendMsgResult)
         }
     }
 }
@@ -308,7 +397,7 @@ function onNewMessages(messages: MessageElement[]) {
     // console.log("chatListEle", chatListEle)
 }
 
-async function initAccountInfo(){
+async function initAccountInfo() {
     let accountInfo = await window.LLAPI.getAccountInfo();
     window.llonebot.log("getAccountInfo " + JSON.stringify(accountInfo));
     if (!accountInfo.uid) {
@@ -325,21 +414,23 @@ async function initAccountInfo(){
 
 function onLoad() {
     window.llonebot.log("llonebot render onLoad");
-    window.llonebot.getRunningStatus().then(running=>{
+    window.llonebot.getRunningStatus().then(running => {
         if (running) {
             return;
         }
         initAccountInfo().then(
-            (initSuccess)=>{
+            (initSuccess) => {
                 if (!initSuccess) {
                     return;
                 }
                 if (friends.length == 0) {
-                    getFriends().then(()=>{});
+                    getFriends().then(() => {
+                    });
                 }
                 if (groups.length == 0) {
-                    getGroups().then(()=>{
-                        getGroupsMembers(groups).then(()=>{});
+                    getGroups().then(() => {
+                        getGroupsMembers(groups).then(() => {
+                        });
                     });
                 }
                 window.LLAPI.on("new-messages", onNewMessages);
@@ -354,93 +445,93 @@ function onLoad() {
                     recallMessage(arg.message_id)
                 })
                 window.llonebot.log("llonebot loaded");
-            //     window.LLAPI.add_qmenu((qContextMenu: Node) => {
-            //         let btn = document.createElement("a")
-            //         btn.className = "q-context-menu-item q-context-menu-item--normal vue-component"
-            //         btn.setAttribute("aria-disabled", "false")
-            //         btn.setAttribute("role", "menuitem")
-            //         btn.setAttribute("tabindex", "-1")
-            //         btn.onclick = () => {
-            //             // window.LLAPI.getPeer().then(peer => {
-            //             //     // console.log("current peer", peer)
-            //             //     if (peer && peer.chatType == "group") {
-            //             //         getGroupMembers(peer.uid, true).then(()=> {
-            //             //             console.log("获取群成员列表成功", groups);
-            //             //             alert("获取群成员列表成功")
-            //             //         })
-            //             //     }
-            //             // })
-            //             async function func() {
-            //                 for (const group of groups) {
-            //                     await getGroupMembers(group.uid, true)
-            //                 }
-            //             }
-            //
-            //             func().then(() => {
-            //                 console.log("获取群成员列表结果", groups);
-            //                 // 找到members数量为空的群
-            //                 groups.map(group => {
-            //                     if (group.members.length == 0) {
-            //                         console.log(`${group.name}群成员为空`)
-            //                     }
-            //                 })
-            //                 window.llonebot.updateGroups(groups)
-            //             })
-            //         }
-            //         btn.innerText = "获取群成员列表"
-            //         console.log(qContextMenu)
-            //         // qContextMenu.appendChild(btn)
-            //     })
-            //
-            //     window.LLAPI.on("context-msg-menu", (event, target, msgIds) => {
-            //         console.log("msg menu", event, target, msgIds);
-            //     })
-            //
-            //     // console.log("getAccountInfo", LLAPI.getAccountInfo());
-            //     function getChatListEle() {
-            //         chatListEle = document.getElementsByClassName("viewport-list__inner")
-            //         console.log("chatListEle", chatListEle)
-            //         if (chatListEle.length == 0) {
-            //             setTimeout(getChatListEle, 500)
-            //         } else {
-            //             try {
-            //                 // 选择要观察的目标节点
-            //                 const targetNode = chatListEle[0];
-            //
-            //                 // 创建一个观察器实例并传入回调函数
-            //                 const observer = new MutationObserver(function (mutations) {
-            //                     mutations.forEach(function (mutation) {
-            //                         // console.log("chat list changed", mutation.type); // 输出 mutation 的类型
-            //                         // 获得当前聊天窗口
-            //                         window.LLAPI.getPeer().then(peer => {
-            //                             // console.log("current peer", peer)
-            //                             if (peer && peer.chatType == "group") {
-            //                                 getGroupMembers(peer.uid, false).then()
-            //                             }
-            //                         })
-            //                     });
-            //                 });
-            //
-            //                 // 配置观察选项
-            //                 const config = {attributes: true, childList: true, subtree: true};
-            //
-            //                 // 传入目标节点和观察选项
-            //                 observer.observe(targetNode, config);
-            //
-            //             } catch (e) {
-            //                 window.llonebot.log(e)
-            //             }
-            //         }
-            //     }
-            //
-            //     // getChatListEle();
+                //     window.LLAPI.add_qmenu((qContextMenu: Node) => {
+                //         let btn = document.createElement("a")
+                //         btn.className = "q-context-menu-item q-context-menu-item--normal vue-component"
+                //         btn.setAttribute("aria-disabled", "false")
+                //         btn.setAttribute("role", "menuitem")
+                //         btn.setAttribute("tabindex", "-1")
+                //         btn.onclick = () => {
+                //             // window.LLAPI.getPeer().then(peer => {
+                //             //     // console.log("current peer", peer)
+                //             //     if (peer && peer.chatType == "group") {
+                //             //         getGroupMembers(peer.uid, true).then(()=> {
+                //             //             console.log("获取群成员列表成功", groups);
+                //             //             alert("获取群成员列表成功")
+                //             //         })
+                //             //     }
+                //             // })
+                //             async function func() {
+                //                 for (const group of groups) {
+                //                     await getGroupMembers(group.uid, true)
+                //                 }
+                //             }
+                //
+                //             func().then(() => {
+                //                 console.log("获取群成员列表结果", groups);
+                //                 // 找到members数量为空的群
+                //                 groups.map(group => {
+                //                     if (group.members.length == 0) {
+                //                         console.log(`${group.name}群成员为空`)
+                //                     }
+                //                 })
+                //                 window.llonebot.updateGroups(groups)
+                //             })
+                //         }
+                //         btn.innerText = "获取群成员列表"
+                //         console.log(qContextMenu)
+                //         // qContextMenu.appendChild(btn)
+                //     })
+                //
+                //     window.LLAPI.on("context-msg-menu", (event, target, msgIds) => {
+                //         console.log("msg menu", event, target, msgIds);
+                //     })
+                //
+                //     // console.log("getAccountInfo", LLAPI.getAccountInfo());
+                //     function getChatListEle() {
+                //         chatListEle = document.getElementsByClassName("viewport-list__inner")
+                //         console.log("chatListEle", chatListEle)
+                //         if (chatListEle.length == 0) {
+                //             setTimeout(getChatListEle, 500)
+                //         } else {
+                //             try {
+                //                 // 选择要观察的目标节点
+                //                 const targetNode = chatListEle[0];
+                //
+                //                 // 创建一个观察器实例并传入回调函数
+                //                 const observer = new MutationObserver(function (mutations) {
+                //                     mutations.forEach(function (mutation) {
+                //                         // console.log("chat list changed", mutation.type); // 输出 mutation 的类型
+                //                         // 获得当前聊天窗口
+                //                         window.LLAPI.getPeer().then(peer => {
+                //                             // console.log("current peer", peer)
+                //                             if (peer && peer.chatType == "group") {
+                //                                 getGroupMembers(peer.uid, false).then()
+                //                             }
+                //                         })
+                //                     });
+                //                 });
+                //
+                //                 // 配置观察选项
+                //                 const config = {attributes: true, childList: true, subtree: true};
+                //
+                //                 // 传入目标节点和观察选项
+                //                 observer.observe(targetNode, config);
+                //
+                //             } catch (e) {
+                //                 window.llonebot.log(e)
+                //             }
+                //         }
+                //     }
+                //
+                //     // getChatListEle();
             }
         );
     });
 }
 
 // 打开设置界面时触发
-async function onSettingWindowCreated (view: Element) {
+async function onSettingWindowCreated(view: Element) {
     window.llonebot.log("setting window created");
     const {port, hosts} = await window.llonebot.getConfig()
 
