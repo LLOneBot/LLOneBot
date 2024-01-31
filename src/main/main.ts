@@ -29,6 +29,7 @@ let running = false;
 // 加载插件时触发
 function onLoad() {
     log("main onLoaded");
+
     // const config_dir = browserWindow.LiteLoader.plugins["LLOneBot"].path.data;
     function getConfigUtil() {
         const configFilePath = path.join(CONFIG_DIR, `config_${selfInfo.user_id}.json`)
@@ -41,28 +42,65 @@ function onLoad() {
     ipcMain.handle(CHANNEL_GET_CONFIG, (event: any, arg: any) => {
         return getConfigUtil().getConfig()
     })
-    ipcMain.handle(CHANNEL_DOWNLOAD_FILE, async (event: any, arg: {uri: string, fileName: string}) => {
+    ipcMain.handle(CHANNEL_DOWNLOAD_FILE, async (event: any, arg: { uri: string, fileName: string }): Promise<{
+        success: boolean,
+        errMsg: string,
+        path: string
+    }> => {
         let filePath = path.join(CONFIG_DIR, arg.fileName)
         let url = new URL(arg.uri);
-        if (url.protocol == "base64:"){
+        if (url.protocol == "base64:") {
             // base64转成文件
             let base64Data = arg.uri.split("base64://")[1]
-            const buffer = Buffer.from(base64Data, 'base64');
+            try {
+                const buffer = Buffer.from(base64Data, 'base64');
 
-            fs.writeFileSync(filePath, buffer);
-        }
-        else if (url.protocol == "http:" || url.protocol == "https:") {
+                fs.writeFileSync(filePath, buffer);
+            } catch (e: any) {
+                return {
+                    success: false,
+                    errMsg: `base64文件下载失败,` + e.toString(),
+                    path: ""
+                }
+            }
+        } else if (url.protocol == "http:" || url.protocol == "https:") {
             // 下载文件
             let res = await fetch(url)
+            if (!res.ok) {
+                return {
+                    success: false,
+                    errMsg: `${url}下载失败,` + res.statusText,
+                    path: ""
+                }
+            }
             let blob = await res.blob();
             let buffer = await blob.arrayBuffer();
-            fs.writeFileSync(filePath, Buffer.from(buffer));
+            try {
+                fs.writeFileSync(filePath, Buffer.from(buffer));
+            } catch (e: any) {
+                return {
+                    success: false,
+                    errMsg: `${url}下载失败,` + e.toString(),
+                    path: ""
+                }
+            }
+        }
+        else{
+            return {
+                success: false,
+                errMsg: `不支持的file协议,` + url.protocol,
+                path: ""
+            }
         }
         if (isGIF(filePath)) {
             fs.renameSync(filePath, filePath + ".gif");
             filePath += ".gif";
         }
-        return filePath;
+        return {
+            success: true,
+            errMsg: "",
+            path: filePath
+        };
     })
     ipcMain.on(CHANNEL_SET_CONFIG, (event: any, arg: Config) => {
         getConfigUtil().setConfig(arg)
@@ -103,7 +141,7 @@ function onLoad() {
     })
 
     ipcMain.on(CHANNEL_POST_ONEBOT_DATA, (event: any, arg: any) => {
-        for(const host of getConfigUtil().getConfig().hosts) {
+        for (const host of getConfigUtil().getConfig().hosts) {
             try {
                 fetch(host, {
                     method: "POST",
@@ -113,9 +151,9 @@ function onLoad() {
                     },
                     body: JSON.stringify(arg)
                 }).then((res: any) => {
-                    log("新消息事件上传成功:" + JSON.stringify(arg));
+                    log(`新消息事件上传成功: ${host} ` + JSON.stringify(arg));
                 }, (err: any) => {
-                    log("新消息事件上传失败:" + err + JSON.stringify(arg));
+                    log(`新消息事件上传失败: ${host} ` + err + JSON.stringify(arg));
                 });
             } catch (e: any) {
                 log(e.toString())

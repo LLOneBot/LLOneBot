@@ -1,5 +1,6 @@
 import * as path from "path";
 import {json} from "express";
+import {selfInfo} from "./data";
 
 const fs = require('fs');
 
@@ -11,7 +12,8 @@ export function log(msg: any) {
     const month = date.getMonth() + 1;
     const day = date.getDate();
     const currentDate = `${year}-${month}-${day}`;
-    fs.appendFile(path.join(CONFIG_DIR , `llonebot-${currentDate}.log`), currentDateTime + ":" + JSON.stringify(msg) + "\n", (err: any) => {
+    const userInfo = selfInfo.user_id ? `${selfInfo.nickname}(${selfInfo.user_id})` : ""
+    fs.appendFile(path.join(CONFIG_DIR , `llonebot-${currentDate}.log`), currentDateTime + ` ${userInfo}:` + JSON.stringify(msg) + "\n", (err: any) => {
 
     })
 }
