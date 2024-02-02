@@ -572,6 +572,18 @@ async function onSettingWindowCreated(view: Element) {
             </setting-panel>
         </setting-section>
     </div>
+    <style>
+        *{
+            padding: 0;
+            margin: 0;
+        }
+        input[id="port"]{
+            color: #666666;
+        }
+        input[id="host"]{
+            color: #666666;
+        }
+    </style>
     `
 
     const parser = new DOMParser();
