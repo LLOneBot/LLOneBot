@@ -615,7 +615,7 @@ async function onSettingWindowCreated(view: Element) {
 
 }
 
-setTimeout(onLoad, 2000)
+setTimeout(onLoad, 5000)
 
 export {
     onSettingWindowCreated
