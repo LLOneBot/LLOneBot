@@ -149,7 +149,7 @@ export function startExpress(port: number) {
     app.use(express.json({
         limit: '500mb',
         verify: (req: any, res: any, buf: any, encoding: any) => {
-            req.rawBody = buf
+            req.rawBody = buf;
         }
     }));
     app.use((req: any, res: any, next: any) => {
@@ -157,7 +157,8 @@ export function startExpress(port: number) {
             req.body = JSONbig.parse(req.rawBody.toString());
             next();
         } catch (error) {
-            next(error);
+            // next(error);
+            next();
         }
     });
 
