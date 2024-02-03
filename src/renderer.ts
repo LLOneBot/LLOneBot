@@ -236,7 +236,9 @@ async function handleNewMessage(messages: MessageElement[]) {
                     }
                 }
             }
-            onebot_message_data.message.push(message_data)
+            if (message_data.type !== "unknown"){
+                onebot_message_data.message.push(message_data);
+            }
         }
         if (msgHistory.length > 10000) {
             msgHistory.splice(0, 100)
@@ -625,13 +627,13 @@ async function onSettingWindowCreated(view: Element) {
             </setting-panel>
         </setting-section>
     </div>
-        <style>
-            setting-panel {
-                padding: 10px;
-            }
-            .tips {
-                font-size: 0.75rem;
-            }
+    <style>
+        setting-panel {
+            padding: 10px;
+        }
+        .tips {
+            font-size: 0.75rem;
+        }
     </style>
     `
 
