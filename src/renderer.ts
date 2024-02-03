@@ -630,8 +630,8 @@ async function onSettingWindowCreated(view: Element) {
                 </setting-item>
                 <setting-item data-direction="row" class="hostItem vertical-list-item">
                     <div>
-                        <div>是否上报自身消息</div>
-                        <div class="tips">开启后不再上报自己发出的消息</div>
+                        <div>上报自身消息</div>
+                        <div class="tips">开启后上报自己发出的消息</div>
                     </div>
                     <setting-switch id="reportSelfMessage" ${config.reportSelfMessage ? "is-active" : ""}></setting-switch>
                 </setting-item>
