@@ -181,15 +181,16 @@ export interface PostDataSendMsg {
 }
 
 export interface Config {
-    port: number,
-    hosts: string[],
+    port: number
+    hosts: string[]
     enableBase64?: boolean
     debug?: boolean
+    log?: boolean
 }
 
 export interface SendMsgResult {
-    status: number,
-    retcode: number,
-    data: any,
-    message: string,
+    status: number
+    retcode: number
+    data: any
+    message: string
 }

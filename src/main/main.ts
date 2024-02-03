@@ -18,7 +18,7 @@ import {
 } from "../common/IPCChannel";
 import {ConfigUtil} from "./config";
 import {startExpress} from "./HttpServer";
-import {checkFileReceived, CONFIG_DIR, isGIF, log} from "./utils";
+import {checkFileReceived, CONFIG_DIR, getConfigUtil, isGIF, log} from "./utils";
 import {friends, groups, selfInfo} from "./data";
 import {} from "../global";
 
@@ -32,10 +32,7 @@ function onLoad() {
     log("main onLoaded");
 
     // const config_dir = browserWindow.LiteLoader.plugins["LLOneBot"].path.data;
-    function getConfigUtil() {
-        const configFilePath = path.join(CONFIG_DIR, `config_${selfInfo.user_id}.json`)
-        return new ConfigUtil(configFilePath)
-    }
+
 
     if (!fs.existsSync(CONFIG_DIR)) {
         fs.mkdirSync(CONFIG_DIR, {recursive: true});
