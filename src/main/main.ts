@@ -2,6 +2,7 @@
 
 import * as path from "path";
 import {ipcMain} from 'electron';
+import * as util from 'util';
 
 import {Config, Group, SelfInfo, User} from "../common/types";
 import {
@@ -13,11 +14,11 @@ import {
     CHANNEL_SET_CONFIG,
     CHANNEL_START_HTTP_SERVER,
     CHANNEL_UPDATE_FRIENDS,
-    CHANNEL_UPDATE_GROUPS, CHANNEL_DELETE_FILE, CHANNEL_GET_RUNNING_STATUS
+    CHANNEL_UPDATE_GROUPS, CHANNEL_DELETE_FILE, CHANNEL_GET_RUNNING_STATUS, CHANNEL_FILE2BASE64
 } from "../common/IPCChannel";
 import {ConfigUtil} from "./config";
 import {startExpress} from "./HttpServer";
-import {CONFIG_DIR, isGIF, log} from "./utils";
+import {checkFileReceived, CONFIG_DIR, isGIF, log} from "./utils";
 import {friends, groups, selfInfo} from "./data";
 import {} from "../global";
 
@@ -54,7 +55,6 @@ function onLoad() {
             let base64Data = arg.uri.split("base64://")[1]
             try {
                 const buffer = Buffer.from(base64Data, 'base64');
-
                 fs.writeFileSync(filePath, buffer);
             } catch (e: any) {
                 return {
@@ -179,6 +179,32 @@ function onLoad() {
 
     ipcMain.handle(CHANNEL_GET_RUNNING_STATUS, (event: any, arg: any) => {
         return running;
+    })
+
+    ipcMain.handle(CHANNEL_FILE2BASE64, async (event: any, path: string): Promise<{err: string, data: string}> => {
+        const readFile = util.promisify(fs.readFile);
+        let result = {
+            err: "",
+            data: ""
+        }
+        try {
+            // 读取文件内容
+            // if (!fs.existsSync(path)){
+            //     path = path.replace("\\Ori\\", "\\Thumb\\");
+            // }
+            try {
+                await checkFileReceived(path, 5000);
+            } catch (e: any) {
+                result.err = e.toString();
+                return result;
+            }
+            const data = await readFile(path);
+            // 转换为Base64编码
+            result.data = data.toString('base64');
+        } catch (err) {
+            result.err = err.toString();
+        }
+        return result;
     })
 }
 

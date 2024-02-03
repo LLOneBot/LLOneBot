@@ -36,7 +36,9 @@
 - [x] 图片
 - [x] 引用消息
 - [x] @群成员
-- [x] 发送语音(只测试了silk编码的amr)
+- [x] 语音
+- [x] json消息(只上报)
+- [ ] 红包
 - [ ] 转发消息记录
 - [ ] xml
 
@@ -97,16 +99,16 @@
 <br/>
 
 <details>
-    <summary>QQ多开时事件没有上报</summary>
+    <summary>QQ变得很卡</summary>
 <br/>
-    小概率事件，有可能是IPC通信串台了(不确定)，重启QQ可解决，目前正在想办法修复
+    这是你的群特别多导致的，因为启动后会批量获取群成员列表，获取完之后就正常了
 </details>
 <br/>
 
 <details>
-    <summary>QQ变得很卡</summary>
+    <summary>撤回消息无效</summary>
 <br/>
-    这是你的群特别多导致的，因为启动后会批量获取群成员列表，获取完之后就正常了
+    如果接口调用的传的`message`是number类型会导致精度丢失，使用string类型可解决，详情见<a href="https://github.com/linyuchen/LiteLoaderQQNT-OneBotApi/issues/17">issue#17</a>
 </details>
 <br/>
 
