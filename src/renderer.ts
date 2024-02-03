@@ -592,7 +592,7 @@ async function onSettingWindowCreated(view: Element) {
         hostsEleStr += creatHostEleStr(host);
     }
     let html = `
-    <div class="config_view">
+    <div class="config_view llonebot">
         <setting-section>
             <setting-panel>
                 <setting-list class="wrap">
@@ -624,6 +624,13 @@ async function onSettingWindowCreated(view: Element) {
                     </div>
                     <setting-switch id="debug" ${config.debug ? "is-active" : ""}></setting-switch>
                 </setting-item>
+                <setting-item data-direction="row" class="hostItem vertical-list-item">
+                    <div>
+                        <div>日志</div>
+                        <div class="tips">日志目录:${window.LiteLoader.plugins["LLOneBot"].path.data}</div>
+                    </div>
+                    <setting-switch id="log" ${config.log ? "is-active" : ""}></setting-switch>
+                </setting-item>
             </setting-panel>
         </setting-section>
     </div>
@@ -633,6 +640,11 @@ async function onSettingWindowCreated(view: Element) {
         }
         .tips {
             font-size: 0.75rem;
+        }
+        @media (prefers-color-scheme: dark){
+            .llonebot input {
+                color: white;
+            }
         }
     </style>
     `
@@ -667,6 +679,7 @@ async function onSettingWindowCreated(view: Element) {
 
     switchClick("debug", "debug");
     switchClick("switchBase64", "enableBase64");
+    switchClick("log", "log");
 
     doc.getElementById("save")?.addEventListener("click",
         () => {

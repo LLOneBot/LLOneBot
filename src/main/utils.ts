@@ -1,11 +1,21 @@
 import * as path from "path";
 import {json} from "express";
 import {selfInfo} from "./data";
+import {ConfigUtil} from "./config";
 
 const fs = require('fs');
 
 export const CONFIG_DIR = global.LiteLoader.plugins["LLOneBot"].path.data;
+
+export function getConfigUtil() {
+    const configFilePath = path.join(CONFIG_DIR, `config_${selfInfo.user_id}.json`)
+    return new ConfigUtil(configFilePath)
+}
+
 export function log(msg: any) {
+    if (!getConfigUtil().getConfig().log){
+        return
+    }
     let currentDateTime = new Date().toLocaleString();
     const date = new Date();
     const year = date.getFullYear();
