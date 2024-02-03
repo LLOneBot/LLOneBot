@@ -31,5 +31,5 @@ export function sendIPCSendQQMsg(postData: PostDataSendMsg, handleSendResult: (d
 }
 
 export function sendIPCRecallQQMsg(message_id: string) {
-    sendIPCMsg(CHANNEL_RECALL_MSG, {message_id});
+    sendIPCMsg(CHANNEL_RECALL_MSG, {message_id: message_id});
 }

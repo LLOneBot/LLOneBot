@@ -26,3 +26,22 @@ export function isGIF(path: string) {
     return buffer.toString() === 'GIF8'
 }
 
+
+// 定义一个异步函数来检查文件是否存在
+export function checkFileReceived(path: string, timeout: number=3000): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+
+        function check() {
+            if (fs.existsSync(path)) {
+                resolve();
+            } else if (Date.now() - startTime > timeout) {
+                reject(new Error(`文件不存在: ${path}`));
+            } else {
+                setTimeout(check, 100);
+            }
+        }
+
+        check();
+    });
+}
