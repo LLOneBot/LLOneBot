@@ -208,7 +208,8 @@ async function handleNewMessage(messages: MessageElement[]) {
                 message_data["data"]["file"] = element.picElement.sourcePath
             } else if (element.replyElement) {
                 message_data["type"] = "reply"
-                message_data["data"]["id"] = msgHistory.find(msg => msg.raw.msgSeq == element.replyElement.replayMsgSeq)?.raw.msgId
+                let temp = msgHistory.find(msg => msg.raw.msgSeq == element.replyElement.replayMsgSeq); // 这里为什么找不到自己发的消息？
+                message_data["data"]["id"] = (temp === undefined) ? "0" : temp.raw.msgId;
             } else if (element.pttElement) {
                 message_data["type"] = MessageType.voice;
                 message_data["data"]["file"] = element.pttElement.filePath
