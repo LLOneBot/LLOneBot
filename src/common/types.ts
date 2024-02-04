@@ -187,7 +187,6 @@ export interface Config {
     debug?: boolean
     reportSelfMessage?: boolean
     log?: boolean
-    reportSelfMessage?: boolean
 }
 
 export interface SendMsgResult {
