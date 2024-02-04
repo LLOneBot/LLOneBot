@@ -1,6 +1,7 @@
 import {log} from "./utils";
 
 const express = require("express");
+const JSONbig = require('json-bigint');
 import {sendIPCRecallQQMsg, sendIPCSendQQMsg} from "./IPCSend";
 import {OnebotGroupMemberRole, PostDataAction, PostDataSendMsg, SendMessage, SendMsgResult} from "../common/types";
 import {friends, groups, selfInfo} from "./data";
@@ -21,12 +22,10 @@ function checkSendMessage(sendMsgList: SendMessage[]) {
             } else if (["image", "voice", "record"].includes(type)) {
                 if (!data["file"]) {
                     return 400;
-                }
-                else{
+                } else {
                     if (checkUri(data["file"])) {
                         return 200;
-                    }
-                    else{
+                    } else {
                         return 400;
                     }
                 }
@@ -36,16 +35,16 @@ function checkSendMessage(sendMsgList: SendMessage[]) {
             } else if (type === "reply" && !data["id"]) {
                 return 400;
             }
-        }
-        else{
+        } else {
             return 400
         }
     }
     return 200;
 }
+
 // ==end==
 
-function handlePost(jsonData: any, handleSendResult: (data: SendMsgResult)=>void) {
+function handlePost(jsonData: any, handleSendResult: (data: SendMsgResult) => void) {
     log("API receive post:" + JSON.stringify(jsonData))
     if (!jsonData.params) {
         jsonData.params = JSON.parse(JSON.stringify(jsonData));
@@ -137,7 +136,7 @@ function handlePost(jsonData: any, handleSendResult: (data: SendMsgResult)=>void
             }
         })
     } else if (jsonData.action == "delete_msg") {
-        sendIPCRecallQQMsg(jsonData.message_id)
+        sendIPCRecallQQMsg(String(jsonData.message_id))
     }
     return resData
 }
@@ -147,14 +146,30 @@ export function startExpress(port: number) {
     const app = express();
     // 中间件，用于解析POST请求的请求体
     app.use(express.urlencoded({extended: true, limit: "500mb"}));
-    app.use(express.json({limit: '500mb'}));
+    app.use(express.json({
+        limit: '500mb',
+        verify: (req: any, res: any, buf: any, encoding: any) => {
+            req.rawBody = buf;
+        }
+    }));
+    app.use((req: any, res: any, next: any) => {
+        try {
+            req.body = JSONbig.parse(req.rawBody.toString());
+            next();
+        } catch (error) {
+            // next(error);
+            next();
+        }
+    });
 
     function parseToOnebot12(action: PostDataAction) {
         app.post('/' + action, (req: any, res: any) => {
             let jsonData: PostDataSendMsg = req.body;
             jsonData.action = action
-            let resData = handlePost(jsonData, (data:SendMsgResult)=>{res.send(data)})
-            if (resData){
+            let resData = handlePost(jsonData, (data: SendMsgResult) => {
+                res.send(data)
+            })
+            if (resData) {
                 res.send(resData)
             }
         });
@@ -175,8 +190,10 @@ export function startExpress(port: number) {
     // 处理POST请求的路由
     app.post('/', (req: any, res: any) => {
         let jsonData: PostDataSendMsg = req.body;
-        let resData = handlePost(jsonData, (data:SendMsgResult)=>{res.send(data)})
-        if (resData){
+        let resData = handlePost(jsonData, (data: SendMsgResult) => {
+            res.send(data)
+        })
+        if (resData) {
             res.send(resData)
         }
     });
@@ -193,8 +210,10 @@ export function startExpress(port: number) {
                 jsonData.action = "send_private_msg"
             }
         }
-        let resData = handlePost(jsonData, (data:SendMsgResult)=>{res.send(data)})
-        if (resData){
+        let resData = handlePost(jsonData, (data: SendMsgResult) => {
+            res.send(data)
+        })
+        if (resData) {
             res.send(resData)
         }
     })
