@@ -6,12 +6,14 @@ import {
     AtType,
     ChatType,
     Group,
-    MessageElement,
+    MessageElement, MessageType,
     OnebotGroupMemberRole,
     Peer,
-    PostDataSendMsg, SendMsgResult,
+    PostDataSendMsg,
+    SendMsgResult,
     User
 } from "./common/types";
+import {checkFileReceived} from "./main/utils";
 
 let self_qq: string = ""
 let groups: Group[] = []
@@ -123,6 +125,7 @@ async function getGroupMember(group_qq: string, member_uid: string) {
 
 async function handleNewMessage(messages: MessageElement[]) {
     console.log("llonebot 收到消息:", messages);
+    const {debug, enableBase64, reportSelfMessage} = await window.llonebot.getConfig();
     for (let message of messages) {
         let onebot_message_data: any = {
             self: {
@@ -140,6 +143,9 @@ async function handleNewMessage(messages: MessageElement[]) {
             message: [],
             raw_message: "",
             font: 14
+        }
+        if (debug) {
+            onebot_message_data.raw = JSON.parse(JSON.stringify(message))
         }
         if (message.raw.chatType == ChatType.group) {
             let group_id = message.peer.uid
@@ -181,10 +187,11 @@ async function handleNewMessage(messages: MessageElement[]) {
                 data: {},
                 type: "unknown"
             }
-            if (element.textElement?.atType == AtType.atUser) {
+            if (element.textElement && element.textElement?.atType !== AtType.notAt) {
                 message_data["type"] = "at"
-                if (element.textElement.atUid != "0") {
-                    message_data["data"]["mention"] = element.textElement.atUid
+                if (element.textElement.atType == AtType.atAll) {
+                    message_data["data"]["mention"] = "all"
+                    message_data["data"]["qq"] = "all"
                 } else {
                     let uid = element.textElement.atNtUid
                     let atMember = await getGroupMember(message.peer.uid, uid)
@@ -198,24 +205,51 @@ async function handleNewMessage(messages: MessageElement[]) {
                 message_data["type"] = "image"
                 message_data["data"]["file_id"] = element.picElement.fileUuid
                 message_data["data"]["path"] = element.picElement.sourcePath
-                let startS = "file://"
-                if (!element.picElement.sourcePath.startsWith("/")) {
-                    startS += "/"
-                }
-                // todo: 转成base64
-                message_data["data"]["file"] = startS + element.picElement.sourcePath
+                message_data["data"]["file"] = element.picElement.sourcePath
             } else if (element.replyElement) {
                 message_data["type"] = "reply"
                 message_data["data"]["id"] = msgHistory.find(msg => msg.raw.msgSeq == element.replyElement.replayMsgSeq)?.raw.msgId
+            } else if (element.pttElement) {
+                message_data["type"] = MessageType.voice;
+                message_data["data"]["file"] = element.pttElement.filePath
+                message_data["data"]["file_id"] = element.pttElement.fileUuid
+                // console.log("收到语音消息", message.raw.msgId, message.peer, element.pttElement)
+                // window.LLAPI.Ptt2Text(message.raw.msgId, message.peer, messages).then(text => {
+                //     console.log("语音转文字结果", text);
+                // }).catch(err => {
+                //     console.log("语音转文字失败", err);
+                // })
+            } else if (element.arkElement) {
+                message_data["type"] = MessageType.json;
+                message_data["data"]["data"] = element.arkElement.bytesData;
             }
-            onebot_message_data.message.push(message_data)
+            if (message_data.data.file) {
+                let filePath: string = message_data.data.file;
+                message_data.data.file = "file://" + filePath
+                if (enableBase64) {
+                    // filePath = filePath.replace("\\Ori\\", "\\Thumb\\")
+                    let {err, data} = await window.llonebot.file2base64(filePath);
+                    if (err) {
+                        console.log("文件转base64失败", err)
+                    } else {
+                        message_data.data.file = "base64://" + data
+                    }
+                }
+            }
+            if (message_data.type !== "unknown"){
+                onebot_message_data.message.push(message_data);
+            }
         }
         if (msgHistory.length > 10000) {
             msgHistory.splice(0, 100)
         }
         msgHistory.push(message)
-        console.log("发送上传消息给ipc main", onebot_message_data)
-        window.llonebot.postData(onebot_message_data);
+        if (!reportSelfMessage && onebot_message_data["user_id"] == self_qq){
+            console.log("开启了不上传自己发送的消息，进行拦截 ", onebot_message_data);
+        } else {
+            console.log("发送上传消息给ipc main", onebot_message_data);
+            window.llonebot.postData(onebot_message_data);
+        }
     }
 }
 
@@ -285,11 +319,18 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                     message.type = "text"
                     message.atType = AtType.atUser
                     let atUid = message.data?.qq || message.atUid
-                    let group = await getGroup(postData.params.group_id)
-                    let atMember = group.members.find(member => member.uin == atUid)
-                    message.atNtUid = atMember.uid
-                    message.atUid = atUid
-                    message.content = `@${atMember.cardName || atMember.nick}`
+                    if (atUid == "all") {
+                        message.atType = AtType.atAll
+                        atUid = "0";
+                        message.content = `@全体成员`
+                    }
+                    else {
+                        let group = await getGroup(postData.params.group_id)
+                        let atMember = group.members.find(member => member.uin == atUid)
+                        message.atNtUid = atMember.uid
+                        message.atUid = atUid
+                        message.content = `@${atMember.cardName || atMember.nick}`
+                    }
                 } else if (message.type == "text") {
                     message.content = message.data?.text || message.content
                 } else if (message.type == "image" || message.type == "voice" || message.type == "record") {
@@ -432,11 +473,10 @@ function onLoad() {
                     getGroups().then(() => {
                         getGroupsMembers(groups).then(() => {
                         });
-                    })
+                    });
                 }
                 window.LLAPI.on("new-messages", onNewMessages);
                 window.LLAPI.on("new-send-messages", onNewMessages);
-
                 window.llonebot.log("llonebot render start");
                 window.llonebot.startExpress();
 
@@ -444,6 +484,7 @@ function onLoad() {
                     listenSendMessage(postData).then().catch(err => console.log("listenSendMessage err", err))
                 })
                 window.llonebot.listenRecallMessage((arg: { message_id: string }) => {
+                    // console.log("listenRecallMessage", arg)
                     recallMessage(arg.message_id)
                 })
                 window.llonebot.log("llonebot loaded");
@@ -535,7 +576,7 @@ function onLoad() {
 // 打开设置界面时触发
 async function onSettingWindowCreated(view: Element) {
     window.llonebot.log("setting window created");
-    const {port, hosts} = await window.llonebot.getConfig()
+    let config = await window.llonebot.getConfig()
 
     function creatHostEleStr(host: string) {
         let eleStr = `
@@ -545,22 +586,23 @@ async function onSettingWindowCreated(view: Element) {
                 style="width:60%;padding: 5px"
                 placeholder="如果localhost上报失败试试局域网ip"/>
             </setting-item>
+
             `
         return eleStr
     }
 
     let hostsEleStr = ""
-    for (const host of hosts) {
+    for (const host of config.hosts) {
         hostsEleStr += creatHostEleStr(host);
     }
     let html = `
-    <div class="config_view">
+    <div class="config_view llonebot">
         <setting-section>
-            <setting-panel style="padding: 10px">
+            <setting-panel>
                 <setting-list class="wrap">
                     <setting-item class="vertical-list-item" data-direction="row">
                         <setting-text>监听端口</setting-text>
-                        <input id="port" type="number" value="${port}"/>
+                        <input id="port" type="number" value="${config.port}"/>
                     </setting-item>
                     <div>
                         <button id="addHost" class="q-button">添加上报地址</button>
@@ -571,8 +613,51 @@ async function onSettingWindowCreated(view: Element) {
                     <button id="save" class="q-button">保存(监听端口重启QQ后生效)</button>
                 </setting-list>
             </setting-panel>
+            <setting-panel>
+                <setting-item data-direction="row" class="hostItem vertical-list-item">
+                    <div>
+                        <div>上报文件进行base64编码</div>
+                        <div class="tips">不开启时，上报文件将以本地路径形式发送</div>
+                    </div>
+                    <setting-switch id="switchBase64" ${config.enableBase64 ? "is-active" : ""}></setting-switch>
+                </setting-item>
+                <setting-item data-direction="row" class="hostItem vertical-list-item">
+                    <div>
+                        <div>debug模式</div>
+                        <div class="tips">开启后上报消息添加raw字段附带原始消息</div>
+                    </div>
+                    <setting-switch id="debug" ${config.debug ? "is-active" : ""}></setting-switch>
+                </setting-item>
+                <setting-item data-direction="row" class="hostItem vertical-list-item">
+                    <div>
+                        <div>上报自身消息</div>
+                        <div class="tips">开启后上报自己发出的消息</div>
+                    </div>
+                    <setting-switch id="reportSelfMessage" ${config.reportSelfMessage ? "is-active" : ""}></setting-switch>
+                </setting-item>
+                <setting-item data-direction="row" class="hostItem vertical-list-item">
+                    <div>
+                        <div>日志</div>
+                        <div class="tips">日志目录:${window.LiteLoader.plugins["LLOneBot"].path.data}</div>
+                    </div>
+                    <setting-switch id="log" ${config.log ? "is-active" : ""}></setting-switch>
+                </setting-item>
+            </setting-panel>
         </setting-section>
     </div>
+    <style>
+        setting-panel {
+            padding: 10px;
+        }
+        .tips {
+            font-size: 0.75rem;
+        }
+        @media (prefers-color-scheme: dark){
+            .llonebot input {
+                color: white;
+            }
+        }
+    </style>
     `
 
     const parser = new DOMParser();
@@ -589,6 +674,25 @@ async function onSettingWindowCreated(view: Element) {
 
     doc.getElementById("addHost").addEventListener("click", () => addHostEle())
 
+    function switchClick(eleId: string, configKey: string) {
+        doc.getElementById(eleId)?.addEventListener("click", (e) => {
+            const switchEle = e.target as HTMLInputElement
+            if (config[configKey]) {
+                config[configKey] = false
+                switchEle.removeAttribute("is-active")
+            } else {
+                config[configKey] = true
+                switchEle.setAttribute("is-active", "")
+            }
+            window.llonebot.setConfig(config)
+        })
+    }
+
+    switchClick("debug", "debug");
+    switchClick("switchBase64", "enableBase64");
+    switchClick("reportSelfMessage", "reportSelfMessage");
+    switchClick("log", "log");
+
     doc.getElementById("save")?.addEventListener("click",
         () => {
             const portEle: HTMLInputElement = document.getElementById("port") as HTMLInputElement
@@ -603,12 +707,13 @@ async function onSettingWindowCreated(view: Element) {
                     hosts.push(hostEle.value);
                 }
             }
-            window.llonebot.setConfig({
-                port: parseInt(port),
-                hosts: hosts
-            })
+            config.port = parseInt(port);
+            config.hosts = hosts;
+            window.llonebot.setConfig(config);
             alert("保存成功");
         })
+
+
     doc.body.childNodes.forEach(node => {
         view.appendChild(node);
     });
@@ -616,7 +721,7 @@ async function onSettingWindowCreated(view: Element) {
 
 }
 
-setTimeout(onLoad, 5000);
+setTimeout(onLoad, 5000)
 
 export {
     onSettingWindowCreated
