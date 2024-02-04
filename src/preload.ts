@@ -14,7 +14,7 @@ import {
     CHANNEL_UPDATE_FRIENDS,
     CHANNEL_UPDATE_GROUPS,
     CHANNEL_DELETE_FILE,
-    CHANNEL_GET_RUNNING_STATUS
+    CHANNEL_GET_RUNNING_STATUS, CHANNEL_FILE2BASE64
 } from "./common/IPCChannel";
 
 
@@ -70,6 +70,9 @@ contextBridge.exposeInMainWorld("llonebot", {
     },
     getRunningStatus: () => {
         return ipcRenderer.invoke(CHANNEL_GET_RUNNING_STATUS);
+    },
+    file2base64: (localFilePath: string) => {
+        return ipcRenderer.invoke(CHANNEL_FILE2BASE64, localFilePath);
     }
     // startExpress,
 });

@@ -4,7 +4,7 @@ import {
     GroupMemberInfo,
     MessageElement,
     Peer,
-    PostDataSendMsg,
+    PostDataSendMsg, PttElement,
     SelfInfo,
     SendMessage, SendMsgResult,
     User
@@ -27,6 +27,7 @@ declare var LLAPI: {
     getGroupMemberList(group_id: string, num: number): Promise<{result: { infos: Map<string, GroupMemberInfo> }}>
     getPeer(): Promise<Peer>
     add_qmenu(func: (qContextMenu: Node)=>void): void
+    Ptt2Text(msgId:string, peer: Peer, elements: MessageElement[]): Promise<any>
 
 };
 
@@ -47,6 +48,7 @@ declare var llonebot: {
     deleteFile(path: string[]):Promise<void>;
     getRunningStatus(): Promise<boolean>;
     sendSendMsgResult(sessionId: string, msgResult: SendMsgResult): void;
+    file2base64(path: string): Promise<{err: string, data: string}>;
 };
 
 declare global {

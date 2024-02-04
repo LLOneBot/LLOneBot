@@ -1,11 +1,21 @@
 import * as path from "path";
 import {json} from "express";
 import {selfInfo} from "./data";
+import {ConfigUtil} from "./config";
 
 const fs = require('fs');
 
 export const CONFIG_DIR = global.LiteLoader.plugins["LLOneBot"].path.data;
+
+export function getConfigUtil() {
+    const configFilePath = path.join(CONFIG_DIR, `config_${selfInfo.user_id}.json`)
+    return new ConfigUtil(configFilePath)
+}
+
 export function log(msg: any) {
+    if (!getConfigUtil().getConfig().log){
+        return
+    }
     let currentDateTime = new Date().toLocaleString();
     const date = new Date();
     const year = date.getFullYear();
@@ -26,3 +36,22 @@ export function isGIF(path: string) {
     return buffer.toString() === 'GIF8'
 }
 
+
+// 定义一个异步函数来检查文件是否存在
+export function checkFileReceived(path: string, timeout: number=3000): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+
+        function check() {
+            if (fs.existsSync(path)) {
+                resolve();
+            } else if (Date.now() - startTime > timeout) {
+                reject(new Error(`文件不存在: ${path}`));
+            } else {
+                setTimeout(check, 100);
+            }
+        }
+
+        check();
+    });
+}

@@ -1,5 +1,6 @@
 export enum AtType {
     notAt = 0,
+    atAll = 1,
     atUser = 2
 }
 
@@ -9,7 +10,7 @@ export enum ChatType {
     temp = 100
 }
 
-export type GroupMemberInfo = {
+export interface GroupMemberInfo {
     avatarPath: string;
     cardName: string;
     cardType: number;
@@ -30,12 +31,12 @@ export const OnebotGroupMemberRole = {
 }
 
 
-export type SelfInfo = {
+export interface SelfInfo {
     user_id: string;
     nickname: string;
 }
 
-export type User = {
+export interface User {
     avatarUrl?: string;
     bio?: string;  // 签名
     nickName: string;
@@ -43,19 +44,46 @@ export type User = {
     uin: string; // QQ号
 }
 
-export type Group = {
+export interface Group {
     uid: string; // 群号
     name: string;
     members?: GroupMemberInfo[];
 }
 
-export type Peer = {
+export interface Peer {
     chatType: ChatType
     name: string
     uid: string  // qq号
 }
 
-export type MessageElement = {
+export interface PttElement {
+    canConvert2Text: boolean
+    duration: number  // 秒数
+    fileBizId: null
+    fileId: number // 0
+    fileName: string // "e4d09c784d5a2abcb2f9980bdc7acfe6.amr"
+    filePath: string // "/Users//Library/Containers/com.tencent.qq/Data/Library/Application Support/QQ/nt_qq_a6b15c9820595d25a56c1633ce19ad40/nt_data/Ptt/2023-11/Ori/e4d09c784d5a2abcb2f9980bdc7acfe6.amr"
+    fileSize: string // "4261"
+    fileSubId: string // "0"
+    fileUuid: string // "90j3z7rmRphDPrdVgP9udFBaYar#oK0TWZIV"
+    formatType: string // 1
+    invalidState: number // 0
+    md5HexStr: string // "e4d09c784d5a2abcb2f9980bdc7acfe6"
+    playState: number // 0
+    progress: number // 0
+    text: string // ""
+    transferStatus: number // 0
+    translateStatus: number // 0
+    voiceChangeType: number // 0
+    voiceType: number // 0
+    waveAmplitudes: number[]
+}
+
+export interface ArkElement{
+    bytesData: string
+}
+
+export interface MessageElement {
     raw: {
         msgId: string,
         msgTime: string,
@@ -83,28 +111,8 @@ export type MessageElement = {
                 fileName: string
                 fileUuid: string
             },
-            pttElement: {
-                canConvert2Text: boolean
-                duration: number  // 秒数
-                fileBizId: null
-                fileId: number // 0
-                fileName: string // "e4d09c784d5a2abcb2f9980bdc7acfe6.amr"
-                filePath: string // "/Users/C5366155/Library/Containers/com.tencent.qq/Data/Library/Application Support/QQ/nt_qq_a6b15c9820595d25a56c1633ce19ad40/nt_data/Ptt/2023-11/Ori/e4d09c784d5a2abcb2f9980bdc7acfe6.amr"
-                fileSize: string // "4261"
-                fileSubId: string // "0"
-                fileUuid: string // "90j3z7rmRphDPrdVgP9udFBaYar#oK0TWZIV"
-                formatType: string // 1
-                invalidState: number // 0
-                md5HexStr: string // "e4d09c784d5a2abcb2f9980bdc7acfe6"
-                playState: number // 0
-                progress: number // 0
-                text: string // ""
-                transferStatus: number // 0
-                translateStatus: number // 0
-                voiceChangeType: number // 0
-                voiceType: number // 0
-                waveAmplitudes: number[]
-            }
+            pttElement: PttElement,
+            arkElement: ArkElement
         }[]
     }
     peer: Peer,
@@ -115,8 +123,17 @@ export type MessageElement = {
     }
 }
 
+export enum MessageType {
+    text = "text",
+    image = "image",
+    voice = "record",
+    at = "at",
+    reply = "reply",
+    json = "json"
+}
+
 export type SendMessage = {
-    type: "text",
+    type: MessageType.text,
     content: string,
     data?: {
         text: string, // 纯文本
@@ -128,7 +145,7 @@ export type SendMessage = {
         file: string // 本地路径
     }
 } | {
-    type: "at",
+    type: MessageType.at,
     atType?: AtType,
     content?: string,
     atUid?: string,
@@ -137,7 +154,7 @@ export type SendMessage = {
         qq: string // at的qq号
     }
 } | {
-    type: "reply",
+    type: MessageType.reply,
     msgId: string,
     msgSeq: string,
     senderUin: string,
@@ -149,7 +166,7 @@ export type SendMessage = {
 export type PostDataAction = "send_private_msg" | "send_group_msg" | "get_group_list"
     | "get_friend_list" | "delete_msg" | "get_login_info" | "get_group_member_list" | "get_group_member_info"
 
-export type PostDataSendMsg = {
+export interface PostDataSendMsg {
     action: PostDataAction
     message_type?: "private" | "group"
     params?: {
@@ -163,14 +180,18 @@ export type PostDataSendMsg = {
     ipc_uuid?: string
 }
 
-export type Config = {
-    port: number,
-    hosts: string[],
+export interface Config {
+    port: number
+    hosts: string[]
+    enableBase64?: boolean
+    debug?: boolean
+    reportSelfMessage?: boolean
+    log?: boolean
 }
 
-export type SendMsgResult = {
-    status: number,
-    retcode: number,
-    data: any,
-    message: string,
+export interface SendMsgResult {
+    status: number
+    retcode: number
+    data: any
+    message: string
 }
