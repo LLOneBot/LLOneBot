@@ -300,7 +300,6 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                     name: group.name,
                     uid: group.uid
                 }
-
             } else {
                 sendMsgResult.status = -1;
                 sendMsgResult.retcode = -1;
@@ -360,9 +359,9 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                         } else {
                             localFilePath = path;
                         }
+                        sendFiles.push(localFilePath);
                     }
                     message.file = localFilePath
-                    sendFiles.push(localFilePath);
                 } else if (message.type == "reply") {
                     let msgId = message.data?.id || message.msgId
                     let replyMessage = msgHistory.find(msg => msg.raw.msgId == msgId)
