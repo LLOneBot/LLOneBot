@@ -1,7 +1,5 @@
 /// <reference path="./global.d.ts" />
 
-// import express from "express";
-// const { ipcRenderer } = require('electron');
 import {
     AtType,
     ChatType,
@@ -13,7 +11,6 @@ import {
     SendMsgResult,
     User
 } from "./common/types";
-import {checkFileReceived} from "./main/utils";
 
 let self_qq: string = ""
 let groups: Group[] = []
