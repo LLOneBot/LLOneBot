@@ -208,7 +208,12 @@ async function handleNewMessage(messages: MessageElement[]) {
                 message_data["data"]["file"] = element.picElement.sourcePath
             } else if (element.replyElement) {
                 message_data["type"] = "reply"
-                let temp = msgHistory.find(msg => msg.raw.msgSeq == element.replyElement.replayMsgSeq); // 这里为什么找不到自己发的消息？
+                let temp = msgHistory.find(msg => msg.raw.msgSeq == element.replyElement.replayMsgSeq);
+                if (temp === undefined) {
+                    continue; // 获取不到回复消息的ID就直接不要了
+                } else {
+                    message_data["data"]["id"] = temp.raw.msgId;
+                }
                 message_data["data"]["id"] = (temp === undefined) ? "0" : temp.raw.msgId;
             } else if (element.pttElement) {
                 message_data["type"] = MessageType.voice;
@@ -243,6 +248,9 @@ async function handleNewMessage(messages: MessageElement[]) {
         }
         if (msgHistory.length > 10000) {
             msgHistory.splice(0, 100)
+        }
+        if (onebot_message_data["user_id"] == self_qq){
+            message.raw.msgSeq = String(Number(message.raw.msgSeq)+1); // 将消息顺序变为实际上Bot发出的
         }
         msgHistory.push(message)
         if (!reportSelfMessage && onebot_message_data["user_id"] == self_qq){
