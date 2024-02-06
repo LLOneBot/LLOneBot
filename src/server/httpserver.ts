@@ -267,6 +267,12 @@ export function startExpress(port: number) {
 
 
 export function postMsg(msg: OB11Message) {
+    const {reportSelfMessage} = getConfigUtil().getConfig()
+    if (!reportSelfMessage) {
+        if (msg.user_id == selfInfo.user_id) {
+            return
+        }
+    }
     for (const host of getConfigUtil().getConfig().hosts) {
         fetch(host, {
             method: "POST",

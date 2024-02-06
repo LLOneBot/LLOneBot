@@ -171,7 +171,7 @@ function onLoad() {
         for (const message of payload.msgList) {
             OB11Construct.constructMessage(message).then((msg) => {
                 postMsg(msg);
-            });
+            }).catch(e=>log("constructMessage error: ", e.toString()));
         }
     })
 }

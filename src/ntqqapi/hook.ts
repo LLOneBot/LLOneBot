@@ -34,7 +34,7 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
         if (args?.[1] instanceof Array) {
             for (let receiveData of args?.[1]) {
                 const ntQQApiMethodName = receiveData.cmdName;
-                log(`received ntqq api message: ${channel} ${ntQQApiMethodName}`, JSON.stringify(receiveData))
+                // log(`received ntqq api message: ${channel} ${ntQQApiMethodName}`, JSON.stringify(receiveData))
                 for (let hook of receiveHooks) {
                     if (hook.method === ntQQApiMethodName) {
                         hook.hookFunc(receiveData.payload);

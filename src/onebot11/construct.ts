@@ -58,10 +58,10 @@ export class OB11Construct {
                     message_data["data"]["mention"] = "all"
                     message_data["data"]["qq"] = "all"
                 } else {
-                    let uid = element.textElement.atNtUid
+                    let uid = element.textElement.atUid
                     let atMember = getGroupMember(msg.peerUin, uid)
-                    message_data["data"]["mention"] = atMember!.uin
-                    message_data["data"]["qq"] = atMember!.uin
+                    message_data["data"]["mention"] = atMember?.uin
+                    message_data["data"]["qq"] = atMember?.uin
                 }
             } else if (element.textElement) {
                 message_data["type"] = "text"
