@@ -153,7 +153,7 @@ function handlePost(jsonData: any, handleSendResult: (data: OB11Return<any>) => 
             }
         })
     } else if (jsonData.action == "delete_msg") {
-        sendIPCRecallQQMsg(String(jsonData.message_id))
+        sendIPCRecallQQMsg(jsonData.message_id)
     }
     return resData
 }
@@ -287,5 +287,4 @@ export function postMsg(msg: OB11Message) {
             log(`新消息事件上报失败: ${host} ` + err + JSON.stringify(msg));
         });
     }
-
 }

@@ -1,21 +1,14 @@
 /// <reference path="./global.d.ts" />
 
-import {
-    AtType,
-    ChatType,
-    Group,
-    MessageElement, Peer,
-    PostDataSendMsg,
-    User
-} from "./common/types";
+import {AtType, ChatType, Group, MessageElement, Peer, PostDataSendMsg, RawMessage, User} from "./common/types";
 
 
-import {OB11Return, OB11SendMsgReturn, OB11MessageDataType} from "./onebot11/types";
+import {OB11SendMsgReturn} from "./onebot11/types";
+import {ipcRenderer} from "electron";
+import {CHANNEL_GET_HISTORY_MSG} from "./common/channels";
 
-let self_qq: string = ""
 let groups: Group[] = []
 let friends: User[] = []
-let msgHistory: MessageElement[] = []
 let uid_maps: Record<string, User> = {}  // 一串加密的字符串 -> qq号
 
 function getStrangerByUin(uin: string) {
@@ -24,6 +17,10 @@ function getStrangerByUin(uin: string) {
             return uid_maps[key];
         }
     }
+}
+
+async function getHistoryMsg(msgId: string) {
+    return await window.llonebot.getHistoryMsg(msgId);
 }
 
 async function getUserInfo(uid: string): Promise<User> {
@@ -236,9 +233,11 @@ async function listenSendMessage(postData: PostDataSendMsg) {
                     message.file = localFilePath
                 } else if (message.type == "reply") {
                     let msgId = message.data?.id || message.msgId
-                    let replyMessage = msgHistory.find(msg => msg.raw.msgId == msgId)
-                    message.msgId = msgId
-                    message.msgSeq = replyMessage?.raw.msgSeq || ""
+                    const rawMsg: RawMessage = await getHistoryMsg(msgId)
+                    if (rawMsg){
+                        message.msgId = msgId
+                        message.msgSeq = rawMsg.msgSeq
+                    }
                 }
             }
             console.log("发送消息", postData)
@@ -270,8 +269,15 @@ async function listenSendMessage(postData: PostDataSendMsg) {
 }
 
 function recallMessage(msgId: string) {
-    let msg = msgHistory.find(msg => msg.raw.msgId == msgId)
-    window.LLAPI.recallMessage(msg.peer, [msgId]).then()
+    getHistoryMsg(msgId).then((msg: RawMessage)=>{
+        const peer: Peer ={
+            chatType: msg.chatType,
+            name: "",
+            uid: msg.peerUin
+        }
+        window.LLAPI.recallMessage(peer, [msgId]).then()
+    })
+
 }
 
 let chatListEle: HTMLCollectionOf<Element>

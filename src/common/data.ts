@@ -2,6 +2,7 @@ import {Group, MessageElement, RawMessage, SelfInfo, User} from "./types";
 
 export let groups: Group[] = []
 export let friends: User[] = []
+export let msgHistory: Record<string, RawMessage> = {}  // msgId: RawMessage
 
 export function getFriend(qq: string): User | undefined {
     return friends.find(friend => friend.uin === qq)
@@ -23,7 +24,6 @@ export let selfInfo: SelfInfo = {
     nickname: ""
 }
 
-export let msgHistory: Record<string, RawMessage> = {}
 
 export function getHistoryMsgBySeq(seq: string) {
     return Object.values(msgHistory).find(msg => msg.msgSeq === seq)
