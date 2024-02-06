@@ -4,13 +4,13 @@ import {
     GroupMemberInfo,
     MessageElement,
     Peer,
-    PostDataSendMsg, PttElement,
+    PostDataSendMsg, PttElement, RawMessage,
     SelfInfo,
     User
 } from "./common/types";
 
 
-import {OB11Return, OB11MessageData} from "./onebot11/types";
+import {OB11Return, OB11MessageData, OB11SendMsgReturn} from "./onebot11/types";
 
 
 declare var LLAPI: {
@@ -49,8 +49,9 @@ declare var llonebot: {
     downloadFile(arg: {uri: string, fileName: string}):Promise<{errMsg: string, path: string}>;
     deleteFile(path: string[]):Promise<void>;
     getRunningStatus(): Promise<boolean>;
-    sendSendMsgResult(sessionId: string, msgResult: OB11Return): void;
+    sendSendMsgResult(sessionId: string, msgResult: OB11SendMsgReturn): void;
     file2base64(path: string): Promise<{err: string, data: string}>;
+    getHistoryMsg(msgId: string): Promise<RawMessage>;
 };
 
 declare global {

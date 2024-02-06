@@ -14,7 +14,7 @@ import {
     CHANNEL_SET_CONFIG,
     CHANNEL_START_HTTP_SERVER,
     CHANNEL_UPDATE_FRIENDS,
-    CHANNEL_UPDATE_GROUPS, CHANNEL_DELETE_FILE, CHANNEL_GET_RUNNING_STATUS, CHANNEL_FILE2BASE64
+    CHANNEL_UPDATE_GROUPS, CHANNEL_DELETE_FILE, CHANNEL_GET_RUNNING_STATUS, CHANNEL_FILE2BASE64, CHANNEL_GET_HISTORY_MSG
 } from "../common/channels";
 import {ConfigUtil} from "../common/config";
 import {postMsg, startExpress} from "../server/httpserver";
@@ -167,11 +167,43 @@ function onLoad() {
         return await file2base64(path);
     })
 
-    registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
-        for (const message of payload.msgList) {
+    ipcMain.handle(CHANNEL_GET_HISTORY_MSG, (event: any, arg: string): RawMessage | undefined => {
+        return msgHistory[arg] || null;
+    })
+
+    function postRawMsg(msgList:RawMessage[]) {
+        const {debug, reportSelfMessage} = getConfigUtil().getConfig();
+        for (const message of msgList) {
             OB11Construct.constructMessage(message).then((msg) => {
+                if (debug) {
+                    msg.raw = message;
+                }
+                if (msg.user_id == selfInfo.user_id && !reportSelfMessage) {
+                    return
+                }
                 postMsg(msg);
             }).catch(e=>log("constructMessage error: ", e.toString()));
+        }
+    }
+
+    registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
+        try {
+            postRawMsg(payload.msgList);
+        } catch (e) {
+            log("report message error: ", e.toString())
+        }
+    })
+
+    registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, (payload) => {
+        const {reportSelfMessage} = getConfigUtil().getConfig()
+        if (!reportSelfMessage) {
+            return
+        }
+        log("reportSelfMessage", payload)
+        try {
+            postRawMsg([payload.msgRecord]);
+        } catch (e) {
+            log("report self message error: ", e.toString())
         }
     })
 }

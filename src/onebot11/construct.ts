@@ -6,7 +6,7 @@ import {file2base64, getConfigUtil} from "../common/utils";
 
 export class OB11Construct {
     static async constructMessage(msg: RawMessage): Promise<OB11Message> {
-        const {debug, enableBase64} = getConfigUtil().getConfig()
+        const {enableBase64} = getConfigUtil().getConfig()
         const message_type = msg.chatType == ChatType.group ? "group" : "private";
         const resMsg: OB11Message = {
             self_id: selfInfo.user_id,
@@ -40,11 +40,6 @@ export class OB11Construct {
             }
         } else if (msg.chatType == ChatType.temp) {
             resMsg.sub_type = "group"
-        }
-
-
-        if (debug) {
-            resMsg.raw = msg
         }
 
         for (let element of msg.elements) {

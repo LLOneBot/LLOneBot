@@ -1,6 +1,6 @@
 // Electron 主进程 与 渲染进程 交互的桥梁
 
-import {Config, Group, PostDataSendMsg, SelfInfo, User} from "./common/types";
+import {Config, Group, PostDataSendMsg, RawMessage, SelfInfo, User} from "./common/types";
 import {
     CHANNEL_DOWNLOAD_FILE,
     CHANNEL_GET_CONFIG,
@@ -14,7 +14,7 @@ import {
     CHANNEL_UPDATE_FRIENDS,
     CHANNEL_UPDATE_GROUPS,
     CHANNEL_DELETE_FILE,
-    CHANNEL_GET_RUNNING_STATUS, CHANNEL_FILE2BASE64
+    CHANNEL_GET_RUNNING_STATUS, CHANNEL_FILE2BASE64, CHANNEL_GET_HISTORY_MSG
 } from "./common/channels";
 
 
@@ -74,8 +74,8 @@ contextBridge.exposeInMainWorld("llonebot", {
     getRunningStatus: () => {
         return ipcRenderer.invoke(CHANNEL_GET_RUNNING_STATUS);
     },
-    file2base64: (localFilePath: string) => {
-        return ipcRenderer.invoke(CHANNEL_FILE2BASE64, localFilePath);
+    getHistoryMsg: async (msgId: string):Promise<RawMessage> => {
+        return await ipcRenderer.invoke(CHANNEL_GET_HISTORY_MSG, msgId)
     }
     // startExpress,
 });

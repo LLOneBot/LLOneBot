@@ -1,12 +1,13 @@
 import {BrowserWindow} from 'electron';
-import {log} from "../common/utils";
+import {getConfigUtil, log} from "../common/utils";
 import {NTQQApiClass} from "./ntcall";
 import {RawMessage} from "../common/types";
 import {msgHistory} from "../common/data";
 
 export enum ReceiveCmd {
     UPDATE_MSG = "nodeIKernelMsgListener/onMsgInfoListUpdate",
-    NEW_MSG = "nodeIKernelMsgListener/onRecvMsg"
+    NEW_MSG = "nodeIKernelMsgListener/onRecvMsg",
+    SELF_SEND_MSG = "nodeIKernelMsgListener/onAddSendMsg"
 }
 
 interface NTQQApiReturnData extends Array<any> {
@@ -67,3 +68,4 @@ registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload
         msgHistory[message.msgId] = message;
     }
 })
+
