@@ -1,10 +1,10 @@
 // 运行在 Electron 主进程 下的插件入口
 
 import * as path from "path";
-import {ipcMain} from 'electron';
+import {BrowserWindow, ipcMain} from 'electron';
 import * as util from 'util';
 
-import {Config, Group, SelfInfo, User} from "../common/types";
+import {Config, Group, RawMessage, SelfInfo, User} from "../common/types";
 import {
     CHANNEL_DOWNLOAD_FILE,
     CHANNEL_GET_CONFIG,
@@ -15,12 +15,14 @@ import {
     CHANNEL_START_HTTP_SERVER,
     CHANNEL_UPDATE_FRIENDS,
     CHANNEL_UPDATE_GROUPS, CHANNEL_DELETE_FILE, CHANNEL_GET_RUNNING_STATUS, CHANNEL_FILE2BASE64
-} from "../common/IPCChannel";
-import {ConfigUtil} from "./config";
-import {startExpress} from "./HttpServer";
-import {checkFileReceived, CONFIG_DIR, getConfigUtil, isGIF, log} from "./utils";
-import {friends, groups, selfInfo} from "./data";
+} from "../common/channels";
+import {ConfigUtil} from "../common/config";
+import {postMsg, startExpress} from "../server/httpserver";
+import {checkFileReceived, CONFIG_DIR, file2base64, getConfigUtil, isGIF, log} from "../common/utils";
+import {friends, groups, msgHistory, selfInfo} from "../common/data";
 import {} from "../global";
+import {hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} from "../ntqqapi/hook";
+import {OB11Construct} from "../onebot11/construct";
 
 const fs = require('fs');
 
@@ -29,7 +31,7 @@ let running = false;
 
 // 加载插件时触发
 function onLoad() {
-    log("main onLoaded");
+    log("llonebot main onLoad");
 
     // const config_dir = browserWindow.LiteLoader.plugins["LLOneBot"].path.data;
 
@@ -138,24 +140,7 @@ function onLoad() {
     })
 
     ipcMain.on(CHANNEL_POST_ONEBOT_DATA, (event: any, arg: any) => {
-        for (const host of getConfigUtil().getConfig().hosts) {
-            try {
-                fetch(host, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "x-self-id": selfInfo.user_id
-                    },
-                    body: JSON.stringify(arg)
-                }).then((res: any) => {
-                    log(`新消息事件上传成功: ${host} ` + JSON.stringify(arg));
-                }, (err: any) => {
-                    log(`新消息事件上传失败: ${host} ` + err + JSON.stringify(arg));
-                });
-            } catch (e: any) {
-                log(e.toString())
-            }
-        }
+        postMsg(arg);
     })
 
     ipcMain.on(CHANNEL_LOG, (event: any, arg: any) => {
@@ -179,36 +164,26 @@ function onLoad() {
     })
 
     ipcMain.handle(CHANNEL_FILE2BASE64, async (event: any, path: string): Promise<{err: string, data: string}> => {
-        const readFile = util.promisify(fs.readFile);
-        let result = {
-            err: "",
-            data: ""
+        return await file2base64(path);
+    })
+
+    registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
+        for (const message of payload.msgList) {
+            OB11Construct.constructMessage(message).then((msg) => {
+                postMsg(msg);
+            });
         }
-        try {
-            // 读取文件内容
-            // if (!fs.existsSync(path)){
-            //     path = path.replace("\\Ori\\", "\\Thumb\\");
-            // }
-            try {
-                await checkFileReceived(path, 5000);
-            } catch (e: any) {
-                result.err = e.toString();
-                return result;
-            }
-            const data = await readFile(path);
-            // 转换为Base64编码
-            result.data = data.toString('base64');
-        } catch (err) {
-            result.err = err.toString();
-        }
-        return result;
     })
 }
 
 
 // 创建窗口时触发
-function onBrowserWindowCreated(window: any) {
-
+function onBrowserWindowCreated(window: BrowserWindow) {
+    try {
+        hookNTQQApiReceive(window);
+    } catch (e){
+        log("llonebot hook error: ", e.toString())
+    }
 }
 
 try {
