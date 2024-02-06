@@ -6,9 +6,11 @@ import {
     Peer,
     PostDataSendMsg, PttElement,
     SelfInfo,
-    SendMessage, SendMsgResult,
     User
 } from "./common/types";
+
+
+import {OB11Return, OB11MessageData} from "./onebot11/types";
 
 
 declare var LLAPI: {
@@ -20,7 +22,7 @@ declare var LLAPI: {
     }>
 
     getUserInfo(uid: string): Promise<User>; // uid是一串加密的字符串
-    sendMessage(peer: Peer, message: SendMessage[]): Promise<any>;
+    sendMessage(peer: Peer, message: OB11MessageData[]): Promise<any>;
     recallMessage(peer: Peer, msgIds: string[]): Promise<void>;
     getGroupsList(forced: boolean): Promise<Group[]>
     getFriendsList(forced: boolean): Promise<User[]>
@@ -47,7 +49,7 @@ declare var llonebot: {
     downloadFile(arg: {uri: string, fileName: string}):Promise<{errMsg: string, path: string}>;
     deleteFile(path: string[]):Promise<void>;
     getRunningStatus(): Promise<boolean>;
-    sendSendMsgResult(sessionId: string, msgResult: SendMsgResult): void;
+    sendSendMsgResult(sessionId: string, msgResult: OB11Return): void;
     file2base64(path: string): Promise<{err: string, data: string}>;
 };
 

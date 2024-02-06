@@ -1,6 +1,6 @@
 // Electron 主进程 与 渲染进程 交互的桥梁
 
-import {Config, Group, PostDataSendMsg, SelfInfo, SendMsgResult, User} from "./common/types";
+import {Config, Group, PostDataSendMsg, SelfInfo, User} from "./common/types";
 import {
     CHANNEL_DOWNLOAD_FILE,
     CHANNEL_GET_CONFIG,
@@ -15,7 +15,10 @@ import {
     CHANNEL_UPDATE_GROUPS,
     CHANNEL_DELETE_FILE,
     CHANNEL_GET_RUNNING_STATUS, CHANNEL_FILE2BASE64
-} from "./common/IPCChannel";
+} from "./common/channels";
+
+
+import {OB11Return, OB11SendMsgReturn} from "./onebot11/types";
 
 
 const {contextBridge} = require("electron");
@@ -33,7 +36,7 @@ contextBridge.exposeInMainWorld("llonebot", {
     updateFriends: (friends: User[]) => {
         ipcRenderer.send(CHANNEL_UPDATE_FRIENDS, friends);
     },
-    sendSendMsgResult: (sessionId: string, msgResult: SendMsgResult)=>{
+    sendSendMsgResult: (sessionId: string, msgResult: OB11SendMsgReturn)=>{
         ipcRenderer.send(sessionId, msgResult);
     },
     listenSendMessage: (handle: (jsonData: PostDataSendMsg) => void) => {
