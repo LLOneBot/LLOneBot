@@ -35,6 +35,7 @@ export function sendIPCSendQQMsg(postData: PostDataSendMsg, handleSendResult: (d
             ipcMain.off(CHANNEL_SEND_BACK_MSG, handler)
             return
         } catch (e) {
+            ipcMain.off(CHANNEL_SEND_BACK_MSG, handler)
             log("llonebot send msg sendIPCSendQQMsg handler error:" + JSON.stringify(e))
         }
     }
