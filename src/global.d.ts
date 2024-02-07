@@ -1,7 +1,7 @@
 import {
     Config,
     Group,
-    GroupMemberInfo,
+    GroupMember,
     MessageElement,
     Peer,
     PostDataSendMsg, PttElement, RawMessage,
@@ -27,7 +27,7 @@ declare var LLAPI: {
     recallMessage(peer: Peer, msgIds: string[]): Promise<void>;
     getGroupsList(forced: boolean): Promise<Group[]>
     getFriendsList(forced: boolean): Promise<User[]>
-    getGroupMemberList(group_id: string, num: number): Promise<{result: { infos: Map<string, GroupMemberInfo> }}>
+    getGroupMemberList(group_id: string, num: number): Promise<{result: { infos: Map<string, GroupMember> }}>
     getPeer(): Promise<Peer>
     add_qmenu(func: (qContextMenu: Node)=>void): void
     Ptt2Text(msgId:string, peer: Peer, elements: MessageElement[]): Promise<any>

@@ -22,7 +22,8 @@ import {checkFileReceived, CONFIG_DIR, file2base64, getConfigUtil, isGIF, log} f
 import {friends, groups, msgHistory, selfInfo} from "../common/data";
 import {} from "../global";
 import {hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} from "../ntqqapi/hook";
-import {OB11Construct} from "../onebot11/construct";
+import {OB11Constructor} from "../onebot11/constructor";
+import {NTQQApi} from "../ntqqapi/ntcall";
 
 const fs = require('fs');
 
@@ -174,7 +175,7 @@ function onLoad() {
     function postRawMsg(msgList:RawMessage[]) {
         const {debug, reportSelfMessage} = getConfigUtil().getConfig();
         for (const message of msgList) {
-            OB11Construct.constructMessage(message).then((msg) => {
+            OB11Constructor.message(message).then((msg) => {
                 if (debug) {
                     msg.raw = message;
                 }
@@ -206,6 +207,12 @@ function onLoad() {
             log("report self message error: ", e.toString())
         }
     })
+
+    setTimeout(()=>{
+        NTQQApi.getSelfInfo().then(r=>{
+            log(r);
+        })
+    }, 10000)
 }
 
 

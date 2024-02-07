@@ -12,7 +12,7 @@ export enum ChatType {
     temp = 100
 }
 
-export interface GroupMemberInfo {
+export interface GroupMember {
     avatarPath: string;
     cardName: string;
     cardType: number;
@@ -43,7 +43,7 @@ export interface User {
 export interface Group {
     uid: string; // 群号
     name: string;
-    members?: GroupMemberInfo[];
+    members?: GroupMember[];
 }
 
 export interface Peer {

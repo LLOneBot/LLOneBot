@@ -10,7 +10,7 @@ import {sendIPCRecallQQMsg, sendIPCSendQQMsg} from "../main/ipcsend";
 import {PostDataSendMsg} from "../common/types";
 import {friends, groups, msgHistory, selfInfo} from "../common/data";
 import {OB11ApiName, OB11Message, OB11Return, OB11MessageData} from "../onebot11/types";
-import {OB11Construct} from "../onebot11/construct";
+import {OB11Constructor} from "../onebot11/constructor";
 
 
 // @SiberianHusky 2021-08-15
@@ -126,7 +126,7 @@ function handlePost(jsonData: any, handleSendResult: (data: OB11Return<any>) => 
             user_display_name: member.cardName || member.nick,
             nickname: member.nick,
             card: member.cardName,
-            role: OB11Construct.constructGroupMemberRole(member.role),
+            role: OB11Constructor.groupMemberRole(member.role),
         }
     } else if (jsonData.action == "get_group_member_list") {
         let group = groups.find(group => group.uid == jsonData.params.group_id)
@@ -138,7 +138,7 @@ function handlePost(jsonData: any, handleSendResult: (data: OB11Return<any>) => 
                     user_display_name: member.cardName || member.nick,
                     nickname: member.nick,
                     card: member.cardName,
-                    role: OB11Construct.constructGroupMemberRole(member.role),
+                    role: OB11Constructor.groupMemberRole(member.role),
                 }
 
             }) || []
@@ -251,7 +251,7 @@ export function startExpress(port: number) {
     registerRouter<{ message_id: string }, OB11Message>("get_msg", async (payload) => {
         const msg = msgHistory[payload.message_id.toString()]
         if (msg) {
-            const msgData = await OB11Construct.constructMessage(msg);
+            const msgData = await OB11Constructor.message(msg);
             return constructReturnData(0, msgData)
         } else {
             return constructReturnData(1, {}, "消息不存在")

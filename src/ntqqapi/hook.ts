@@ -4,22 +4,25 @@ import {NTQQApiClass} from "./ntcall";
 import {RawMessage} from "../common/types";
 import {msgHistory} from "../common/data";
 
+export let hookApiCallbacks: Record<string, (apiReturn: any)=>void>={}
+
 export enum ReceiveCmd {
     UPDATE_MSG = "nodeIKernelMsgListener/onMsgInfoListUpdate",
     NEW_MSG = "nodeIKernelMsgListener/onRecvMsg",
     SELF_SEND_MSG = "nodeIKernelMsgListener/onAddSendMsg"
 }
 
-interface NTQQApiReturnData extends Array<any> {
+interface NTQQApiReturnData<PayloadType=unknown> extends Array<any> {
     0: {
         "type": "request",
-        "eventName": NTQQApiClass
+        "eventName": NTQQApiClass,
+        "callbackId"?: string
     },
     1:
         {
             cmdName: ReceiveCmd,
             cmdType: "event",
-            payload: unknown
+            payload: PayloadType
         }[]
 }
 
@@ -35,15 +38,27 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
         if (args?.[1] instanceof Array) {
             for (let receiveData of args?.[1]) {
                 const ntQQApiMethodName = receiveData.cmdName;
-                // log(`received ntqq api message: ${channel} ${ntQQApiMethodName}`, JSON.stringify(receiveData))
+                log(`received ntqq api message: ${channel} ${ntQQApiMethodName}`, JSON.stringify(receiveData))
                 for (let hook of receiveHooks) {
                     if (hook.method === ntQQApiMethodName) {
-                        hook.hookFunc(receiveData.payload);
+                        new Promise((resolve, reject) => {
+                            hook.hookFunc(receiveData.payload);
+                        }).then()
                     }
                 }
             }
         }
-
+        if (args[0]?.callbackId){
+            // log("hookApiCallback", hookApiCallbacks, args)
+            const callbackId = args[0].callbackId;
+            if (hookApiCallbacks[callbackId]){
+                // log("callback found")
+                new Promise((resolve, reject) => {
+                    hookApiCallbacks[callbackId](args[1]);
+                }).then()
+                delete hookApiCallbacks[callbackId];
+            }
+        }
         return originalSend.call(window.webContents, channel, ...args);
     }
     window.webContents.send = patchSend;
