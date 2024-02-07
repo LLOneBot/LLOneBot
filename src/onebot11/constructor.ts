@@ -4,8 +4,8 @@ import {getFriend, getGroupMember, getHistoryMsgBySeq, msgHistory, selfInfo} fro
 import {file2base64, getConfigUtil} from "../common/utils";
 
 
-export class OB11Construct {
-    static async constructMessage(msg: RawMessage): Promise<OB11Message> {
+export class OB11Constructor {
+    static async message(msg: RawMessage): Promise<OB11Message> {
         const {enableBase64} = getConfigUtil().getConfig()
         const message_type = msg.chatType == ChatType.group ? "group" : "private";
         const resMsg: OB11Message = {
@@ -30,7 +30,7 @@ export class OB11Construct {
             resMsg.group_id = msg.peerUin
             const member = getGroupMember(msg.peerUin, msg.senderUin);
             if (member) {
-                resMsg.sender.role = OB11Construct.constructGroupMemberRole(member.role);
+                resMsg.sender.role = OB11Constructor.groupMemberRole(member.role);
             }
         } else if (msg.chatType == ChatType.friend) {
             resMsg.sub_type = "friend"
@@ -119,7 +119,7 @@ export class OB11Construct {
         return resMsg;
     }
 
-    static constructGroupMemberRole(role: number): OB11GroupMemberRole {
+    static groupMemberRole(role: number): OB11GroupMemberRole {
         return {
             4: OB11GroupMemberRole.owner,
             3: OB11GroupMemberRole.admin,
