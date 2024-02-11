@@ -28,9 +28,7 @@ import { SendIPCMsgSession } from "./main/ipcsend";
 const {contextBridge} = require("electron");
 const {ipcRenderer} = require('electron');
 
-// 在window对象下导出只读对象
-contextBridge.exposeInMainWorld("llonebot", {
-
+const llonebot = {
     postData: (data: any) => {
         ipcRenderer.send(CHANNEL_POST_ONEBOT_DATA, data);
     },
@@ -66,23 +64,28 @@ contextBridge.exposeInMainWorld("llonebot", {
     setConfig: (config: Config)=>{
         ipcRenderer.send(CHANNEL_SET_CONFIG, config);
     },
-    getConfig: async () => {
+    getConfig: async (): Promise<Config> => {
         return ipcRenderer.invoke(CHANNEL_GET_CONFIG);
     },
     setSelfInfo(selfInfo: SelfInfo){
         ipcRenderer.invoke(CHANNEL_SET_SELF_INFO, selfInfo)
     },
-    downloadFile: (arg: {uri: string, localFilePath: string}) => {
+    downloadFile: (arg: {uri: string, localFilePath: string}): Promise<{errMsg: string, path: string}> => {
         return ipcRenderer.invoke(CHANNEL_DOWNLOAD_FILE, arg);
     },
     deleteFile: async (localFilePath: string[]) => {
         ipcRenderer.send(CHANNEL_DELETE_FILE, localFilePath);
     },
-    getRunningStatus: () => {
+    getRunningStatus: (): Promise<boolean> => {
         return ipcRenderer.invoke(CHANNEL_GET_RUNNING_STATUS);
     },
     getHistoryMsg: async (msgId: string):Promise<RawMessage> => {
         return await ipcRenderer.invoke(CHANNEL_GET_HISTORY_MSG, msgId)
     }
     // startExpress,
-});
+}
+
+export type LLOneBot = typeof llonebot
+
+// 在window对象下导出只读对象
+contextBridge.exposeInMainWorld("llonebot", llonebot);

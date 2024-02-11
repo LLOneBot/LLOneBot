@@ -9,7 +9,7 @@ import {
     User
 } from "./common/types";
 import { SendIPCMsgSession } from "./main/ipcsend";
-
+import { LLOneBot } from './preload'
 
 import {OB11Return, OB11MessageData, OB11SendMsgReturn} from "./onebot11/types";
 
@@ -35,25 +35,7 @@ declare var LLAPI: {
 };
 
 
-declare var llonebot: {
-    postData: (data: any) => void
-    listenSendMessage: (handle: (msg: SendIPCMsgSession<PostDataSendMsg>) => void) => void
-    listenRecallMessage: (handle: (msg: {message_id: string}) => void) => void
-    updateGroups: (groups: Group[]) => void
-    updateFriends: (friends: User[]) => void
-    updateGroupMembers: (data: { groupMembers: User[], group_id: string }) => void
-    startExpress: () => void
-    log(data: any): void,
-    setConfig(config: Config):void;
-    getConfig():Promise<Config>;
-    setSelfInfo(selfInfo: SelfInfo):void;
-    downloadFile(arg: {uri: string, fileName: string}):Promise<{errMsg: string, path: string}>;
-    deleteFile(path: string[]):Promise<void>;
-    getRunningStatus(): Promise<boolean>;
-    sendSendMsgResult(sessionId: string, msgResult: OB11SendMsgReturn): void;
-    file2base64(path: string): Promise<{err: string, data: string}>;
-    getHistoryMsg(msgId: string): Promise<RawMessage>;
-};
+declare var llonebot: LLOneBot
 
 declare global {
     interface Window {
