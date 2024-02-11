@@ -7,10 +7,10 @@ import {Response} from 'express';
 
 const JSONbig = require('json-bigint');
 import {sendIPCRecallQQMsg, sendIPCSendQQMsg} from "../main/ipcsend";
-import {PostDataSendMsg} from "../common/types";
 import {friends, groups, msgHistory, selfInfo} from "../common/data";
 import {OB11ApiName, OB11Message, OB11Return, OB11MessageData} from "../onebot11/types";
 import {OB11Construct} from "../onebot11/construct";
+import { handleAction } from "../onebot11/actions";
 
 
 // @SiberianHusky 2021-08-15
@@ -61,8 +61,21 @@ function constructReturnData(status: number, data: any = {}, message: string = "
 
 }
 
-function handlePost(jsonData: any, handleSendResult: (data: OB11Return<any>) => void) {
+export function handlePost(jsonData: any, handleSendResult: (data: OB11Return<any>) => void) {
     log("API receive post:" + JSON.stringify(jsonData))
+    if (jsonData.action === 'send_msg') {
+        if (jsonData.message_type == "private") {
+            jsonData.action = "send_private_msg"
+        } else if (jsonData.message_type == "group") {
+            jsonData.action = "send_group_msg"
+        } else {
+            if (jsonData?.params?.group_id) {
+                jsonData.action = "send_group_msg"
+            } else {
+                jsonData.action = "send_private_msg"
+            }
+        }
+    }
     if (!jsonData.params) {
         jsonData.params = JSON.parse(JSON.stringify(jsonData));
         delete jsonData.params.params;
@@ -158,11 +171,21 @@ function handlePost(jsonData: any, handleSendResult: (data: OB11Return<any>) => 
     return resData
 }
 
+export async function handleReqData(jsonData: any) {
+    return new Promise<OB11Return<any>>((resolve, reject) => {
+        const resData = handlePost(jsonData, (data: OB11Return<any>) => {
+            resolve(data)
+        })
+        if (resData) {
+            resolve(resData)
+        }
+    })
+}
 
 export function startExpress(port: number) {
     const app = express();
     // 中间件，用于解析POST请求的请求体
-    app.use(express.urlencoded({extended: true, limit: "500mb"}));
+    app.use(express.urlencoded({ extended: true, limit: "500mb" }));
     app.use(express.json({
         limit: '500mb',
         verify: (req: any, res: any, buf: any, encoding: any) => {
@@ -193,15 +216,12 @@ export function startExpress(port: number) {
     }
 
     function parseToOnebot12(action: OB11ApiName) {
-        app.post('/' + action, (req: Request, res: Response) => {
-            let jsonData: PostDataSendMsg = req.body;
-            jsonData.action = action
-            let resData = handlePost(jsonData, (data: OB11Return<any>) => {
-                res.send(data)
+        app.post('/' + action, async (req: Request, res: Response) => {
+            const resData = await handleAction({
+                ...req.body,
+                action,
             })
-            if (resData) {
-                res.send(resData)
-            }
+            resData && res.send(resData)
         });
     }
 
@@ -218,34 +238,16 @@ export function startExpress(port: number) {
 
 
     // 处理POST请求的路由
-    app.post('/', (req: Request, res: Response) => {
-        let jsonData: PostDataSendMsg = req.body;
-        let resData = handlePost(jsonData, (data: OB11Return<any>) => {
-            res.send(data)
-        })
-        if (resData) {
-            res.send(resData)
-        }
+    app.post('/', async (req: Request, res: Response) => {
+        const resData = await handleAction(req.body)
+        resData && res.send(resData)
     });
-    app.post('/send_msg', (req: Request, res: Response) => {
-        let jsonData: PostDataSendMsg = req.body;
-        if (jsonData.message_type == "private") {
-            jsonData.action = "send_private_msg"
-        } else if (jsonData.message_type == "group") {
-            jsonData.action = "send_group_msg"
-        } else {
-            if (jsonData.params.group_id) {
-                jsonData.action = "send_group_msg"
-            } else {
-                jsonData.action = "send_private_msg"
-            }
-        }
-        let resData = handlePost(jsonData, (data: OB11Return<any>) => {
-            res.send(data)
+    app.post('/send_msg', async (req: Request, res: Response) => {
+        const resData = await handleAction({
+            ...req.body,
+            action: 'send_msg',
         })
-        if (resData) {
-            res.send(resData)
-        }
+        resData && res.send(resData)
     })
 
     registerRouter<{ message_id: string }, OB11Message>("get_msg", async (payload) => {
