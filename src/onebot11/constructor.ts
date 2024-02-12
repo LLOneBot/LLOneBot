@@ -1,15 +1,15 @@
-import {OB11MessageDataType, OB11GroupMemberRole, OB11Message, OB11MessageData} from "./types";
-import {AtType, ChatType, RawMessage} from "../common/types";
-import {getFriend, getGroupMember, getHistoryMsgBySeq, msgHistory, selfInfo} from "../common/data";
-import {file2base64, getConfigUtil} from "../common/utils";
+import {OB11MessageDataType, OB11GroupMemberRole, OB11Message, OB11MessageData, OB11Group, OB11GroupMember, OB11User} from "./types";
+import { AtType, ChatType, Group, GroupMember, RawMessage, SelfInfo, User } from '../ntqqapi/types';
+import { getFriend, getGroupMember, getHistoryMsgBySeq, selfInfo } from '../common/data';
+import {file2base64, getConfigUtil, log} from "../common/utils";
 
 
-export class OB11Construct {
-    static async constructMessage(msg: RawMessage): Promise<OB11Message> {
+export class OB11Constructor {
+    static async message(msg: RawMessage): Promise<OB11Message> {
         const {enableBase64} = getConfigUtil().getConfig()
         const message_type = msg.chatType == ChatType.group ? "group" : "private";
         const resMsg: OB11Message = {
-            self_id: selfInfo.user_id,
+            self_id: selfInfo.uin,
             user_id: msg.senderUin,
             time: parseInt(msg.msgTime) || 0,
             message_id: msg.msgId,
@@ -28,15 +28,15 @@ export class OB11Construct {
         }
         if (msg.chatType == ChatType.group) {
             resMsg.group_id = msg.peerUin
-            const member = getGroupMember(msg.peerUin, msg.senderUin);
+            const member = await getGroupMember(msg.peerUin, msg.senderUin);
             if (member) {
-                resMsg.sender.role = OB11Construct.constructGroupMemberRole(member.role);
+                resMsg.sender.role = OB11Constructor.groupMemberRole(member.role);
             }
         } else if (msg.chatType == ChatType.friend) {
             resMsg.sub_type = "friend"
-            const friend = getFriend(msg.senderUin);
+            const friend = await getFriend(msg.senderUin);
             if (friend) {
-                resMsg.sender.nickname = friend.nickName;
+                resMsg.sender.nickname = friend.nick;
             }
         } else if (msg.chatType == ChatType.temp) {
             resMsg.sub_type = "group"
@@ -54,7 +54,7 @@ export class OB11Construct {
                     message_data["data"]["qq"] = "all"
                 } else {
                     let uid = element.textElement.atUid
-                    let atMember = getGroupMember(msg.peerUin, uid)
+                    let atMember = await getGroupMember(msg.peerUin, uid)
                     message_data["data"]["mention"] = atMember?.uin
                     message_data["data"]["qq"] = atMember?.uin
                 }
@@ -118,12 +118,57 @@ export class OB11Construct {
         // }
         return resMsg;
     }
+    
+    static friend(friend: User): OB11User{
+        return {
+            user_id: friend.uin,
+            nickname: friend.nick,
+            remark: friend.remark
+        }
+        
+    }
 
-    static constructGroupMemberRole(role: number): OB11GroupMemberRole {
+    static selfInfo(selfInfo: SelfInfo): OB11User{
+        return {
+            user_id: selfInfo.uin,
+            nickname: selfInfo.nick
+        }
+    }
+
+    static friends(friends: User[]): OB11User[]{
+        return friends.map(OB11Constructor.friend)
+    }
+
+    static groupMemberRole(role: number): OB11GroupMemberRole | undefined {
         return {
             4: OB11GroupMemberRole.owner,
             3: OB11GroupMemberRole.admin,
             2: OB11GroupMemberRole.member
         }[role]
+    }
+
+    static groupMember(group_id: string, member: GroupMember): OB11GroupMember{
+        return {
+            group_id,
+            user_id: member.uin,
+            nickname: member.nick,
+            card: member.cardName
+        }
+    }
+
+    static groupMembers(group: Group): OB11GroupMember[]{
+        log("construct ob11 group members", group)
+        return group.members.map(m=>OB11Constructor.groupMember(group.groupCode, m))
+    }
+
+    static group(group: Group): OB11Group{
+        return {
+            group_id: group.groupCode,
+            group_name: group.groupName
+        }
+    }
+
+    static groups(groups: Group[]): OB11Group[]{
+        return groups.map(OB11Constructor.group)
     }
 }
