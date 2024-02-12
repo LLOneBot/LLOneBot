@@ -9,7 +9,7 @@ import { uri2local } from "../utils";
 import { OB11Response } from "./utils";
 import { v4 as uuid4 } from 'uuid';
 import { log } from "../../common/utils";
-import { BaseCheckResult } from "./types";
+import BaseAction from "./BaseAction";
 
 export type ActionType = 'send_msg'
 
@@ -21,23 +21,8 @@ export interface ReturnDataType {
     message_id: string
 }
 
-class SendMsg {
+class SendMsg extends BaseAction {
     static ACTION_TYPE: ActionType = 'send_msg'
-
-    async check(jsonData: any): Promise<BaseCheckResult> {
-        return {
-            valid: true,
-        }
-    }
-
-    async handle(jsonData: any) {
-        const result = await this.check(jsonData)
-        if (!result.valid) {
-            return OB11Response.error(result.message)
-        }
-        const resData = await this._handle(jsonData)
-        return resData
-    }
 
     async _handle(payload: PayloadType): Promise<OB11Return<ReturnDataType | null>> {
         const peer: Peer = {
