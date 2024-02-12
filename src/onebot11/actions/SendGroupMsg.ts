@@ -1,7 +1,6 @@
 import { OB11PostSendMsg, OB11Return } from '../types';
-import { OB11Response } from "./utils";
-import { BaseCheckResult } from "./types";
 import SendMsg from "./SendMsg";
+import BaseAction from './BaseAction';
 
 export type ActionType = 'send_group_msg'
 
@@ -13,23 +12,8 @@ export interface ReturnDataType {
     message_id: string
 }
 
-class SendGroupMsg {
+class SendGroupMsg extends BaseAction {
     static ACTION_TYPE: ActionType = 'send_group_msg'
-
-    async check(jsonData: any): Promise<BaseCheckResult> {
-        return {
-            valid: true,
-        }
-    }
-
-    async handle(jsonData: any) {
-        const result = await this.check(jsonData)
-        if (!result.valid) {
-            return OB11Response.error(result.message)
-        }
-        const resData = await this._handle(jsonData)
-        return resData
-    }
 
     async _handle(payload: PayloadType): Promise<OB11Return<ReturnDataType | null>> {
         // 偷懒借用现有逻辑

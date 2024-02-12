@@ -1,9 +1,9 @@
 import { OB11Response } from "./utils";
-import { BaseCheckResult } from "./types";
 import { msgHistory } from "../../common/data";
 import { OB11Message, OB11Return } from '../types';
 import { OB11Constructor } from "../constructor";
 import { log } from "../../common/utils";
+import BaseAction from "./BaseAction";
 
 export type ActionType = 'get_msg'
 
@@ -14,23 +14,8 @@ export interface PayloadType {
 
 export type ReturnDataType = OB11Message
 
-class GetMsg {
+class GetMsg extends BaseAction {
     static ACTION_TYPE: ActionType = 'get_msg'
-
-    async check(jsonData: any): Promise<BaseCheckResult> {
-        return {
-            valid: true,
-        }
-    }
-
-    async handle(jsonData: any) {
-        const result = await this.check(jsonData)
-        if (!result.valid) {
-            return OB11Response.error(result.message)
-        }
-        const resData = await this._handle(jsonData)
-        return resData
-    }
 
     async _handle(payload: PayloadType): Promise<OB11Return<ReturnDataType | null>> {
         log("history msg ids", Object.keys(msgHistory));

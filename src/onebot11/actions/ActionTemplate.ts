@@ -1,6 +1,5 @@
-// import { OB11Response } from "./utils";
-// import { BaseCheckResult } from "./types";
 // import { OB11Return } from '../types';
+// import BaseAction from "./BaseAction";
 
 // export type ActionType = ''
 
@@ -16,25 +15,11 @@
 // }
 
 
-// class ActionTemplate {
+// class ActionTemplate extends BaseAction {
 //     static ACTION_TYPE: ActionType = ''
 
-//     async check(jsonData: any): Promise<BaseCheckResult> {
-//         return {
-//             valid: true,
-//         }
-//     }
-
-//     async handle(jsonData: any) {
-//         const result = await this.check(jsonData)
-//         if (!result.valid) {
-//             return OB11Response.error(result.message)
-//         }
-//         const resData = await this._handle(jsonData)
-//         return resData
-//     }
-
 //     async _handle(payload: PayloadType): Promise<OB11Return<ReturnDataType | null>> {
+//         return
 //     }
 // }
 
