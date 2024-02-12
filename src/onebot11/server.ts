@@ -7,7 +7,7 @@ import { Response } from 'express';
 const JSONbig = require('json-bigint')({ storeAsString: true });
 import { selfInfo } from "../common/data";
 import { OB11Message, OB11Return, OB11MessageData } from './types';
-import { actionHandles } from "./actions";
+import { actionHandlers } from "./actions";
 
 
 // @SiberianHusky 2021-08-15
@@ -156,6 +156,6 @@ function registerRouter(action: string, handle: (payload: any) => Promise<any>) 
     routers[url] = handle
 }
 
-for (const [action, handler] of Object.entries(actionHandles)) {
-    registerRouter(action, (payload) => handler.handle(payload))
+for (const action  of actionHandlers) {
+    registerRouter(action.actionName, (payload) => action.handle(payload))
 }

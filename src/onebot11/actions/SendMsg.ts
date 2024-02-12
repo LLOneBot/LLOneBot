@@ -1,30 +1,24 @@
 import { AtType, ChatType, Group } from "../../ntqqapi/types";
 import { friends, getGroup, getStrangerByUin, msgHistory } from "../../common/data";
-import { OB11Return, OB11MessageData, OB11MessageDataType, OB11PostSendMsg } from '../types';
+import { OB11MessageData, OB11MessageDataType, OB11PostSendMsg } from '../types';
 import { NTQQApi } from "../../ntqqapi/ntcall";
 import { Peer } from "../../ntqqapi/ntcall";
 import { SendMessageElement } from "../../ntqqapi/types";
 import { SendMsgElementConstructor } from "../../ntqqapi/constructor";
 import { uri2local } from "../utils";
-import { OB11Response } from "./utils";
 import { v4 as uuid4 } from 'uuid';
 import { log } from "../../common/utils";
 import BaseAction from "./BaseAction";
-
-export type ActionType = 'send_msg'
-
-export interface PayloadType extends OB11PostSendMsg {
-    action: ActionType
-}
+import { ActionName } from "./types";
 
 export interface ReturnDataType {
     message_id: string
 }
 
-class SendMsg extends BaseAction {
-    static ACTION_TYPE: ActionType = 'send_msg'
+class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
+    actionName = ActionName.SendMsg
 
-    async _handle(payload: PayloadType): Promise<OB11Return<ReturnDataType | null>> {
+    protected async _handle(payload: OB11PostSendMsg){
         const peer: Peer = {
             chatType: ChatType.friend,
             peerUid: ""
@@ -33,7 +27,7 @@ class SendMsg extends BaseAction {
         if (payload?.group_id) {
             group = await getGroup(payload.group_id.toString())
             if (!group) {
-                return OB11Response.error(`群${payload.group_id}不存在`)
+                throw (`群${payload.group_id}不存在`)
             }
             peer.chatType = ChatType.group
             // peer.name = group.name
@@ -49,7 +43,7 @@ class SendMsg extends BaseAction {
                 peer.chatType = ChatType.temp
                 const tempUser = getStrangerByUin(payload.user_id.toString())
                 if (!tempUser) {
-                    return OB11Response.error(`找不到私聊对象${payload.user_id}`)
+                    throw(`找不到私聊对象${payload.user_id}`)
                 }
                 // peer.name = tempUser.nickName
                 peer.peerUid = tempUser.uid
@@ -120,12 +114,12 @@ class SendMsg extends BaseAction {
                 }
             }
         }
-        log("send msg:", peer, sendElements)
+        // log("send msg:", peer, sendElements)
         try {
             const returnMsg = await NTQQApi.sendMsg(peer, sendElements)
-            return OB11Response.ok({ message_id: returnMsg.msgId })
+            return { message_id: returnMsg.msgId }
         } catch (e) {
-            return OB11Response.error(e.toString())
+            throw(e.toString())
         }
     }
 }

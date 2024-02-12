@@ -1,30 +1,28 @@
-import { OB11Response } from "./utils";
 import { msgHistory } from "../../common/data";
-import { OB11Message, OB11Return } from '../types';
+import { OB11Message } from '../types';
 import { OB11Constructor } from "../constructor";
 import { log } from "../../common/utils";
 import BaseAction from "./BaseAction";
+import { ActionName } from "./types";
 
-export type ActionType = 'get_msg'
 
 export interface PayloadType {
-    action: ActionType
     message_id: string
 }
 
 export type ReturnDataType = OB11Message
 
-class GetMsg extends BaseAction {
-    static ACTION_TYPE: ActionType = 'get_msg'
+class GetMsg extends BaseAction<PayloadType, OB11Message> {
+    actionName = ActionName.GetMsg
 
-    async _handle(payload: PayloadType): Promise<OB11Return<ReturnDataType | null>> {
-        log("history msg ids", Object.keys(msgHistory));
+    protected async _handle(payload: PayloadType){
+        // log("history msg ids", Object.keys(msgHistory));
         const msg = msgHistory[payload.message_id.toString()]
         if (msg) {
             const msgData = await OB11Constructor.message(msg);
-            return OB11Response.ok(msgData)
+            return msgData
         } else {
-            return OB11Response.error("消息不存在")
+            throw("消息不存在")
         }
     }
 }

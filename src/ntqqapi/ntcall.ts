@@ -146,23 +146,23 @@ export class NTQQApi {
 
     }
 
-    // static async getFriends(forced = false) {
-    //     const data = await callNTQQApi<{ data: { categoryId: number, categroyName: string, categroyMbCount: number, buddyList: Friend[] }[] }>(NTQQApiChannel.IPC_UP_2, NTQQApiClass.NT_API, NTQQApiMethod.FRIENDS, [{ force_update: forced }, undefined], ReceiveCmd.FRIENDS)
-    //     let _friends: Friend[] = [];
-    //     for (const fData of data.data) {
-    //         _friends.push(...fData.buddyList)
-    //     }
-    //     return _friends
-    // }
+    static async getFriends(forced = false) {
+        const data = await callNTQQApi<{ data: { categoryId: number, categroyName: string, categroyMbCount: number, buddyList: Friend[] }[] }>(NTQQApiChannel.IPC_UP_2, NTQQApiClass.NT_API, NTQQApiMethod.FRIENDS, [{ force_update: forced }, undefined], ReceiveCmd.FRIENDS)
+        let _friends: Friend[] = [];
+        for (const fData of data.data) {
+            _friends.push(...fData.buddyList)
+        }
+        return _friends
+    }
 
-    // static async getGroups(forced = false) {
-    //     let cbCmd = ReceiveCmd.GROUPS
-    //     if (process.platform != "win32") {
-    //         cbCmd = ReceiveCmd.GROUPS_UNIX
-    //     }
-    //     const result = await callNTQQApi<{ updateType: number, groupList: Group[] }>(NTQQApiChannel.IPC_UP_2, NTQQApiClass.NT_API, NTQQApiMethod.GROUPS, [{ force_update: forced }, undefined], cbCmd)
-    //     return result.groupList
-    // }
+    static async getGroups(forced = false) {
+        let cbCmd = ReceiveCmd.GROUPS
+        if (process.platform != "win32") {
+            cbCmd = ReceiveCmd.GROUPS_UNIX
+        }
+        const result = await callNTQQApi<{ updateType: number, groupList: Group[] }>(NTQQApiChannel.IPC_UP_2, NTQQApiClass.NT_API, NTQQApiMethod.GROUPS, [{ force_update: forced }, undefined], cbCmd)
+        return result.groupList
+    }
 
     static async getGroupMembers(groupQQ: string, num = 3000) {
         const sceneId = await callNTQQApi(NTQQApiChannel.IPC_UP_2, NTQQApiClass.NT_API, NTQQApiMethod.GROUP_MEMBER_SCENE, [{

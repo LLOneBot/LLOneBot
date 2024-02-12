@@ -94,7 +94,7 @@ async function updateGroups(_groups: Group[]){
     for(let group of _groups){
         let existGroup = groups.find(g=>g.groupCode == group.groupCode)
         if (!existGroup){
-            log("update group")
+            // log("update group")
             let _membeers = await NTQQApi.getGroupMembers(group.groupCode)
             if (_membeers){
                 group.members = _membeers

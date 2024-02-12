@@ -1,24 +1,8 @@
-import { OB11PostSendMsg, OB11Return } from '../types';
 import SendMsg from "./SendMsg";
-import BaseAction from './BaseAction';
+import { ActionName } from "./types";
 
-export type ActionType = 'send_private_msg'
-
-export interface PayloadType extends OB11PostSendMsg {
-    action: ActionType
-}
-
-export interface ReturnDataType {
-    message_id: string
-}
-
-class SendPrivateMsg extends BaseAction {
-    static ACTION_TYPE: ActionType = 'send_private_msg'
-
-    async _handle(payload: PayloadType): Promise<OB11Return<ReturnDataType | null>> {
-        // 偷懒借用现有逻辑
-        return new SendMsg()._handle(payload as any)
-    }
+class SendPrivateMsg extends SendMsg {
+    actionName = ActionName.SendPrivateMsg
 }
 
 export default SendPrivateMsg
