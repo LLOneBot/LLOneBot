@@ -137,12 +137,8 @@ registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.UPDATE_MSG, (payl
 
 registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
     for (const message of payload.msgList) {
-        log("收到新消息，push到历史记录", message)
-        if (!msgHistory[message.msgId]) {
-            addHistoryMsg(message)
-        } else {
-            Object.assign(msgHistory[message.msgId], message)
-        }
+        // log("收到新消息，push到历史记录", message)
+        addHistoryMsg(message)
     }
     const msgIds = Object.keys(msgHistory);
     if (msgIds.length > 30000) {
