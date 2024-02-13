@@ -167,6 +167,19 @@ export interface ArkElement {
     bytesData: string;
 }
 
+export const IMAGE_HTTP_HOST = "https://gchat.qpic.cn"
+
+export interface PicElement {
+    originImageUrl: string;  // http url, 没有host，host是https://gchat.qpic.cn/
+    sourcePath: string; // 图片本地路径
+    thumbPath: Map<number, string>;
+    picWidth: number;
+    picHeight: number;
+    fileSize: number;
+    fileName: string;
+    fileUuid: string;
+}
+
 export interface RawMessage {
     msgId: string;
     msgTime: string;
@@ -178,6 +191,7 @@ export interface RawMessage {
     sendMemberName?: string; // 发送者群名片
     chatType: ChatType;
     elements: {
+        elementId: string,
         replyElement: {
             senderUid: string; // 原消息发送者QQ号
             sourceMsgIsIncPic: boolean; // 原消息是否有图片
@@ -186,18 +200,11 @@ export interface RawMessage {
         };
         textElement: {
             atType: AtType;
-            atUid: string;
+            atUid: string; // QQ号
             content: string;
-            atNtUid: string;
+            atNtUid: string; // uid号
         };
-        picElement: {
-            sourcePath: string; // 图片本地路径
-            picWidth: number;
-            picHeight: number;
-            fileSize: number;
-            fileName: string;
-            fileUuid: string;
-        };
+        picElement: PicElement;
         pttElement: PttElement;
         arkElement: ArkElement;
     }[];

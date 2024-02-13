@@ -2,11 +2,12 @@ import { ipcMain } from "electron";
 import { v4 as uuidv4 } from "uuid";
 import { ReceiveCmd, hookApiCallbacks, registerReceiveHook, removeReceiveHook } from "./hook";
 import { log } from "../common/utils";
-import { ChatType, Friend, SelfInfo, User } from "./types";
+import { ChatType, Friend, PicElement, SelfInfo, User } from "./types";
 import { Group } from "./types";
 import { GroupMember } from "./types";
 import { RawMessage } from "./types";
 import { SendMessageElement } from "./types";
+import * as fs from "fs";
 
 interface IPCReceiveEvent {
     eventName: string
@@ -43,6 +44,7 @@ export enum NTQQApiMethod {
     MEDIA_FILE_PATH = "nodeIKernelMsgService/getRichMediaFilePathForGuild",
     RECALL_MSG = "nodeIKernelMsgService/recallMsg",
     SEND_MSG = "nodeIKernelMsgService/sendMsg",
+    DOWNLOAD_MEDIA = "nodeIKernelMsgService/downloadRichMedia"
 }
 
 enum NTQQApiChannel {
@@ -244,6 +246,28 @@ export class NTQQApi {
         }
     }
 
+    static async downloadMedia(msgId: string, chatType: ChatType, peerUid: string, elementId: string, thumbPath: string, sourcePath: string){
+        // 用于下载收到的消息中的图片等
+        if (fs.existsSync(sourcePath)){
+            return sourcePath
+        }
+        const apiParams = [
+            {
+                getReq: {
+                    msgId: msgId,
+                    chatType: chatType,
+                    peerUid: peerUid,
+                    elementId: elementId,
+                    thumbSize: 0,
+                    downloadType: 1,
+                    filePath: thumbPath,
+                },
+            },
+            undefined,
+        ]
+        await callNTQQApi(NTQQApiChannel.IPC_UP_2, NTQQApiClass.NT_API, NTQQApiMethod.DOWNLOAD_MEDIA, apiParams)
+        return sourcePath
+    }
     static recallMsg(peer: Peer, msgIds: string[]) {
         return callNTQQApi(NTQQApiChannel.IPC_UP_2, NTQQApiClass.NT_API, NTQQApiMethod.RECALL_MSG, [{ peer, msgIds }, null])
     }
@@ -293,4 +317,5 @@ export class NTQQApi {
         })
 
     }
+
 }
