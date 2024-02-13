@@ -12,7 +12,7 @@ import {
 } from "../common/channels";
 import { postMsg, startExpress } from "../onebot11/server";
 import { CONFIG_DIR, getConfigUtil, log } from "../common/utils";
-import { addHistoryMsg, selfInfo } from "../common/data";
+import { addHistoryMsg, msgHistory, selfInfo } from "../common/data";
 import { hookNTQQApiReceive, ReceiveCmd, registerReceiveHook } from "../ntqqapi/hook";
 import { OB11Constructor } from "../onebot11/constructor";
 import { NTQQApi } from "../ntqqapi/ntcall";
@@ -48,6 +48,10 @@ function onLoad() {
     function postRawMsg(msgList: RawMessage[]) {
         const {debug, reportSelfMessage} = getConfigUtil().getConfig();
         for (let message of msgList) {
+            message.msgShortId = msgHistory[message.msgId]?.msgShortId
+            if (!message.msgShortId) {
+                addHistoryMsg(message)
+            }
             OB11Constructor.message(message).then((msg) => {
                 if (debug) {
                     msg.raw = message;
@@ -78,7 +82,7 @@ function onLoad() {
             if (!reportSelfMessage) {
                 return
             }
-            log("reportSelfMessage", payload)
+            // log("reportSelfMessage", payload)
             try {
                 postRawMsg([payload.msgRecord]);
             } catch (e) {

@@ -1,12 +1,21 @@
-import {OB11MessageDataType, OB11GroupMemberRole, OB11Message, OB11MessageData, OB11Group, OB11GroupMember, OB11User} from "./types";
+import {
+    OB11MessageDataType,
+    OB11GroupMemberRole,
+    OB11Message,
+    OB11MessageData,
+    OB11Group,
+    OB11GroupMember,
+    OB11User
+} from "./types";
 import { AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User } from '../ntqqapi/types';
-import { addHistoryMsg, getFriend, getGroupMember, getHistoryMsgBySeq, selfInfo } from '../common/data';
-import {file2base64, getConfigUtil, log} from "../common/utils";
+import { addHistoryMsg, getFriend, getGroupMember, getHistoryMsgBySeq, msgHistory, selfInfo } from '../common/data';
+import { file2base64, getConfigUtil, log } from "../common/utils";
 import { NTQQApi } from "../ntqqapi/ntcall";
 
 
 export class OB11Constructor {
     static async message(msg: RawMessage): Promise<OB11Message> {
+
         const {enableBase64} = getConfigUtil().getConfig()
         const message_type = msg.chatType == ChatType.group ? "group" : "private";
         const resMsg: OB11Message = {
@@ -56,13 +65,13 @@ export class OB11Constructor {
                 } else {
                     let atUid = element.textElement.atNtUid
                     let atQQ = element.textElement.atUid
-                    if (!atQQ || atQQ === "0"){
+                    if (!atQQ || atQQ === "0") {
                         const atMember = await getGroupMember(msg.peerUin, null, atUid)
-                        if (atMember){
+                        if (atMember) {
                             atQQ = atMember.uin
                         }
                     }
-                    if (atQQ){
+                    if (atQQ) {
                         message_data["data"]["mention"] = atQQ
                         message_data["data"]["qq"] = atQQ
                     }
@@ -78,7 +87,7 @@ export class OB11Constructor {
                 try {
                     await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
                         element.elementId, element.picElement.thumbPath.get(0), element.picElement.sourcePath)
-                }catch (e) {
+                } catch (e) {
                     message_data["data"]["http_file"] = IMAGE_HTTP_HOST + element.picElement.originImageUrl
                 }
             } else if (element.replyElement) {
@@ -86,8 +95,7 @@ export class OB11Constructor {
                 const replyMsg = getHistoryMsgBySeq(element.replyElement.replayMsgSeq)
                 if (replyMsg) {
                     message_data["data"]["id"] = replyMsg.msgShortId
-                }
-                else{
+                } else {
                     continue
                 }
             } else if (element.pttElement) {
@@ -104,10 +112,9 @@ export class OB11Constructor {
                 message_data["type"] = OB11MessageDataType.json;
                 message_data["data"]["data"] = element.arkElement.bytesData;
             }
-            if (message_data.data.http_file){
+            if (message_data.data.http_file) {
                 message_data.data.file = message_data.data.http_file
-            }
-            else if (message_data.data.file) {
+            } else if (message_data.data.file) {
                 let filePath: string = message_data.data.file;
                 message_data.data.file = "file://" + filePath
                 if (enableBase64) {
@@ -125,24 +132,24 @@ export class OB11Constructor {
         }
         return resMsg;
     }
-    
-    static friend(friend: User): OB11User{
+
+    static friend(friend: User): OB11User {
         return {
             user_id: friend.uin,
             nickname: friend.nick,
             remark: friend.remark
         }
-        
+
     }
 
-    static selfInfo(selfInfo: SelfInfo): OB11User{
+    static selfInfo(selfInfo: SelfInfo): OB11User {
         return {
             user_id: selfInfo.uin,
             nickname: selfInfo.nick
         }
     }
 
-    static friends(friends: User[]): OB11User[]{
+    static friends(friends: User[]): OB11User[] {
         return friends.map(OB11Constructor.friend)
     }
 
@@ -154,7 +161,7 @@ export class OB11Constructor {
         }[role]
     }
 
-    static groupMember(group_id: string, member: GroupMember): OB11GroupMember{
+    static groupMember(group_id: string, member: GroupMember): OB11GroupMember {
         return {
             group_id,
             user_id: member.uin,
@@ -163,19 +170,19 @@ export class OB11Constructor {
         }
     }
 
-    static groupMembers(group: Group): OB11GroupMember[]{
+    static groupMembers(group: Group): OB11GroupMember[] {
         log("construct ob11 group members", group)
-        return group.members.map(m=>OB11Constructor.groupMember(group.groupCode, m))
+        return group.members.map(m => OB11Constructor.groupMember(group.groupCode, m))
     }
 
-    static group(group: Group): OB11Group{
+    static group(group: Group): OB11Group {
         return {
             group_id: group.groupCode,
             group_name: group.groupName
         }
     }
 
-    static groups(groups: Group[]): OB11Group[]{
+    static groups(groups: Group[]): OB11Group[] {
         return groups.map(OB11Constructor.group)
     }
 }
