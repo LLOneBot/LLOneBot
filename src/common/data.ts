@@ -1,5 +1,5 @@
 import { NTQQApi } from '../ntqqapi/ntcall';
-import { Friend, Group, RawMessage, SelfInfo } from "../ntqqapi/types";
+import { Friend, Group, GroupMember, RawMessage, SelfInfo } from "../ntqqapi/types";
 
 export let groups: Group[] = []
 export let friends: Friend[] = []
@@ -23,16 +23,23 @@ export async function getGroup(qq: string): Promise<Group | undefined> {
     return group
 }
 
-export async function getGroupMember(groupQQ: string, memberQQ: string) {
+export async function getGroupMember(groupQQ: string, memberQQ: string=null, memberUid: string=null) {
     const group = await getGroup(groupQQ)
     if (group) {
-        let member = group.members?.find(member => member.uin === memberQQ)
+        let filterFunc: (member: GroupMember) => boolean
+        if (memberQQ){
+            filterFunc = member => member.uin === memberQQ
+        }
+        else if (memberUid){
+            filterFunc = member => member.uid === memberUid
+        }
+        let member = group.members?.find(filterFunc)
         if (!member){
             const _members = await NTQQApi.getGroupMembers(groupQQ)
             if (_members.length){
                 group.members = _members
             }
-            member = group.members?.find(member => member.uin === memberQQ)
+            member = group.members?.find(filterFunc)
         }
         return member
     }
