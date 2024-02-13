@@ -39,11 +39,12 @@ export async function uri2local(fileName: string, uri: string){
         }
     } else if (url.protocol === "file:"){
         // await fs.copyFile(url.pathname, filePath);
+        let pathname = decodeURIComponent(url.pathname)
         if (process.platform === "win32"){
-            filePath = url.pathname.slice(1)
+            filePath = pathname.slice(1)
         }
         else{
-            filePath = url.pathname
+            filePath = pathname
         }
         res.isLocal = true
     }
