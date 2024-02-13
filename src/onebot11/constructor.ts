@@ -1,6 +1,6 @@
 import {OB11MessageDataType, OB11GroupMemberRole, OB11Message, OB11MessageData, OB11Group, OB11GroupMember, OB11User} from "./types";
 import { AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User } from '../ntqqapi/types';
-import { getFriend, getGroupMember, getHistoryMsgBySeq, selfInfo } from '../common/data';
+import { addHistoryMsg, getFriend, getGroupMember, getHistoryMsgBySeq, selfInfo } from '../common/data';
 import {file2base64, getConfigUtil, log} from "../common/utils";
 import { NTQQApi } from "../ntqqapi/ntcall";
 
@@ -13,7 +13,7 @@ export class OB11Constructor {
             self_id: selfInfo.uin,
             user_id: msg.senderUin,
             time: parseInt(msg.msgTime) || 0,
-            message_id: msg.msgId,
+            message_id: msg.msgShortId,
             real_id: msg.msgId,
             message_type: msg.chatType == ChatType.group ? "group" : "private",
             sender: {
@@ -85,7 +85,7 @@ export class OB11Constructor {
                 message_data["type"] = "reply"
                 const replyMsg = getHistoryMsgBySeq(element.replyElement.replayMsgSeq)
                 if (replyMsg) {
-                    message_data["data"]["id"] = replyMsg.msgId
+                    message_data["data"]["id"] = replyMsg.msgShortId
                 }
                 else{
                     continue

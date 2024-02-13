@@ -182,6 +182,7 @@ export interface PicElement {
 
 export interface RawMessage {
     msgId: string;
+    msgShortId?: number;  // 自己维护的消息id
     msgTime: string;
     msgSeq: string;
     senderUin: string; // 发送者QQ号

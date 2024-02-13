@@ -1,9 +1,29 @@
 import { NTQQApi } from '../ntqqapi/ntcall';
 import { Friend, Group, GroupMember, RawMessage, SelfInfo } from "../ntqqapi/types";
+import { log } from "./utils";
 
 export let groups: Group[] = []
 export let friends: Friend[] = []
 export let msgHistory: Record<string, RawMessage> = {}  // msgId: RawMessage
+
+let globalMsgId = Date.now()
+
+export function addHistoryMsg(msg: RawMessage){
+    let existMsg = msgHistory[msg.msgId]
+    if (existMsg){
+        Object.assign(existMsg, msg)
+        msg.msgShortId = existMsg.msgShortId;
+        return
+    }
+    msg.msgShortId = ++globalMsgId
+    msgHistory[msg.msgId] = msg
+}
+
+export function getHistoryMsgByShortId(shortId: number | string){
+    log("getHistoryMsgByShortId", shortId, Object.values(msgHistory).map(m=>m.msgShortId))
+    return Object.values(msgHistory).find(msg => msg.msgShortId.toString() == shortId.toString())
+}
+
 
 export async function getFriend(qq: string): Promise<Friend | undefined> {
     let friend = friends.find(friend => friend.uin === qq)

@@ -10,10 +10,9 @@ import {
     CHANNEL_LOG,
     CHANNEL_SET_CONFIG,
 } from "../common/channels";
-import { ConfigUtil } from "../common/config";
 import { postMsg, startExpress } from "../onebot11/server";
 import { CONFIG_DIR, getConfigUtil, log } from "../common/utils";
-import { friends, groups, msgHistory, selfInfo } from "../common/data";
+import { addHistoryMsg, selfInfo } from "../common/data";
 import { hookNTQQApiReceive, ReceiveCmd, registerReceiveHook } from "../ntqqapi/hook";
 import { OB11Constructor } from "../onebot11/constructor";
 import { NTQQApi } from "../ntqqapi/ntcall";
@@ -48,7 +47,8 @@ function onLoad() {
 
     function postRawMsg(msgList: RawMessage[]) {
         const {debug, reportSelfMessage} = getConfigUtil().getConfig();
-        for (const message of msgList) {
+        for (let message of msgList) {
+            addHistoryMsg(message)
             OB11Constructor.message(message).then((msg) => {
                 if (debug) {
                     msg.raw = message;
@@ -86,8 +86,7 @@ function onLoad() {
         NTQQApi.getGroups(true).then()
         startExpress(getConfigUtil().getConfig().port)
     }
-
-    async function getSelfInfo() {
+    const initLoop = setInterval(async ()=>{
         try {
             const _ = await NTQQApi.getSelfInfo()
             Object.assign(selfInfo, _)
@@ -95,7 +94,6 @@ function onLoad() {
             log("get self simple info", _)
         } catch (e) {
             log("retry get self info")
-
         }
         if (selfInfo.uin) {
             try {
@@ -104,22 +102,17 @@ function onLoad() {
                 if (userInfo) {
                     selfInfo.nick = userInfo.nick
                 } else {
-                    return setTimeout(() => {
-                        getSelfInfo().then()
-                    }, 100)
+                    return
                 }
             } catch (e) {
-                log("get self nickname failed", e.toString())
-                return setTimeout(() => {
-                    getSelfInfo().then()
-                }, 100)
+                return log("get self nickname failed", e.toString())
             }
+            clearInterval(initLoop);
             start();
-        } else {
-            setTimeout(() => {
-                getSelfInfo().then()
-            }, 100)
         }
+    }, 1000)
+    async function getSelfInfo() {
+
     }
 
     getSelfInfo().then()

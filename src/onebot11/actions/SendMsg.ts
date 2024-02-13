@@ -1,5 +1,12 @@
 import { AtType, ChatType, Group } from "../../ntqqapi/types";
-import { friends, getGroup, getStrangerByUin, msgHistory } from "../../common/data";
+import {
+    addHistoryMsg,
+    friends,
+    getGroup,
+    getHistoryMsgByShortId,
+    getStrangerByUin,
+    msgHistory
+} from "../../common/data";
 import { OB11MessageData, OB11MessageDataType, OB11PostSendMsg } from '../types';
 import { NTQQApi } from "../../ntqqapi/ntcall";
 import { Peer } from "../../ntqqapi/ntcall";
@@ -13,7 +20,7 @@ import { ActionName } from "./types";
 import * as fs from "fs";
 
 export interface ReturnDataType {
-    message_id: string
+    message_id: number
 }
 
 class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
@@ -90,7 +97,7 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                     let replyMsgId = sendMsg.data.id;
                     if (replyMsgId) {
                         replyMsgId = replyMsgId.toString()
-                        const replyMsg = msgHistory[replyMsgId]
+                        const replyMsg = getHistoryMsgByShortId(replyMsgId)
                         if (replyMsg) {
                             sendElements.push(SendMsgElementConstructor.reply(replyMsg.msgSeq, replyMsgId, replyMsg.senderUin, replyMsg.senderUin))
                         }
@@ -119,8 +126,9 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         // log("send msg:", peer, sendElements)
         try {
             const returnMsg = await NTQQApi.sendMsg(peer, sendElements)
+            addHistoryMsg(returnMsg)
             deleteAfterSentFiles.map(f=>fs.unlink(f, ()=>{}))
-            return { message_id: returnMsg.msgId }
+            return { message_id: returnMsg.msgShortId }
         } catch (e) {
             throw(e.toString())
         }
