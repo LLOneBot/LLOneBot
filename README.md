@@ -70,7 +70,7 @@ LiteLoaderQQNT的OneBot11协议插件
 <details>
     <summary>调用接口报404</summary>
 <br/>
-    目前没有支持全部的onebot规范接口，请检查是否调用了不支持的接口，并且所有接口都只支持POST方法，调用GET方法会报404
+    目前没有支持全部的onebot规范接口，请检查是否调用了不支持的接口
 </details>
 <br/>
 
