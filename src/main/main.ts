@@ -32,7 +32,7 @@ function onLoad() {
 
 
     if (!fs.existsSync(CONFIG_DIR)) {
-        fs.mkdirSync(CONFIG_DIR, { recursive: true });
+        fs.mkdirSync(CONFIG_DIR, {recursive: true});
     }
     ipcMain.handle(CHANNEL_GET_CONFIG, (event: any, arg: any) => {
         return getConfigUtil().getConfig()
@@ -47,7 +47,7 @@ function onLoad() {
 
 
     function postRawMsg(msgList: RawMessage[]) {
-        const { debug, reportSelfMessage } = getConfigUtil().getConfig();
+        const {debug, reportSelfMessage} = getConfigUtil().getConfig();
         for (const message of msgList) {
             OB11Constructor.message(message).then((msg) => {
                 if (debug) {
@@ -61,34 +61,38 @@ function onLoad() {
         }
     }
 
-    registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
-        try {
-            postRawMsg(payload.msgList);
-        } catch (e) {
-            log("report message error: ", e.toString())
-        }
-    })
 
-    registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, (payload) => {
-        const { reportSelfMessage } = getConfigUtil().getConfig()
-        if (!reportSelfMessage) {
-            return
-        }
-        log("reportSelfMessage", payload)
-        try {
-            postRawMsg([payload.msgRecord]);
-        } catch (e) {
-            log("report self message error: ", e.toString())
-        }
-    })
+    function start() {
+        registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
+            try {
+                postRawMsg(payload.msgList);
+            } catch (e) {
+                log("report message error: ", e.toString())
+            }
+        })
+
+        registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, (payload) => {
+            const {reportSelfMessage} = getConfigUtil().getConfig()
+            if (!reportSelfMessage) {
+                return
+            }
+            log("reportSelfMessage", payload)
+            try {
+                postRawMsg([payload.msgRecord]);
+            } catch (e) {
+                log("report self message error: ", e.toString())
+            }
+        })
+        startExpress(getConfigUtil().getConfig().port)
+    }
 
     async function getSelfInfo() {
-        try{
+        try {
             const _ = await NTQQApi.getSelfInfo()
             Object.assign(selfInfo, _)
             selfInfo.nick = selfInfo.uin
             log("get self simple info", _)
-        }catch(e){
+        } catch (e) {
             log("retry get self info")
 
         }
@@ -97,11 +101,15 @@ function onLoad() {
                 const userInfo = (await NTQQApi.getUserInfo(selfInfo.uid))
                 if (userInfo) {
                     selfInfo.nick = userInfo.nick
+                } else {
+                    return setTimeout(() => {
+                        getSelfInfo().then()
+                    }, 100)
                 }
-            }
-            catch (e) {
+            } catch (e) {
                 log("get self nickname failed", e.toString())
             }
+            start();
             // try {
             //     friends.push(...(await NTQQApi.getFriends(true)))
             //     log("get friends", friends)
@@ -124,14 +132,13 @@ function onLoad() {
             // } catch (e) {
             //     log("!!!初始化失败", e.stack.toString())
             // }
-            startExpress(getConfigUtil().getConfig().port)
-        }
-        else{
+        } else {
             setTimeout(() => {
                 getSelfInfo().then()
             }, 100)
         }
     }
+
     getSelfInfo().then()
 }
 
