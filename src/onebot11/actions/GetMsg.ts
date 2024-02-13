@@ -1,4 +1,4 @@
-import { msgHistory } from "../../common/data";
+import { getHistoryMsgByShortId, msgHistory } from "../../common/data";
 import { OB11Message } from '../types';
 import { OB11Constructor } from "../constructor";
 import { log } from "../../common/utils";
@@ -7,7 +7,7 @@ import { ActionName } from "./types";
 
 
 export interface PayloadType {
-    message_id: string
+    message_id: number
 }
 
 export type ReturnDataType = OB11Message
@@ -17,7 +17,7 @@ class GetMsg extends BaseAction<PayloadType, OB11Message> {
 
     protected async _handle(payload: PayloadType){
         // log("history msg ids", Object.keys(msgHistory));
-        const msg = msgHistory[payload.message_id.toString()]
+        const msg = getHistoryMsgByShortId(payload.message_id)
         if (msg) {
             const msgData = await OB11Constructor.message(msg);
             return msgData

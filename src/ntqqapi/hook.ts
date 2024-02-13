@@ -3,7 +3,7 @@ import { getConfigUtil, log } from "../common/utils";
 import { NTQQApi, NTQQApiClass, sendMessagePool } from "./ntcall";
 import { Group, User } from "./types";
 import { RawMessage } from "./types";
-import { friends, groups, msgHistory } from "../common/data";
+import { addHistoryMsg, friends, groups, msgHistory } from "../common/data";
 import { v4 as uuidv4 } from 'uuid';
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
@@ -131,7 +131,7 @@ registerReceiveHook<{
 
 registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.UPDATE_MSG, (payload) => {
     for (const message of payload.msgList) {
-        msgHistory[message.msgId] = message;
+        addHistoryMsg(message)
     }
 })
 
@@ -139,13 +139,13 @@ registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload
     for (const message of payload.msgList) {
         log("收到新消息，push到历史记录", message)
         if (!msgHistory[message.msgId]) {
-            msgHistory[message.msgId] = message
+            addHistoryMsg(message)
         } else {
             Object.assign(msgHistory[message.msgId], message)
         }
     }
     const msgIds = Object.keys(msgHistory);
-    if (msgIds.length > 3000) {
+    if (msgIds.length > 30000) {
         delete msgHistory[msgIds.sort()[0]]
     }
 })

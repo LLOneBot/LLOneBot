@@ -58,7 +58,7 @@ export enum OB11MessageType {
 export interface OB11Message {
     self_id?: string,
     time: number,
-    message_id: string,
+    message_id: number,
     real_id: string,
     user_id: string,
     group_id?: string,
