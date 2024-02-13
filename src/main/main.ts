@@ -83,6 +83,7 @@ function onLoad() {
                 log("report self message error: ", e.toString())
             }
         })
+        NTQQApi.getGroups(true).then()
         startExpress(getConfigUtil().getConfig().port)
     }
 
@@ -99,6 +100,7 @@ function onLoad() {
         if (selfInfo.uin) {
             try {
                 const userInfo = (await NTQQApi.getUserInfo(selfInfo.uid))
+                log("self info", userInfo);
                 if (userInfo) {
                     selfInfo.nick = userInfo.nick
                 } else {
@@ -108,30 +110,11 @@ function onLoad() {
                 }
             } catch (e) {
                 log("get self nickname failed", e.toString())
+                return setTimeout(() => {
+                    getSelfInfo().then()
+                }, 100)
             }
             start();
-            // try {
-            //     friends.push(...(await NTQQApi.getFriends(true)))
-            //     log("get friends", friends)
-            //     let _groups: Group[] = []
-            //     for(let i=0; i++; i<3){
-            //         try{
-            //             _groups = await NTQQApi.getGroups(true)
-            //             log("get groups sucess", _groups)
-            //             break
-            //         } catch(e) {
-            //             log("get groups failed", e)
-            //         }
-            //     }
-            //     for (let g of _groups) {
-            //         g.members = (await NTQQApi.getGroupMembers(g.groupCode))
-            //         log("group members", g.members)
-            //         groups.push(g)
-            //     }
-
-            // } catch (e) {
-            //     log("!!!初始化失败", e.stack.toString())
-            // }
         } else {
             setTimeout(() => {
                 getSelfInfo().then()

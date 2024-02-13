@@ -10,6 +10,7 @@ import { v4 as uuid4 } from 'uuid';
 import { log } from "../../common/utils";
 import BaseAction from "./BaseAction";
 import { ActionName } from "./types";
+import * as fs from "fs";
 
 export interface ReturnDataType {
     message_id: string
@@ -23,6 +24,7 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             chatType: ChatType.friend,
             peerUid: ""
         }
+        let deleteAfterSentFiles: string[] = []
         let group: Group | undefined = undefined;
         if (payload?.group_id) {
             group = await getGroup(payload.group_id.toString())
@@ -94,21 +96,21 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                         }
                     }
                 } break;
-                case OB11MessageDataType.image: {
-                    const file = sendMsg.data?.file
-                    if (file) {
-                        const picPath = await (await uri2local(uuid4(), file)).path
-                        if (picPath) {
-                            sendElements.push(await SendMsgElementConstructor.pic(picPath))
-                        }
-                    }
-                } break;
+                case OB11MessageDataType.image:
                 case OB11MessageDataType.voice: {
                     const file = sendMsg.data?.file
                     if (file) {
-                        const voicePath = await (await uri2local(uuid4(), file)).path
-                        if (voicePath) {
-                            sendElements.push(await SendMsgElementConstructor.ptt(voicePath))
+                        const {path, isLocal} = (await uri2local(uuid4(), file))
+                        if (path) {
+                            if (!isLocal){ // 只删除http和base64转过来的文件
+                                deleteAfterSentFiles.push(path)
+                            }
+                            if (sendMsg.type === OB11MessageDataType.image){
+                                sendElements.push(await SendMsgElementConstructor.pic(path))
+                            }
+                            else {
+                                sendElements.push(await SendMsgElementConstructor.ptt(path))
+                            }
                         }
                     }
                 }
@@ -117,6 +119,7 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         // log("send msg:", peer, sendElements)
         try {
             const returnMsg = await NTQQApi.sendMsg(peer, sendElements)
+            deleteAfterSentFiles.map(f=>fs.unlink(f, ()=>{}))
             return { message_id: returnMsg.msgId }
         } catch (e) {
             throw(e.toString())

@@ -142,10 +142,9 @@ export class NTQQApi {
     }
 
     static async getUserInfo(uid: string) {
-        const result = await callNTQQApi<{ info: User }>(NTQQApiChannel.IPC_UP_2, NTQQApiClass.NT_API, NTQQApiMethod.USER_INFO,
+        const result = await callNTQQApi<{ profiles: Map<string, User> }>(NTQQApiChannel.IPC_UP_2, NTQQApiClass.NT_API, NTQQApiMethod.USER_INFO,
             [{ force: true, uids: [uid] }, undefined], ReceiveCmd.USER_INFO)
-        return result.info
-
+        return result.profiles.get(uid)
     }
 
     static async getFriends(forced = false) {

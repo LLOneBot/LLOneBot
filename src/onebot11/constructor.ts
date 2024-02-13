@@ -54,10 +54,18 @@ export class OB11Constructor {
                     message_data["data"]["mention"] = "all"
                     message_data["data"]["qq"] = "all"
                 } else {
+                    let atUid = element.textElement.atNtUid
                     let atQQ = element.textElement.atUid
-                    // let atMember = await getGroupMember(msg.peerUin, uid)
-                    message_data["data"]["mention"] = atQQ
-                    message_data["data"]["qq"] = atQQ
+                    if (!atQQ || atQQ === "0"){
+                        const atMember = await getGroupMember(msg.peerUin, null, atUid)
+                        if (atMember){
+                            atQQ = atMember.uin
+                        }
+                    }
+                    if (atQQ){
+                        message_data["data"]["mention"] = atQQ
+                        message_data["data"]["qq"] = atQQ
+                    }
                 }
             } else if (element.textElement) {
                 message_data["type"] = "text"
@@ -103,7 +111,6 @@ export class OB11Constructor {
                 let filePath: string = message_data.data.file;
                 message_data.data.file = "file://" + filePath
                 if (enableBase64) {
-                    // filePath = filePath.replace("\\Ori\\", "\\Thumb\\")
                     let {err, data} = await file2base64(filePath);
                     if (err) {
                         console.log("文件转base64失败", err)
@@ -116,16 +123,6 @@ export class OB11Constructor {
                 resMsg.message.push(message_data);
             }
         }
-        // if (msgHistory.length > 10000) {
-        //     msgHistory.splice(0, 100)
-        // }
-        // msgHistory.push(message)
-        // if (!reportSelfMessage && onebot_message_data["user_id"] == self_qq) {
-        //     console.log("开启了不上传自己发送的消息，进行拦截 ", onebot_message_data);
-        // } else {
-        //     console.log("发送上传消息给ipc main", onebot_message_data);
-        //     window.llonebot.postData(onebot_message_data);
-        // }
         return resMsg;
     }
     
