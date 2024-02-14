@@ -63,7 +63,7 @@ export interface OB11Message {
     user_id: string,
     group_id?: string,
     message_type: "private" | "group",
-    sub_type?: "friend" | "group" | "other",
+    sub_type?: "friend" | "group" | "normal",
     sender: OB11Sender,
     message: OB11MessageData[],
     raw_message: string,
