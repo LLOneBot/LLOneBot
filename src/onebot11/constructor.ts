@@ -2,13 +2,12 @@ import {
     OB11MessageDataType,
     OB11GroupMemberRole,
     OB11Message,
-    OB11MessageData,
     OB11Group,
     OB11GroupMember,
     OB11User
 } from "./types";
 import { AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User } from '../ntqqapi/types';
-import { addHistoryMsg, getFriend, getGroupMember, getHistoryMsgBySeq, msgHistory, selfInfo } from '../common/data';
+import { getFriend, getGroupMember, getHistoryMsgBySeq, msgHistory, selfInfo } from '../common/data';
 import { file2base64, getConfigUtil, log } from "../common/utils";
 import { NTQQApi } from "../ntqqapi/ntcall";
 
@@ -37,6 +36,7 @@ export class OB11Constructor {
             post_type: "message",
         }
         if (msg.chatType == ChatType.group) {
+            resMsg.sub_type = "normal"
             resMsg.group_id = msg.peerUin
             const member = await getGroupMember(msg.peerUin, msg.senderUin);
             if (member) {
