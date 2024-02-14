@@ -86,9 +86,17 @@ export type OB11ApiName =
     | "get_msg"
 
 export interface OB11Return<DataType> {
-    status: number
+    status: string
     retcode: number
     data: DataType
+    message: string
+}
+
+export interface OB11WebsocketReturn<DataType> {
+    status: string
+    retcode: number
+    data: DataType
+    echo: string
     message: string
 }
 

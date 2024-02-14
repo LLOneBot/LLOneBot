@@ -20,7 +20,7 @@ async function onSettingWindowCreated(view: Element) {
     }
 
     let hostsEleStr = ""
-    for (const host of config.hosts) {
+    for (const host of config.httpHosts) {
         hostsEleStr += creatHostEleStr(host);
     }
     let html = `
@@ -30,7 +30,7 @@ async function onSettingWindowCreated(view: Element) {
                 <setting-list class="wrap">
                     <setting-item class="vertical-list-item" data-direction="row">
                         <setting-text>监听端口</setting-text>
-                        <input id="port" type="number" value="${config.port}"/>
+                        <input id="port" type="number" value="${config.httpPort}"/>
                     </setting-item>
                     <div>
                         <button id="addHost" class="q-button">添加上报地址</button>
@@ -135,8 +135,8 @@ async function onSettingWindowCreated(view: Element) {
                     hosts.push(hostEle.value);
                 }
             }
-            config.port = parseInt(port);
-            config.hosts = hosts;
+            config.httpPort = parseInt(port);
+            config.httpHosts = hosts;
             window.llonebot.setConfig(config);
             alert("保存成功");
         })
