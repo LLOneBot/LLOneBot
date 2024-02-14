@@ -1,13 +1,16 @@
 import { getConfigUtil, log } from "../common/utils";
 
 const express = require("express");
+const expressWs = require("express-ws");
+
 import { Request } from 'express';
 import { Response } from 'express';
 
 const JSONbig = require('json-bigint')({ storeAsString: true });
 import { selfInfo } from "../common/data";
 import { OB11Message, OB11Return, OB11MessageData } from './types';
-import { actionHandlers } from "./actions";
+import {actionHandlers, actionMap} from "./actions";
+import {OB11Response, OB11WebsocketResponse} from "./actions/utils";
 
 
 // @SiberianHusky 2021-08-15
@@ -48,26 +51,11 @@ function checkSendMessage(sendMsgList: OB11MessageData[]) {
 
 // ==end==
 
-
-class OB11Response {
-    static res<T>(data: T, status: number = 0, message: string = ""): OB11Return<T> {
-        return {
-            status: status,
-            retcode: status,
-            data: data,
-            message: message
-        }
-    }
-    static ok<T>(data: T) {
-        return OB11Response.res<T>(data)
-    }
-    static error(err: string) {
-        return OB11Response.res(null, -1, err)
-    }
-}
-
 const expressAPP = express();
 expressAPP.use(express.urlencoded({ extended: true, limit: "500mb" }));
+
+const expressWsApp = express();
+const websocketClientConnections = [];
 
 expressAPP.use((req, res, next) => {
     let data = '';
@@ -86,12 +74,6 @@ expressAPP.use((req, res, next) => {
         next();
     });
 });
-// expressAPP.use(express.json({
-//     limit: '500mb',
-//     verify: (req: any, res: any, buf: any, encoding: any) => {
-//         req.rawBody = buf;
-//     }
-// }));
 
 export function startExpress(port: number) {
 
@@ -99,33 +81,120 @@ export function startExpress(port: number) {
         res.send('llonebot已启动');
     })
 
-    expressAPP.listen(port, "0.0.0.0", () => {
-        console.log(`llonebot started 0.0.0.0:${port}`);
-    });
+    if (getConfigUtil().getConfig().enableHttp) {
+        expressAPP.listen(port, "0.0.0.0", () => {
+            console.log(`llonebot http service started 0.0.0.0:${port}`);
+        });
+    }
+}
+
+export function startWebsocketServer(port: number) {
+    const config = getConfigUtil().getConfig();
+    if (config.enableWs) {
+        expressWs(expressWsApp)
+        expressWsApp.listen(getConfigUtil().getConfig().wsPort, function () {
+            console.log(`llonebot websocket service started 0.0.0.0:${port}`);
+        });
+    }
+}
+
+export function initWebsocket() {
+    if (getConfigUtil().getConfig().enableWs) {
+        expressWsApp.ws("/api", onWebsocketMessage);
+        expressWsApp.ws("/", onWebsocketMessage);
+    }
+
+    initReverseWebsocket();
+}
+
+function initReverseWebsocket() {
+    const config = getConfigUtil().getConfig();
+    if (config.enableWsReverse) {
+        for (const url of config.wsHosts) {
+            try {
+                const wsClient = new WebSocket(url);
+                websocketClientConnections.push(wsClient);
+
+                wsClient.onclose = function (ev) {
+                    let index = websocketClientConnections.indexOf(wsClient);
+                    if (index !== -1) {
+                        websocketClientConnections.splice(index, 1);
+                    }
+                }
+
+                wsClient.onmessage = async function (ev) {
+                    let message = ev.data;
+                    if (typeof message === "string") {
+                        try {
+                            let recv = JSON.parse(message);
+                            let echo = recv.echo ?? "";
+
+                            if (actionMap.has(recv.action)) {
+                                let action = actionMap.get(recv.action);
+                                const result = await action.websocketHandle(recv.params, echo);
+                                wsClient.send(JSON.stringify(result));
+                            }
+                            else {
+                                wsClient.send(JSON.stringify(OB11WebsocketResponse.error("Bad Request", 1400, echo)));
+                            }
+                        } catch (e) {
+                            log(e.stack);
+                            wsClient.send(JSON.stringify(OB11WebsocketResponse.error(e.stack.toString(), 1200)));
+                        }
+                    }
+                }
+            }
+            catch (e) {}
+        }
+    }
+}
+
+function onWebsocketMessage(ws, req) {
+    ws.on("message", async function (message) {
+        try {
+            let recv = JSON.parse(message);
+            let echo = recv.echo ?? "";
+
+            if (actionMap.has(recv.action)) {
+                let action = actionMap.get(recv.action)
+                const result = await action.websocketHandle(recv.params, echo);
+                ws.send(JSON.stringify(result));
+            }
+            else {
+                ws.send(JSON.stringify(OB11WebsocketResponse.error("Bad Request", 1400, echo)));
+            }
+        } catch (e) {
+            log(e.stack);
+            ws.send(JSON.stringify(OB11WebsocketResponse.error(e.stack.toString(), 1200)));
+        }
+    })
 }
 
 
 export function postMsg(msg: OB11Message) {
-    const { reportSelfMessage } = getConfigUtil().getConfig()
-    if (!reportSelfMessage) {
-        if (msg.user_id == selfInfo.uin) {
-            return
+    const config = getConfigUtil().getConfig();
+    if (config.enableHttpPost) {
+        if (!config.reportSelfMessage) {
+            if (msg.user_id == selfInfo.uin) {
+                return
+            }
+        }
+        for (const host of config.httpHosts) {
+            fetch(host, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-self-id": selfInfo.uin
+                },
+                body: JSON.stringify(msg)
+            }).then((res: any) => {
+                log(`新消息事件上报成功: ${host} ` + JSON.stringify(msg));
+            }, (err: any) => {
+                log(`新消息事件上报失败: ${host} ` + err + JSON.stringify(msg));
+            });
         }
     }
-    for (const host of getConfigUtil().getConfig().hosts) {
-        fetch(host, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "x-self-id": selfInfo.uin
-            },
-            body: JSON.stringify(msg)
-        }).then((res: any) => {
-            log(`新消息事件上报成功: ${host} ` + JSON.stringify(msg));
-        }, (err: any) => {
-            log(`新消息事件上报失败: ${host} ` + err + JSON.stringify(msg));
-        });
-    }
+
 }
 
 let routers: Record<string, (payload: any) => Promise<OB11Return<any>>> = {};
@@ -143,7 +212,7 @@ function registerRouter(action: string, handle: (payload: any) => Promise<any>) 
         }
         catch (e) {
             log(e.stack);
-            res.send(OB11Response.error(e.stack.toString()))
+            res.send(OB11Response.error(e.stack.toString(), 200))
         }
     }
 
