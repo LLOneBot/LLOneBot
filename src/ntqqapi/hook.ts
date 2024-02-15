@@ -100,65 +100,90 @@ async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
         }
         else {
             groups.push(group);
+            existGroup = group;
         }
 
         if (needUpdate) {
             const members = await NTQQApi.getGroupMembers(group.groupCode);
 
             if (members) {
-                group.members = members;
+                existGroup.members = members;
             }
         }
     }
 }
 
 async function processGroupEvent(payload) {
-    const newGroupList = payload.groupList;
-    for (const group of newGroupList) {
-        let existGroup = groups.find(g => g.groupCode == group.groupCode);
-        console.log(existGroup.members);
-        if (existGroup) {
-            if (existGroup.memberCount > group.memberCount) {
-                console.log("群人数减少力!");
-                const oldMembers = existGroup.members;
-                const newMembers = await NTQQApi.getGroupMembers(group.groupCode);
-                group.members = newMembers;
-                const newMembersSet = new Set<string>();  // 建立索引降低时间复杂度
-
-                for (const member of newMembers) {
-                    newMembersSet.add(member.uin);
-                }
-
-                console.log(oldMembers);
-                for (const member of oldMembers) {
-                    if (!newMembersSet.has(member.uin)) {
-                        console.log("减少的群员是:" + member.uin);
-                        break;
+    try {
+        const newGroupList = payload.groupList;
+        for (const group of newGroupList) {
+            let existGroup = groups.find(g => g.groupCode == group.groupCode);
+            if (existGroup) {
+                if (existGroup.memberCount > group.memberCount) {
+                    console.log("群人数减少力!");
+                    const oldMembers = existGroup.members;
+                    console.log("旧群人员：");
+                    for (const member of oldMembers) {
+                        console.log(member.nick);
                     }
+
+                    const newMembers = await NTQQApi.getGroupMembers(group.groupCode);
+                    console.log("新群人员：");
+                    for (const member of newMembers) {
+                        console.log(member.nick);
+                    }
+
+                    group.members = newMembers;
+                    const newMembersSet = new Set<string>();  // 建立索引降低时间复杂度
+
+                    for (const member of newMembers) {
+                        newMembersSet.add(member.uin);
+                    }
+
+                    for (const member of oldMembers) {
+                        if (!newMembersSet.has(member.uin)) {
+                            console.log("减少的群员是:" + member.uin);
+                            break;
+                        }
+                    }
+
                 }
+                else if (existGroup.memberCount < group.memberCount) {
+                    console.log("群人数增加力!");
+                    console.log("旧群人员：");
+                    for (const member of existGroup.members) {
+                        console.log(member.nick);
+                    }
 
-            }
-            else if (existGroup.memberCount < group.memberCount) {
-                console.log("群人数增加力!");
+                    const oldMembersSet = new Set<string>();
+                    for (const member of existGroup.members) {
+                        oldMembersSet.add(member.uin);
+                    }
 
-                const oldMembersSet = new Set<string>();
-                for (const member of existGroup.members) {
-                    oldMembersSet.add(member.uin);
-                }
+                    const newMembers = await NTQQApi.getGroupMembers(group.groupCode);
 
-                const newMembers = await NTQQApi.getGroupMembers(group.groupCode);
-                group.members = newMembers;
-                for (const member of newMembers) {
-                    if (!oldMembersSet.has(member.uin)) {
-                        console.log("增加的群员是:" + member.uin);
-                        break;
+                    console.log("新群人员：");
+                    for (const member of newMembers) {
+                        console.log(member.nick);
+                    }
+
+                    group.members = newMembers;
+                    for (const member of newMembers) {
+                        if (!oldMembersSet.has(member.uin)) {
+                            console.log("增加的群员是:" + member.uin);
+                            break;
+                        }
                     }
                 }
             }
         }
-    }
 
-    updateGroups(newGroupList, false).then();
+        updateGroups(newGroupList, false).then();
+    }
+    catch (e) {
+        updateGroups(payload.groupList).then();
+        console.log(e);
+    }
 }
 
 registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmd.GROUPS, (payload) => {
@@ -166,7 +191,9 @@ registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmd.GROUP
         updateGroups(payload.groupList).then();
     }
     else {
-        processGroupEvent(payload).then();
+        if (process.platform == "win32") {
+            processGroupEvent(payload).then();
+        }
     }
 })
 registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmd.GROUPS_UNIX, (payload) => {
@@ -174,7 +201,9 @@ registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmd.GROUP
         updateGroups(payload.groupList).then();
     }
     else {
-        processGroupEvent(payload).then();
+        if (process.platform != "win32") {
+            processGroupEvent(payload).then();
+        }
     }
 })
 registerReceiveHook<{
