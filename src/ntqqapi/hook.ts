@@ -1,10 +1,12 @@
-import { BrowserWindow } from 'electron';
-import { getConfigUtil, log } from "../common/utils";
-import { NTQQApi, NTQQApiClass, sendMessagePool } from "./ntcall";
-import { Group, User } from "./types";
-import { RawMessage } from "./types";
-import { addHistoryMsg, friends, groups, msgHistory } from "../common/data";
-import { v4 as uuidv4 } from 'uuid';
+import {BrowserWindow} from 'electron';
+import {log} from "../common/utils";
+import {NTQQApi, NTQQApiClass, sendMessagePool} from "./ntcall";
+import {Group, GroupMember, RawMessage, User} from "./types";
+import {addHistoryMsg, friends, groups, msgHistory} from "../common/data";
+import {v4 as uuidv4} from 'uuid';
+import {callEvent, EventType} from "../onebot11/event";
+import {OB11Message} from "../onebot11/types";
+import {OB11Constructor} from "../onebot11/constructor";
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 
@@ -41,7 +43,7 @@ let receiveHooks: Array<{
 export function hookNTQQApiReceive(window: BrowserWindow) {
     const originalSend = window.webContents.send;
     const patchSend = (channel: string, ...args: NTQQApiReturnData) => {
-        // log(`received ntqq api message: ${channel}`, JSON.stringify(args))
+        // console.log(`received ntqq api message: ${channel}`, JSON.stringify(args))
         if (args?.[1] instanceof Array) {
             for (let receiveData of args?.[1]) {
                 const ntQQApiMethodName = receiveData.cmdName;
@@ -90,25 +92,91 @@ export function removeReceiveHook(id: string) {
     receiveHooks.splice(index, 1);
 }
 
-async function updateGroups(_groups: Group[]) {
+async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
     for (let group of _groups) {
-        let existGroup = groups.find(g => g.groupCode == group.groupCode)
-        if (!existGroup) {
-            NTQQApi.getGroupMembers(group.groupCode).then(members => {
-                if (members) {
-                    group.members = members
-                }
-            })
-            groups.push(group)
-            log("update group members", group.members)
-        } else {
-            Object.assign(existGroup, group)
+        let existGroup = groups.find(g => g.groupCode == group.groupCode);
+        if (existGroup) {
+            Object.assign(existGroup, group);
+        }
+        else {
+            groups.push(group);
+        }
+
+        if (needUpdate) {
+            const members = await NTQQApi.getGroupMembers(group.groupCode);
+
+            if (members) {
+                group.members = members;
+            }
         }
     }
 }
 
-registerReceiveHook<{ groupList: Group[] }>(ReceiveCmd.GROUPS, (payload) => updateGroups(payload.groupList).then())
-registerReceiveHook<{ groupList: Group[] }>(ReceiveCmd.GROUPS_UNIX, (payload) => updateGroups(payload.groupList).then())
+async function processGroupEvent(payload) {
+    const newGroupList = payload.groupList;
+    for (const group of newGroupList) {
+        let existGroup = groups.find(g => g.groupCode == group.groupCode);
+        console.log(existGroup.members);
+        if (existGroup) {
+            if (existGroup.memberCount > group.memberCount) {
+                console.log("群人数减少力!");
+                const oldMembers = existGroup.members;
+                const newMembers = await NTQQApi.getGroupMembers(group.groupCode);
+                group.members = newMembers;
+                const newMembersSet = new Set<string>();  // 建立索引降低时间复杂度
+
+                for (const member of newMembers) {
+                    newMembersSet.add(member.uin);
+                }
+
+                console.log(oldMembers);
+                for (const member of oldMembers) {
+                    if (!newMembersSet.has(member.uin)) {
+                        console.log("减少的群员是:" + member.uin);
+                        break;
+                    }
+                }
+
+            }
+            else if (existGroup.memberCount < group.memberCount) {
+                console.log("群人数增加力!");
+
+                const oldMembersSet = new Set<string>();
+                for (const member of existGroup.members) {
+                    oldMembersSet.add(member.uin);
+                }
+
+                const newMembers = await NTQQApi.getGroupMembers(group.groupCode);
+                group.members = newMembers;
+                for (const member of newMembers) {
+                    if (!oldMembersSet.has(member.uin)) {
+                        console.log("增加的群员是:" + member.uin);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    updateGroups(newGroupList, false).then();
+}
+
+registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmd.GROUPS, (payload) => {
+    if (payload.updateType != 2) {
+        updateGroups(payload.groupList).then();
+    }
+    else {
+        processGroupEvent(payload).then();
+    }
+})
+registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmd.GROUPS_UNIX, (payload) => {
+    if (payload.updateType != 2) {
+        updateGroups(payload.groupList).then();
+    }
+    else {
+        processGroupEvent(payload).then();
+    }
+})
 registerReceiveHook<{
     data: { categoryId: number, categroyName: string, categroyMbCount: number, buddyList: User[] }[]
 }>(ReceiveCmd.FRIENDS, payload => {
@@ -125,10 +193,6 @@ registerReceiveHook<{
     }
 })
 
-// registerReceiveHook<any>(ReceiveCmd.USER_INFO, (payload)=>{
-//     log("user info", payload);
-// })
-
 registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.UPDATE_MSG, (payload) => {
     for (const message of payload.msgList) {
         addHistoryMsg(message)
@@ -138,6 +202,12 @@ registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.UPDATE_MSG, (payl
 registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
     for (const message of payload.msgList) {
         // log("收到新消息，push到历史记录", message)
+        OB11Constructor.message(message).then(
+            function (message) {
+                callEvent<OB11Message>(EventType.MESSAGE, message);
+            }
+        );
+
         addHistoryMsg(message)
     }
     const msgIds = Object.keys(msgHistory);
