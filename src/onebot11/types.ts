@@ -1,19 +1,19 @@
 import { AtType } from "../ntqqapi/types";
 import { RawMessage } from "../ntqqapi/types";
 
-export interface OB11User{
+export interface OB11User {
     user_id: string;
     nickname: string;
     remark?: string
 }
 
-export enum OB11UserSex{
+export enum OB11UserSex {
     male = "male",
     female = "female",
     unknown = "unknown"
 }
 
-export enum OB11GroupMemberRole{
+export enum OB11GroupMemberRole {
     owner = "owner",
     admin = "admin",
     member = "member",
@@ -33,7 +33,7 @@ export interface OB11GroupMember {
     title?: string
 }
 
-export interface OB11Group{
+export interface OB11Group {
     group_id: string
     group_name: string
     member_count?: number

@@ -11,6 +11,7 @@ import { selfInfo } from "../common/data";
 import { OB11Message, OB11Return, OB11MessageData } from './types';
 import {actionHandlers, actionMap} from "./actions";
 import {OB11Response, OB11WebsocketResponse} from "./actions/utils";
+import {registerEventSender, unregisterEventSender} from "./event";
 
 
 // @SiberianHusky 2021-08-15
@@ -100,8 +101,8 @@ export function startWebsocketServer(port: number) {
 
 export function initWebsocket() {
     if (getConfigUtil().getConfig().enableWs) {
-        expressWsApp.ws("/api", onWebsocketMessage);
-        expressWsApp.ws("/", onWebsocketMessage);
+        expressWsApp.ws("/api", initWebsocketServer);
+        expressWsApp.ws("/", initWebsocketServer);
     }
 
     initReverseWebsocket();
@@ -114,8 +115,10 @@ function initReverseWebsocket() {
             try {
                 const wsClient = new WebSocket(url);
                 websocketClientConnections.push(wsClient);
+                registerEventSender(wsClient);
 
                 wsClient.onclose = function (ev) {
+                    unregisterEventSender(wsClient);
                     let index = websocketClientConnections.indexOf(wsClient);
                     if (index !== -1) {
                         websocketClientConnections.splice(index, 1);
@@ -149,7 +152,9 @@ function initReverseWebsocket() {
     }
 }
 
-function onWebsocketMessage(ws, req) {
+function initWebsocketServer(ws, req) {
+    registerEventSender(ws);
+
     ws.on("message", async function (message) {
         try {
             let recv = JSON.parse(message);
@@ -167,7 +172,11 @@ function onWebsocketMessage(ws, req) {
             log(e.stack);
             ws.send(JSON.stringify(OB11WebsocketResponse.error(e.stack.toString(), 1200)));
         }
-    })
+    });
+
+    ws.on("close", function (ev) {
+        unregisterEventSender(ws);
+    });
 }
 
 
