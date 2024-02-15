@@ -68,7 +68,7 @@ export function startWSServer(port: number) {
             log("ws server close failed!", err)
         })
     }
-    wsServer = new websocket.Server({port})
+    wsServer = new websocket.Server({host: "0.0.0.0", port})
     wsServer.on("connection", (ws, req) => {
         const url = req.url;
         ws.send('Welcome to the LLOneBot WebSocket server! url:' + url);
