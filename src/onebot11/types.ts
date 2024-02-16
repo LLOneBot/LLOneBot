@@ -2,7 +2,7 @@ import { AtType } from "../ntqqapi/types";
 import { RawMessage } from "../ntqqapi/types";
 
 export interface OB11User{
-    user_id: string;
+    user_id: number;
     nickname: string;
     remark?: string
 }
@@ -20,8 +20,8 @@ export enum OB11GroupMemberRole{
 }
 
 export interface OB11GroupMember {
-    group_id: string
-    user_id: string
+    group_id: number
+    user_id: number
     nickname: string
     card?: string
     sex?: OB11UserSex
@@ -34,14 +34,14 @@ export interface OB11GroupMember {
 }
 
 export interface OB11Group{
-    group_id: string
+    group_id: number
     group_name: string
     member_count?: number
     max_member_count?: number
 }
 
 interface OB11Sender {
-    user_id: string,
+    user_id: number,
     nickname: string,
     sex?: OB11UserSex,
     age?: number,
@@ -56,12 +56,12 @@ export enum OB11MessageType {
 }
 
 export interface OB11Message {
-    self_id?: string,
+    self_id?: number,
     time: number,
     message_id: number,
     real_id: string,
-    user_id: string,
-    group_id?: string,
+    user_id: number,
+    group_id?: number,
     message_type: "private" | "group",
     sub_type?: "friend" | "group" | "normal",
     sender: OB11Sender,
