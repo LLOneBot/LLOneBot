@@ -6,12 +6,13 @@ import { Request } from 'express';
 import { Response } from 'express';
 import { getConfigUtil, log } from "../common/utils";
 import { heartInterval, selfInfo } from "../common/data";
-import { OB11Message, OB11Return, OB11MessageData, OB11LifeCycleEvent, OB11MetaEvent } from './types';
+import { OB11Message, OB11Return, OB11MessageData } from './types';
 import { actionHandlers } from "./actions";
 import { OB11Response } from "./actions/utils";
 import { ActionName } from "./actions/types";
 import BaseAction from "./actions/BaseAction";
 import { OB11Constructor } from "./constructor";
+import { OB11LifeCycleEvent, OB11MetaEvent } from "./events/types";
 
 let wsServer: websocket.Server = null;
 let accessToken = ""
@@ -104,7 +105,7 @@ export function startWSServer(port: number) {
     wsServer = new websocket.Server({port})
     wsServer.on("connection", (ws, req) => {
         const url = req.url.split("?").shift();
-        log("received ws connect", url)
+        log("receive ws connect", url)
         let token: string = ""
         const authHeader = req.headers['authorization'];
         if (authHeader) {
@@ -129,11 +130,6 @@ export function startWSServer(port: number) {
                 return ws.close()
             }
         }
-        // const queryParams = querystring.parse(parsedUrl.query);
-        // let token = req
-        // ws.send('Welcome to the LLOneBot WebSocket server! url:' + url);
-
-
         if (url == "/api" || url == "/api/" || url == "/") {
             ws.on("message", async (msg) => {
 
@@ -167,14 +163,14 @@ export function startWSServer(port: number) {
             log("event上报ws客户端已连接")
             wsEventClients.push(ws)
             try {
-                wsReply(ws, OB11Constructor.lifeCycleEvent())
+                wsReply(ws, OB11Constructor.lifeCycle())
             }catch (e){
                 log("发送生命周期失败", e)
             }
             // 心跳
             let wsHeart = setInterval(()=>{
                 if (wsEventClients.find(c => c == ws)){
-                    wsReply(ws, OB11Constructor.heartEvent())
+                    wsReply(ws, OB11Constructor.heart())
                 }
             }, heartInterval)
             ws.on("close", () => {

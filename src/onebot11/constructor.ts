@@ -4,15 +4,16 @@ import {
     OB11Message,
     OB11Group,
     OB11GroupMember,
-    OB11User, OB11LifeCycleEvent, OB11HeartEvent
+    OB11User
 } from "./types";
 import { AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User } from '../ntqqapi/types';
 import { getFriend, getGroupMember, getHistoryMsgBySeq, heartInterval, msgHistory, selfInfo } from '../common/data';
 import { file2base64, getConfigUtil, log } from "../common/utils";
 import { NTQQApi } from "../ntqqapi/ntcall";
+import {OB11EventConstructor} from "./events/constructor";
 
 
-export class OB11Constructor {
+export class OB11Constructor extends OB11EventConstructor{
     static async message(msg: RawMessage): Promise<OB11Message> {
 
         const {enableBase64} = getConfigUtil().getConfig()
@@ -185,29 +186,5 @@ export class OB11Constructor {
 
     static groups(groups: Group[]): OB11Group[] {
         return groups.map(OB11Constructor.group)
-    }
-
-    static lifeCycleEvent(): OB11LifeCycleEvent {
-        return {
-            time: Math.floor(Date.now() / 1000),
-            self_id: parseInt(selfInfo.uin),
-            post_type: "meta_event",
-            meta_event_type: "lifecycle",
-            sub_type: "connect"
-        }
-    }
-
-    static heartEvent(): OB11HeartEvent {
-        return {
-            time: Math.floor(Date.now() / 1000),
-            self_id: parseInt(selfInfo.uin),
-            post_type: "meta_event",
-            meta_event_type: "heartbeat",
-            status: {
-                online: true,
-                good: true
-            },
-            interval: heartInterval
-        }
     }
 }

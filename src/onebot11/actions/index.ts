@@ -12,6 +12,7 @@ import DeleteMsg from "./DeleteMsg";
 import GetVersionInfo from "./GetVersionInfo";
 import CanSendRecord from "./CanSendRecord";
 import CanSendImage from "./CanSendImage";
+import GetStatus from "./GetStatus";
 
 export const actionHandlers = [
     new GetMsg(),
@@ -22,5 +23,6 @@ export const actionHandlers = [
     new DeleteMsg(),
     new GetVersionInfo(),
     new CanSendRecord(),
-    new CanSendImage()
+    new CanSendImage(),
+    new GetStatus()
 ]
