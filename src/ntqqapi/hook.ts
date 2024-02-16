@@ -41,7 +41,7 @@ let receiveHooks: Array<{
 export function hookNTQQApiReceive(window: BrowserWindow) {
     const originalSend = window.webContents.send;
     const patchSend = (channel: string, ...args: NTQQApiReturnData) => {
-        // log(`received ntqq api message: ${channel}`, JSON.stringify(args))
+        log(`received ntqq api message: ${channel}`, JSON.stringify(args))
         if (args?.[1] instanceof Array) {
             for (let receiveData of args?.[1]) {
                 const ntQQApiMethodName = receiveData.cmdName;

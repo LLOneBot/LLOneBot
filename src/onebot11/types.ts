@@ -1,5 +1,4 @@
-import { AtType } from "../ntqqapi/types";
-import { RawMessage } from "../ntqqapi/types";
+import { AtType, RawMessage } from "../ntqqapi/types";
 
 export interface OB11User{
     user_id: number;
@@ -149,25 +148,8 @@ export interface OB11Version {
 }
 
 
-export interface OB11MetaEvent {
-    time: number
-    self_id: number
-    post_type: "meta_event"
-    meta_event_type: "lifecycle" | "heartbeat"
-}
-
-export interface OB11LifeCycleEvent extends OB11MetaEvent{
-    meta_event_type: "lifecycle"
-    sub_type: "enable" | "disable" | "connect"
-}
-
 export interface OB11Status {
     online: boolean | null,
     good: boolean
 }
 
-export interface OB11HeartEvent extends OB11MetaEvent{
-    meta_event_type: "heartbeat"
-    status: OB11Status
-    interval: number
-}
