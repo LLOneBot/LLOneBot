@@ -71,7 +71,7 @@ export function startWSServer(port: number) {
     wsServer = new websocket.Server({port})
     wsServer.on("connection", (ws, req) => {
         const url = req.url;
-        ws.send('Welcome to the LLOneBot WebSocket server! url:' + url);
+        // ws.send('Welcome to the LLOneBot WebSocket server! url:' + url);
 
         if (url == "/api" || url == "/api/" || url == "/") {
             ws.on("message", async (msg) => {
