@@ -110,7 +110,7 @@ export function startWSServer(port: number) {
 export function postMsg(msg: OB11Message) {
     const {reportSelfMessage} = getConfigUtil().getConfig()
     if (!reportSelfMessage) {
-        if (msg.user_id == selfInfo.uin) {
+        if (msg.user_id.toString() == selfInfo.uin) {
             return
         }
     }

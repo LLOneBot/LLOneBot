@@ -18,14 +18,14 @@ export class OB11Constructor {
         const {enableBase64} = getConfigUtil().getConfig()
         const message_type = msg.chatType == ChatType.group ? "group" : "private";
         const resMsg: OB11Message = {
-            self_id: selfInfo.uin,
-            user_id: msg.senderUin,
+            self_id: parseInt(selfInfo.uin),
+            user_id: parseInt(msg.senderUin),
             time: parseInt(msg.msgTime) || 0,
             message_id: msg.msgShortId,
             real_id: msg.msgId,
             message_type: msg.chatType == ChatType.group ? "group" : "private",
             sender: {
-                user_id: msg.senderUin,
+                user_id: parseInt(msg.senderUin),
                 nickname: msg.sendNickName,
                 card: msg.sendMemberName || "",
             },
@@ -37,7 +37,7 @@ export class OB11Constructor {
         }
         if (msg.chatType == ChatType.group) {
             resMsg.sub_type = "normal"
-            resMsg.group_id = msg.peerUin
+            resMsg.group_id = parseInt(msg.peerUin)
             const member = await getGroupMember(msg.peerUin, msg.senderUin);
             if (member) {
                 resMsg.sender.role = OB11Constructor.groupMemberRole(member.role);
@@ -135,7 +135,7 @@ export class OB11Constructor {
 
     static friend(friend: User): OB11User {
         return {
-            user_id: friend.uin,
+            user_id: parseInt(friend.uin),
             nickname: friend.nick,
             remark: friend.remark
         }
@@ -144,7 +144,7 @@ export class OB11Constructor {
 
     static selfInfo(selfInfo: SelfInfo): OB11User {
         return {
-            user_id: selfInfo.uin,
+            user_id: parseInt(selfInfo.uin),
             nickname: selfInfo.nick
         }
     }
@@ -163,8 +163,8 @@ export class OB11Constructor {
 
     static groupMember(group_id: string, member: GroupMember): OB11GroupMember {
         return {
-            group_id,
-            user_id: member.uin,
+            group_id: parseInt(group_id),
+            user_id: parseInt(member.uin),
             nickname: member.nick,
             card: member.cardName
         }
@@ -177,7 +177,7 @@ export class OB11Constructor {
 
     static group(group: Group): OB11Group {
         return {
-            group_id: group.groupCode,
+            group_id: parseInt(group.groupCode),
             group_name: group.groupName
         }
     }

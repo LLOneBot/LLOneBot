@@ -63,7 +63,7 @@ function onLoad() {
                 if (debug) {
                     msg.raw = message;
                 }
-                if (msg.user_id == selfInfo.uin && !reportSelfMessage) {
+                if (msg.user_id.toString() == selfInfo.uin && !reportSelfMessage) {
                     return
                 }
                 postMsg(msg);
