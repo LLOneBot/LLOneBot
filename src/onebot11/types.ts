@@ -1,19 +1,18 @@
-import { AtType } from "../ntqqapi/types";
-import { RawMessage } from "../ntqqapi/types";
+import { AtType, RawMessage } from "../ntqqapi/types";
 
-export interface OB11User{
+export interface OB11User {
     user_id: number;
     nickname: string;
     remark?: string
 }
 
-export enum OB11UserSex{
+export enum OB11UserSex {
     male = "male",
     female = "female",
     unknown = "unknown"
 }
 
-export enum OB11GroupMemberRole{
+export enum OB11GroupMemberRole {
     owner = "owner",
     admin = "admin",
     member = "member",
@@ -33,7 +32,7 @@ export interface OB11GroupMember {
     title?: string
 }
 
-export interface OB11Group{
+export interface OB11Group {
     group_id: number
     group_name: string
     member_count?: number
@@ -93,7 +92,8 @@ export interface OB11Return<DataType> {
     echo?: string
 }
 
-export interface OB11SendMsgReturn extends OB11Return<{message_id: string}>{}
+export interface OB11SendMsgReturn extends OB11Return<{ message_id: string }> {
+}
 
 export enum OB11MessageDataType {
     text = "text",
@@ -101,7 +101,8 @@ export enum OB11MessageDataType {
     voice = "record",
     at = "at",
     reply = "reply",
-    json = "json"
+    json = "json",
+    face = "face"
 }
 
 export type OB11MessageData = {
@@ -133,6 +134,11 @@ export type OB11MessageData = {
     data: {
         id: string,
     }
+} | {
+    type: OB11MessageDataType.face,
+    data: {
+        id: string
+    }
 }
 
 export interface OB11PostSendMsg {
@@ -149,25 +155,8 @@ export interface OB11Version {
 }
 
 
-export interface OB11MetaEvent {
-    time: number
-    self_id: number
-    post_type: "meta_event"
-    meta_event_type: "lifecycle" | "heartbeat"
-}
-
-export interface OB11LifeCycleEvent extends OB11MetaEvent{
-    meta_event_type: "lifecycle"
-    sub_type: "enable" | "disable" | "connect"
-}
-
 export interface OB11Status {
     online: boolean | null,
     good: boolean
 }
 
-export interface OB11HeartEvent extends OB11MetaEvent{
-    meta_event_type: "heartbeat"
-    status: OB11Status
-    interval: number
-}

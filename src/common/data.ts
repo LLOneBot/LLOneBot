@@ -88,5 +88,5 @@ export function getStrangerByUin(uin: string) {
     }
 }
 
-export const version = "v3.2.2"
+export const version = "v3.3.0"
 export const heartInterval = 15000 // 毫秒

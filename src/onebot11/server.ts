@@ -6,12 +6,13 @@ import { Request } from 'express';
 import { Response } from 'express';
 import { getConfigUtil, log } from "../common/utils";
 import { heartInterval, selfInfo } from "../common/data";
-import { OB11Message, OB11Return, OB11MessageData, OB11LifeCycleEvent, OB11MetaEvent } from './types';
+import { OB11Message, OB11Return, OB11MessageData } from './types';
 import { actionHandlers } from "./actions";
 import { OB11Response } from "./actions/utils";
 import { ActionName } from "./actions/types";
 import BaseAction from "./actions/BaseAction";
 import { OB11Constructor } from "./constructor";
+import { OB11EventBase, OB11LifeCycleEvent, OB11MetaEvent, OB11NoticeEvent } from "./events/types";
 
 let wsServer: websocket.Server = null;
 let accessToken = ""
@@ -59,8 +60,6 @@ const expressAuthorize = (req: Request, res: Response, next: () => void) => {
             return res.status(403).send(JSON.stringify({message: 'token verify failed!'}));
         }
     }
-
-
     next();
 
 };
@@ -86,7 +85,7 @@ let wsEventClients: websocket.WebSocket[] = [];
 type RouterHandler = (payload: any) => Promise<OB11Return<any>>
 let routers: Record<string, RouterHandler> = {};
 
-function wsReply(wsClient: websocket.WebSocket, data: OB11Return<any> | OB11Message | OB11MetaEvent) {
+function wsReply(wsClient: websocket.WebSocket, data: OB11Return<any> | PostMsgType) {
     try {
         wsClient.send(JSON.stringify(data))
         log("ws 消息上报", data)
@@ -104,7 +103,7 @@ export function startWSServer(port: number) {
     wsServer = new websocket.Server({port})
     wsServer.on("connection", (ws, req) => {
         const url = req.url.split("?").shift();
-        log("received ws connect", url)
+        log("receive ws connect", url)
         let token: string = ""
         const authHeader = req.headers['authorization'];
         if (authHeader) {
@@ -129,11 +128,6 @@ export function startWSServer(port: number) {
                 return ws.close()
             }
         }
-        // const queryParams = querystring.parse(parsedUrl.query);
-        // let token = req
-        // ws.send('Welcome to the LLOneBot WebSocket server! url:' + url);
-
-
         if (url == "/api" || url == "/api/" || url == "/") {
             ws.on("message", async (msg) => {
 
@@ -186,11 +180,13 @@ export function startWSServer(port: number) {
     })
 }
 
+type PostMsgType = OB11Message | OB11MetaEvent | OB11NoticeEvent
 
-export function postMsg(msg: OB11Message) {
+export function postMsg(msg: PostMsgType) {
     const {reportSelfMessage} = getConfigUtil().getConfig()
+    // 判断msg是否是event
     if (!reportSelfMessage) {
-        if (msg.user_id.toString() == selfInfo.uin) {
+        if ((msg as OB11Message).user_id.toString() == selfInfo.uin) {
             return
         }
     }
@@ -235,10 +231,10 @@ function registerRouter(action: string, handle: (payload: any) => Promise<any>) 
     }
 
     expressAPP.post(url, expressAuthorize, (req: Request, res: Response) => {
-        _handle(res, req.body).then()
+        _handle(res, req.body || {}).then()
     });
     expressAPP.get(url, expressAuthorize, (req: Request, res: Response) => {
-        _handle(res, req.query as any).then()
+        _handle(res, req.query as any || {}).then()
     });
     routers[action] = handle
 }
