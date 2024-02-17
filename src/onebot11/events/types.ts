@@ -16,12 +16,12 @@ export interface OB11MetaEvent extends OB11EventBase{
     meta_event_type: "lifecycle" | "heartbeat"
 }
 
-export interface OB11NoticeBase extends OB11EventBase{
+export interface OB11NoticeEvent extends OB11EventBase{
     post_type: OB11EventPostType.NOTICE
     notice_type: "group_admin" | "group_decrease" | "group_increase" | "group_ban" | "friend_add" | "group_recall" | "friend_recall"
 }
 
-interface OB11GroupNoticeBase extends OB11NoticeBase{
+interface OB11GroupNoticeBase extends OB11NoticeEvent{
     group_id: number
     user_id: number
 }
@@ -49,7 +49,7 @@ export interface OB11GroupRecallNoticeEvent extends OB11GroupNoticeBase{
     message_id: number
 }
 
-export interface OB11FriendRecallNoticeEvent extends OB11NoticeBase{
+export interface OB11FriendRecallNoticeEvent extends OB11NoticeEvent{
     notice_type: "friend_recall"
     user_id: number
     message_id: number
