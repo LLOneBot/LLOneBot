@@ -34,7 +34,7 @@ interface NTQQApiReturnData<PayloadType = unknown> extends Array<any> {
 
 let receiveHooks: Array<{
     method: ReceiveCmd,
-    hookFunc: (payload: any) => void,
+    hookFunc: ((payload: any) => void | Promise<void>)
     id: string
 }> = []
 
@@ -50,7 +50,10 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
                     if (hook.method === ntQQApiMethodName) {
                         new Promise((resolve, reject) => {
                             try {
-                                hook.hookFunc(receiveData.payload);
+                                let _ = hook.hookFunc(receiveData.payload)
+                                if (hook.hookFunc.constructor.name === "AsyncFunction"){
+                                    (_ as Promise<void>).then()
+                                }
                             } catch (e) {
                                 log("hook error", e, receiveData.payload)
                             }
@@ -129,11 +132,7 @@ registerReceiveHook<{
 //     log("user info", payload);
 // })
 
-registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.UPDATE_MSG, (payload) => {
-    for (const message of payload.msgList) {
-        addHistoryMsg(message)
-    }
-})
+
 
 registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
     for (const message of payload.msgList) {

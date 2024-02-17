@@ -1,22 +1,16 @@
 // 运行在 Electron 主进程 下的插件入口
 
-import * as path from "path";
 import { BrowserWindow, ipcMain } from 'electron';
-import * as util from 'util';
 
 import { Config } from "../common/types";
-import {
-    CHANNEL_GET_CONFIG,
-    CHANNEL_LOG,
-    CHANNEL_SET_CONFIG,
-} from "../common/channels";
+import { CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG, } from "../common/channels";
 import { postMsg, setToken, startHTTPServer, startWSServer } from "../onebot11/server";
 import { CONFIG_DIR, getConfigUtil, log } from "../common/utils";
-import { addHistoryMsg, msgHistory, selfInfo } from "../common/data";
+import { addHistoryMsg, getGroupMember, msgHistory, selfInfo, uidMaps } from "../common/data";
 import { hookNTQQApiReceive, ReceiveCmd, registerReceiveHook } from "../ntqqapi/hook";
 import { OB11Constructor } from "../onebot11/constructor";
 import { NTQQApi } from "../ntqqapi/ntcall";
-import { Group, RawMessage, SelfInfo } from "../ntqqapi/types";
+import { ChatType, RawMessage } from "../ntqqapi/types";
 
 const fs = require('fs');
 
@@ -39,13 +33,13 @@ function onLoad() {
     ipcMain.on(CHANNEL_SET_CONFIG, (event: any, arg: Config) => {
         let oldConfig = getConfigUtil().getConfig();
         getConfigUtil().setConfig(arg)
-        if (arg.port != oldConfig.port){
+        if (arg.port != oldConfig.port) {
             startHTTPServer(arg.port)
         }
-        if (arg.wsPort != oldConfig.wsPort){
+        if (arg.wsPort != oldConfig.wsPort) {
             startWSServer(arg.wsPort)
         }
-        if (arg.token != oldConfig.token){
+        if (arg.token != oldConfig.token) {
             setToken(arg.token);
         }
     })
@@ -58,6 +52,7 @@ function onLoad() {
     function postRawMsg(msgList: RawMessage[]) {
         const {debug, reportSelfMessage} = getConfigUtil().getConfig();
         for (let message of msgList) {
+            log("收到新消息", message)
             message.msgShortId = msgHistory[message.msgId]?.msgShortId
             if (!message.msgShortId) {
                 addHistoryMsg(message)
@@ -76,7 +71,7 @@ function onLoad() {
     }
 
 
-    function start() {
+    async function start() {
         registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
             try {
                 // log("received msg length", payload.msgList.length);
@@ -85,7 +80,38 @@ function onLoad() {
                 log("report message error: ", e.toString())
             }
         })
-
+        registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.UPDATE_MSG, async (payload) => {
+            for (const message of payload.msgList) {
+                // log("message update", message, message.sendStatus)
+                if (message.sendStatus === 2) {
+                    // 撤回消息上报
+                    const oriMessage = msgHistory[message.msgId]
+                    if (!oriMessage) {
+                        continue
+                    }
+                    if (message.chatType == ChatType.friend) {
+                        const friendRecallEvent = OB11Constructor.friendRecallEvent(message.senderUin, oriMessage.msgShortId)
+                        postMsg(friendRecallEvent)
+                    } else if (message.chatType == ChatType.group) {
+                        let operatorId = message.senderUin
+                        for (const element of message.elements) {
+                            const operatorUid = element.grayTipElement?.revokeElement.operatorUid
+                            const operator = await getGroupMember(message.peerUin, null, operatorUid)
+                            operatorId = operator.uin
+                        }
+                        const groupRecallEvent = OB11Constructor.groupRecallEvent(
+                            message.peerUin,
+                            message.senderUin,
+                            operatorId,
+                            oriMessage.msgShortId
+                        )
+                        postMsg(groupRecallEvent)
+                    }
+                    continue
+                }
+                addHistoryMsg(message)
+            }
+        })
         registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, (payload) => {
             const {reportSelfMessage} = getConfigUtil().getConfig()
             if (!reportSelfMessage) {
@@ -128,9 +154,8 @@ function onLoad() {
                 log("get self nickname failed", e.toString())
                 return setTimeout(init, 1000)
             }
-            start();
-        }
-        else{
+            start().then();
+        } else {
             setTimeout(init, 1000)
         }
     }
