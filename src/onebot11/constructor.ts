@@ -113,6 +113,9 @@ export class OB11Constructor extends OB11EventConstructor{
             } else if (element.arkElement) {
                 message_data["type"] = OB11MessageDataType.json;
                 message_data["data"]["data"] = element.arkElement.bytesData;
+            } else if (element.faceElement){
+                message_data["type"] = OB11MessageDataType.face;
+                message_data["data"]["id"] = element.faceElement.faceIndex.toString();
             }
             if (message_data.data.http_file) {
                 message_data.data.file = message_data.data.http_file

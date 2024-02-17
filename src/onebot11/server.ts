@@ -12,7 +12,7 @@ import { OB11Response } from "./actions/utils";
 import { ActionName } from "./actions/types";
 import BaseAction from "./actions/BaseAction";
 import { OB11Constructor } from "./constructor";
-import { OB11LifeCycleEvent, OB11MetaEvent } from "./events/types";
+import { OB11EventBase, OB11LifeCycleEvent, OB11MetaEvent, OB11NoticeEvent } from "./events/types";
 
 let wsServer: websocket.Server = null;
 let accessToken = ""
@@ -60,8 +60,6 @@ const expressAuthorize = (req: Request, res: Response, next: () => void) => {
             return res.status(403).send(JSON.stringify({message: 'token verify failed!'}));
         }
     }
-
-
     next();
 
 };
@@ -87,7 +85,7 @@ let wsEventClients: websocket.WebSocket[] = [];
 type RouterHandler = (payload: any) => Promise<OB11Return<any>>
 let routers: Record<string, RouterHandler> = {};
 
-function wsReply(wsClient: websocket.WebSocket, data: OB11Return<any> | OB11Message | OB11MetaEvent) {
+function wsReply(wsClient: websocket.WebSocket, data: OB11Return<any> | PostMsgType) {
     try {
         wsClient.send(JSON.stringify(data))
         log("ws 消息上报", data)
@@ -163,14 +161,14 @@ export function startWSServer(port: number) {
             log("event上报ws客户端已连接")
             wsEventClients.push(ws)
             try {
-                wsReply(ws, OB11Constructor.lifeCycle())
+                wsReply(ws, OB11Constructor.lifeCycleEvent())
             }catch (e){
                 log("发送生命周期失败", e)
             }
             // 心跳
             let wsHeart = setInterval(()=>{
                 if (wsEventClients.find(c => c == ws)){
-                    wsReply(ws, OB11Constructor.heart())
+                    wsReply(ws, OB11Constructor.heartEvent())
                 }
             }, heartInterval)
             ws.on("close", () => {
@@ -182,11 +180,13 @@ export function startWSServer(port: number) {
     })
 }
 
+type PostMsgType = OB11Message | OB11MetaEvent | OB11NoticeEvent
 
-export function postMsg(msg: OB11Message) {
+export function postMsg(msg: PostMsgType) {
     const {reportSelfMessage} = getConfigUtil().getConfig()
+    // 判断msg是否是event
     if (!reportSelfMessage) {
-        if (msg.user_id.toString() == selfInfo.uin) {
+        if ((msg as OB11Message).user_id.toString() == selfInfo.uin) {
             return
         }
     }
@@ -231,10 +231,10 @@ function registerRouter(action: string, handle: (payload: any) => Promise<any>) 
     }
 
     expressAPP.post(url, expressAuthorize, (req: Request, res: Response) => {
-        _handle(res, req.body).then()
+        _handle(res, req.body || {}).then()
     });
     expressAPP.get(url, expressAuthorize, (req: Request, res: Response) => {
-        _handle(res, req.query as any).then()
+        _handle(res, req.query as any || {}).then()
     });
     routers[action] = handle
 }
