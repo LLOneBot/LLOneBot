@@ -2,7 +2,6 @@ import * as path from "path";
 import {selfInfo} from "./data";
 import {ConfigUtil} from "./config";
 import util from "util";
-import { sendLog } from '../main/ipcsend';
 
 const fs = require('fs');
 

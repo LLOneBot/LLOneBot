@@ -1,16 +1,18 @@
 // 运行在 Electron 主进程 下的插件入口
 
-import { BrowserWindow, ipcMain } from 'electron';
+import {BrowserWindow, ipcMain} from 'electron';
 
-import { Config } from "../common/types";
-import {initWebsocket, postMsg, startExpress, startWebsocketServer} from "../onebot11/server";
-import { CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG, } from "../common/channels";
-import { CONFIG_DIR, getConfigUtil, log } from "../common/utils";
-import { addHistoryMsg, getGroupMember, msgHistory, selfInfo, uidMaps } from "../common/data";
-import { hookNTQQApiReceive, ReceiveCmd, registerReceiveHook } from "../ntqqapi/hook";
-import { OB11Constructor } from "../onebot11/constructor";
-import { NTQQApi } from "../ntqqapi/ntcall";
-import { ChatType, RawMessage } from "../ntqqapi/types";
+import {Config} from "../common/types";
+import {postMsg, setToken, startHTTPServer, initWebsocket} from "../onebot11/server";
+import {CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG,} from "../common/channels";
+import {CONFIG_DIR, getConfigUtil, log} from "../common/utils";
+import {addHistoryMsg, getGroupMember, msgHistory, selfInfo} from "../common/data";
+import {hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} from "../ntqqapi/hook";
+import {OB11Constructor} from "../onebot11/constructor";
+import {NTQQApi} from "../ntqqapi/ntcall";
+import {ChatType, RawMessage} from "../ntqqapi/types";
+import {OB11FriendRecallNoticeEvent} from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
+import {OB11GroupRecallNoticeEvent} from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
 
 const fs = require('fs');
 
@@ -32,11 +34,11 @@ function onLoad() {
     ipcMain.on(CHANNEL_SET_CONFIG, (event: any, arg: Config) => {
         let oldConfig = getConfigUtil().getConfig();
         getConfigUtil().setConfig(arg)
-        if (arg.port != oldConfig.port) {
-            startHTTPServer(arg.port)
+        if (arg.httpPort != oldConfig.httpPort) {
+            startHTTPServer(arg.httpPort)
         }
         if (arg.wsPort != oldConfig.wsPort) {
-            startWebsocketServer(arg.wsPort)
+            initWebsocket(arg.wsPort)
         }
         if (arg.token != oldConfig.token) {
             setToken(arg.token);
@@ -87,8 +89,8 @@ function onLoad() {
                         continue
                     }
                     if (message.chatType == ChatType.friend) {
-                        const friendRecallEvent = OB11Constructor.friendRecallEvent(message.senderUin, oriMessage.msgShortId)
-                        postMsg(friendRecallEvent)
+                        const friendRecallEvent = new OB11FriendRecallNoticeEvent(parseInt(message.senderUin), oriMessage.msgShortId);
+                        postMsg(friendRecallEvent);
                     } else if (message.chatType == ChatType.group) {
                         let operatorId = message.senderUin
                         for (const element of message.elements) {
@@ -96,13 +98,14 @@ function onLoad() {
                             const operator = await getGroupMember(message.peerUin, null, operatorUid)
                             operatorId = operator.uin
                         }
-                        const groupRecallEvent = OB11Constructor.groupRecallEvent(
-                            message.peerUin,
-                            message.senderUin,
-                            operatorId,
+                        const groupRecallEvent = new OB11GroupRecallNoticeEvent(
+                            parseInt(message.peerUin),
+                            parseInt(message.senderUin),
+                            parseInt(operatorId),
                             oriMessage.msgShortId
                         )
-                        postMsg(groupRecallEvent)
+
+                        postMsg(groupRecallEvent);
                     }
                     continue
                 }
@@ -125,8 +128,7 @@ function onLoad() {
       
         const config = getConfigUtil().getConfig()
         startHTTPServer(config.httpPort)
-        startWebsocketServer(config.wsPort);
-        initWebsocket();
+        initWebsocket(config.wsPort);
         setToken(config.token)
         log("LLOneBot start")
     }

@@ -21,7 +21,7 @@ export const actionHandlers = [
     new GetFriendList(),
     new GetGroupList(), new GetGroupInfo(), new GetGroupMemberList(), new GetGroupMemberInfo(),
     new SendGroupMsg(), new SendPrivateMsg(), new SendMsg(),
-    new DeleteMsg().
+    new DeleteMsg(),
     new GetVersionInfo(),
     new CanSendRecord(),
     new CanSendImage(),
