@@ -211,13 +211,15 @@ export interface RawMessage {
     msgShortId?: number;  // 自己维护的消息id
     msgTime: string;
     msgSeq: string;
-    senderUin: string; // 发送者QQ号
+    senderUid: string;
+    senderUin?: string; // 发送者QQ号
     peerUid: string; // 群号 或者 QQ uid
     peerUin: string; // 群号 或者 发送者QQ号
     sendNickName: string;
     sendMemberName?: string; // 发送者群名片
     chatType: ChatType;
-    sendStatus?: number;  // 消息状态，2是已撤回
+    sendStatus?: number;  // 消息状态，别人发的2是已撤回，自己发的2是已发送
+    recallTime: string; // 撤回时间, "0"是没有撤回
     elements: {
         elementId: string,
         replyElement: {

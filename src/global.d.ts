@@ -1,15 +1,10 @@
-import { Config } from "./common/types";
+import {LLOneBot} from "./preload";
 
 
-declare var llonebot: {
-    log(data: any): void,
-    setConfig(config: Config):void;
-    getConfig():Promise<Config>;
-};
 
 declare global {
     interface Window {
-        llonebot: typeof llonebot;
+        llonebot: LLOneBot;
         LiteLoader: any;
     }
 }

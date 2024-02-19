@@ -71,19 +71,6 @@ export interface OB11Message {
     raw?: RawMessage
 }
 
-export type OB11ApiName =
-    "send_msg"
-    | "send_private_msg"
-    | "send_group_msg"
-    | "get_group_list"
-    | "get_group_info"
-    | "get_friend_list"
-    | "delete_msg"
-    | "get_login_info"
-    | "get_group_member_list"
-    | "get_group_member_info"
-    | "get_msg"
-
 export interface OB11Return<DataType> {
     status: number
     retcode: number
@@ -102,44 +89,68 @@ export enum OB11MessageDataType {
     at = "at",
     reply = "reply",
     json = "json",
-    face = "face"
+    face = "face",
+    node = "node"  // 合并转发消息
 }
 
-export type OB11MessageData = {
+export interface OB11MessageText {
     type: OB11MessageDataType.text,
-    content: string,
-    data?: {
+    data: {
         text: string, // 纯文本
     }
-} | {
-    type: "image" | "voice" | "record",
-    file: string, // 本地路径
-    data?: {
-        file: string // 本地路径
-    }
-} | {
-    type: OB11MessageDataType.at,
-    atType?: AtType,
-    content?: string,
-    atUid?: string,
-    atNtUid?: string,
-    data?: {
-        qq: string // at的qq号
-    }
-} | {
-    type: OB11MessageDataType.reply,
-    msgId: string,
-    msgSeq: string,
-    senderUin: string,
+}
+
+interface OB11MessageFileBase {
     data: {
-        id: string,
+        file: string
     }
-} | {
-    type: OB11MessageDataType.face,
+}
+
+export interface OB11MessageImage extends OB11MessageFileBase {
+    type: OB11MessageDataType.image
+}
+
+export interface OB11MessageRecord extends OB11MessageFileBase {
+    type: OB11MessageDataType.voice
+}
+
+export interface OB11MessageAt {
+    type: OB11MessageDataType.at
+    data: {
+        qq: string | "all"
+    }
+}
+
+export interface OB11MessageReply {
+    type: OB11MessageDataType.reply
     data: {
         id: string
     }
 }
+
+export interface OB11MessageFace {
+    type: OB11MessageDataType.face
+    data: {
+        id: string
+    }
+}
+
+export interface OB11MessageNode {
+    type: OB11MessageDataType.node
+    data: {
+        id?: string
+        user_id?: number
+        nickname: string
+        content: OB11MessageData[]
+    }
+}
+
+export type OB11MessageData =
+    OB11MessageText |
+    OB11MessageFace |
+    OB11MessageAt | OB11MessageReply |
+    OB11MessageImage | OB11MessageRecord |
+    OB11MessageNode
 
 export interface OB11PostSendMsg {
     message_type?: "private" | "group"

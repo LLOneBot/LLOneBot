@@ -67,7 +67,7 @@ async function onSettingWindowCreated(view: Element) {
                 <setting-item data-direction="row" class="hostItem vertical-list-item">
                     <div>
                         <div>上报自身消息</div>
-                        <div class="tips">开启后上报自己发出的消息</div>
+                        <div class="tips">慎用，不然会自己和自己聊个不停</div>
                     </div>
                     <setting-switch id="reportSelfMessage" ${config.reportSelfMessage ? "is-active" : ""}></setting-switch>
                 </setting-item>
@@ -162,6 +162,21 @@ async function onSettingWindowCreated(view: Element) {
     });
 
 
+}
+
+
+function init() {
+    let hash = location.hash;
+    if (hash === "#/blank") {
+        return;
+    }
+}
+
+
+if (location.hash === "#/blank") {
+    (window as any).navigation.addEventListener("navigatesuccess", init, {once: true});
+} else {
+    init();
 }
 
 
