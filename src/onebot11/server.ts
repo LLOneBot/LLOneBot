@@ -41,24 +41,28 @@ expressAPP.use((req, res, next) => {
 });
 
 const expressAuthorize = (req: Request, res: Response, next: () => void) => {
-    let token = ""
-    const authHeader = req.get("authorization")
-    if (authHeader) {
-        token = authHeader.split("Bearer ").pop()
-        log("receive http header token", token)
-    } else if (req.query.access_token) {
-        if (Array.isArray(req.query.access_token)) {
-            token = req.query.access_token[0].toString();
-        } else {
-            token = req.query.access_token.toString();
+    try {
+        let token = ""
+        const authHeader = req.get("authorization")
+        if (authHeader) {
+            token = authHeader.split("Bearer ").pop()
+            log("receive http header token", token)
+        } else if (req.query.access_token) {
+            if (Array.isArray(req.query.access_token)) {
+                token = req.query.access_token[0].toString();
+            } else {
+                token = req.query.access_token.toString();
+            }
+            log("receive http url token", token)
         }
-        log("receive http url token", token)
-    }
 
-    if (accessToken) {
-        if (token != accessToken) {
-            return res.status(403).send(JSON.stringify({message: 'token verify failed!'}));
+        if (accessToken) {
+            if (token != accessToken) {
+                return res.status(403).send(JSON.stringify({message: 'token verify failed!'}));
+            }
         }
+    }catch (e) {
+        log("receive http failed", e.stack)
     }
     next();
 

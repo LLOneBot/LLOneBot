@@ -13,8 +13,10 @@ import GetVersionInfo from "./GetVersionInfo";
 import CanSendRecord from "./CanSendRecord";
 import CanSendImage from "./CanSendImage";
 import GetStatus from "./GetStatus";
+import TestForwardMsg from "./TestForwdMsg";
 
 export const actionHandlers = [
+    new TestForwardMsg(),
     new GetMsg(),
     new GetLoginInfo(),
     new GetFriendList(),

@@ -14,6 +14,7 @@ export interface InvalidCheckResult {
 }
 
 export enum ActionName{
+    TestForwardMsg = "test_forward_msg",
     GetLoginInfo = "get_login_info",
     GetFriendList = "get_friend_list",
     GetGroupInfo = "get_group_info",

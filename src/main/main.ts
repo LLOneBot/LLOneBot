@@ -7,7 +7,7 @@ import { CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG, } from "../common/
 import { postMsg, setToken, startHTTPServer, startWSServer } from "../onebot11/server";
 import { CONFIG_DIR, getConfigUtil, log } from "../common/utils";
 import { addHistoryMsg, getGroupMember, msgHistory, selfInfo, uidMaps } from "../common/data";
-import { hookNTQQApiReceive, ReceiveCmd, registerReceiveHook } from "../ntqqapi/hook";
+import { hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook } from "../ntqqapi/hook";
 import { OB11Constructor } from "../onebot11/constructor";
 import { NTQQApi } from "../ntqqapi/ntcall";
 import { ChatType, RawMessage } from "../ntqqapi/types";
@@ -20,10 +20,6 @@ let running = false;
 // 加载插件时触发
 function onLoad() {
     log("llonebot main onLoad");
-
-    // const config_dir = browserWindow.LiteLoader.plugins["LLOneBot"].path.data;
-
-
     if (!fs.existsSync(CONFIG_DIR)) {
         fs.mkdirSync(CONFIG_DIR, {recursive: true});
     }
@@ -52,7 +48,7 @@ function onLoad() {
     function postRawMsg(msgList: RawMessage[]) {
         const {debug, reportSelfMessage} = getConfigUtil().getConfig();
         for (let message of msgList) {
-            log("收到新消息", message)
+            // log("收到新消息", message)
             message.msgShortId = msgHistory[message.msgId]?.msgShortId
             if (!message.msgShortId) {
                 addHistoryMsg(message)
@@ -82,8 +78,8 @@ function onLoad() {
         })
         registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.UPDATE_MSG, async (payload) => {
             for (const message of payload.msgList) {
-                // log("message update", message, message.sendStatus)
-                if (message.sendStatus === 2) {
+                // log("message update", message.sendStatus, message)
+                if (message.recallTime != "0") {
                     // 撤回消息上报
                     const oriMessage = msgHistory[message.msgId]
                     if (!oriMessage) {
@@ -166,6 +162,7 @@ function onLoad() {
 // 创建窗口时触发
 function onBrowserWindowCreated(window: BrowserWindow) {
     try {
+        hookNTQQApiCall(window);
         hookNTQQApiReceive(window);
     } catch (e) {
         log("LLOneBot hook error: ", e.toString())

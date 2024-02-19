@@ -2,8 +2,6 @@ import * as path from "path";
 import {selfInfo} from "./data";
 import {ConfigUtil} from "./config";
 import util from "util";
-import { sendLog } from '../main/ipcsend';
-
 const fs = require('fs');
 
 export const CONFIG_DIR = global.LiteLoader.plugins["LLOneBot"].path.data;
@@ -94,3 +92,6 @@ export async function file2base64(path: string){
     }
     return result;
 }
+
+export const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms))

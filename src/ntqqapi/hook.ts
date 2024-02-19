@@ -1,8 +1,7 @@
 import { BrowserWindow } from 'electron';
-import { getConfigUtil, log } from "../common/utils";
+import { log } from "../common/utils";
 import { NTQQApi, NTQQApiClass, sendMessagePool } from "./ntcall";
-import { Group, User } from "./types";
-import { RawMessage } from "./types";
+import { Group, RawMessage, User } from "./types";
 import { addHistoryMsg, friends, groups, msgHistory } from "../common/data";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -51,7 +50,7 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
                         new Promise((resolve, reject) => {
                             try {
                                 let _ = hook.hookFunc(receiveData.payload)
-                                if (hook.hookFunc.constructor.name === "AsyncFunction"){
+                                if (hook.hookFunc.constructor.name === "AsyncFunction") {
                                     (_ as Promise<void>).then()
                                 }
                             } catch (e) {
@@ -76,6 +75,24 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
         return originalSend.call(window.webContents, channel, ...args);
     }
     window.webContents.send = patchSend;
+}
+
+export function hookNTQQApiCall(window: BrowserWindow) {
+    // 监听调用NTQQApi
+    let webContents = window.webContents as any;
+    const ipc_message_proxy = webContents._events["-ipc-message"]?.[0] || webContents._events["-ipc-message"];
+
+    const proxyIpcMsg = new Proxy(ipc_message_proxy, {
+        apply(target, thisArg, args) {
+            log("call NTQQ api", thisArg, args);
+            return target.apply(thisArg, args);
+        },
+    });
+    // if (webContents._events["-ipc-message"]?.[0]) {
+    //     webContents._events["-ipc-message"][0] = proxyIpcMsg;
+    // } else {
+    //     webContents._events["-ipc-message"] = proxyIpcMsg;
+    // }
 }
 
 export function registerReceiveHook<PayloadType>(method: ReceiveCmd, hookFunc: (payload: PayloadType) => void): string {
@@ -131,7 +148,6 @@ registerReceiveHook<{
 // registerReceiveHook<any>(ReceiveCmd.USER_INFO, (payload)=>{
 //     log("user info", payload);
 // })
-
 
 
 registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
