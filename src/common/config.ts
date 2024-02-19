@@ -22,8 +22,10 @@ export class ConfigUtil {
             httpHosts: [],
             wsPort: 3001,
             wsHosts: [],
+            enableHttp: true,
+            enableHttpPost: true,
             enableWs: true,
-            enableWsReverse: true
+            enableWsReverse: false
         }
         let defaultConfig: Config = {
             ob11: ob11Default,
