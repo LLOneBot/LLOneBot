@@ -1,6 +1,5 @@
-import { NTQQApi } from '../ntqqapi/ntcall';
-import { Friend, Group, GroupMember, RawMessage, SelfInfo } from "../ntqqapi/types";
-import { log } from "./utils";
+import {NTQQApi} from '../ntqqapi/ntcall';
+import {Friend, Group, GroupMember, RawMessage, SelfInfo} from "../ntqqapi/types";
 
 export let groups: Group[] = []
 export let friends: Friend[] = []

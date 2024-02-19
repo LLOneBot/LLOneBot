@@ -1,4 +1,4 @@
-import { Config } from "./types";
+import {Config} from "./types";
 
 const fs = require("fs");
 
@@ -14,7 +14,7 @@ export class ConfigUtil {
             httpPort: 3000,
             httpHosts: [],
             wsPort: 3001,
-            wsHosts: []
+            wsHosts: [],
             token: "",
             enableBase64: false,
             debug: false,
@@ -29,16 +29,20 @@ export class ConfigUtil {
             try {
                 jsonData = JSON.parse(data)
             }
-            catch (e){
-
+            catch (e) {}
+            if (!jsonData.httpHosts) {
+                jsonData.httpHosts = []
             }
-            if (!jsonData.hosts) {
-                jsonData.hosts = []
+            if (!jsonData.wsHosts) {
+                jsonData.wsHosts = []
             }
-            if (!jsonData.wsPort){
+            if (!jsonData.wsPort) {
                 jsonData.wsPort = 3001
             }
-            if (!jsonData.token){
+            if (!jsonData.httpPort) {
+                jsonData.httpPort = 3000
+            }
+            if (!jsonData.token) {
                 jsonData.token = ""
             }
             return jsonData;

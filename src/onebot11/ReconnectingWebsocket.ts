@@ -1,3 +1,5 @@
+import {log} from "../common/utils";
+
 const WebSocket = require("ws");
 
 class ReconnectingWebsocket {
@@ -35,12 +37,12 @@ class ReconnectingWebsocket {
             perMessageDeflate: false
         });
 
-        console.log("Trying to connect to the websocket server: " + this.url);
+        log("Trying to connect to the websocket server: " + this.url);
 
         const instance = this;
 
         this.websocket.on("open", function open() {
-            console.log("Connected to the websocket server: " + instance.url);
+            log("Connected to the websocket server: " + instance.url);
             instance.onopen();
         });
 
@@ -53,7 +55,7 @@ class ReconnectingWebsocket {
         this.websocket.on("ping", this.heartbeat);
 
         this.websocket.on("close", function close() {
-            console.log("The websocket connection: " + instance.url + " closed, trying reconnecting...");
+            log("The websocket connection: " + instance.url + " closed, trying reconnecting...");
             instance.onclose();
 
             setTimeout(instance.reconnect, 3000);

@@ -1,4 +1,4 @@
-import { AtType, RawMessage } from "../ntqqapi/types";
+import {AtType, RawMessage} from "../ntqqapi/types";
 
 export interface OB11User {
     user_id: number;
@@ -89,18 +89,11 @@ export interface OB11Return<DataType> {
     retcode: number
     data: DataType
     message: string,
-    echo?: string
 }
 
-export interface OB11WebsocketReturn<DataType> {
-    status: string
-    retcode: number
-    data: DataType
+export interface OB11WebsocketReturn<DataType> extends OB11Return<DataType>{
     echo: string
-    message: string
 }
-
-export interface OB11SendMsgReturn extends OB11Return<{ message_id: string }> {}
 
 export enum OB11MessageDataType {
     text = "text",

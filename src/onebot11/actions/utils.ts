@@ -6,8 +6,7 @@ export class OB11Response {
             status: status,
             retcode: retcode,
             data: data,
-            message: message,
-            echo,
+            message: message
         }
     }
     static ok<T>(data: T) {
