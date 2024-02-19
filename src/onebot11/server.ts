@@ -266,9 +266,16 @@ function initReverseWebsocket() {
     }
 }
 
-export function wsReply(wsClient: websocket.WebSocket | ReconnectingWebsocket, data: OB11Return<any> | PostMsgType) {
+export function wsReply(wsClient: websocket.WebSocket | ReconnectingWebsocket, data: OB11WebsocketResponse | PostMsgType) {
     try {
-        wsClient.send(JSON.stringify(data))
+        let packet = Object.assign({
+            echo: ""
+        }, data);
+        if (!packet.echo) {
+            packet.echo = "";
+        }
+
+        wsClient.send(JSON.stringify(packet))
         log("ws 消息上报", data)
     } catch (e) {
         log("websocket 回复失败", e)
