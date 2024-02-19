@@ -1,4 +1,5 @@
-import {Config} from "./types";
+import {Config, OB11Config} from "./types";
+import {mergeNewProperties} from "./utils";
 
 const fs = require("fs");
 
@@ -8,13 +9,25 @@ export class ConfigUtil {
     constructor(configPath: string) {
         this.configPath = configPath;
     }
-
-    getConfig(): Config {
-        let defaultConfig: Config = {
+    getConfig(){
+        try {
+            return this._getConfig()
+        }catch (e) {
+            console.log("获取配置文件出错", e)
+        }
+    }
+    _getConfig(): Config {
+        let ob11Default: OB11Config = {
             httpPort: 3000,
             httpHosts: [],
             wsPort: 3001,
             wsHosts: [],
+            enableWs: true,
+            enableWsReverse: true
+        }
+        let defaultConfig: Config = {
+            ob11: ob11Default,
+            heartInterval: 5000,
             token: "",
             enableBase64: false,
             debug: false,
@@ -28,28 +41,29 @@ export class ConfigUtil {
             let jsonData: Config = defaultConfig;
             try {
                 jsonData = JSON.parse(data)
+            } catch (e) {
             }
-            catch (e) {}
-            if (!jsonData.httpHosts) {
-                jsonData.httpHosts = []
-            }
-            if (!jsonData.wsHosts) {
-                jsonData.wsHosts = []
-            }
-            if (!jsonData.wsPort) {
-                jsonData.wsPort = 3001
-            }
-            if (!jsonData.httpPort) {
-                jsonData.httpPort = 3000
-            }
-            if (!jsonData.token) {
-                jsonData.token = ""
-            }
+            mergeNewProperties(defaultConfig, jsonData);
+            this.checkOldConfig(jsonData.ob11, jsonData, "httpPort", "port");
+            this.checkOldConfig(jsonData.ob11, jsonData, "httpHosts", "hosts");
+            this.checkOldConfig(jsonData.ob11, jsonData, "wsPort", "wsPort");
+            console.log("get config", jsonData);
             return jsonData;
         }
     }
-  
+
     setConfig(config: Config) {
         fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), "utf-8")
+    }
+
+    private checkOldConfig(currentConfig: Config | OB11Config,
+                           oldConfig: Config | OB11Config,
+                           currentKey: string, oldKey: string) {
+        // 迁移旧的配置到新配置，避免用户重新填写配置
+        const oldValue = oldConfig[oldKey];
+        if (oldValue) {
+            currentConfig[currentKey] = oldValue;
+            delete oldConfig[oldKey];
+        }
     }
 }
