@@ -1,134 +1,24 @@
-import * as http from "http";
 import * as websocket from "ws";
 import urlParse from "url";
-import express, {Request, Response} from "express";
 import {getConfigUtil, log} from "../common/utils";
-import {heartInterval, selfInfo} from "../common/data";
-import {OB11Message, OB11MessageData, OB11Return} from './types';
-import {actionHandlers, actionMap} from "./actions";
-import {OB11Response, OB11WebsocketResponse} from "./actions/utils";
+import {selfInfo} from "../common/data";
+import {OB11Message} from './types';
+import {actionMap} from "./action";
+import {OB11WebsocketResponse} from "./action/utils";
 import {callEvent, registerEventSender, unregisterEventSender} from "./event/manager";
 import {ReconnectingWebsocket} from "./ReconnectingWebsocket";
-import {ActionName} from "./actions/types";
+import {ActionName} from "./action/types";
 import {OB11BaseMetaEvent} from "./event/meta/OB11BaseMetaEvent";
 import {OB11BaseNoticeEvent} from "./event/notice/OB11BaseNoticeEvent";
-import BaseAction from "./actions/BaseAction";
+import BaseAction from "./action/BaseAction";
 import {LifeCycleSubType, OB11LifeCycleEvent} from "./event/meta/OB11LifeCycleEvent";
 import {OB11HeartbeatEvent} from "./event/meta/OB11HeartbeatEvent";
 
-let accessToken = "";
 let heartbeatRunning = false;
-
-// @SiberianHusky 2021-08-15
-
-function checkSendMessage(sendMsgList: OB11MessageData[]) {
-    function checkUri(uri: string): boolean {
-        const pattern = /^(file:\/\/|http:\/\/|https:\/\/|base64:\/\/)/;
-        return pattern.test(uri);
-    }
-
-    for (let msg of sendMsgList) {
-        if (msg["type"] && msg["data"]) {
-            let type = msg["type"];
-            let data = msg["data"];
-            if (type === "text" && !data["text"]) {
-                return 400;
-            } else if (["image", "voice", "record"].includes(type)) {
-                if (!data["file"]) {
-                    return 400;
-                } else {
-                    if (checkUri(data["file"])) {
-                        return 200;
-                    } else {
-                        return 400;
-                    }
-                }
-
-            } else if (type === "at" && !data["qq"]) {
-                return 400;
-            } else if (type === "reply" && !data["id"]) {
-                return 400;
-            }
-        } else {
-            return 400
-        }
-    }
-    return 200;
-}
-
-// ==end==
-
-const JSONbig = require('json-bigint')({storeAsString: true});
-
-const expressAPP = express();
-expressAPP.use(express.urlencoded({extended: true, limit: "500mb"}));
-
-let httpServer: http.Server = null;
-
 let websocketServer = null;
 
-expressAPP.use((req, res, next) => {
-    let data = '';
-    req.on('data', chunk => {
-        data += chunk.toString();
-    });
-    req.on('end', () => {
-        if (data) {
-            try {
-                // log("receive raw", data)
-                req.body = JSONbig.parse(data);
-            } catch (e) {
-                return next(e);
-            }
-        }
-        next();
-    });
-});
-
-const expressAuthorize = (req: Request, res: Response, next: () => void) => {
-    let token = ""
-    const authHeader = req.get("authorization")
-    if (authHeader) {
-        token = authHeader.split("Bearer ").pop()
-        log("receive http header token", token)
-    } else if (req.query.access_token) {
-        if (Array.isArray(req.query.access_token)) {
-            token = req.query.access_token[0].toString();
-        } else {
-            token = req.query.access_token.toString();
-        }
-        log("receive http url token", token)
-    }
-
-    if (accessToken) {
-        if (token != accessToken) {
-            return res.status(403).send(JSON.stringify({message: 'token verify failed!'}));
-        }
-    }
-    next();
-
-};
-
-export function setToken(token: string) {
-    accessToken = token
-}
-
-export function startHTTPServer(port: number) {
-    if (httpServer) {
-        httpServer.close();
-    }
-    expressAPP.get('/', (req: Request, res: Response) => {
-        res.send('LLOneBot已启动');
-    })
-
-    if (getConfigUtil().getConfig().enableHttp) {
-        httpServer = expressAPP.listen(port, "0.0.0.0", () => {
-            console.log(`llonebot http service started 0.0.0.0:${port}`);
-        });
-    }
-}
-
 export function initWebsocket(port: number) {
+    const {heartInterval, ob11: {enableWs}, token} = getConfigUtil().getConfig()
     if (!heartbeatRunning) {
         setInterval(() => {
             callEvent(new OB11HeartbeatEvent(true, true, heartInterval));
@@ -136,8 +26,7 @@ export function initWebsocket(port: number) {
 
         heartbeatRunning = true;
     }
-
-    if (getConfigUtil().getConfig().enableWs) {
+    if (enableWs) {
         if (websocketServer) {
             websocketServer.close((err) => {
                 log("ws server close failed!", err)
@@ -150,28 +39,26 @@ export function initWebsocket(port: number) {
         websocketServer.on("connection", (ws, req) => {
             const url = req.url.split("?").shift();
             log("receive ws connect", url)
-            let token: string = ""
+            let clientToken: string = ""
             const authHeader = req.headers['authorization'];
             if (authHeader) {
-                token = authHeader.split("Bearer ").pop()
-                log("receive ws header token", token);
+                clientToken = authHeader.split("Bearer ").pop()
+                log("receive ws header token", clientToken);
             } else {
                 const parsedUrl = urlParse.parse(req.url, true);
                 const urlToken = parsedUrl.query.access_token;
                 if (urlToken) {
                     if (Array.isArray(urlToken)) {
-                        token = urlToken[0]
+                        clientToken = urlToken[0]
                     } else {
-                        token = urlToken
+                        clientToken = urlToken
                     }
-                    log("receive ws url token", token);
+                    log("receive ws url token", clientToken);
                 }
             }
-            if (accessToken) {
-                if (token != accessToken) {
-                    ws.send(JSON.stringify(OB11WebsocketResponse.res(null, "failed", 1403, "token验证失败")))
-                    return ws.close()
-                }
+            if (token && clientToken != token) {
+                ws.send(JSON.stringify(OB11WebsocketResponse.res(null, "failed", 1403, "token验证失败")))
+                return ws.close()
             }
 
             if (url == "/api" || url == "/api/" || url == "/") {
@@ -204,7 +91,7 @@ export function initWebsocket(port: number) {
 
                 try {
                     wsReply(ws, new OB11LifeCycleEvent(LifeCycleSubType.CONNECT))
-                } catch (e){
+                } catch (e) {
                     log("发送生命周期失败", e)
                 }
 
@@ -218,11 +105,12 @@ export function initWebsocket(port: number) {
 
     initReverseWebsocket();
 }
+
 function initReverseWebsocket() {
     const config = getConfigUtil().getConfig();
-    if (config.enableWsReverse) {
+    if (config.ob11.enableWsReverse) {
         console.log("Prepare to connect all reverse websockets...");
-        for (const url of config.wsHosts) {
+        for (const url of config.ob11.wsHosts) {
             new Promise(() => {
                 try {
                     let wsClient = new ReconnectingWebsocket(url);
@@ -239,7 +127,7 @@ function initReverseWebsocket() {
                     wsClient.onmessage = async function (msg) {
                         let receiveData: { action: ActionName, params: any, echo?: string } = {action: null, params: {}}
                         let echo = ""
-                        log("收到正向Websocket消息", msg.toString())
+                        log("收到反向Websocket消息", msg.toString())
                         try {
                             receiveData = JSON.parse(msg.toString())
                             echo = receiveData.echo
@@ -257,8 +145,7 @@ function initReverseWebsocket() {
                             wsReply(wsClient, OB11WebsocketResponse.error(`api处理出错:${e}`, 1200, echo))
                         }
                     }
-                }
-                catch (e) {
+                } catch (e) {
                     log(e.stack);
                 }
             }).then();
@@ -292,7 +179,7 @@ export function postMsg(msg: PostMsgType) {
             return
         }
     }
-    for (const host of config.httpHosts) {
+    for (const host of config.ob11.httpHosts) {
         fetch(host, {
             method: "POST",
             headers: {
@@ -309,34 +196,4 @@ export function postMsg(msg: PostMsgType) {
 
     log("新消息事件ws上报", msg);
     callEvent(msg);
-}
-
-
-function registerRouter(action: string, handle: (payload: any) => Promise<any>) {
-    let url = action.toString()
-    if (!action.startsWith("/")) {
-        url = "/" + action
-    }
-
-    async function _handle(res: Response, payload: any) {
-        log("receive post data", url, payload)
-        try {
-            const result = await handle(payload)
-            res.send(result)
-        } catch (e) {
-            log(e.stack);
-            res.send(OB11Response.error(e.stack.toString(), 200))
-        }
-    }
-
-    expressAPP.post(url, expressAuthorize, (req: Request, res: Response) => {
-        _handle(res, req.body || {}).then()
-    });
-    expressAPP.get(url, expressAuthorize, (req: Request, res: Response) => {
-        _handle(res, req.query as any || {}).then()
-    });
-}
-
-for (const action of actionHandlers) {
-    registerRouter(action.actionName, (payload) => action.handle(payload))
 }

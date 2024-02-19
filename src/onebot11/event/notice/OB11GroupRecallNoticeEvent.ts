@@ -7,7 +7,6 @@ export class OB11GroupRecallNoticeEvent extends OB11GroupNoticeEvent {
 
     constructor(groupId: number, userId: number, operatorId: number, messageId: number) {
         super();
-
         this.group_id = groupId;
         this.user_id = userId;
         this.operator_id = operatorId;

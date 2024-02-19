@@ -3,7 +3,7 @@
 import {BrowserWindow, ipcMain} from 'electron';
 
 import {Config} from "../common/types";
-import {postMsg, setToken, startHTTPServer, initWebsocket} from "../onebot11/server";
+import {postMsg, initWebsocket} from "../onebot11/server";
 import {CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG,} from "../common/channels";
 import {CONFIG_DIR, getConfigUtil, log} from "../common/utils";
 import {addHistoryMsg, getGroupMember, msgHistory, selfInfo} from "../common/data";
@@ -13,6 +13,7 @@ import {NTQQApi} from "../ntqqapi/ntcall";
 import {ChatType, RawMessage} from "../ntqqapi/types";
 import {OB11FriendRecallNoticeEvent} from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
 import {OB11GroupRecallNoticeEvent} from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
+import {ob11HTTPServer} from "../onebot11/server/http";
 
 const fs = require('fs');
 
@@ -29,19 +30,26 @@ function onLoad() {
         fs.mkdirSync(CONFIG_DIR, {recursive: true});
     }
     ipcMain.handle(CHANNEL_GET_CONFIG, (event: any, arg: any) => {
-        return getConfigUtil().getConfig();
+        try {
+            return getConfigUtil().getConfig();
+        }catch (e) {
+            console.log("获取配置文件出错", e)
+        }
     })
     ipcMain.on(CHANNEL_SET_CONFIG, (event: any, arg: Config) => {
         let oldConfig = getConfigUtil().getConfig();
         getConfigUtil().setConfig(arg)
-        if (arg.httpPort != oldConfig.httpPort) {
-            startHTTPServer(arg.httpPort)
+        if (arg.ob11.httpPort != oldConfig.ob11.httpPort && arg.ob11.enableHttp) {
+            ob11HTTPServer.restart(arg.ob11.httpPort);
         }
-        if (arg.wsPort != oldConfig.wsPort) {
-            initWebsocket(arg.wsPort)
+        if (!arg.ob11.enableHttp){
+            ob11HTTPServer.stop()
         }
-        if (arg.token != oldConfig.token) {
-            setToken(arg.token);
+        else{
+            ob11HTTPServer.start(arg.ob11.httpPort);
+        }
+        if (arg.ob11.wsPort != oldConfig.ob11.wsPort) {
+            initWebsocket(arg.ob11.wsPort)
         }
     })
 
@@ -125,11 +133,13 @@ function onLoad() {
             }
         })
         NTQQApi.getGroups(true).then()
-      
         const config = getConfigUtil().getConfig()
-        startHTTPServer(config.httpPort)
-        initWebsocket(config.wsPort);
-        setToken(config.token)
+        try {
+            ob11HTTPServer.start(config.ob11.httpPort)
+            initWebsocket(config.ob11.wsPort);
+        }catch (e) {
+            console.log("start failed", e)
+        }
         log("LLOneBot start")
     }
 
