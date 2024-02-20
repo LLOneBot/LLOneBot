@@ -31,7 +31,7 @@ export class ConfigUtil {
         }
         let defaultConfig: Config = {
             ob11: ob11Default,
-            heartInterval: 5000,
+            heartInterval: 60000,
             token: "",
             enableBase64: false,
             debug: false,
@@ -52,7 +52,7 @@ export class ConfigUtil {
                 return this.config;
             }
             mergeNewProperties(defaultConfig, jsonData);
-            this.checkOldConfig(jsonData.ob11, jsonData, "httpPort", "port");
+            this.checkOldConfig(jsonData.ob11, jsonData, "httpPort", "http");
             this.checkOldConfig(jsonData.ob11, jsonData, "httpHosts", "hosts");
             this.checkOldConfig(jsonData.ob11, jsonData, "wsPort", "wsPort");
             // console.log("get config", jsonData);
