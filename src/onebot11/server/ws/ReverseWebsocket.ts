@@ -81,7 +81,8 @@ export class ReverseWebsocket {
             perMessageDeflate: false,
             headers: {
                 'X-Self-ID': selfInfo.uin,
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`,
+                'x-client-role': 'Universal',  // koishi-adapter-onebot 需要这个字段
             }
         });
         registerWsEventSender(this.websocket);
