@@ -1,18 +1,21 @@
 // 运行在 Electron 主进程 下的插件入口
 
-import { BrowserWindow, ipcMain } from 'electron';
+import {BrowserWindow, ipcMain} from 'electron';
+import fs from 'fs';
 
-import { Config } from "../common/types";
-import { CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG, } from "../common/channels";
-import { postMsg, setToken, startHTTPServer, startWSServer } from "../onebot11/server";
-import { CONFIG_DIR, getConfigUtil, log } from "../common/utils";
-import { addHistoryMsg, getGroupMember, msgHistory, selfInfo, uidMaps } from "../common/data";
-import { hookNTQQApiReceive, ReceiveCmd, registerReceiveHook } from "../ntqqapi/hook";
-import { OB11Constructor } from "../onebot11/constructor";
-import { NTQQApi } from "../ntqqapi/ntcall";
-import { ChatType, RawMessage } from "../ntqqapi/types";
+import {Config} from "../common/types";
+import {CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG,} from "../common/channels";
+import {initWebsocket, postMsg} from "../onebot11/server";
+import {CONFIG_DIR, getConfigUtil, log} from "../common/utils";
+import {addHistoryMsg, getGroupMember, msgHistory, selfInfo} from "../common/data";
+import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} from "../ntqqapi/hook";
+import {OB11Constructor} from "../onebot11/constructor";
+import {NTQQApi} from "../ntqqapi/ntcall";
+import {ChatType, RawMessage} from "../ntqqapi/types";
+import {ob11HTTPServer} from "../onebot11/server/http";
+import {OB11FriendRecallNoticeEvent} from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
+import {OB11GroupRecallNoticeEvent} from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
 
-const fs = require('fs');
 
 let running = false;
 
@@ -32,10 +35,9 @@ function onLoad() {
         if (arg.ob11.httpPort != oldConfig.ob11.httpPort && arg.ob11.enableHttp) {
             ob11HTTPServer.restart(arg.ob11.httpPort);
         }
-        if (!arg.ob11.enableHttp){
+        if (!arg.ob11.enableHttp) {
             ob11HTTPServer.stop()
-        }
-        else{
+        } else {
             ob11HTTPServer.start(arg.ob11.httpPort);
         }
         if (arg.ob11.wsPort != oldConfig.ob11.wsPort) {
@@ -128,7 +130,7 @@ function onLoad() {
         try {
             ob11HTTPServer.start(config.ob11.httpPort)
             initWebsocket(config.ob11.wsPort);
-        }catch (e) {
+        } catch (e) {
             console.log("start failed", e)
         }
         log("LLOneBot start")
