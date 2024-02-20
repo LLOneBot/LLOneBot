@@ -4,19 +4,21 @@ import {mergeNewProperties} from "./utils";
 const fs = require("fs");
 
 export class ConfigUtil {
-    configPath: string;
+    private readonly configPath: string;
+    private config: Config | null = null;
 
     constructor(configPath: string) {
         this.configPath = configPath;
     }
     getConfig(){
-        try {
-            return this._getConfig()
-        }catch (e) {
-            console.log("获取配置文件出错", e)
+        if (this.config) {
+            return this.config;
         }
+
+        this.config = this.reloadConfig();
+        return this.config;
     }
-    _getConfig(): Config {
+    reloadConfig(): Config {
         let ob11Default: OB11Config = {
             httpPort: 3000,
             httpHosts: [],
@@ -55,6 +57,7 @@ export class ConfigUtil {
     }
 
     setConfig(config: Config) {
+        this.config = config;
         fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), "utf-8")
     }
 
