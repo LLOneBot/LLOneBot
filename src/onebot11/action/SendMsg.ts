@@ -4,11 +4,11 @@ import {OB11MessageData, OB11MessageDataType, OB11MessageNode, OB11PostSendMsg} 
 import {NTQQApi, Peer} from "../../ntqqapi/ntcall";
 import {SendMsgElementConstructor} from "../../ntqqapi/constructor";
 import {uri2local} from "../utils";
-import {v4 as uuid4} from 'uuid';
 import BaseAction from "./BaseAction";
 import {ActionName, BaseCheckResult} from "./types";
 import * as fs from "fs";
-import {log, sleep} from "../../common/utils";
+import {log} from "../../common/utils";
+import {v4 as uuidv4} from "uuid"
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
     function checkUri(uri: string): boolean {
@@ -55,7 +55,7 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     protected async check(payload: OB11PostSendMsg): Promise<BaseCheckResult> {
         const messages = this.convertMessage2List(payload);
         const fmNum = this.forwardMsgNum(payload)
-        if ( fmNum && fmNum != messages.length) {
+        if (fmNum && fmNum != messages.length) {
             return {
                 valid: false,
                 message: "转发消息不能和普通消息混在一起发送,转发需要保证message只有type为node的元素"
@@ -227,7 +227,7 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                 case OB11MessageDataType.voice: {
                     const file = sendMsg.data?.file
                     if (file) {
-                        const {path, isLocal} = (await uri2local(uuid4(), file))
+                        const {path, isLocal} = (await uri2local(uuidv4(), file))
                         if (path) {
                             if (!isLocal) { // 只删除http和base64转过来的文件
                                 deleteAfterSentFiles.push(path)
@@ -239,15 +239,7 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                             }
                         }
                     }
-                }
-                    break;
-                // case OB11MessageDataType.node: {
-                //     try {
-                //         await this.handleForwardNode(peer, sendMsg, group);
-                //     } catch (e) {
-                //         log("forward msg crash", e.stack)
-                //     }
-                // }
+                } break;
             }
 
         }
@@ -258,7 +250,7 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         }
     }
 
-    private async send(peer: Peer, sendElements: SendMessageElement[], deleteAfterSentFiles: string[], waitComplete=false) {
+    private async send(peer: Peer, sendElements: SendMessageElement[], deleteAfterSentFiles: string[], waitComplete = false) {
         if (!sendElements.length) {
             throw ("消息体无法解析")
         }

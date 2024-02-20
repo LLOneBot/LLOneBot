@@ -2,7 +2,6 @@
 
 import {BrowserWindow, ipcMain} from 'electron';
 import fs from 'fs';
-
 import {Config} from "../common/types";
 import {CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG,} from "../common/channels";
 import {initWebsocket, postMsg} from "../onebot11/server";

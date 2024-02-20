@@ -2,8 +2,9 @@ import * as path from "path";
 import {selfInfo} from "./data";
 import {ConfigUtil} from "./config";
 import util from "util";
-
-const fs = require('fs');
+import {encode, getDuration} from "silk-wasm";
+import fs from 'fs';
+import {v4 as uuidv4} from "uuid";
 
 export const CONFIG_DIR = global.LiteLoader.plugins["LLOneBot"].path.data;
 
@@ -13,7 +14,7 @@ export function getConfigUtil() {
 }
 
 export function log(...msg: any[]) {
-    if (!getConfigUtil().getConfig().log){
+    if (!getConfigUtil().getConfig().log) {
         return
     }
     let currentDateTime = new Date().toLocaleString();
@@ -24,9 +25,9 @@ export function log(...msg: any[]) {
     const currentDate = `${year}-${month}-${day}`;
     const userInfo = selfInfo.uin ? `${selfInfo.nick}(${selfInfo.uin})` : ""
     let logMsg = "";
-    for (let msgItem of msg){
+    for (let msgItem of msg) {
         // 判断是否是对象
-        if (typeof msgItem === "object"){
+        if (typeof msgItem === "object") {
             logMsg += JSON.stringify(msgItem) + " ";
             continue;
         }
@@ -35,7 +36,7 @@ export function log(...msg: any[]) {
     logMsg = `${currentDateTime} ${userInfo}: ${logMsg}\n\n`
     // sendLog(...msg);
     // console.log(msg)
-    fs.appendFile(path.join(CONFIG_DIR , `llonebot-${currentDate}.log`), logMsg, (err: any) => {
+    fs.appendFile(path.join(CONFIG_DIR, `llonebot-${currentDate}.log`), logMsg, (err: any) => {
 
     })
 }
@@ -54,7 +55,7 @@ export function sleep(ms: number): Promise<void> {
 
 
 // 定义一个异步函数来检查文件是否存在
-export function checkFileReceived(path: string, timeout: number=3000): Promise<void> {
+export function checkFileReceived(path: string, timeout: number = 3000): Promise<void> {
     return new Promise((resolve, reject) => {
         const startTime = Date.now();
 
@@ -72,7 +73,7 @@ export function checkFileReceived(path: string, timeout: number=3000): Promise<v
     });
 }
 
-export async function file2base64(path: string){
+export async function file2base64(path: string) {
     const readFile = util.promisify(fs.readFile);
     let result = {
         err: "",
@@ -109,10 +110,69 @@ export function mergeNewProperties(newObj: any, oldObj: any) {
             // 如果老对象和新对象的当前属性都是对象，则递归合并
             if (typeof oldObj[key] === 'object' && typeof newObj[key] === 'object') {
                 mergeNewProperties(newObj[key], oldObj[key]);
-            } else if(typeof oldObj[key] === 'object' || typeof newObj[key] === 'object'){
+            } else if (typeof oldObj[key] === 'object' || typeof newObj[key] === 'object') {
                 // 属性冲突，有一方不是对象，直接覆盖
                 oldObj[key] = newObj[key];
             }
         }
     });
+}
+
+export async function encodeSilk(filePath: string) {
+    function getFileHeader(filePath: string) {
+        // 定义要读取的字节数
+        const bytesToRead = 7;
+        try {
+            const buffer = fs.readFileSync(filePath, {
+                encoding: null,
+                flag: "r",
+            });
+
+            const fileHeader = buffer.toString("hex", 0, bytesToRead);
+            return fileHeader;
+        } catch (err) {
+            console.error("读取文件错误:", err);
+            return;
+        }
+    }
+
+    async function getAudioSampleRate(filePath: string) {
+        try {
+            const mm = await import('music-metadata');
+            const metadata = await mm.parseFile(filePath);
+            log(`${filePath}采样率`, metadata.format.sampleRate);
+            return metadata.format.sampleRate;
+        } catch (error) {
+            log(`${filePath}采样率获取失败`, error.stack);
+            // console.error(error);
+        }
+    }
+
+    try {
+        const fileName = path.basename(filePath);
+        const pcm = fs.readFileSync(filePath);
+        const pttPath = path.join(CONFIG_DIR, uuidv4());
+        if (getFileHeader(filePath) !== "02232153494c4b") {
+            log(`语音文件${filePath}需要转换`)
+            const sampleRate = await getAudioSampleRate(filePath) || 44100;
+            const silk = await encode(pcm, sampleRate);
+            fs.writeFileSync(pttPath, silk.data);
+            log(`语音文件${filePath}转换成功!`)
+            return {
+                converted: true,
+                path: pttPath,
+                duration: silk.duration,
+            };
+        } else {
+            const duration = getDuration(pcm);
+            return {
+                converted: false,
+                path: filePath,
+                duration: duration,
+            };
+        }
+    } catch (error) {
+        log("convert silk failed", error.stack);
+        return {};
+    }
 }

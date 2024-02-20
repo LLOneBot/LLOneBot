@@ -1,10 +1,10 @@
 import {ipcMain} from "electron";
-import {v4 as uuidv4} from "uuid";
 import {hookApiCallbacks, ReceiveCmd, registerReceiveHook, removeReceiveHook} from "./hook";
 import {log} from "../common/utils";
 import {ChatType, Friend, Group, GroupMember, RawMessage, SelfInfo, SendMessageElement, User} from "./types";
 import * as fs from "fs";
 import {addHistoryMsg, msgHistory, selfInfo} from "../common/data";
+import {v4 as uuidv4} from "uuid"
 
 interface IPCReceiveEvent {
     eventName: string

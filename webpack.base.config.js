@@ -1,8 +1,14 @@
 // import path from "path";
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
-module.exports = {
+const ignoreModules = [
+    "silk-wasm", "electron"
+];
+const copyModules = ["silk-wasm"]
+
+let config = {
     // target: 'node',
     entry: {
         // main: './src/main.ts',
@@ -15,11 +21,10 @@ module.exports = {
         // libraryTarget: "commonjs2",
         // chunkFormat: "commonjs",
     },
-    externals: [
-        // "express",
-        "electron", "fs"],
+    externals: ignoreModules,
     experiments: {
         // outputModule: true
+        // asyncWebAssembly: true
     },
     resolve: {
         extensions: ['.js', '.ts']
@@ -33,7 +38,6 @@ module.exports = {
                     loader: 'babel-loader',
                     options: {
                         presets: ['@babel/preset-env'],
-
                     }
                 }
             },
@@ -46,8 +50,7 @@ module.exports = {
                         // configFile: 'src/tsconfig.json'
                     }
                 }
-            }
-        ]
+            }]
     },
     optimization: {
         minimize: false,
@@ -56,5 +59,18 @@ module.exports = {
                 extractComments: false,
             }),
         ],
-    }
+    },
+    plugins: [
+        new CopyPlugin({
+            patterns: copyModules.map(m=>{
+                m = `node_modules/${m}`
+                return {
+                    from: m,
+                    to: m
+                }
+            })
+        }),
+    ], // devtool: 'source-map',
 }
+
+module.exports = config
