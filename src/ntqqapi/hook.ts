@@ -1,9 +1,3 @@
-import { BrowserWindow } from 'electron';
-import { log } from "../common/utils";
-import { NTQQApi, NTQQApiClass, sendMessagePool } from "./ntcall";
-import { Group, RawMessage, User } from "./types";
-import { addHistoryMsg, friends, groups, msgHistory } from "../common/data";
-import { v4 as uuidv4 } from 'uuid';
 import {BrowserWindow} from 'electron';
 import {log, sleep} from "../common/utils";
 import {NTQQApi, NTQQApiClass, sendMessagePool} from "./ntcall";
