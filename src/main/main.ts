@@ -82,7 +82,7 @@ function onLoad() {
     })
 
 
-    function postRawMsg(msgList: RawMessage[]) {
+    function postReceiveMsg(msgList: RawMessage[]) {
         const {debug, reportSelfMessage} = getConfigUtil().getConfig();
         for (let message of msgList) {
             // log("收到新消息", message)
@@ -107,7 +107,7 @@ function onLoad() {
     async function start() {
         registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
             try {
-                postRawMsg(payload.msgList);
+                postReceiveMsg(payload.msgList);
             } catch (e) {
                 log("report message error: ", e.toString());
             }
@@ -152,7 +152,7 @@ function onLoad() {
             }
             // log("reportSelfMessage", payload)
             try {
-                postRawMsg([payload.msgRecord]);
+                postReceiveMsg([payload.msgRecord]);
             } catch (e) {
                 log("report self message error: ", e.toString());
             }

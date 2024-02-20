@@ -108,10 +108,10 @@ async function onSettingWindowCreated(view: Element) {
             <setting-panel>
                 <setting-item data-direction="row" class="hostItem vertical-list-item">
                     <div>
-                        <div>上报文件进行base64编码</div>
-                        <div class="tips">不开启时，上报文件将以本地路径形式发送</div>
+                        <div>上报文件不采用本地路径</div>
+                        <div class="tips">开启后，上报图片为http连接，语音为base64编码</div>
                     </div>
-                    <setting-switch id="switchBase64" ${config.enableBase64 ? "is-active" : ""}></setting-switch>
+                    <setting-switch id="switchFileUrl" ${config.enableLocalFile2Url ? "is-active" : ""}></setting-switch>
                 </setting-item>
                 <setting-item data-direction="row" class="hostItem vertical-list-item">
                     <div>
@@ -208,7 +208,7 @@ async function onSettingWindowCreated(view: Element) {
     switchClick("websocket", "enableWs", config.ob11);
     switchClick("websocketReverse", "enableWsReverse", config.ob11);
     switchClick("debug", "debug");
-    switchClick("switchBase64", "enableBase64");
+    switchClick("switchFileUrl", "enableLocalFile2Url");
     switchClick("reportSelfMessage", "reportSelfMessage");
     switchClick("log", "log");
 
