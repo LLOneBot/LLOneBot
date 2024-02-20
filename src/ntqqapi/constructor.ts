@@ -8,6 +8,8 @@ import {
     SendTextElement
 } from "./types";
 import {NTQQApi} from "./ntcall";
+import {encodeSilk, log} from "../common/utils";
+import fs from "fs";
 
 
 export class SendMsgElementConstructor {
@@ -79,7 +81,12 @@ export class SendMsgElementConstructor {
     }
 
     static async ptt(pttPath: string): Promise<SendPttElement> {
-        const {md5, fileName, path, fileSize} = await NTQQApi.uploadFile(pttPath);
+        const {converted, path: silkPath, duration} = await encodeSilk(pttPath);
+        // log("生成语音", silkPath, duration);
+        const {md5, fileName, path, fileSize} = await NTQQApi.uploadFile(silkPath);
+        if (converted){
+            fs.unlink(silkPath, ()=>{});
+        }
         return {
             elementType: ElementType.PTT,
             elementId: "",
@@ -88,7 +95,8 @@ export class SendMsgElementConstructor {
                 filePath: path,
                 md5HexStr: md5,
                 fileSize: fileSize,
-                duration: Math.max(1, Math.round(fileSize / 1024 / 3)), // 一秒钟大概是3kb大小, 小于1秒的按1秒算
+                // duration: Math.max(1, Math.round(fileSize / 1024 / 3)), // 一秒钟大概是3kb大小, 小于1秒的按1秒算
+                duration: duration / 1000,
                 formatType: 1,
                 voiceType: 1,
                 voiceChangeType: 0,

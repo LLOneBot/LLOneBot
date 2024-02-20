@@ -3,10 +3,10 @@ import {log, sleep} from "../common/utils";
 import {NTQQApi, NTQQApiClass, sendMessagePool} from "./ntcall";
 import {Group, RawMessage, User} from "./types";
 import {addHistoryMsg, friends, groups, msgHistory} from "../common/data";
-import {v4 as uuidv4} from 'uuid';
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {OB11GroupIncreaseEvent} from "../onebot11/event/notice/OB11GroupIncreaseEvent";
 import {postMsg} from "../onebot11/server";
+import {v4 as uuidv4} from "uuid"
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 

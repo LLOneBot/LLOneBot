@@ -43,8 +43,8 @@ LiteLoaderQQNT的OneBot11协议插件
 - [x] @群成员
 - [x] 语音
 - [x] json消息(只上报)
+- [x] 转发消息记录(目前只能发不能收)
 - [ ] 红包
-- [ ] 转发消息记录
 - [ ] xml
 
 支持的api:
@@ -109,7 +109,7 @@ LiteLoaderQQNT的OneBot11协议插件
 ## TODO
 - [x] 重构摆脱LLAPI，目前调用LLAPI只能在renderer进程调用，需重构成在main进程调用
 - [x] 支持正、反向websocket（感谢@disymayufei的PR）
-- [ ] 转发消息记录 
+- [x] 转发消息记录 
 - [ ] 好友点赞api
 
 ## onebot11文档
