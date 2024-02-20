@@ -1,4 +1,12 @@
-import {OB11Group, OB11GroupMember, OB11GroupMemberRole, OB11Message, OB11MessageDataType, OB11User} from "./types";
+import {
+    OB11Group,
+    OB11GroupMember,
+    OB11GroupMemberRole,
+    OB11Message,
+    OB11MessageData,
+    OB11MessageDataType,
+    OB11User
+} from "./types";
 import {AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User} from '../ntqqapi/types';
 import {getFriend, getGroupMember, getHistoryMsgBySeq, selfInfo} from '../common/data';
 import {file2base64, getConfigUtil, log} from "../common/utils";
@@ -8,7 +16,7 @@ import {NTQQApi} from "../ntqqapi/ntcall";
 export class OB11Constructor {
     static async message(msg: RawMessage): Promise<OB11Message> {
 
-        const {enableBase64} = getConfigUtil().getConfig()
+        const {enableLocalFile2Url} = getConfigUtil().getConfig()
         const message_type = msg.chatType == ChatType.group ? "group" : "private";
         const resMsg: OB11Message = {
             self_id: parseInt(selfInfo.uin),
@@ -47,7 +55,7 @@ export class OB11Constructor {
         }
 
         for (let element of msg.elements) {
-            let message_data: any = {
+            let message_data: OB11MessageData | any = {
                 data: {},
                 type: "unknown"
             }
@@ -78,11 +86,11 @@ export class OB11Constructor {
                 message_data["data"]["file_id"] = element.picElement.fileUuid
                 message_data["data"]["path"] = element.picElement.sourcePath
                 message_data["data"]["file"] = element.picElement.sourcePath
+                message_data["data"]["http_file"] = IMAGE_HTTP_HOST + element.picElement.originImageUrl
                 try {
                     await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
                         element.elementId, element.picElement.thumbPath.get(0), element.picElement.sourcePath)
                 } catch (e) {
-                    message_data["data"]["http_file"] = IMAGE_HTTP_HOST + element.picElement.originImageUrl
                 }
             } else if (element.replyElement) {
                 message_data["type"] = "reply"
@@ -96,7 +104,8 @@ export class OB11Constructor {
                 message_data["type"] = OB11MessageDataType.voice;
                 message_data["data"]["file"] = element.pttElement.filePath
                 message_data["data"]["file_id"] = element.pttElement.fileUuid
-                // console.log("收到语音消息", message.raw.msgId, message.peer, element.pttElement)
+
+                // log("收到语音消息", msg)
                 // window.LLAPI.Ptt2Text(message.raw.msgId, message.peer, messages).then(text => {
                 //     console.log("语音转文字结果", text);
                 // }).catch(err => {
@@ -105,21 +114,24 @@ export class OB11Constructor {
             } else if (element.arkElement) {
                 message_data["type"] = OB11MessageDataType.json;
                 message_data["data"]["data"] = element.arkElement.bytesData;
-            } else if (element.faceElement){
+            } else if (element.faceElement) {
                 message_data["type"] = OB11MessageDataType.face;
                 message_data["data"]["id"] = element.faceElement.faceIndex.toString();
             }
-            if (message_data.data.http_file) {
-                message_data.data.file = message_data.data.http_file
-            } else if (message_data.data.file) {
+            if (message_data.data.file) {
                 let filePath: string = message_data.data.file;
-                message_data.data.file = "file://" + filePath
-                if (enableBase64) {
-                    let {err, data} = await file2base64(filePath);
-                    if (err) {
-                        console.log("文件转base64失败", err)
+                if (!enableLocalFile2Url) {
+                    message_data.data.file = "file://" + filePath
+                } else { // 不使用本地路径
+                    if (message_data.data.http_file) {
+                        message_data.data.file = message_data.data.http_file
                     } else {
-                        message_data.data.file = "base64://" + data
+                        let {err, data} = await file2base64(filePath);
+                        if (err) {
+                            log("文件转base64失败", filePath, err)
+                        } else {
+                            message_data.data.file = "base64://" + data
+                        }
                     }
                 }
             }

@@ -33,7 +33,7 @@ export class ConfigUtil {
             ob11: ob11Default,
             heartInterval: 60000,
             token: "",
-            enableBase64: false,
+            enableLocalFile2Url: false,
             debug: false,
             log: false,
             reportSelfMessage: false
