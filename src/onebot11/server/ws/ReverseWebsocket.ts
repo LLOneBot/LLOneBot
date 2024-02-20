@@ -22,20 +22,44 @@ export class ReverseWebsocket {
         this.running = true;
         this.connect();
     }
-    public stop(){
+
+    public stop() {
         this.running = false;
-        unregisterWsEventSender(this.websocket);
         this.websocket.close();
     }
 
-    public onopen = function () {
+    public onopen() {
+        wsReply(this.websocket, new OB11LifeCycleEvent(LifeCycleSubType.CONNECT));
     }
 
-    public onmessage = function (msg: string) {
+    public async onmessage(msg: string) {
+        let receiveData: { action: ActionName, params: any, echo?: string } = {action: null, params: {}}
+        let echo = ""
+        log("收到反向Websocket消息", msg.toString())
+        try {
+            receiveData = JSON.parse(msg.toString())
+            echo = receiveData.echo
+        } catch (e) {
+            return wsReply(this.websocket, OB11WebsocketResponse.error("json解析失败，请检查数据格式", 1400, echo))
+        }
+        const action: BaseAction<any, any> = actionMap.get(receiveData.action);
+        if (!action) {
+            return wsReply(this.websocket, OB11WebsocketResponse.error("不支持的api " + receiveData.action, 1404, echo))
+        }
+        try {
+            let handleResult = await action.websocketHandle(receiveData.params, echo);
+            wsReply(this.websocket, handleResult)
+        } catch (e) {
+            wsReply(this.websocket, OB11WebsocketResponse.error(`api处理出错:${e}`, 1200, echo))
+        }
     }
 
     public onclose = function () {
+        log("反向ws断开", this.url);
         unregisterWsEventSender(this.websocket);
+        if (this.running) {
+            this.reconnect();
+        }
     }
 
     public send(msg: string) {
@@ -60,28 +84,24 @@ export class ReverseWebsocket {
                 'Authorization': `Bearer ${token}`
             }
         });
+        registerWsEventSender(this.websocket);
         log("Trying to connect to the websocket server: " + this.url);
 
-        const instance = this;
 
-        this.websocket.on("open", function open() {
-            log("Connected to the websocket server: " + instance.url);
-            instance.onopen();
+        this.websocket.on("open", ()=> {
+            log("Connected to the websocket server: " + this.url);
+            this.onopen();
         });
 
-        this.websocket.on("message", function message(data) {
-            instance.onmessage(data.toString());
+        this.websocket.on("message", async (data)=>{
+            await this.onmessage(data.toString());
         });
 
         this.websocket.on("error", log);
 
-        this.websocket.on("close", function close() {
-            log("The websocket connection: " + instance.url + " closed, trying reconnecting...");
-            instance.onclose();
-
-            if (instance.running) {
-                instance.reconnect();
-            }
+        this.websocket.on("close", ()=> {
+            log("The websocket connection: " + this.url + " closed, trying reconnecting...");
+            this.onclose();
         });
     }
 }
@@ -92,40 +112,7 @@ class OB11ReverseWebsockets {
             log("开始连接反向ws", url)
             new Promise(() => {
                 try {
-                    let rwsClient = new ReverseWebsocket(url);
-                    rwsList.push(rwsClient);
-                    registerWsEventSender(rwsClient.websocket);
-
-                    rwsClient.onopen = function () {
-                        wsReply(rwsClient.websocket, new OB11LifeCycleEvent(LifeCycleSubType.CONNECT));
-                    }
-
-                    rwsClient.onclose = function () {
-                        log("反向ws断开", url);
-                        unregisterWsEventSender(rwsClient.websocket);
-                    }
-
-                    rwsClient.onmessage = async function (msg) {
-                        let receiveData: { action: ActionName, params: any, echo?: string } = {action: null, params: {}}
-                        let echo = ""
-                        log("收到反向Websocket消息", msg.toString())
-                        try {
-                            receiveData = JSON.parse(msg.toString())
-                            echo = receiveData.echo
-                        } catch (e) {
-                            return wsReply(rwsClient.websocket, OB11WebsocketResponse.error("json解析失败，请检查数据格式", 1400, echo))
-                        }
-                        const action: BaseAction<any, any> = actionMap.get(receiveData.action);
-                        if (!action) {
-                            return wsReply(rwsClient.websocket, OB11WebsocketResponse.error("不支持的api " + receiveData.action, 1404, echo))
-                        }
-                        try {
-                            let handleResult = await action.websocketHandle(receiveData.params, echo);
-                            wsReply(rwsClient.websocket, handleResult)
-                        } catch (e) {
-                            wsReply(rwsClient.websocket, OB11WebsocketResponse.error(`api处理出错:${e}`, 1200, echo))
-                        }
-                    }
+                    rwsList.push(new ReverseWebsocket(url));
                 } catch (e) {
                     log(e.stack);
                 }
@@ -134,7 +121,7 @@ class OB11ReverseWebsockets {
     }
 
     stop() {
-        for(let rws of rwsList){
+        for (let rws of rwsList) {
             rws.stop();
         }
     }

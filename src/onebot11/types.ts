@@ -135,13 +135,15 @@ export interface OB11MessageFace {
     }
 }
 
+export type OB11MessageMixType = OB11MessageData[] | string | OB11MessageData;
+
 export interface OB11MessageNode {
     type: OB11MessageDataType.node
     data: {
         id?: string
         user_id?: number
         nickname: string
-        content: OB11MessageData[]
+        content: OB11MessageMixType
     }
 }
 
@@ -156,7 +158,7 @@ export interface OB11PostSendMsg {
     message_type?: "private" | "group"
     user_id: string,
     group_id?: string,
-    message: OB11MessageData[] | string | OB11MessageData;
+    message: OB11MessageMixType;
 }
 
 export interface OB11Version {

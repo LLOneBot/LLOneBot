@@ -3,7 +3,7 @@ import {hookApiCallbacks, ReceiveCmd, registerReceiveHook, removeReceiveHook} fr
 import {log} from "../common/utils";
 import {ChatType, Friend, Group, GroupMember, RawMessage, SelfInfo, SendMessageElement, User} from "./types";
 import * as fs from "fs";
-import {addHistoryMsg, msgHistory, selfInfo} from "../common/data";
+import {addHistoryMsg, msgHistory, selfInfo, uidMaps} from "../common/data";
 import {v4 as uuidv4} from "uuid"
 
 interface IPCReceiveEvent {
@@ -224,9 +224,13 @@ export class NTQQApi {
             // log("members info", typeof result.result.infos, Object.keys(result.result.infos))
             let values = result.result.infos.values()
 
-            values = Array.from(values) as GroupMember[]
+            let members = Array.from(values) as GroupMember[]
+            for(const member of members){
+                uidMaps[member.uid] = member.uin;
+            }
+            log(uidMaps);
             // log("members info", values);
-            return values
+            return members
         } catch (e) {
             log(`get group ${groupQQ} members failed`, e)
             return []
@@ -428,7 +432,7 @@ export class NTQQApi {
                 // 需要判断它是转发的消息，并且识别到是当前转发的这一条
                 const arkElement = msg.elements.find(ele => ele.arkElement)
                 if (!arkElement) {
-                    log("收到的不是转发消息")
+                    // log("收到的不是转发消息")
                     return
                 }
                 const forwardData: any = JSON.parse(arkElement.arkElement.bytesData);
@@ -439,7 +443,7 @@ export class NTQQApi {
                     complete = true;
                     addHistoryMsg(msg)
                     resolve(msg);
-                    log("收到转发消息：", payload)
+                    log("转发消息成功：", payload)
                 }
             })
             callNTQQApi<GeneralCallResult>({
