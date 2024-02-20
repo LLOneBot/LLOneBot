@@ -5,8 +5,8 @@ import {Group, RawMessage, User} from "./types";
 import {addHistoryMsg, friends, groups, msgHistory} from "../common/data";
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {OB11GroupIncreaseEvent} from "../onebot11/event/notice/OB11GroupIncreaseEvent";
-import {postMsg} from "../onebot11/server";
 import {v4 as uuidv4} from "uuid"
+import {postEvent} from "../onebot11/server/postevent";
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 
@@ -155,7 +155,7 @@ async function processGroupEvent(payload) {
 
                     for (const member of oldMembers) {
                         if (!newMembersSet.has(member.uin)) {
-                            postMsg(new OB11GroupDecreaseEvent(group.groupCode, parseInt(member.uin)));
+                            postEvent(new OB11GroupDecreaseEvent(group.groupCode, parseInt(member.uin)));
                             break;
                         }
                     }
@@ -174,7 +174,7 @@ async function processGroupEvent(payload) {
                     group.members = newMembers;
                     for (const member of newMembers) {
                         if (!oldMembersSet.has(member.uin)) {
-                            postMsg(new OB11GroupIncreaseEvent(group.groupCode, parseInt(member.uin)));
+                            postEvent(new OB11GroupIncreaseEvent(group.groupCode, parseInt(member.uin)));
                             break;
                         }
                     }

@@ -4,7 +4,7 @@ import {BrowserWindow, ipcMain} from 'electron';
 import fs from 'fs';
 import {Config} from "../common/types";
 import {CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG,} from "../common/channels";
-import {initWebsocket, postMsg} from "../onebot11/server";
+import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
 import {CONFIG_DIR, getConfigUtil, log} from "../common/utils";
 import {addHistoryMsg, getGroupMember, msgHistory, selfInfo} from "../common/data";
 import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} from "../ntqqapi/hook";
@@ -14,6 +14,8 @@ import {ChatType, RawMessage} from "../ntqqapi/types";
 import {ob11HTTPServer} from "../onebot11/server/http";
 import {OB11FriendRecallNoticeEvent} from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
 import {OB11GroupRecallNoticeEvent} from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
+import {postEvent} from "../onebot11/server/postevent";
+import {ob11ReverseWebsockets} from "../onebot11/server/ws/ReverseWebsocket";
 
 
 let running = false;
@@ -34,13 +36,44 @@ function onLoad() {
         if (arg.ob11.httpPort != oldConfig.ob11.httpPort && arg.ob11.enableHttp) {
             ob11HTTPServer.restart(arg.ob11.httpPort);
         }
+        // 判断是否启用或关闭HTTP服务
         if (!arg.ob11.enableHttp) {
-            ob11HTTPServer.stop()
+            ob11HTTPServer.stop();
         } else {
             ob11HTTPServer.start(arg.ob11.httpPort);
         }
+        // 正向ws端口变化，重启服务
         if (arg.ob11.wsPort != oldConfig.ob11.wsPort) {
-            initWebsocket(arg.ob11.wsPort)
+            ob11WebsocketServer.restart(arg.ob11.wsPort);
+        }
+        // 判断是否启用或关闭正向ws
+        if (arg.ob11.enableWs != oldConfig.ob11.enableWs) {
+            if (arg.ob11.enableWs) {
+                ob11WebsocketServer.start(arg.ob11.wsPort);
+            } else {
+                ob11WebsocketServer.stop();
+            }
+        }
+        // 判断是否启用或关闭反向ws
+        if (arg.ob11.enableWsReverse != oldConfig.ob11.enableWsReverse) {
+            if (arg.ob11.enableWsReverse) {
+                ob11ReverseWebsockets.start();
+            } else {
+                ob11ReverseWebsockets.stop();
+            }
+        }
+        if (arg.ob11.enableWsReverse) {
+            // 判断反向ws地址有变化
+            if (arg.ob11.wsHosts.length != oldConfig.ob11.wsHosts.length) {
+                ob11ReverseWebsockets.restart();
+            } else {
+                for (const newHost of arg.ob11.wsHosts) {
+                    if (!oldConfig.ob11.wsHosts.includes(newHost)) {
+                        ob11ReverseWebsockets.restart();
+                        break;
+                    }
+                }
+            }
         }
     })
 
@@ -64,7 +97,7 @@ function onLoad() {
                 if (msg.user_id.toString() == selfInfo.uin && !reportSelfMessage) {
                     return
                 }
-                postMsg(msg);
+                postEvent(msg);
                 // log("post msg", msg)
             }).catch(e => log("constructMessage error: ", e.toString()));
         }
@@ -90,7 +123,7 @@ function onLoad() {
                     }
                     if (message.chatType == ChatType.friend) {
                         const friendRecallEvent = new OB11FriendRecallNoticeEvent(parseInt(message.senderUin), oriMessage.msgShortId);
-                        postMsg(friendRecallEvent);
+                        postEvent(friendRecallEvent);
                     } else if (message.chatType == ChatType.group) {
                         let operatorId = message.senderUin
                         for (const element of message.elements) {
@@ -105,7 +138,7 @@ function onLoad() {
                             oriMessage.msgShortId
                         )
 
-                        postMsg(groupRecallEvent);
+                        postEvent(groupRecallEvent);
                     }
                     continue
                 }
@@ -126,12 +159,20 @@ function onLoad() {
         })
         NTQQApi.getGroups(true).then()
         const config = getConfigUtil().getConfig()
-        try {
-            ob11HTTPServer.start(config.ob11.httpPort)
-            initWebsocket(config.ob11.wsPort);
-        } catch (e) {
-            console.log("start failed", e)
+        if (config.ob11.enableHttp) {
+            try {
+                ob11HTTPServer.start(config.ob11.httpPort)
+            } catch (e) {
+                log("http server start failed", e);
+            }
         }
+        if (config.ob11.enableWs){
+            ob11WebsocketServer.start(config.ob11.wsPort);
+        }
+        if (config.ob11.enableWsReverse){
+            ob11ReverseWebsockets.start();
+        }
+
         log("LLOneBot start")
     }
 
