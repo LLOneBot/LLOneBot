@@ -4,7 +4,7 @@ import {LLOneBot} from "./preload";
 
 declare global {
     interface Window {
-        llonebot: LLOneBot;
+        llonebot: typeof llonebot;
         LiteLoader: any;
     }
 }

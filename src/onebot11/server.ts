@@ -1,200 +1,185 @@
-import * as http from "http";
 import * as websocket from "ws";
 import urlParse from "url";
-import express from "express";
-import { Request } from 'express';
-import { Response } from 'express';
-import { getConfigUtil, log } from "../common/utils";
-import { heartInterval, selfInfo } from "../common/data";
-import { OB11Message, OB11Return, OB11MessageData } from './types';
-import { actionHandlers } from "./actions";
-import { OB11Response } from "./actions/utils";
-import { ActionName } from "./actions/types";
-import BaseAction from "./actions/BaseAction";
-import { OB11Constructor } from "./constructor";
-import { OB11EventBase, OB11LifeCycleEvent, OB11MetaEvent, OB11NoticeEvent } from "./events/types";
+import {getConfigUtil, log} from "../common/utils";
+import {selfInfo} from "../common/data";
+import {OB11Message} from './types';
+import {actionMap} from "./action";
+import {OB11WebsocketResponse} from "./action/utils";
+import {callEvent, registerEventSender, unregisterEventSender} from "./event/manager";
+import {ReconnectingWebsocket} from "./ReconnectingWebsocket";
+import {ActionName} from "./action/types";
+import {OB11BaseMetaEvent} from "./event/meta/OB11BaseMetaEvent";
+import {OB11BaseNoticeEvent} from "./event/notice/OB11BaseNoticeEvent";
+import BaseAction from "./action/BaseAction";
+import {LifeCycleSubType, OB11LifeCycleEvent} from "./event/meta/OB11LifeCycleEvent";
+import {OB11HeartbeatEvent} from "./event/meta/OB11HeartbeatEvent";
 
-let wsServer: websocket.Server = null;
-let accessToken = ""
+let heartbeatRunning = false;
+let websocketServer = null;
 
-const JSONbig = require('json-bigint')({storeAsString: true});
-const expressAPP = express();
-let httpServer: http.Server = null;
-expressAPP.use(express.urlencoded({extended: true, limit: "500mb"}));
+export function initWebsocket(port: number) {
+    const {heartInterval, ob11: {enableWs}, token} = getConfigUtil().getConfig()
+    if (!heartbeatRunning) {
+        setInterval(() => {
+            callEvent(new OB11HeartbeatEvent(true, true, heartInterval));
+        }, heartInterval);  // 心跳包
 
-expressAPP.use((req, res, next) => {
-    let data = '';
-    req.on('data', chunk => {
-        data += chunk.toString();
-    });
-    req.on('end', () => {
-        if (data) {
-            try {
-                // log("receive raw", data)
-                req.body = JSONbig.parse(data);
-            } catch (e) {
-                return next(e);
-            }
+        heartbeatRunning = true;
+    }
+    if (enableWs) {
+        if (websocketServer) {
+            websocketServer.close((err) => {
+                log("ws server close failed!", err)
+            })
         }
-        next();
-    });
-});
 
-const expressAuthorize = (req: Request, res: Response, next: () => void) => {
-    try {
-        let token = ""
-        const authHeader = req.get("authorization")
-        if (authHeader) {
-            token = authHeader.split("Bearer ").pop()
-            log("receive http header token", token)
-        } else if (req.query.access_token) {
-            if (Array.isArray(req.query.access_token)) {
-                token = req.query.access_token[0].toString();
+        websocketServer = new websocket.Server({port});
+        console.log(`llonebot websocket service started 0.0.0.0:${port}`);
+
+        websocketServer.on("connection", (ws, req) => {
+            const url = req.url.split("?").shift();
+            log("receive ws connect", url)
+            let clientToken: string = ""
+            const authHeader = req.headers['authorization'];
+            if (authHeader) {
+                clientToken = authHeader.split("Bearer ").pop()
+                log("receive ws header token", clientToken);
             } else {
-                token = req.query.access_token.toString();
+                const parsedUrl = urlParse.parse(req.url, true);
+                const urlToken = parsedUrl.query.access_token;
+                if (urlToken) {
+                    if (Array.isArray(urlToken)) {
+                        clientToken = urlToken[0]
+                    } else {
+                        clientToken = urlToken
+                    }
+                    log("receive ws url token", clientToken);
+                }
             }
-            log("receive http url token", token)
-        }
+            if (token && clientToken != token) {
+                ws.send(JSON.stringify(OB11WebsocketResponse.res(null, "failed", 1403, "token验证失败")))
+                return ws.close()
+            }
 
-        if (accessToken) {
-            if (token != accessToken) {
-                return res.status(403).send(JSON.stringify({message: 'token verify failed!'}));
+            if (url == "/api" || url == "/api/" || url == "/") {
+                ws.on("message", async (msg) => {
+                    let receiveData: { action: ActionName, params: any, echo?: string } = {action: null, params: {}}
+                    let echo = ""
+                    log("收到正向Websocket消息", msg.toString())
+                    try {
+                        receiveData = JSON.parse(msg.toString())
+                        echo = receiveData.echo
+                    } catch (e) {
+                        return wsReply(ws, OB11WebsocketResponse.error("json解析失败，请检查数据格式", 1400, echo))
+                    }
+                    const action: BaseAction<any, any> = actionMap.get(receiveData.action);
+                    if (!action) {
+                        return wsReply(ws, OB11WebsocketResponse.error("不支持的api " + receiveData.action, 1404, echo))
+                    }
+                    try {
+                        let handleResult = await action.websocketHandle(receiveData.params, echo);
+                        wsReply(ws, handleResult)
+                    } catch (e) {
+                        wsReply(ws, OB11WebsocketResponse.error(`api处理出错:${e}`, 1200, echo))
+                    }
+                })
             }
-        }
-    }catch (e) {
-        log("receive http failed", e.stack)
+            if (url == "/event" || url == "/event/" || url == "/") {
+                registerEventSender(ws);
+
+                log("event上报ws客户端已连接")
+
+                try {
+                    wsReply(ws, new OB11LifeCycleEvent(LifeCycleSubType.CONNECT))
+                } catch (e) {
+                    log("发送生命周期失败", e)
+                }
+
+                ws.on("close", () => {
+                    log("event上报ws客户端已断开")
+                    unregisterEventSender(ws);
+                })
+            }
+        })
     }
-    next();
 
-};
-
-export function setToken(token: string) {
-    accessToken = token
+    initReverseWebsocket();
 }
 
-export function startHTTPServer(port: number) {
-    if (httpServer) {
-        httpServer.close();
-    }
-    expressAPP.get('/', (req: Request, res: Response) => {
-        res.send('LLOneBot已启动');
-    })
+function initReverseWebsocket() {
+    const config = getConfigUtil().getConfig();
+    if (config.ob11.enableWsReverse) {
+        console.log("Prepare to connect all reverse websockets...");
+        for (const url of config.ob11.wsHosts) {
+            new Promise(() => {
+                try {
+                    let wsClient = new ReconnectingWebsocket(url);
+                    registerEventSender(wsClient);
 
-    httpServer = expressAPP.listen(port, "0.0.0.0", () => {
-        console.log(`LLOneBot http server started 0.0.0.0:${port}`);
-    });
+                    wsClient.onopen = function () {
+                        wsReply(wsClient, new OB11LifeCycleEvent(LifeCycleSubType.CONNECT));
+                    }
+
+                    wsClient.onclose = function () {
+                        unregisterEventSender(wsClient);
+                    }
+
+                    wsClient.onmessage = async function (msg) {
+                        let receiveData: { action: ActionName, params: any, echo?: string } = {action: null, params: {}}
+                        let echo = ""
+                        log("收到反向Websocket消息", msg.toString())
+                        try {
+                            receiveData = JSON.parse(msg.toString())
+                            echo = receiveData.echo
+                        } catch (e) {
+                            return wsReply(wsClient, OB11WebsocketResponse.error("json解析失败，请检查数据格式", 1400, echo))
+                        }
+                        const action: BaseAction<any, any> = actionMap.get(receiveData.action);
+                        if (!action) {
+                            return wsReply(wsClient, OB11WebsocketResponse.error("不支持的api " + receiveData.action, 1404, echo))
+                        }
+                        try {
+                            let handleResult = await action.websocketHandle(receiveData.params, echo);
+                            wsReply(wsClient, handleResult)
+                        } catch (e) {
+                            wsReply(wsClient, OB11WebsocketResponse.error(`api处理出错:${e}`, 1200, echo))
+                        }
+                    }
+                } catch (e) {
+                    log(e.stack);
+                }
+            }).then();
+        }
+    }
 }
 
-let wsEventClients: websocket.WebSocket[] = [];
-type RouterHandler = (payload: any) => Promise<OB11Return<any>>
-let routers: Record<string, RouterHandler> = {};
-
-function wsReply(wsClient: websocket.WebSocket, data: OB11Return<any> | PostMsgType) {
+export function wsReply(wsClient: websocket.WebSocket | ReconnectingWebsocket, data: OB11WebsocketResponse | PostMsgType) {
     try {
-        wsClient.send(JSON.stringify(data))
+        let packet = Object.assign({
+            echo: ""
+        }, data);
+        if (!packet.echo) {
+            packet.echo = "";
+        }
+
+        wsClient.send(JSON.stringify(packet))
         log("ws 消息上报", data)
     } catch (e) {
         log("websocket 回复失败", e)
     }
 }
 
-export function startWSServer(port: number) {
-    if (wsServer) {
-        wsServer.close((err) => {
-            log("ws server close failed!", err)
-        })
-    }
-    wsServer = new websocket.Server({port})
-    wsServer.on("connection", (ws, req) => {
-        const url = req.url.split("?").shift();
-        log("receive ws connect", url)
-        let token: string = ""
-        const authHeader = req.headers['authorization'];
-        if (authHeader) {
-            token = authHeader.split("Bearer ").pop()
-            log("receive ws header token", token);
-        } else {
-            const parsedUrl = urlParse.parse(req.url, true);
-            const urlToken = parsedUrl.query.access_token;
-            if (urlToken) {
-                if (Array.isArray(urlToken)) {
-                    token = urlToken[0]
-                } else {
-                    token = urlToken
-                }
-                log("receive ws url token", token);
-            }
-
-        }
-        if (accessToken) {
-            if (token != accessToken) {
-                ws.send(JSON.stringify(OB11Response.res(null, 1403, "token验证失败")))
-                return ws.close()
-            }
-        }
-        if (url == "/api" || url == "/api/" || url == "/") {
-            ws.on("message", async (msg) => {
-
-                let receiveData: { action: ActionName, params: any, echo?: string } = {action: null, params: {}}
-                let echo = ""
-                log("收到ws消息", msg.toString())
-                try {
-                    receiveData = JSON.parse(msg.toString())
-                    echo = receiveData.echo
-                } catch (e) {
-                    return wsReply(ws, {...OB11Response.error("json解析失败，请检查数据格式"), echo})
-                }
-                const handle: RouterHandler | undefined = routers[receiveData.action]
-                if (!handle) {
-                    let handleResult = OB11Response.error("不支持的api " + receiveData.action, 1404)
-                    handleResult.echo = echo
-                    return wsReply(ws, handleResult)
-                }
-                try {
-                    let handleResult = await handle(receiveData.params)
-                    if (echo){
-                        handleResult.echo = echo
-                    }
-                    wsReply(ws, handleResult)
-                } catch (e) {
-                    wsReply(ws, OB11Response.error(`api处理出错:${e}`))
-                }
-            })
-        }
-        if (url == "/event" || url == "/event/" || url == "/") {
-            log("event上报ws客户端已连接")
-            wsEventClients.push(ws)
-            try {
-                wsReply(ws, OB11Constructor.lifeCycleEvent())
-            }catch (e){
-                log("发送生命周期失败", e)
-            }
-            // 心跳
-            let wsHeart = setInterval(()=>{
-                if (wsEventClients.find(c => c == ws)){
-                    wsReply(ws, OB11Constructor.heartEvent())
-                }
-            }, heartInterval)
-            ws.on("close", () => {
-                clearInterval(wsHeart);
-                log("event上报ws客户端已断开")
-                wsEventClients = wsEventClients.filter((c) => c != ws)
-            })
-        }
-    })
-}
-
-type PostMsgType = OB11Message | OB11MetaEvent | OB11NoticeEvent
+export type PostMsgType = OB11Message | OB11BaseMetaEvent | OB11BaseNoticeEvent
 
 export function postMsg(msg: PostMsgType) {
-    const {reportSelfMessage} = getConfigUtil().getConfig()
+    const config = getConfigUtil().getConfig();
     // 判断msg是否是event
-    if (!reportSelfMessage) {
+    if (!config.reportSelfMessage) {
         if ((msg as OB11Message).user_id.toString() == selfInfo.uin) {
             return
         }
     }
-    for (const host of getConfigUtil().getConfig().hosts) {
+    for (const host of config.ob11.httpHosts) {
         fetch(host, {
             method: "POST",
             headers: {
@@ -208,41 +193,7 @@ export function postMsg(msg: PostMsgType) {
             log(`新消息事件HTTP上报失败: ${host} ` + err + JSON.stringify(msg));
         });
     }
-    for (const wsClient of wsEventClients) {
-        log("新消息事件ws上报", msg)
-        new Promise((resolve, reject) => {
-            wsReply(wsClient, msg);
-        }).then();
-    }
-}
 
-
-function registerRouter(action: string, handle: (payload: any) => Promise<any>) {
-    let url = action.toString()
-    if (!action.startsWith("/")) {
-        url = "/" + action
-    }
-
-    async function _handle(res: Response, payload: any) {
-        log("receive post data", url, payload)
-        try {
-            const result = await handle(payload)
-            res.send(result)
-        } catch (e) {
-            log(e.stack);
-            res.send(OB11Response.error(e.stack.toString()))
-        }
-    }
-
-    expressAPP.post(url, expressAuthorize, (req: Request, res: Response) => {
-        _handle(res, req.body || {}).then()
-    });
-    expressAPP.get(url, expressAuthorize, (req: Request, res: Response) => {
-        _handle(res, req.query as any || {}).then()
-    });
-    routers[action] = handle
-}
-
-for (const action of actionHandlers) {
-    registerRouter(action.actionName, (payload) => action.handle(payload))
+    log("新消息事件ws上报", msg);
+    callEvent(msg);
 }

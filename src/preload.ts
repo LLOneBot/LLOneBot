@@ -21,4 +21,3 @@ export type LLOneBot = typeof llonebot;
 
 // 在window对象下导出只读对象
 contextBridge.exposeInMainWorld("llonebot", llonebot);
-;

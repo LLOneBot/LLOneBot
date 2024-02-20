@@ -2,6 +2,7 @@ import * as path from "path";
 import {selfInfo} from "./data";
 import {ConfigUtil} from "./config";
 import util from "util";
+
 const fs = require('fs');
 
 export const CONFIG_DIR = global.LiteLoader.plugins["LLOneBot"].path.data;
@@ -45,6 +46,10 @@ export function isGIF(path: string) {
     fs.readSync(fd, buffer, 0, 4, 0);
     fs.closeSync(fd);
     return buffer.toString() === 'GIF8'
+}
+
+export function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 
@@ -93,5 +98,21 @@ export async function file2base64(path: string){
     return result;
 }
 
-export const sleep = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms))
+
+// 在保证老对象已有的属性不变化的情况下将新对象的属性复制到老对象
+export function mergeNewProperties(newObj: any, oldObj: any) {
+    Object.keys(newObj).forEach(key => {
+        // 如果老对象不存在当前属性，则直接复制
+        if (!oldObj.hasOwnProperty(key)) {
+            oldObj[key] = newObj[key];
+        } else {
+            // 如果老对象和新对象的当前属性都是对象，则递归合并
+            if (typeof oldObj[key] === 'object' && typeof newObj[key] === 'object') {
+                mergeNewProperties(newObj[key], oldObj[key]);
+            } else if(typeof oldObj[key] === 'object' || typeof newObj[key] === 'object'){
+                // 属性冲突，有一方不是对象，直接覆盖
+                oldObj[key] = newObj[key];
+            }
+        }
+    });
+}
