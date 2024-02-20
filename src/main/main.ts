@@ -7,7 +7,7 @@ import { CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG, } from "../common/
 import { postMsg, setToken, startHTTPServer, startWSServer } from "../onebot11/server";
 import { CONFIG_DIR, getConfigUtil, log } from "../common/utils";
 import { addHistoryMsg, getGroupMember, msgHistory, selfInfo, uidMaps } from "../common/data";
-import { hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook } from "../ntqqapi/hook";
+import { hookNTQQApiReceive, ReceiveCmd, registerReceiveHook } from "../ntqqapi/hook";
 import { OB11Constructor } from "../onebot11/constructor";
 import { NTQQApi } from "../ntqqapi/ntcall";
 import { ChatType, RawMessage } from "../ntqqapi/types";
@@ -29,19 +29,22 @@ function onLoad() {
     ipcMain.on(CHANNEL_SET_CONFIG, (event: any, arg: Config) => {
         let oldConfig = getConfigUtil().getConfig();
         getConfigUtil().setConfig(arg)
-        if (arg.port != oldConfig.port) {
-            startHTTPServer(arg.port)
+        if (arg.ob11.httpPort != oldConfig.ob11.httpPort && arg.ob11.enableHttp) {
+            ob11HTTPServer.restart(arg.ob11.httpPort);
         }
-        if (arg.wsPort != oldConfig.wsPort) {
-            startWSServer(arg.wsPort)
+        if (!arg.ob11.enableHttp){
+            ob11HTTPServer.stop()
         }
-        if (arg.token != oldConfig.token) {
-            setToken(arg.token);
+        else{
+            ob11HTTPServer.start(arg.ob11.httpPort);
+        }
+        if (arg.ob11.wsPort != oldConfig.ob11.wsPort) {
+            initWebsocket(arg.ob11.wsPort)
         }
     })
 
     ipcMain.on(CHANNEL_LOG, (event: any, arg: any) => {
-        log(arg)
+        log(arg);
     })
 
 
@@ -51,7 +54,7 @@ function onLoad() {
             // log("收到新消息", message)
             message.msgShortId = msgHistory[message.msgId]?.msgShortId
             if (!message.msgShortId) {
-                addHistoryMsg(message)
+                addHistoryMsg(message);
             }
             OB11Constructor.message(message).then((msg) => {
                 if (debug) {
@@ -70,10 +73,9 @@ function onLoad() {
     async function start() {
         registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
             try {
-                // log("received msg length", payload.msgList.length);
                 postRawMsg(payload.msgList);
             } catch (e) {
-                log("report message error: ", e.toString())
+                log("report message error: ", e.toString());
             }
         })
         registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.UPDATE_MSG, async (payload) => {
@@ -86,8 +88,8 @@ function onLoad() {
                         continue
                     }
                     if (message.chatType == ChatType.friend) {
-                        const friendRecallEvent = OB11Constructor.friendRecallEvent(message.senderUin, oriMessage.msgShortId)
-                        postMsg(friendRecallEvent)
+                        const friendRecallEvent = new OB11FriendRecallNoticeEvent(parseInt(message.senderUin), oriMessage.msgShortId);
+                        postMsg(friendRecallEvent);
                     } else if (message.chatType == ChatType.group) {
                         let operatorId = message.senderUin
                         for (const element of message.elements) {
@@ -95,13 +97,14 @@ function onLoad() {
                             const operator = await getGroupMember(message.peerUin, null, operatorUid)
                             operatorId = operator.uin
                         }
-                        const groupRecallEvent = OB11Constructor.groupRecallEvent(
-                            message.peerUin,
-                            message.senderUin,
-                            operatorId,
+                        const groupRecallEvent = new OB11GroupRecallNoticeEvent(
+                            parseInt(message.peerUin),
+                            parseInt(message.senderUin),
+                            parseInt(operatorId),
                             oriMessage.msgShortId
                         )
-                        postMsg(groupRecallEvent)
+
+                        postMsg(groupRecallEvent);
                     }
                     continue
                 }
@@ -109,7 +112,7 @@ function onLoad() {
             }
         })
         registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, (payload) => {
-            const {reportSelfMessage} = getConfigUtil().getConfig()
+            const {reportSelfMessage} = getConfigUtil().getConfig();
             if (!reportSelfMessage) {
                 return
             }
@@ -117,45 +120,48 @@ function onLoad() {
             try {
                 postRawMsg([payload.msgRecord]);
             } catch (e) {
-                log("report self message error: ", e.toString())
+                log("report self message error: ", e.toString());
             }
         })
         NTQQApi.getGroups(true).then()
         const config = getConfigUtil().getConfig()
-        startHTTPServer(config.port)
-        startWSServer(config.wsPort)
-        setToken(config.token)
+        try {
+            ob11HTTPServer.start(config.ob11.httpPort)
+            initWebsocket(config.ob11.wsPort);
+        }catch (e) {
+            console.log("start failed", e)
+        }
         log("LLOneBot start")
     }
 
     const init = async () => {
         try {
-            const _ = await NTQQApi.getSelfInfo()
-            Object.assign(selfInfo, _)
-            selfInfo.nick = selfInfo.uin
-            log("get self simple info", _)
+            const _ = await NTQQApi.getSelfInfo();
+            Object.assign(selfInfo, _);
+            selfInfo.nick = selfInfo.uin;
+            log("get self simple info", _);
         } catch (e) {
-            log("retry get self info")
+            log("retry get self info");
         }
         if (selfInfo.uin) {
             try {
-                const userInfo = (await NTQQApi.getUserInfo(selfInfo.uid))
+                const userInfo = (await NTQQApi.getUserInfo(selfInfo.uid));
                 log("self info", userInfo);
                 if (userInfo) {
-                    selfInfo.nick = userInfo.nick
+                    selfInfo.nick = userInfo.nick;
                 } else {
-                    return setTimeout(init, 1000)
+                    return setTimeout(init, 1000);
                 }
             } catch (e) {
-                log("get self nickname failed", e.toString())
-                return setTimeout(init, 1000)
+                log("get self nickname failed", e.toString());
+                return setTimeout(init, 1000);
             }
             start().then();
         } else {
             setTimeout(init, 1000)
         }
     }
-    setTimeout(init, 1000)
+    setTimeout(init, 1000);
 }
 
 
