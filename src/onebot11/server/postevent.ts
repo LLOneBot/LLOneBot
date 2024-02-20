@@ -22,11 +22,11 @@ export function unregisterWsEventSender(ws: websocket.WebSocket) {
 }
 
 export function postWsEvent(event: PostEventType) {
-    new Promise(() => {
-        for (const ws of eventWSList) {
+    for (const ws of eventWSList) {
+        new Promise(() => {
             wsReply(ws, event);
-        }
-    }).then()
+        }).then()
+    }
 }
 
 export function postEvent(msg: PostEventType) {

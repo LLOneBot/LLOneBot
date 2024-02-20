@@ -10,6 +10,6 @@ export enum EventType {
 
 export abstract class OB11BaseEvent {
     time = new Date().getTime();
-    self_id = selfInfo.uin;
+    self_id = parseInt(selfInfo.uin);
     post_type: EventType;
 }

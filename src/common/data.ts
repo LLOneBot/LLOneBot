@@ -77,12 +77,12 @@ export function getHistoryMsgBySeq(seq: string) {
 }
 
 
-export let uidMaps:Record<string, Friend> = {}  // 一串加密的字符串(uid) -> qq号
+export let uidMaps:Record<string, string> = {}  // 一串加密的字符串(uid) -> qq号
 
-export function getStrangerByUin(uin: string) {
+export function getUidByUin(uin: string) {
     for (const key in uidMaps) {
-        if (uidMaps[key].uin === uin) {
-            return uidMaps[key];
+        if (uidMaps[key] === uin) {
+            return key;
         }
     }
 }

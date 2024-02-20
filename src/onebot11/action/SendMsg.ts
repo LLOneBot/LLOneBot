@@ -1,6 +1,6 @@
 import {AtType, ChatType, Group, SendMessageElement} from "../../ntqqapi/types";
-import {addHistoryMsg, friends, getGroup, getHistoryMsgByShortId, getStrangerByUin, selfInfo,} from "../../common/data";
-import {OB11MessageData, OB11MessageDataType, OB11MessageNode, OB11PostSendMsg} from '../types';
+import {addHistoryMsg, friends, getGroup, getHistoryMsgByShortId, getUidByUin, selfInfo,} from "../../common/data";
+import {OB11MessageData, OB11MessageDataType, OB11MessageMixType, OB11MessageNode, OB11PostSendMsg} from '../types';
 import {NTQQApi, Peer} from "../../ntqqapi/ntcall";
 import {SendMsgElementConstructor} from "../../ntqqapi/constructor";
 import {uri2local} from "../utils";
@@ -53,7 +53,7 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     actionName = ActionName.SendMsg
 
     protected async check(payload: OB11PostSendMsg): Promise<BaseCheckResult> {
-        const messages = this.convertMessage2List(payload);
+        const messages = this.convertMessage2List(payload.message);
         const fmNum = this.forwardMsgNum(payload)
         if (fmNum && fmNum != messages.length) {
             return {
@@ -88,15 +88,15 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                 peer.peerUid = friend.uid
             } else {
                 peer.chatType = ChatType.temp
-                const tempUser = getStrangerByUin(payload.user_id.toString())
-                if (!tempUser) {
+                const tempUserUid = getUidByUin(payload.user_id.toString())
+                if (!tempUserUid) {
                     throw (`找不到私聊对象${payload.user_id}`)
                 }
                 // peer.name = tempUser.nickName
-                peer.peerUid = tempUser.uid
+                peer.peerUid = tempUserUid;
             }
         }
-        const messages = this.convertMessage2List(payload);
+        const messages = this.convertMessage2List(payload.message);
         if (this.forwardMsgNum(payload)) {
             try {
                 const returnMsg = await this.handleForwardNode(peer, messages as OB11MessageNode[], group)
@@ -115,18 +115,18 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         }
     }
 
-    private convertMessage2List(payload: OB11PostSendMsg) {
-        if (typeof payload.message === "string") {
-            payload.message = [{
+    private convertMessage2List(message: OB11MessageMixType) {
+        if (typeof message === "string") {
+            message = [{
                 type: OB11MessageDataType.text,
                 data: {
-                    text: payload.message
+                    text: message
                 }
             }] as OB11MessageData[]
-        } else if (!Array.isArray(payload.message)) {
-            payload.message = [payload.message]
+        } else if (!Array.isArray(message)) {
+            message = [message]
         }
-        return payload.message;
+        return message;
     }
 
     private forwardMsgNum(payload: OB11PostSendMsg): number {
@@ -156,12 +156,13 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                 const {
                     sendElements,
                     deleteAfterSentFiles
-                } = await this.createSendElements(messageNode.data.content, group)
+                } = await this.createSendElements(this.convertMessage2List(messageNode.data.content), group)
                 try {
+                    log("开始生成转发节点", sendElements);
                     const nodeMsg = await this.send(selfPeer, sendElements, deleteAfterSentFiles, true);
                     nodeIds.push(nodeMsg.msgId)
                 } catch (e) {
-                    log("生效转发消息节点失败")
+                    log("生效转发消息节点失败", e)
                 }
             }
         }

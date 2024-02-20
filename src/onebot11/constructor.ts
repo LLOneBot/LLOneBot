@@ -72,7 +72,7 @@ export class OB11Constructor {
                 }
             } else if (element.textElement) {
                 message_data["type"] = "text"
-                message_data["data"]["text"] = element.textElement.content
+                resMsg.raw_message += message_data["data"]["text"] = element.textElement.content
             } else if (element.picElement) {
                 message_data["type"] = "image"
                 message_data["data"]["file_id"] = element.picElement.fileUuid
