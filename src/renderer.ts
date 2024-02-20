@@ -16,7 +16,7 @@ async function onSettingWindowCreated(view: Element) {
                 <h2>HTTP事件上报地址(http)</h2>
                 <input class="httpHost input-text" type="text" value="${host}" 
                 style="width:60%;padding: 5px"
-                placeholder="如果localhost上报失败试试局域网ip"/>
+                placeholder="如:http://127.0.0.1:8080/onebot/v11/http"/>
             </setting-item>
             `
         return eleStr
@@ -25,10 +25,10 @@ async function onSettingWindowCreated(view: Element) {
     function createWsHostEleStr(host: string) {
         let eleStr = `
             <setting-item data-direction="row" class="hostItem vertical-list-item ${reverseWSClass}">
-                <h2>事件上报地址(反向websocket)</h2>
+                <h2>反向websocket地址:</h2>
                 <input class="wsHost input-text" type="text" value="${host}" 
                 style="width:60%;padding: 5px"
-                placeholder="如果localhost上报失败试试局域网ip"/>
+                placeholder="如: ws://127.0.0.1:5410/onebot"/>
             </setting-item>
             `
         return eleStr
@@ -92,7 +92,7 @@ async function onSettingWindowCreated(view: Element) {
                     </setting-item>
                     <div class="${reverseWSClass}" style="display: ${config.ob11.enableWsReverse ? '' : 'none'}">
                         <div>
-                            <button id="addWsHost" class="q-button">添加反向Websocket上报地址</button>
+                            <button id="addWsHost" class="q-button">添加反向Websocket地址</button>
                         </div>
                         <div id="wsHostItems">
                             ${wsHostsEleStr}

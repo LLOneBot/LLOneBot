@@ -1,7 +1,7 @@
 import {Response} from "express";
 import {getConfigUtil} from "../../common/utils";
 import {OB11Response} from "../action/utils";
-import {HttpServerBase} from "../../server/http";
+import {HttpServerBase} from "../../common/server/http";
 import {actionHandlers} from "../action";
 
 class OB11HTTPServer extends HttpServerBase {

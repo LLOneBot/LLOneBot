@@ -1,5 +1,5 @@
 import express, {Express, Request, Response} from "express";
-import {getConfigUtil, log} from "../common/utils";
+import {getConfigUtil, log} from "../utils";
 import http from "http";
 
 const JSONbig = require('json-bigint')({storeAsString: true});
