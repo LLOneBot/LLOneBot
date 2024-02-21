@@ -14,6 +14,7 @@ import GetVersionInfo from "./GetVersionInfo";
 import CanSendRecord from "./CanSendRecord";
 import CanSendImage from "./CanSendImage";
 import GetStatus from "./GetStatus";
+import {GoCQHTTPSendGroupForwardMsg, GoCQHTTPSendPrivateForwardMsg} from "./go-cqhttp/SendForwardMsg";
 
 export const actionHandlers = [
     new GetMsg(),
@@ -25,7 +26,12 @@ export const actionHandlers = [
     new GetVersionInfo(),
     new CanSendRecord(),
     new CanSendImage(),
-    new GetStatus()
+    new GetStatus(),
+
+    //以下为go-cqhttp api
+    new GoCQHTTPSendGroupForwardMsg(),
+    new GoCQHTTPSendPrivateForwardMsg(),
+
 ]
 
 function initActionMap() {

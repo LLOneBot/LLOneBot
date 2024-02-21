@@ -28,4 +28,7 @@ export enum ActionName {
     GetStatus = "get_status",
     CanSendRecord = "can_send_record",
     CanSendImage = "can_send_image",
+    // 以下为go-cqhttp api
+    GoCQHTTP_SendGroupForwardMsg = "send_group_forward_msg",
+    GoCQHTTP_SendPrivateForwardMsg = "send_private_forward_msg"
 }

@@ -4,7 +4,7 @@ import * as WebSocket from "ws";
 import {selfInfo} from "../../../common/data";
 import {LifeCycleSubType, OB11LifeCycleEvent} from "../../event/meta/OB11LifeCycleEvent";
 import {ActionName} from "../../action/types";
-import {OB11WebsocketResponse} from "../../action/utils";
+import {OB11Response} from "../../action/utils";
 import BaseAction from "../../action/BaseAction";
 import {actionMap} from "../../action";
 import {registerWsEventSender, unregisterWsEventSender} from "../postevent";
@@ -35,22 +35,22 @@ export class ReverseWebsocket {
     public async onmessage(msg: string) {
         let receiveData: { action: ActionName, params: any, echo?: string } = {action: null, params: {}}
         let echo = ""
-        log("收到反向Websocket消息", msg.toString())
+        log("收到反向Websocket消息", msg)
         try {
             receiveData = JSON.parse(msg.toString())
             echo = receiveData.echo
         } catch (e) {
-            return wsReply(this.websocket, OB11WebsocketResponse.error("json解析失败，请检查数据格式", 1400, echo))
+            return wsReply(this.websocket, OB11Response.error("json解析失败，请检查数据格式", 1400, echo))
         }
         const action: BaseAction<any, any> = actionMap.get(receiveData.action);
         if (!action) {
-            return wsReply(this.websocket, OB11WebsocketResponse.error("不支持的api " + receiveData.action, 1404, echo))
+            return wsReply(this.websocket, OB11Response.error("不支持的api " + receiveData.action, 1404, echo))
         }
         try {
             let handleResult = await action.websocketHandle(receiveData.params, echo);
             wsReply(this.websocket, handleResult)
         } catch (e) {
-            wsReply(this.websocket, OB11WebsocketResponse.error(`api处理出错:${e}`, 1200, echo))
+            wsReply(this.websocket, OB11Response.error(`api处理出错:${e}`, 1200, echo))
         }
     }
 
