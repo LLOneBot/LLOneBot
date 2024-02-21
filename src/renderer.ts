@@ -109,7 +109,7 @@ async function onSettingWindowCreated(view: Element) {
                 <setting-item data-direction="row" class="hostItem vertical-list-item">
                     <div>
                         <div>上报文件不采用本地路径</div>
-                        <div class="tips">开启后，上报图片为http连接，语音为base64编码</div>
+                        <div class="tips">开启后，上报文件(图片语音等)为http链接或base64编码</div>
                     </div>
                     <setting-switch id="switchFileUrl" ${config.enableLocalFile2Url ? "is-active" : ""}></setting-switch>
                 </setting-item>

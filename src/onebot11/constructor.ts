@@ -7,7 +7,17 @@ import {
     OB11MessageDataType,
     OB11User
 } from "./types";
-import {AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User} from '../ntqqapi/types';
+import {
+    AtType,
+    ChatType,
+    Friend,
+    Group,
+    GroupMember,
+    IMAGE_HTTP_HOST,
+    RawMessage,
+    SelfInfo,
+    User
+} from '../ntqqapi/types';
 import {getFriend, getGroupMember, getHistoryMsgBySeq, selfInfo} from '../common/data';
 import {file2base64, getConfigUtil, log} from "../common/utils";
 import {NTQQApi} from "../ntqqapi/ntcall";
@@ -131,7 +141,7 @@ export class OB11Constructor {
                 if (!enableLocalFile2Url) {
                     message_data.data.file = "file://" + filePath
                 } else { // 不使用本地路径
-                    if (message_data.data.http_file) {
+                    if (message_data.data.http_file && !message_data.data.http_file.startsWith(IMAGE_HTTP_HOST + "/download")) {
                         message_data.data.file = message_data.data.http_file
                     } else {
                         let {err, data} = await file2base64(filePath);

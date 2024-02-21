@@ -17,7 +17,8 @@ export enum ReceiveCmd {
     USER_INFO = "nodeIKernelProfileListener/onProfileSimpleChanged",
     GROUPS = "nodeIKernelGroupListener/onGroupListUpdate",
     GROUPS_UNIX = "onGroupListUpdate",
-    FRIENDS = "onBuddyListChange"
+    FRIENDS = "onBuddyListChange",
+    MEDIA_DOWNLOAD_COMPLETE = "nodeIKernelMsgListener/onRichMediaDownloadComplete"
 }
 
 interface NTQQApiReturnData<PayloadType = unknown> extends Array<any> {
