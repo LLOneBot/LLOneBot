@@ -15,8 +15,11 @@ import CanSendRecord from "./CanSendRecord";
 import CanSendImage from "./CanSendImage";
 import GetStatus from "./GetStatus";
 import {GoCQHTTPSendGroupForwardMsg, GoCQHTTPSendPrivateForwardMsg} from "./go-cqhttp/SendForwardMsg";
+import GoCQHTTPGetStrangerInfo from "./go-cqhttp/GetStrangerInfo";
+import SendLike from "./SendLike";
 
 export const actionHandlers = [
+    new SendLike(),
     new GetMsg(),
     new GetLoginInfo(),
     new GetFriendList(),
@@ -31,6 +34,7 @@ export const actionHandlers = [
     //以下为go-cqhttp api
     new GoCQHTTPSendGroupForwardMsg(),
     new GoCQHTTPSendPrivateForwardMsg(),
+    new GoCQHTTPGetStrangerInfo()
 
 ]
 

@@ -3,7 +3,7 @@ import {hookApiCallbacks, ReceiveCmd, registerReceiveHook, removeReceiveHook} fr
 import {log} from "../common/utils";
 import {ChatType, Friend, Group, GroupMember, RawMessage, SelfInfo, SendMessageElement, User} from "./types";
 import * as fs from "fs";
-import {addHistoryMsg, msgHistory, selfInfo, uidMaps} from "../common/data";
+import {addHistoryMsg, msgHistory, selfInfo} from "../common/data";
 import {v4 as uuidv4} from "uuid"
 
 interface IPCReceiveEvent {
@@ -66,14 +66,16 @@ interface NTQQApiParams {
     className?: NTQQApiClass,
     channel?: NTQQApiChannel,
     args?: unknown[],
-    cbCmd?: ReceiveCmd | null
+    cbCmd?: ReceiveCmd | null,
+    cmdCB?: (payload: any) => boolean;
     timeoutSecond?: number,
 }
 
 function callNTQQApi<ReturnType>(params: NTQQApiParams) {
     let {
         className, methodName, channel, args,
-        cbCmd, timeoutSecond: timeout
+        cbCmd, timeoutSecond: timeout,
+        cmdCB
     } = params;
     className = className ?? NTQQApiClass.NT_API;
     channel = channel ?? NTQQApiChannel.IPC_UP_2;
@@ -95,12 +97,20 @@ function callNTQQApi<ReturnType>(params: NTQQApiParams) {
             // 这里的callback比较特殊，QQ后端先返回是否调用成功，再返回一条结果数据
             hookApiCallbacks[uuid] = (result: GeneralCallResult) => {
                 log(`${methodName} callback`, result)
-                if (result.result == 0) {
+                if (result?.result == 0 || result === undefined) {
                     const hookId = registerReceiveHook<ReturnType>(cbCmd, (payload) => {
                         log(methodName, "second callback", cbCmd, payload);
-                        removeReceiveHook(hookId);
-                        success = true
-                        resolve(payload);
+                        if (cmdCB) {
+                            if (cmdCB(payload)) {
+                                removeReceiveHook(hookId);
+                                success = true
+                                resolve(payload);
+                            }
+                        } else {
+                            removeReceiveHook(hookId);
+                            success = true
+                            resolve(payload);
+                        }
                     })
                 } else {
                     success = true
@@ -138,7 +148,7 @@ interface GeneralCallResult {
 export class NTQQApi {
     // static likeFriend = defineNTQQApi<void>(NTQQApiChannel.IPC_UP_2, NTQQApiClass.NT_API, NTQQApiMethod.LIKE_FRIEND)
     static likeFriend(uid: string, count = 1) {
-        return callNTQQApi({
+        return callNTQQApi<GeneralCallResult>({
             methodName: NTQQApiMethod.LIKE_FRIEND,
             args: [{
                 doLikeUserInfo: {
@@ -225,7 +235,7 @@ export class NTQQApi {
             let values = result.result.infos.values()
 
             let members = Array.from(values) as GroupMember[]
-            for(const member of members){
+            for (const member of members) {
                 // uidMaps[member.uid] = member.uin;
             }
             // log(uidMaps);
@@ -328,7 +338,15 @@ export class NTQQApi {
             },
             undefined,
         ]
-        await callNTQQApi({methodName: NTQQApiMethod.DOWNLOAD_MEDIA, args: apiParams})
+        // log("需要下载media", sourcePath);
+        await callNTQQApi({
+            methodName: NTQQApiMethod.DOWNLOAD_MEDIA,
+            args: apiParams,
+            cbCmd: ReceiveCmd.MEDIA_DOWNLOAD_COMPLETE,
+            cmdCB:(payload: {notifyInfo: {filePath: string}})=>{
+                // log("media 下载完成判断", payload.notifyInfo.filePath, sourcePath);
+                return payload.notifyInfo.filePath == sourcePath;
+            }})
         return sourcePath
     }
 
@@ -341,7 +359,7 @@ export class NTQQApi {
         })
     }
 
-    static sendMsg(peer: Peer, msgElements: SendMessageElement[], waitComplete = false, timeout=10000) {
+    static sendMsg(peer: Peer, msgElements: SendMessageElement[], waitComplete = false, timeout = 10000) {
         const sendTimeout = timeout
 
         return new Promise<RawMessage>((resolve, reject) => {

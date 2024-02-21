@@ -13,6 +13,7 @@ export interface InvalidCheckResult {
 
 export enum ActionName {
     TestForwardMsg = "test_forward_msg",
+    SendLike = "send_like",
     GetLoginInfo = "get_login_info",
     GetFriendList = "get_friend_list",
     GetGroupInfo = "get_group_info",
@@ -30,5 +31,6 @@ export enum ActionName {
     CanSendImage = "can_send_image",
     // 以下为go-cqhttp api
     GoCQHTTP_SendGroupForwardMsg = "send_group_forward_msg",
-    GoCQHTTP_SendPrivateForwardMsg = "send_private_forward_msg"
+    GoCQHTTP_SendPrivateForwardMsg = "send_private_forward_msg",
+    GoCQHTTP_GetStrangerInfo = "get_stranger_info"
 }
