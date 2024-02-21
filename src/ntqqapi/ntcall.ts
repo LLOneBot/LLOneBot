@@ -226,9 +226,9 @@ export class NTQQApi {
 
             let members = Array.from(values) as GroupMember[]
             for(const member of members){
-                uidMaps[member.uid] = member.uin;
+                // uidMaps[member.uid] = member.uin;
             }
-            log(uidMaps);
+            // log(uidMaps);
             // log("members info", values);
             return members
         } catch (e) {
@@ -341,8 +341,8 @@ export class NTQQApi {
         })
     }
 
-    static sendMsg(peer: Peer, msgElements: SendMessageElement[], waitComplete = false) {
-        const sendTimeout = 10 * 1000
+    static sendMsg(peer: Peer, msgElements: SendMessageElement[], waitComplete = false, timeout=10000) {
+        const sendTimeout = timeout
 
         return new Promise<RawMessage>((resolve, reject) => {
             const peerUid = peer.peerUid;

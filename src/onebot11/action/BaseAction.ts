@@ -1,6 +1,6 @@
 import {ActionName, BaseCheckResult} from "./types"
-import {OB11Response, OB11WebsocketResponse} from "./utils"
-import {OB11Return, OB11WebsocketReturn} from "../types";
+import {OB11Response} from "./utils"
+import {OB11Return} from "../types";
 
 class BaseAction<PayloadType, ReturnDataType> {
     actionName: ActionName
@@ -23,16 +23,16 @@ class BaseAction<PayloadType, ReturnDataType> {
         }
     }
 
-    public async websocketHandle(payload: PayloadType, echo: string): Promise<OB11WebsocketReturn<ReturnDataType | null>> {
+    public async websocketHandle(payload: PayloadType, echo: string): Promise<OB11Return<ReturnDataType | null>> {
         const result = await this.check(payload)
         if (!result.valid) {
-            return OB11WebsocketResponse.error(result.message, 1400)
+            return OB11Response.error(result.message, 1400)
         }
         try {
             const resData = await this._handle(payload)
-            return OB11WebsocketResponse.ok(resData, echo);
+            return OB11Response.ok(resData, echo);
         } catch (e) {
-            return OB11WebsocketResponse.error(e.toString(), 1200)
+            return OB11Response.error(e.toString(), 1200, echo)
         }
     }
 

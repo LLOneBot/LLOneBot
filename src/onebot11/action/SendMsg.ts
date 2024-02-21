@@ -9,6 +9,7 @@ import {ActionName, BaseCheckResult} from "./types";
 import * as fs from "fs";
 import {log} from "../../common/utils";
 import {v4 as uuidv4} from "uuid"
+import {parseCQCode} from "../cqcode";
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
     function checkUri(uri: string): boolean {
@@ -49,7 +50,7 @@ export interface ReturnDataType {
     message_id: number
 }
 
-class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
+export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     actionName = ActionName.SendMsg
 
     protected async check(payload: OB11PostSendMsg): Promise<BaseCheckResult> {
@@ -115,14 +116,15 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         }
     }
 
-    private convertMessage2List(message: OB11MessageMixType) {
+    protected convertMessage2List(message: OB11MessageMixType) {
         if (typeof message === "string") {
-            message = [{
-                type: OB11MessageDataType.text,
-                data: {
-                    text: message
-                }
-            }] as OB11MessageData[]
+            // message = [{
+            //     type: OB11MessageDataType.text,
+            //     data: {
+            //         text: message
+            //     }
+            // }] as OB11MessageData[]
+            message = parseCQCode(message.toString())
         } else if (!Array.isArray(message)) {
             message = [message]
         }
@@ -143,9 +145,8 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             peerUid: selfInfo.uid
         }
         let nodeIds: string[] = []
-        for (const messageNode of messageNodes) {
+        for (const messageNode of messageNodes){
             // 一个node表示一个人的消息
-
             let nodeId = messageNode.data.id;
             // 有nodeId表示一个子转发消息卡片
             if (nodeId) {
@@ -153,14 +154,15 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             } else {
                 // 自定义的消息
                 // 提取消息段，发给自己生成消息id
-                const {
-                    sendElements,
-                    deleteAfterSentFiles
-                } = await this.createSendElements(this.convertMessage2List(messageNode.data.content), group)
                 try {
+                    const {
+                        sendElements,
+                        deleteAfterSentFiles
+                    } = await this.createSendElements(this.convertMessage2List(messageNode.data.content), group);
                     log("开始生成转发节点", sendElements);
                     const nodeMsg = await this.send(selfPeer, sendElements, deleteAfterSentFiles, true);
                     nodeIds.push(nodeMsg.msgId)
+                    log("转发节点生成成功", nodeMsg.msgId);
                 } catch (e) {
                     log("生效转发消息节点失败", e)
                 }
@@ -240,7 +242,8 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                             }
                         }
                     }
-                } break;
+                }
+                    break;
             }
 
         }
@@ -255,7 +258,7 @@ class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         if (!sendElements.length) {
             throw ("消息体无法解析")
         }
-        const returnMsg = await NTQQApi.sendMsg(peer, sendElements, waitComplete)
+        const returnMsg = await NTQQApi.sendMsg(peer, sendElements, waitComplete, 20000);
         addHistoryMsg(returnMsg)
         deleteAfterSentFiles.map(f => fs.unlink(f, () => {
         }))

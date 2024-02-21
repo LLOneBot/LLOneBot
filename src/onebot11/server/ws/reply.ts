@@ -1,9 +1,9 @@
 import * as websocket from "ws";
-import {OB11WebsocketResponse} from "../../action/utils";
+import {OB11Response} from "../../action/utils";
 import {PostEventType} from "../postevent";
 import {log} from "../../../common/utils";
 
-export function wsReply(wsClient: websocket.WebSocket, data: OB11WebsocketResponse | PostEventType) {
+export function wsReply(wsClient: websocket.WebSocket, data: OB11Response | PostEventType) {
     try {
         let packet = Object.assign({
         }, data);

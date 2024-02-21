@@ -76,10 +76,8 @@ export interface OB11Return<DataType> {
     retcode: number
     data: DataType
     message: string,
-}
-
-export interface OB11WebsocketReturn<DataType> extends OB11Return<DataType>{
-    echo: string
+    echo?: string, // ws调用api才有此字段
+    wording?: string,  // go-cqhttp字段，错误信息
 }
 
 export enum OB11MessageDataType {
@@ -160,6 +158,7 @@ export interface OB11PostSendMsg {
     user_id: string,
     group_id?: string,
     message: OB11MessageMixType;
+    messages?: OB11MessageMixType;  // 兼容 go-cqhttp
 }
 
 export interface OB11Version {
