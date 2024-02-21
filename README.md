@@ -60,6 +60,7 @@ LiteLoaderQQNT的OneBot11协议插件
 - [x] get_group_member_info
 - [x] get_friend_list
 - [x] get_msg
+- [x] send_like
 - [x] get_version_info
 - [x] get_status
 - [x] can_send_image
@@ -68,6 +69,7 @@ LiteLoaderQQNT的OneBot11协议插件
 支持的go-cqhtp api:
 - [x] send_private_forward_msg
 - [x] send_group_forward_msg
+- [x] get_stranger_info
 
 ## 示例
 
@@ -108,7 +110,7 @@ LiteLoaderQQNT的OneBot11协议插件
 - [x] 重构摆脱LLAPI，目前调用LLAPI只能在renderer进程调用，需重构成在main进程调用
 - [x] 支持正、反向websocket（感谢@disymayufei的PR）
 - [x] 转发消息记录 
-- [ ] 好友点赞api
+- [x] 好友点赞api
 
 ## onebot11文档
 <https://11.onebot.dev/>
