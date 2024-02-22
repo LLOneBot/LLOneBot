@@ -41,7 +41,8 @@ export enum NTQQApiMethod {
     RECALL_MSG = "nodeIKernelMsgService/recallMsg",
     SEND_MSG = "nodeIKernelMsgService/sendMsg",
     DOWNLOAD_MEDIA = "nodeIKernelMsgService/downloadRichMedia",
-    MULTI_FORWARD_MSG = "nodeIKernelMsgService/multiForwardMsgWithComment" // 合并转发
+    MULTI_FORWARD_MSG = "nodeIKernelMsgService/multiForwardMsgWithComment", // 合并转发
+    GET_GROUP_NOTICE = "nodeIKernelGroupListener/onGroupSingleScreenNotifies",
 }
 
 enum NTQQApiChannel {
@@ -65,6 +66,7 @@ interface NTQQApiParams {
     methodName: NTQQApiMethod,
     className?: NTQQApiClass,
     channel?: NTQQApiChannel,
+    classNameIsRegister?: boolean
     args?: unknown[],
     cbCmd?: ReceiveCmd | null,
     cmdCB?: (payload: any) => boolean;
@@ -343,10 +345,11 @@ export class NTQQApi {
             methodName: NTQQApiMethod.DOWNLOAD_MEDIA,
             args: apiParams,
             cbCmd: ReceiveCmd.MEDIA_DOWNLOAD_COMPLETE,
-            cmdCB:(payload: {notifyInfo: {filePath: string}})=>{
+            cmdCB: (payload: { notifyInfo: { filePath: string } }) => {
                 // log("media 下载完成判断", payload.notifyInfo.filePath, sourcePath);
                 return payload.notifyInfo.filePath == sourcePath;
-            }})
+            }
+        })
         return sourcePath
     }
 
@@ -397,6 +400,7 @@ export class NTQQApi {
                                 return reject("发送超时")
                             }
                             if (msgHistory[rawMessage.msgId]?.sendStatus == 2) {
+                                log(`给${peerUid}发送消息成功`)
                                 success = true;
                                 resolve(rawMessage);
                             } else {
@@ -407,6 +411,7 @@ export class NTQQApi {
                             checkSendComplete();
                         } else {
                             success = true;
+                            log(`给${peerUid}发送消息成功`)
                             resolve(rawMessage);
                         }
                     }
