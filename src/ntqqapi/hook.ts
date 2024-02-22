@@ -18,7 +18,8 @@ export enum ReceiveCmd {
     GROUPS = "nodeIKernelGroupListener/onGroupListUpdate",
     GROUPS_UNIX = "onGroupListUpdate",
     FRIENDS = "onBuddyListChange",
-    MEDIA_DOWNLOAD_COMPLETE = "nodeIKernelMsgListener/onRichMediaDownloadComplete"
+    MEDIA_DOWNLOAD_COMPLETE = "nodeIKernelMsgListener/onRichMediaDownloadComplete",
+    UNREAD_GROUP_NOTICE = "nodeIKernelGroupListener/onGroupNotifiesUnreadCountUpdated"
 }
 
 interface NTQQApiReturnData<PayloadType = unknown> extends Array<any> {
@@ -249,5 +250,12 @@ registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, ({msgRe
         } catch (e) {
             log("receive self msg error", e.stack)
         }
+    }
+})
+
+registerReceiveHook<{"doubt": boolean,"oldestUnreadSeq": string,"unreadCount": number}>(ReceiveCmd.UNREAD_GROUP_NOTICE, (payload)=>{
+    log("收到群通知", payload);
+    if (payload.unreadCount){
+
     }
 })
