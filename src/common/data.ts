@@ -5,7 +5,7 @@ export let groups: Group[] = []
 export let friends: Friend[] = []
 export let msgHistory: Record<string, RawMessage> = {}  // msgId: RawMessage
 
-let globalMsgId = Date.now()
+let globalMsgId = Math.floor(Date.now() / 1000);
 
 export function addHistoryMsg(msg: RawMessage): boolean{
     let existMsg = msgHistory[msg.msgId]
@@ -87,4 +87,4 @@ export function getUidByUin(uin: string) {
     }
 }
 
-export const version = "v3.6.0"
+export const version = "3.6.0"
