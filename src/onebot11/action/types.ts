@@ -1,3 +1,5 @@
+import GetGuildList from "./GetGuildList";
+
 export type BaseCheckResult = ValidCheckResult | InvalidCheckResult
 
 export interface ValidCheckResult {
@@ -25,6 +27,8 @@ export enum ActionName {
     SendGroupMsg = "send_group_msg",
     SendPrivateMsg = "send_private_msg",
     DeleteMsg = "delete_msg",
+    SetGroupAddRequest = "set_group_add_request",
+    SetGroupLeave = "set_group_leave",
     GetVersionInfo = "get_version_info",
     GetStatus = "get_status",
     CanSendRecord = "can_send_record",
@@ -32,5 +36,6 @@ export enum ActionName {
     // 以下为go-cqhttp api
     GoCQHTTP_SendGroupForwardMsg = "send_group_forward_msg",
     GoCQHTTP_SendPrivateForwardMsg = "send_private_forward_msg",
-    GoCQHTTP_GetStrangerInfo = "get_stranger_info"
+    GoCQHTTP_GetStrangerInfo = "get_stranger_info",
+    GetGuildList = "get_guild_list",
 }

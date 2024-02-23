@@ -6,14 +6,14 @@ import {
     Friend,
     Group,
     GroupMember,
-    GroupNotify,
+    GroupNotifies, GroupNotify, GroupRequestOperateTypes,
     RawMessage,
     SelfInfo,
     SendMessageElement,
     User
 } from "./types";
 import * as fs from "fs";
-import {addHistoryMsg, msgHistory, selfInfo} from "../common/data";
+import {addHistoryMsg, groupNotifies, msgHistory, selfInfo} from "../common/data";
 import {v4 as uuidv4} from "uuid"
 
 interface IPCReceiveEvent {
@@ -53,6 +53,8 @@ export enum NTQQApiMethod {
     DOWNLOAD_MEDIA = "nodeIKernelMsgService/downloadRichMedia",
     MULTI_FORWARD_MSG = "nodeIKernelMsgService/multiForwardMsgWithComment", // 合并转发
     GET_GROUP_NOTICE = "nodeIKernelGroupService/getSingleScreenNotifies",
+    HANDLE_GROUP_REQUEST = "nodeIKernelGroupService/operateSysNotify",
+    QUIT_GROUP = "nodeIKernelGroupService/quitGroup",
 }
 
 enum NTQQApiChannel {
@@ -65,11 +67,6 @@ export interface Peer {
     chatType: ChatType
     peerUid: string  // 如果是群聊uid为群号，私聊uid就是加密的字符串
     guildId?: ""
-}
-
-enum CallBackType {
-    UUID,
-    METHOD
 }
 
 interface NTQQApiParams {
@@ -504,13 +501,48 @@ export class NTQQApi {
             methodName: ReceiveCmd.GROUP_NOTIFY,
             classNameIsRegister: true,
         })
-        return await callNTQQApi<GroupNotify>({
+        return await callNTQQApi<GroupNotifies>({
             methodName: NTQQApiMethod.GET_GROUP_NOTICE,
             cbCmd: ReceiveCmd.GROUP_NOTIFY,
-            args:[
-                {"doubt":false,"startSeq":"","number":14},
+            args: [
+                {"doubt": false, "startSeq": "", "number": 14},
                 null
             ]
         });
+    }
+
+    static async handleGroupRequest(seq: string, operateType: GroupRequestOperateTypes, reason?: string) {
+        const notify: GroupNotify = groupNotifies[seq];
+        if (!notify){
+            throw `${seq}对应的加群通知不存在`
+        }
+        return await callNTQQApi<GeneralCallResult>({
+            methodName: NTQQApiMethod.HANDLE_GROUP_REQUEST,
+            args: [
+                {
+                    "doubt": false,
+                    "operateMsg": {
+                        "operateType": operateType, // 2 拒绝
+                        "targetMsg": {
+                            "seq": seq,  // 通知序列号
+                            "type": notify.type,
+                            "groupCode": notify.group.groupCode,
+                            "postscript": reason
+                        }
+                    }
+                },
+                null
+            ]
+        });
+    }
+
+    static async quitGroup(groupQQ: string){
+        await callNTQQApi<GeneralCallResult>({
+            methodName: NTQQApiMethod.QUIT_GROUP,
+            args:[
+                {"groupCode": groupQQ},
+                null
+            ]
+        })
     }
 }

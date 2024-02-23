@@ -33,9 +33,13 @@ TG群：<https://t.me/+nLZEnpne-pQ1OWFl>
 - [x] 获取群列表
 - [x] 获取群成员列表
 - [x] 撤回消息
+- [x] 处理加群请求
+- [x] 退群
 - [x] 上报好友消息
 - [x] 上报群消息
 - [x] 上报好友、群消息撤回
+- [x] 上报加群请求
+- [x] 上报群员人数变动
 
 消息格式支持:
 - [x] cq码
@@ -63,6 +67,8 @@ TG群：<https://t.me/+nLZEnpne-pQ1OWFl>
 - [x] get_friend_list
 - [x] get_msg
 - [x] send_like
+- [x] set_group_add_request
+- [x] set_group_leave
 - [x] get_version_info
 - [x] get_status
 - [x] can_send_image

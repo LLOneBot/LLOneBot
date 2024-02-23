@@ -242,29 +242,41 @@ export interface RawMessage {
     }[];
 }
 
-export enum GroupNotifyTypes{
+export enum GroupNotifyTypes {
+    INVITED_JOIN = 4,  // 有人接受了邀请入群
+    JOIN_REQUEST = 7,
     ADMIN_SET = 8,
-    ADMIN_UNSET = 12
+    ADMIN_UNSET = 12,
+    MEMBER_EXIT = 11, // 主动退出?
+
+}
+
+export interface GroupNotifies {
+    doubt: boolean,
+    nextStartSeq: string,
+    notifies: GroupNotify[],
 }
 
 export interface GroupNotify {
-    doubt: boolean,
-    nextStartSeq: string,
-    notifies: [{
-        seq: string, // 转成数字，再除以1000应该就是时间戳？
-        type: GroupNotifyTypes,
-        status: 0,  // 未知
-        group: { groupCode: string, groupName: string },
-        user1: { uid: string, nickName: string }, // 被设置管理员的人
-        user2: { uid: string, nickName: string },  // 操作者
-        actionUser: { uid: string, nickName: string }, //未知
-        actionTime: string,
-        invitationExt: {
-            srcType: number,  // 0?未知
-            groupCode: string, waitStatus: number
-        },
-        postscript: string,
-        repeatSeqs: [],
-        warningTips: string
-    }]
+
+    seq: string, // 转成数字，再除以1000应该就是时间戳？
+    type: GroupNotifyTypes,
+    status: 0,  // 未知
+    group: { groupCode: string, groupName: string },
+    user1: { uid: string, nickName: string }, // 被设置管理员的人
+    user2: { uid: string, nickName: string },  // 操作者
+    actionUser: { uid: string, nickName: string }, //未知
+    actionTime: string,
+    invitationExt: {
+        srcType: number,  // 0?未知
+        groupCode: string, waitStatus: number
+    },
+    postscript: string,  // 加群用户填写的验证信息
+    repeatSeqs: [],
+    warningTips: string
+}
+
+export enum GroupRequestOperateTypes{
+    approve = 1,
+    reject = 2
 }

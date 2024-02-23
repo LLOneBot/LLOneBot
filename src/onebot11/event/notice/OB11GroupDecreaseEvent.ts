@@ -2,7 +2,7 @@ import {OB11GroupNoticeEvent} from "./OB11GroupNoticeEvent";
 
 export class OB11GroupDecreaseEvent extends OB11GroupNoticeEvent {
     notice_type = "group_decrease";
-    sub_type = "leave";  // TODO: 实现其他几种子类型的识别 ("leave" | "kick" | "kick_me")
+    sub_type: "leave" | "kick" | "kick_me" = "leave";  // TODO: 实现其他几种子类型的识别 ("leave" | "kick" | "kick_me")
     operate_id: number;
 
     constructor(groupId: number, userId: number) {

@@ -1,5 +1,5 @@
 import {NTQQApi} from '../ntqqapi/ntcall';
-import {Friend, Group, GroupMember, RawMessage, SelfInfo} from "../ntqqapi/types";
+import {Friend, Group, GroupMember, GroupNotify, RawMessage, SelfInfo} from "../ntqqapi/types";
 
 export let groups: Group[] = []
 export let friends: Friend[] = []
@@ -7,9 +7,9 @@ export let msgHistory: Record<string, RawMessage> = {}  // msgId: RawMessage
 
 let globalMsgId = Math.floor(Date.now() / 1000);
 
-export function addHistoryMsg(msg: RawMessage): boolean{
+export function addHistoryMsg(msg: RawMessage): boolean {
     let existMsg = msgHistory[msg.msgId]
-    if (existMsg){
+    if (existMsg) {
         Object.assign(existMsg, msg)
         msg.msgShortId = existMsg.msgShortId;
         return false
@@ -19,7 +19,7 @@ export function addHistoryMsg(msg: RawMessage): boolean{
     return true
 }
 
-export function getHistoryMsgByShortId(shortId: number | string){
+export function getHistoryMsgByShortId(shortId: number | string) {
     // log("getHistoryMsgByShortId", shortId, Object.values(msgHistory).map(m=>m.msgShortId))
     return Object.values(msgHistory).find(msg => msg.msgShortId.toString() == shortId.toString())
 }
@@ -43,20 +43,19 @@ export async function getGroup(qq: string): Promise<Group | undefined> {
     return group
 }
 
-export async function getGroupMember(groupQQ: string, memberQQ: string, memberUid: string=null) {
+export async function getGroupMember(groupQQ: string, memberQQ: string, memberUid: string = null) {
     const group = await getGroup(groupQQ)
     if (group) {
         let filterFunc: (member: GroupMember) => boolean
-        if (memberQQ){
+        if (memberQQ) {
             filterFunc = member => member.uin === memberQQ
-        }
-        else if (memberUid){
+        } else if (memberUid) {
             filterFunc = member => member.uid === memberUid
         }
         let member = group.members?.find(filterFunc)
-        if (!member){
+        if (!member) {
             const _members = await NTQQApi.getGroupMembers(groupQQ)
-            if (_members.length){
+            if (_members.length) {
                 group.members = _members
             }
             member = group.members?.find(filterFunc)
@@ -77,7 +76,7 @@ export function getHistoryMsgBySeq(seq: string) {
 }
 
 
-export let uidMaps:Record<string, string> = {}  // 一串加密的字符串(uid) -> qq号
+export let uidMaps: Record<string, string> = {}  // 一串加密的字符串(uid) -> qq号
 
 export function getUidByUin(uin: string) {
     for (const key in uidMaps) {
@@ -88,3 +87,5 @@ export function getUidByUin(uin: string) {
 }
 
 export const version = "3.6.0"
+
+export let groupNotifies: Map<string, GroupNotify> = new Map();

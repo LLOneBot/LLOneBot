@@ -194,7 +194,8 @@ export class OB11Constructor {
             group_id: parseInt(group_id),
             user_id: parseInt(member.uin),
             nickname: member.nick,
-            card: member.cardName
+            card: member.cardName,
+            role: OB11Constructor.groupMemberRole(member.role),
         }
     }
 
