@@ -5,7 +5,7 @@
   "main": "dist/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "cross-env ELECTRON_SKIP_BINARY_DOWNLOAD=1 && yarn electron --no-save",
+    "postinstall": "cross-env ELECTRON_SKIP_BINARY_DOWNLOAD=1 && yarn add electron",
     "build": "electron-vite build",
     "run:linux": "yarn build && cp manifest.json out/ && yarn deploy:linux",
     "run:mac": "yarn build && cp manifest.json out/ && yarn deploy:mac",
