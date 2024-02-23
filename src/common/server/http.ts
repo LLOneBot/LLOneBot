@@ -1,8 +1,9 @@
 import express, {Express, Request, Response} from "express";
 import {getConfigUtil, log} from "../utils";
 import http from "http";
+import JSONBigInt from 'json-bigint'
 
-const JSONbig = require('json-bigint')({storeAsString: true});
+const JSONbig = JSONBigInt({storeAsString: true});
 
 type RegisterHandler = (res: Response, payload: any) => Promise<any>
 

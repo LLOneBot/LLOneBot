@@ -1,7 +1,9 @@
-import {Server, WebSocket} from "ws";
-import {getConfigUtil, log} from "../utils";
+import * as ws from "ws";
+import { getConfigUtil, log } from "../utils";
 import urlParse from "url";
-import {IncomingMessage} from "node:http";
+import { IncomingMessage } from "node:http";
+
+const { WebSocket, Server } = ws
 
 class WebsocketClientBase {
     private wsClient: WebSocket
@@ -15,7 +17,7 @@ class WebsocketClientBase {
         }
     }
 
-    onMessage(msg: string){
+    onMessage(msg: string) {
 
     }
 }
@@ -28,12 +30,12 @@ export class WebsocketServerBase {
     }
 
     start(port: number) {
-        this.ws = new Server({port});
-        this.ws.on("connection", (wsClient, req)=>{
+        this.ws = new Server({ port });
+        this.ws.on("connection", (wsClient, req) => {
             const url = req.url.split("?").shift()
             this.authorize(wsClient, req);
             this.onConnect(wsClient, url, req);
-            wsClient.on("message", async (msg)=>{
+            wsClient.on("message", async (msg) => {
                 this.onMessage(wsClient, url, msg.toString())
             })
         })
@@ -45,7 +47,8 @@ export class WebsocketServerBase {
         });
         this.ws = null;
     }
-    restart(port: number){
+
+    restart(port: number) {
         this.stop();
         this.start(port);
     }
@@ -85,7 +88,7 @@ export class WebsocketServerBase {
 
     }
 
-    onMessage(wsClient: WebSocket, url: string,  msg: string) {
+    onMessage(wsClient: WebSocket, url: string, msg: string) {
 
     }
 

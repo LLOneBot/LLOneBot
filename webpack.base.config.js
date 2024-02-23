@@ -45,7 +45,7 @@ let config = {
                 test: /\.ts$/, // 匹配.ts文件
                 // exclude: /node_modules/, // 排除node_modules目录
                 use: { // 使用的loader
-                    loader: 'ts-loader',
+                    loader: 'esbuild-loader',
                     options: {
                         // configFile: 'src/tsconfig.json'
                     }
