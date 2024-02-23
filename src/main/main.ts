@@ -6,17 +6,19 @@ import {Config} from "../common/types";
 import {CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG,} from "../common/channels";
 import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
 import {CONFIG_DIR, getConfigUtil, log} from "../common/utils";
-import {addHistoryMsg, getGroup, getGroupMember, msgHistory, selfInfo} from "../common/data";
+import {addHistoryMsg, getGroup, getGroupMember, groupNotifies, msgHistory, selfInfo} from "../common/data";
 import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} from "../ntqqapi/hook";
 import {OB11Constructor} from "../onebot11/constructor";
 import {NTQQApi} from "../ntqqapi/ntcall";
-import {ChatType, GroupNotify, GroupNotifyTypes, RawMessage} from "../ntqqapi/types";
+import {ChatType, GroupMember, GroupNotifies, GroupNotifyTypes, RawMessage} from "../ntqqapi/types";
 import {ob11HTTPServer} from "../onebot11/server/http";
 import {OB11FriendRecallNoticeEvent} from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
 import {OB11GroupRecallNoticeEvent} from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
 import {postEvent} from "../onebot11/server/postevent";
 import {ob11ReverseWebsockets} from "../onebot11/server/ws/ReverseWebsocket";
 import {OB11GroupAdminNoticeEvent} from "../onebot11/event/notice/OB11GroupAdminNoticeEvent";
+import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
+import {OB11GroupRequestEvent} from "../onebot11/event/request/OB11GroupRequest";
 
 
 let running = false;
@@ -165,7 +167,7 @@ function onLoad() {
         }>(ReceiveCmd.UNREAD_GROUP_NOTIFY, async (payload) => {
             if (payload.unreadCount) {
                 log("开始获取群通知详情")
-                let notify: GroupNotify;
+                let notify: GroupNotifies;
                 try {
                     notify = await NTQQApi.getGroupNotifies();
                 }catch (e) {
@@ -180,21 +182,47 @@ function onLoad() {
                         if (parseInt(notify.seq) / 1000 < startTime){
                             continue;
                         }
+                        const member1 = await getGroupMember(notify.group.groupCode, null, notify.user1.uid);
+                        let member2: GroupMember;
+                        if (notify.user2.uid){
+                            member2 = await getGroupMember(notify.group.groupCode, null, notify.user2.uid);
+                        }
                         if ([GroupNotifyTypes.ADMIN_SET, GroupNotifyTypes.ADMIN_UNSET].includes(notify.type)) {
                             log("有管理员变动通知");
                             let groupAdminNoticeEvent = new OB11GroupAdminNoticeEvent()
                             groupAdminNoticeEvent.group_id = parseInt(notify.group.groupCode);
                             log("开始获取变动的管理员")
-                            const member = await getGroupMember(notify.group.groupCode, null, notify.user1.uid);
-                            if(member){
+                            if(member1){
                                 log("变动管理员获取成功")
-                                groupAdminNoticeEvent.user_id = parseInt(member.uin);
+                                groupAdminNoticeEvent.user_id = parseInt(member1.uin);
                                 groupAdminNoticeEvent.sub_type = notify.type == GroupNotifyTypes.ADMIN_UNSET ? "unset" : "set";
                                 postEvent(groupAdminNoticeEvent, true);
                             }
                             else{
                                 log("获取群通知的成员信息失败", notify, getGroup(notify.group.groupCode));
                             }
+                        }
+                        else if (notify.type == GroupNotifyTypes.MEMBER_EXIT){
+                            log("有成员退出通知");
+                            let groupDecreaseEvent = new OB11GroupDecreaseEvent(parseInt(notify.group.groupCode), parseInt(member1.uin))
+                            // postEvent(groupDecreaseEvent, true);
+                        }
+                        else if ([GroupNotifyTypes.JOIN_REQUEST].includes(notify.type)){
+                            log("有加群请求");
+                            groupNotifies[notify.seq] = notify;
+                            let groupRequestEvent = new OB11GroupRequestEvent();
+                            groupRequestEvent.group_id = parseInt(notify.group.groupCode);
+                            let requestQQ = ""
+                            try {
+                                requestQQ = (await NTQQApi.getUserInfo(notify.user1.uid)).uin;
+                            }catch (e) {
+                                log("获取加群人QQ号失败", e)
+                            }
+                            groupRequestEvent.user_id = parseInt(requestQQ) || 0;
+                            groupRequestEvent.sub_type = "add"
+                            groupRequestEvent.comment = notify.postscript;
+                            groupRequestEvent.flag = notify.seq;
+                            postEvent(groupRequestEvent);
                         }
                     }
                 }catch (e) {
