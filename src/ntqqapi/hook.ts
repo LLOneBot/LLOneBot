@@ -1,5 +1,5 @@
 import {BrowserWindow} from 'electron';
-import {log, sleep} from "../common/utils";
+import {getConfigUtil, log, sleep} from "../common/utils";
 import {NTQQApi, NTQQApiClass, sendMessagePool} from "./ntcall";
 import {Group, RawMessage, User} from "./types";
 import {addHistoryMsg, friends, groups, msgHistory} from "../common/data";
@@ -8,6 +8,7 @@ import {OB11GroupIncreaseEvent} from "../onebot11/event/notice/OB11GroupIncrease
 import {v4 as uuidv4} from "uuid"
 import {postOB11Event} from "../onebot11/server/postOB11Event";
 import {HOOK_LOG} from "../common/config";
+import fs from "fs";
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 
@@ -124,8 +125,7 @@ async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
         let existGroup = groups.find(g => g.groupCode == group.groupCode);
         if (existGroup) {
             Object.assign(existGroup, group);
-        }
-        else {
+        } else {
             groups.push(group);
             existGroup = group;
         }
@@ -166,8 +166,7 @@ async function processGroupEvent(payload) {
                         }
                     }
 
-                }
-                else if (existGroup.memberCount < group.memberCount) {
+                } else if (existGroup.memberCount < group.memberCount) {
                     const oldMembers = existGroup.members;
                     const oldMembersSet = new Set<string>();
                     for (const member of oldMembers) {
@@ -189,8 +188,7 @@ async function processGroupEvent(payload) {
         }
 
         updateGroups(newGroupList, false).then();
-    }
-    catch (e) {
+    } catch (e) {
         updateGroups(payload.groupList).then();
         console.log(e);
     }
@@ -199,8 +197,7 @@ async function processGroupEvent(payload) {
 registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmd.GROUPS, (payload) => {
     if (payload.updateType != 2) {
         updateGroups(payload.groupList).then();
-    }
-    else {
+    } else {
         if (process.platform == "win32") {
             processGroupEvent(payload).then();
         }
@@ -209,8 +206,7 @@ registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmd.GROUP
 registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmd.GROUPS_UNIX, (payload) => {
     if (payload.updateType != 2) {
         updateGroups(payload.groupList).then();
-    }
-    else {
+    } else {
         if (process.platform != "win32") {
             processGroupEvent(payload).then();
         }
@@ -234,9 +230,32 @@ registerReceiveHook<{
 })
 
 registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
+    const {autoDeleteFile} = getConfigUtil().getConfig();
     for (const message of payload.msgList) {
         // log("收到新消息，push到历史记录", message)
         addHistoryMsg(message)
+        // 清理文件
+        if (!autoDeleteFile) {
+            continue
+        }
+        for (const msgElement of message.elements) {
+            setTimeout(() => {
+                const picPath = msgElement.picElement?.sourcePath;
+                const pttPath = msgElement.pttElement?.filePath;
+                const pathList = [picPath, pttPath];
+                if (msgElement.picElement){
+                    pathList.push(...Object.values(msgElement.picElement.thumbPath));
+                }
+                // log("需要清理的文件", pathList);
+                for (const path of pathList) {
+                    if (path) {
+                        fs.unlink(picPath, () => {
+                            log("删除文件成功", path)
+                        });
+                    }
+                }
+            }, 60 * 1000)
+        }
     }
     const msgIds = Object.keys(msgHistory);
     if (msgIds.length > 30000) {

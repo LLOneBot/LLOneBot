@@ -145,6 +145,13 @@ async function onSettingWindowCreated(view: Element) {
                     </div>
                     <setting-switch id="log" ${config.log ? "is-active" : ""}></setting-switch>
                 </setting-item>
+                <setting-item data-direction="row" class="hostItem vertical-list-item">
+                    <div>
+                        <div>自动删除收到的文件</div>
+                        <div class="tips">一分钟后会删除收到的图片语音</div>
+                    </div>
+                    <setting-switch id="autoDeleteFile" ${config.autoDeleteFile ? "is-active" : ""}></setting-switch>
+                </setting-item>
             </setting-panel>
         </setting-section>
     </div>
@@ -226,6 +233,7 @@ async function onSettingWindowCreated(view: Element) {
     switchClick("switchFileUrl", "enableLocalFile2Url");
     switchClick("reportSelfMessage", "reportSelfMessage");
     switchClick("log", "log");
+    switchClick("autoDeleteFile", "autoDeleteFile");
 
     doc.getElementById("save")?.addEventListener("click",
         () => {
