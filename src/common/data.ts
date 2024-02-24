@@ -1,5 +1,5 @@
 import {NTQQApi} from '../ntqqapi/ntcall';
-import {Friend, Group, GroupMember, GroupNotify, RawMessage, SelfInfo} from "../ntqqapi/types";
+import {Friend, FriendRequest, Group, GroupMember, GroupNotify, RawMessage, SelfInfo} from "../ntqqapi/types";
 
 export let groups: Group[] = []
 export let friends: Friend[] = []
@@ -88,4 +88,5 @@ export function getUidByUin(uin: string) {
 
 export const version = "3.7.0"
 
-export let groupNotifies: Map<string, GroupNotify> = new Map();
+export let groupNotifies: Map<string, GroupNotify> = new Map<string, GroupNotify>();
+export let friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>();

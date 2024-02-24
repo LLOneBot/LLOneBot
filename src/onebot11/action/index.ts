@@ -20,8 +20,11 @@ import SendLike from "./SendLike";
 import SetGroupAddRequest from "./SetGroupAddRequest";
 import SetGroupLeave from "./SetGroupLeave";
 import GetGuildList from "./GetGuildList";
+import Debug from "./Debug";
+import SetFriendAddRequest from "./SetFriendAddRequest";
 
 export const actionHandlers = [
+    new Debug(),
     new SendLike(),
     new GetMsg(),
     new GetLoginInfo(),
@@ -30,6 +33,7 @@ export const actionHandlers = [
     new SendGroupMsg(), new SendPrivateMsg(), new SendMsg(),
     new DeleteMsg(),
     new SetGroupAddRequest(),
+    new SetFriendAddRequest(),
     new SetGroupLeave(),
     new GetVersionInfo(),
     new CanSendRecord(),
