@@ -29,13 +29,13 @@ export class ConfigUtil {
             enableHttp: true,
             enableHttpPost: true,
             enableWs: true,
-            enableWsReverse: false
+            enableWsReverse: false,
+            messagePostFormat: "array",
         }
         let defaultConfig: Config = {
             ob11: ob11Default,
             heartInterval: 60000,
             token: "",
-            messagePostFormat: "array",
             enableLocalFile2Url: false,
             debug: false,
             log: false,

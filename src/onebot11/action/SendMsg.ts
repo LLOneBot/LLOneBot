@@ -9,7 +9,7 @@ import {ActionName, BaseCheckResult} from "./types";
 import * as fs from "fs";
 import {log} from "../../common/utils";
 import {v4 as uuidv4} from "uuid"
-import {parseCQCode} from "../cqcode";
+import {decodeCQCode} from "../cqcode";
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
     function checkUri(uri: string): boolean {
@@ -124,7 +124,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             //         text: message
             //     }
             // }] as OB11MessageData[]
-            message = parseCQCode(message.toString())
+            message = decodeCQCode(message.toString())
         } else if (!Array.isArray(message)) {
             message = [message]
         }

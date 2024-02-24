@@ -113,8 +113,8 @@ async function onSettingWindowCreated(view: Element) {
                         <setting-text data-type="secondary">如客户端无特殊需求推荐保持默认设置，两者的详细差异可参考 <a href="javascript:LiteLoader.api.openExternal('https://github.com/botuniverse/onebot-11/tree/master/message#readme');">OneBot v11 文档</a></setting-text>
                     </div>
                     <setting-select id="messagePostFormat">
-                        <setting-option data-value="array" ${config.messagePostFormat !== "string" ? "is-selected" : ""}>Array</setting-option>
-                        <setting-option data-value="string" ${config.messagePostFormat === "string" ? "is-selected" : ""}>String</setting-option>
+                        <setting-option data-value="array" ${config.ob11.messagePostFormat !== "string" ? "is-selected" : ""}>消息段</setting-option>
+                        <setting-option data-value="string" ${config.ob11.messagePostFormat === "string" ? "is-selected" : ""}>CQ码</setting-option>
                     </setting-select>
                 </setting-item>
                 <setting-item data-direction="row" class="hostItem vertical-list-item">
@@ -185,10 +185,9 @@ async function onSettingWindowCreated(view: Element) {
 
     doc.getElementById("addHttpHost").addEventListener("click", () => addHostEle("http"))
     doc.getElementById("addWsHost").addEventListener("click", () => addHostEle("ws"))
-    doc.getElementById("messagePostFormat").addEventListener("selected", (e) => {
-        const _config = config || {};
-        _config.messagePostFormat = e.detail && !isEmpty(e.detail.value) ? e.detail.value : 'array';
-        window.llonebot.setConfig(_config);
+    doc.getElementById("messagePostFormat").addEventListener("selected", (e: CustomEvent) => {
+        config.ob11.messagePostFormat = e.detail && !isEmpty(e.detail.value) ? e.detail.value : 'array';
+        window.llonebot.setConfig(config);
     })
 
     function switchClick(eleId: string, configKey: string, _config=null) {
