@@ -39,7 +39,8 @@ export class ConfigUtil {
             enableLocalFile2Url: false,
             debug: false,
             log: false,
-            reportSelfMessage: false
+            reportSelfMessage: false,
+            autoDeleteFile: false,
         };
 
         if (!fs.existsSync(this.configPath)) {

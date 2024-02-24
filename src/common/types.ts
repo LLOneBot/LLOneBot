@@ -18,4 +18,5 @@ export interface Config {
     debug?: boolean
     reportSelfMessage?: boolean
     log?: boolean
+    autoDeleteFile?: boolean
 }
