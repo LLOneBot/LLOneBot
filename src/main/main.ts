@@ -6,19 +6,35 @@ import {Config} from "../common/types";
 import {CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG,} from "../common/channels";
 import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
 import {CONFIG_DIR, getConfigUtil, log} from "../common/utils";
-import {addHistoryMsg, getGroup, getGroupMember, groupNotifies, msgHistory, selfInfo} from "../common/data";
+import {
+    addHistoryMsg,
+    friendRequests,
+    getGroup,
+    getGroupMember,
+    groupNotifies,
+    msgHistory,
+    selfInfo
+} from "../common/data";
 import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} from "../ntqqapi/hook";
 import {OB11Constructor} from "../onebot11/constructor";
 import {NTQQApi} from "../ntqqapi/ntcall";
-import {ChatType, GroupMember, GroupNotifies, GroupNotifyTypes, RawMessage} from "../ntqqapi/types";
+import {
+    ChatType,
+    FriendRequestNotify,
+    GroupMember,
+    GroupNotifies,
+    GroupNotifyTypes,
+    RawMessage
+} from "../ntqqapi/types";
 import {ob11HTTPServer} from "../onebot11/server/http";
 import {OB11FriendRecallNoticeEvent} from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
 import {OB11GroupRecallNoticeEvent} from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
-import {postEvent} from "../onebot11/server/postevent";
+import {postOB11Event} from "../onebot11/server/postOB11Event";
 import {ob11ReverseWebsockets} from "../onebot11/server/ws/ReverseWebsocket";
 import {OB11GroupAdminNoticeEvent} from "../onebot11/event/notice/OB11GroupAdminNoticeEvent";
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {OB11GroupRequestEvent} from "../onebot11/event/request/OB11GroupRequest";
+import {OB11FriendRequestEvent} from "../onebot11/event/request/OB11FriendRequest";
 
 
 let running = false;
@@ -101,7 +117,7 @@ function onLoad() {
                 if (isSelfMsg && !reportSelfMessage) {
                     return
                 }
-                postEvent(msg);
+                postOB11Event(msg);
                 // log("post msg", msg)
             }).catch(e => log("constructMessage error: ", e.toString()));
         }
@@ -126,7 +142,7 @@ function onLoad() {
                     }
                     if (message.chatType == ChatType.friend) {
                         const friendRecallEvent = new OB11FriendRecallNoticeEvent(parseInt(message.senderUin), oriMessage.msgShortId);
-                        postEvent(friendRecallEvent);
+                        postOB11Event(friendRecallEvent);
                     } else if (message.chatType == ChatType.group) {
                         let operatorId = message.senderUin
                         for (const element of message.elements) {
@@ -141,7 +157,7 @@ function onLoad() {
                             oriMessage.msgShortId
                         )
 
-                        postEvent(groupRecallEvent);
+                        postOB11Event(groupRecallEvent);
                     }
                     continue
                 }
@@ -179,7 +195,9 @@ function onLoad() {
                 log("获取群通知详情完成", notifies, payload);
                 try {
                     for (const notify of notifies) {
-                        if (parseInt(notify.seq) / 1000 < startTime){
+                        const notifyTime = parseInt(notify.seq) / 1000
+                        log(`加群通知时间${notifyTime}`, `LLOneBot启动时间${startTime}`);
+                        if ( notifyTime < startTime){
                             continue;
                         }
                         const member1 = await getGroupMember(notify.group.groupCode, null, notify.user1.uid);
@@ -196,7 +214,7 @@ function onLoad() {
                                 log("变动管理员获取成功")
                                 groupAdminNoticeEvent.user_id = parseInt(member1.uin);
                                 groupAdminNoticeEvent.sub_type = notify.type == GroupNotifyTypes.ADMIN_UNSET ? "unset" : "set";
-                                postEvent(groupAdminNoticeEvent, true);
+                                postOB11Event(groupAdminNoticeEvent, true);
                             }
                             else{
                                 log("获取群通知的成员信息失败", notify, getGroup(notify.group.groupCode));
@@ -214,7 +232,7 @@ function onLoad() {
                             groupRequestEvent.group_id = parseInt(notify.group.groupCode);
                             let requestQQ = ""
                             try {
-                                requestQQ = (await NTQQApi.getUserInfo(notify.user1.uid)).uin;
+                                requestQQ = (await NTQQApi.getUserDetailInfo(notify.user1.uid)).uin;
                             }catch (e) {
                                 log("获取加群人QQ号失败", e)
                             }
@@ -222,11 +240,30 @@ function onLoad() {
                             groupRequestEvent.sub_type = "add"
                             groupRequestEvent.comment = notify.postscript;
                             groupRequestEvent.flag = notify.seq;
-                            postEvent(groupRequestEvent);
+                            postOB11Event(groupRequestEvent);
                         }
                     }
                 }catch (e) {
                     log("解析群通知失败", e.stack);
+                }
+            }
+        })
+
+        registerReceiveHook<FriendRequestNotify>(ReceiveCmd.FRIEND_REQUEST, async (payload) => {
+            for(const req of payload.data.buddyReqs){
+                if (req.isUnread && !friendRequests[req.sourceId] && (parseInt(req.reqTime) > startTime / 1000)){
+                    friendRequests[req.sourceId] = req;
+                    log("有新的好友请求", req);
+                    let friendRequestEvent = new OB11FriendRequestEvent();
+                    try{
+                        let requester = await NTQQApi.getUserDetailInfo(req.friendUid)
+                        friendRequestEvent.user_id = parseInt(requester.uin);
+                    }catch (e) {
+                        log("获取加好友者QQ号失败", e);
+                    }
+                    friendRequestEvent.flag = req.sourceId.toString();
+                    friendRequestEvent.comment = req.extWords;
+                    postOB11Event(friendRequestEvent);
                 }
             }
         })

@@ -6,7 +6,7 @@ import {addHistoryMsg, friends, groups, msgHistory} from "../common/data";
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {OB11GroupIncreaseEvent} from "../onebot11/event/notice/OB11GroupIncreaseEvent";
 import {v4 as uuidv4} from "uuid"
-import {postEvent} from "../onebot11/server/postevent";
+import {postOB11Event} from "../onebot11/server/postOB11Event";
 import {HOOK_LOG} from "../common/config";
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
@@ -16,12 +16,14 @@ export enum ReceiveCmd {
     NEW_MSG = "nodeIKernelMsgListener/onRecvMsg",
     SELF_SEND_MSG = "nodeIKernelMsgListener/onAddSendMsg",
     USER_INFO = "nodeIKernelProfileListener/onProfileSimpleChanged",
+    USER_DETAIL_INFO = "nodeIKernelProfileListener/onProfileDetailInfoChanged",
     GROUPS = "nodeIKernelGroupListener/onGroupListUpdate",
     GROUPS_UNIX = "onGroupListUpdate",
     FRIENDS = "onBuddyListChange",
     MEDIA_DOWNLOAD_COMPLETE = "nodeIKernelMsgListener/onRichMediaDownloadComplete",
     UNREAD_GROUP_NOTIFY = "nodeIKernelGroupListener/onGroupNotifiesUnreadCountUpdated",
-    GROUP_NOTIFY = "nodeIKernelGroupListener/onGroupSingleScreenNotifies"
+    GROUP_NOTIFY = "nodeIKernelGroupListener/onGroupSingleScreenNotifies",
+    FRIEND_REQUEST = "nodeIKernelBuddyListener/onBuddyReqChange"
 }
 
 interface NTQQApiReturnData<PayloadType = unknown> extends Array<any> {
@@ -159,7 +161,7 @@ async function processGroupEvent(payload) {
 
                     for (const member of oldMembers) {
                         if (!newMembersSet.has(member.uin)) {
-                            postEvent(new OB11GroupDecreaseEvent(group.groupCode, parseInt(member.uin)));
+                            postOB11Event(new OB11GroupDecreaseEvent(group.groupCode, parseInt(member.uin)));
                             break;
                         }
                     }
@@ -178,7 +180,7 @@ async function processGroupEvent(payload) {
                     group.members = newMembers;
                     for (const member of newMembers) {
                         if (!oldMembersSet.has(member.uin)) {
-                            postEvent(new OB11GroupIncreaseEvent(group.groupCode, parseInt(member.uin)));
+                            postOB11Event(new OB11GroupIncreaseEvent(group.groupCode, parseInt(member.uin)));
                             break;
                         }
                     }
@@ -214,6 +216,7 @@ registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmd.GROUP
         }
     }
 })
+
 registerReceiveHook<{
     data: { categoryId: number, categroyName: string, categroyMbCount: number, buddyList: User[] }[]
 }>(ReceiveCmd.FRIENDS, payload => {

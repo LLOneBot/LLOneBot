@@ -2,7 +2,7 @@ import {WebSocket} from "ws";
 import {getConfigUtil, log} from "../../../common/utils";
 import {actionMap} from "../../action";
 import {OB11Response} from "../../action/utils";
-import {postWsEvent, registerWsEventSender, unregisterWsEventSender} from "../postevent";
+import {postWsEvent, registerWsEventSender, unregisterWsEventSender} from "../postOB11Event";
 import {ActionName} from "../../action/types";
 import BaseAction from "../../action/BaseAction";
 import {LifeCycleSubType, OB11LifeCycleEvent} from "../../event/meta/OB11LifeCycleEvent";

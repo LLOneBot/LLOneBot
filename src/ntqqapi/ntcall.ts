@@ -3,17 +3,19 @@ import {hookApiCallbacks, ReceiveCmd, registerReceiveHook, removeReceiveHook} fr
 import {log} from "../common/utils";
 import {
     ChatType,
-    Friend,
+    Friend, FriendRequest,
     Group,
     GroupMember,
-    GroupNotifies, GroupNotify, GroupRequestOperateTypes,
+    GroupNotifies,
+    GroupNotify,
+    GroupRequestOperateTypes,
     RawMessage,
     SelfInfo,
     SendMessageElement,
     User
 } from "./types";
 import * as fs from "fs";
-import {addHistoryMsg, groupNotifies, msgHistory, selfInfo} from "../common/data";
+import {addHistoryMsg, friendRequests, groupNotifies, msgHistory, selfInfo} from "../common/data";
 import {v4 as uuidv4} from "uuid"
 
 interface IPCReceiveEvent {
@@ -42,6 +44,7 @@ export enum NTQQApiMethod {
     GROUP_MEMBER_SCENE = "nodeIKernelGroupService/createMemberListScene",
     GROUP_MEMBERS = "nodeIKernelGroupService/getNextMemberList",
     USER_INFO = "nodeIKernelProfileService/getUserSimpleInfo",
+    USER_DETAIL_INFO = "nodeIKernelProfileService/getUserDetailInfo",
     FILE_TYPE = "getFileType",
     FILE_MD5 = "getFileMd5",
     FILE_COPY = "copyFile",
@@ -55,6 +58,8 @@ export enum NTQQApiMethod {
     GET_GROUP_NOTICE = "nodeIKernelGroupService/getSingleScreenNotifies",
     HANDLE_GROUP_REQUEST = "nodeIKernelGroupService/operateSysNotify",
     QUIT_GROUP = "nodeIKernelGroupService/quitGroup",
+    // READ_FRIEND_REQUEST = "nodeIKernelBuddyListener/onDoubtBuddyReqUnreadNumChange"
+    HANDLE_FRIEND_REQUEST = "nodeIKernelBuddyService/approvalFriendRequest",
 }
 
 enum NTQQApiChannel {
@@ -77,6 +82,7 @@ interface NTQQApiParams {
     args?: unknown[],
     cbCmd?: ReceiveCmd | null,
     cmdCB?: (payload: any) => boolean;
+    afterFirstCmd?: boolean,  // 是否在methodName调用完之后再去hook cbCmd
     timeoutSecond?: number,
 }
 
@@ -84,12 +90,13 @@ function callNTQQApi<ReturnType>(params: NTQQApiParams) {
     let {
         className, methodName, channel, args,
         cbCmd, timeoutSecond: timeout,
-        classNameIsRegister, cmdCB
+        classNameIsRegister, cmdCB, afterFirstCmd
     } = params;
     className = className ?? NTQQApiClass.NT_API;
     channel = channel ?? NTQQApiChannel.IPC_UP_2;
     args = args ?? [];
     timeout = timeout ?? 5;
+    afterFirstCmd = afterFirstCmd ?? true;
     const uuid = uuidv4();
     // log("callNTQQApi", channel, className, methodName, args, uuid)
     return new Promise((resolve: (data: ReturnType) => void, reject) => {
@@ -109,23 +116,27 @@ function callNTQQApi<ReturnType>(params: NTQQApiParams) {
             };
         } else {
             // 这里的callback比较特殊，QQ后端先返回是否调用成功，再返回一条结果数据
-            hookApiCallbacks[uuid] = (result: GeneralCallResult) => {
-                log(`${methodName} callback`, result)
-                if (result?.result == 0 || result === undefined) {
-                    const hookId = registerReceiveHook<ReturnType>(cbCmd, (payload) => {
-                        log(methodName, "second callback", cbCmd, payload);
-                        if (cmdCB) {
-                            if (cmdCB(payload)) {
-                                removeReceiveHook(hookId);
-                                success = true
-                                resolve(payload);
-                            }
-                        } else {
+            const secondCallback = () => {
+                const hookId = registerReceiveHook<ReturnType>(cbCmd, (payload) => {
+                    // log(methodName, "second callback", cbCmd, payload, cmdCB);
+                    if (!!cmdCB) {
+                        if (cmdCB(payload)) {
                             removeReceiveHook(hookId);
                             success = true
                             resolve(payload);
                         }
-                    })
+                    } else {
+                        removeReceiveHook(hookId);
+                        success = true
+                        resolve(payload);
+                    }
+                })
+            }
+            !afterFirstCmd && secondCallback();
+            hookApiCallbacks[uuid] = (result: GeneralCallResult) => {
+                log(`${methodName} callback`, result)
+                if (result?.result == 0 || result === undefined) {
+                    afterFirstCmd && secondCallback();
                 } else {
                     success = true
                     reject(`ntqq api call failed, ${result.errMsg}`);
@@ -188,6 +199,26 @@ export class NTQQApi {
             cbCmd: ReceiveCmd.USER_INFO
         })
         return result.profiles.get(uid)
+    }
+
+    static async getUserDetailInfo(uid: string) {
+        const result = await callNTQQApi<{ info: User }>({
+            methodName: NTQQApiMethod.USER_DETAIL_INFO,
+            cbCmd: ReceiveCmd.USER_DETAIL_INFO,
+            afterFirstCmd: false,
+            cmdCB: (payload) => {
+                const success = payload.info.uid == uid
+                // log("get user detail info", success, uid, payload)
+                return success
+            },
+            args: [
+                {
+                    uid
+                },
+                null
+            ]
+        })
+        return result.info
     }
 
     static async getFriends(forced = false) {
@@ -497,13 +528,14 @@ export class NTQQApi {
     static async getGroupNotifies() {
         // 获取管理员变更
         // 加群通知，退出通知，需要管理员权限
-        await callNTQQApi<GeneralCallResult>({
+        callNTQQApi<GeneralCallResult>({
             methodName: ReceiveCmd.GROUP_NOTIFY,
             classNameIsRegister: true,
-        })
+        }).then()
         return await callNTQQApi<GroupNotifies>({
             methodName: NTQQApiMethod.GET_GROUP_NOTICE,
             cbCmd: ReceiveCmd.GROUP_NOTIFY,
+            afterFirstCmd: false,
             args: [
                 {"doubt": false, "startSeq": "", "number": 14},
                 null
@@ -513,7 +545,7 @@ export class NTQQApi {
 
     static async handleGroupRequest(seq: string, operateType: GroupRequestOperateTypes, reason?: string) {
         const notify: GroupNotify = groupNotifies[seq];
-        if (!notify){
+        if (!notify) {
             throw `${seq}对应的加群通知不存在`
         }
         return await callNTQQApi<GeneralCallResult>({
@@ -536,13 +568,34 @@ export class NTQQApi {
         });
     }
 
-    static async quitGroup(groupQQ: string){
+    static async quitGroup(groupQQ: string) {
         await callNTQQApi<GeneralCallResult>({
             methodName: NTQQApiMethod.QUIT_GROUP,
-            args:[
+            args: [
                 {"groupCode": groupQQ},
                 null
             ]
         })
+    }
+
+    static async handleFriendRequest(sourceId: number, accept: boolean,) {
+        const request: FriendRequest = friendRequests[sourceId]
+        if (!request){
+            throw `sourceId ${sourceId}, 对应的好友请求不存在`
+        }
+        const result = await callNTQQApi<GeneralCallResult>({
+            methodName: NTQQApiMethod.HANDLE_FRIEND_REQUEST,
+            args: [
+                {
+                    "approvalInfo": {
+                        "friendUid": request.friendUid,
+                        "reqTime": request.reqTime,
+                        accept
+                    }
+                }
+            ]
+        })
+        delete friendRequests[sourceId];
+        return result;
     }
 }

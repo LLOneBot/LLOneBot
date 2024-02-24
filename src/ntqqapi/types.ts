@@ -280,3 +280,19 @@ export enum GroupRequestOperateTypes{
     approve = 1,
     reject = 2
 }
+
+export interface FriendRequest{
+    friendUid: string,
+    reqTime: string,  // 时间戳,秒
+    extWords: string,  // 申请人填写的验证消息
+    isUnread: boolean,
+    friendNick: string,
+    sourceId: number,
+    groupCode: string
+}
+export interface FriendRequestNotify{
+    data: {
+        unreadNums: number,
+        buddyReqs: FriendRequest[]
+    }
+}
