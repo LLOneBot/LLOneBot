@@ -1,6 +1,6 @@
 import * as websocket from "ws";
 import {OB11Response} from "../../action/utils";
-import {PostEventType} from "../postevent";
+import {PostEventType} from "../postOB11Event";
 import {isNull, log} from "../../../common/utils";
 
 export function wsReply(wsClient: websocket.WebSocket, data: OB11Response | PostEventType) {

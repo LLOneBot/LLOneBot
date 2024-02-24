@@ -14,7 +14,7 @@ export interface InvalidCheckResult {
 }
 
 export enum ActionName {
-    TestForwardMsg = "test_forward_msg",
+    Debug = "llonebot_debug",
     SendLike = "send_like",
     GetLoginInfo = "get_login_info",
     GetFriendList = "get_friend_list",
@@ -28,6 +28,7 @@ export enum ActionName {
     SendPrivateMsg = "send_private_msg",
     DeleteMsg = "delete_msg",
     SetGroupAddRequest = "set_group_add_request",
+    SetFriendAddRequest = "set_friend_add_request",
     SetGroupLeave = "set_group_leave",
     GetVersionInfo = "get_version_info",
     GetStatus = "get_status",
