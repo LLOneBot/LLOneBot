@@ -29,7 +29,7 @@ function h(type: string, data: any) {
     }
 }
 
-export function parseCQCode(source: string): OB11MessageData[] {
+export function decodeCQCode(source: string): OB11MessageData[] {
     const elements: any[] = []
     let result: ReturnType<typeof from>
     while ((result = from(source))) {
@@ -42,6 +42,28 @@ export function parseCQCode(source: string): OB11MessageData[] {
     }
     if (source) elements.push(h('text', {text: unescape(source)}))
     return elements
+}
+
+
+export function encodeCQCode(data: OB11MessageData) {
+    const CQCodeEscape = (text: string) => {
+        return text.replace(/\[/g, '&#91;')
+            .replace(/\]/g, '&#93;')
+            .replace(/\&/g, '&amp;')
+            .replace(/,/g, '&#44;');
+    };
+
+    if (data.type === 'text') {
+        return CQCodeEscape(data.data.text);
+    }
+
+    let result = '[CQ:' + data.type;
+    for (const name in data.data) {
+        const value = data.data[name];
+        result += `,${name}=${CQCodeEscape(value)}`;
+    }
+    result += ']';
+    return result;
 }
 
 // const result = parseCQCode("[CQ:at,qq=114514]早上好啊[CQ:image,file=http://baidu.com/1.jpg,type=show,id=40004]")

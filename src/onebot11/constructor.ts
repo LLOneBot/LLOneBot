@@ -7,27 +7,18 @@ import {
     OB11MessageDataType,
     OB11User
 } from "./types";
-import {
-    AtType,
-    ChatType,
-    Friend,
-    Group,
-    GroupMember,
-    IMAGE_HTTP_HOST,
-    RawMessage,
-    SelfInfo,
-    User
-} from '../ntqqapi/types';
+import {AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User} from '../ntqqapi/types';
 import {getFriend, getGroupMember, getHistoryMsgBySeq, selfInfo} from '../common/data';
 import {file2base64, getConfigUtil, log} from "../common/utils";
 import {NTQQApi} from "../ntqqapi/ntcall";
 import {EventType} from "./event/OB11BaseEvent";
+import {encodeCQCode} from "./cqcode";
 
 
 export class OB11Constructor {
     static async message(msg: RawMessage): Promise<OB11Message> {
 
-        const {enableLocalFile2Url, messagePostFormat} = getConfigUtil().getConfig()
+        const {enableLocalFile2Url, ob11: {messagePostFormat}} = getConfigUtil().getConfig()
         const message_type = msg.chatType == ChatType.group ? "group" : "private";
         const resMsg: OB11Message = {
             self_id: parseInt(selfInfo.uin),
@@ -92,14 +83,11 @@ export class OB11Constructor {
                 }
             } else if (element.textElement) {
                 message_data["type"] = "text"
-                let text= element.textElement.content
-                if (!text.trim()){
+                let text = element.textElement.content
+                if (!text.trim()) {
                     continue;
                 }
                 message_data["data"]["text"] = text
-                if (text){
-                    resMsg.raw_message += text
-                }
             } else if (element.picElement) {
                 message_data["type"] = "image"
                 message_data["data"]["file_id"] = element.picElement.fileUuid
@@ -156,8 +144,11 @@ export class OB11Constructor {
             }
 
             if (message_data.type !== "unknown" && message_data.data) {
-                if (messagePostFormat === 'string') (resMsg.message as string) += CQCodeBuilder(message_data);
-                else (resMsg.message as OB11MessageData[]).push(message_data);
+                if (messagePostFormat === 'string') {
+                    const cqCode = encodeCQCode(message_data);
+                    (resMsg.message as string) += cqCode;
+                    resMsg.raw_message += cqCode;
+                } else (resMsg.message as OB11MessageData[]).push(message_data);
             }
         }
         resMsg.raw_message = resMsg.raw_message.trim();
@@ -219,25 +210,4 @@ export class OB11Constructor {
     static groups(groups: Group[]): OB11Group[] {
         return groups.map(OB11Constructor.group)
     }
-}
-
-function CQCodeBuilder(data: OB11MessageData) {
-    const CQCodeEscape = (text: string) => {
-        return text.replace(/\[/g, '&#91;')
-            .replace(/\]/g, '&#93;')
-            .replace(/\&/g, '&amp;')
-            .replace(/,/g, '&#44;');
-    };
-
-    if (data.type === 'text') {
-        return CQCodeEscape(data.data.text);
-    }
-
-    let result = '[CQ:' + data.type;
-    for (const name in data.data) {
-        const value = data.data[name];
-        result += `,${name}=${CQCodeEscape(value)}`;
-    }
-    result += ']';
-    return result;
 }
