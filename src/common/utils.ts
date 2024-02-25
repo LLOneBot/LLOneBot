@@ -5,6 +5,8 @@ import util from "util";
 import {encode, getDuration} from "silk-wasm";
 import fs from 'fs';
 import {v4 as uuidv4} from "uuid";
+import {exec} from "node:child_process";
+import ffmpeg from "fluent-ffmpeg"
 
 export const CONFIG_DIR = global.LiteLoader.plugins["LLOneBot"].path.data;
 
@@ -136,7 +138,22 @@ export function mergeNewProperties(newObj: any, oldObj: any) {
     });
 }
 
+export function checkFFMPEG(): boolean {
+    let ffmpegExist: boolean;
+    exec('ffmpeg -version', (error, stdout, stderr) => {
+        if (error) {
+            log('ffmpeg is not installed or not found in PATH:', error);
+            ffmpegExist = false
+        }
+        log('ffmpeg is installed. Version info:', stdout);
+        ffmpegExist = true;
+    });
+    return ffmpegExist;
+}
+
 export async function encodeSilk(filePath: string) {
+    const fsp = require("fs").promises
+
     function getFileHeader(filePath: string) {
         // 定义要读取的字节数
         const bytesToRead = 7;
@@ -152,6 +169,35 @@ export async function encodeSilk(filePath: string) {
             console.error("读取文件错误:", err);
             return;
         }
+    }
+
+    function isWavFile(filePath: string) {
+        return new Promise((resolve, reject) => {
+            fs.open(filePath, 'r', (err, fd) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                // 读取前12个字节
+                const buffer = Buffer.alloc(12);
+                fs.read(fd, buffer, 0, 12, 0, (err, bytesRead, buffer) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    fs.close(fd, (err) => {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+                        // 检查RIFF头和WAVE格式标识
+                        const isRIFF = buffer.toString('utf8', 0, 4) === 'RIFF';
+                        const isWAVE = buffer.toString('utf8', 8, 12) === 'WAVE';
+                        resolve(isRIFF && isWAVE);
+                    });
+                });
+            });
+        });
     }
 
     async function getAudioSampleRate(filePath: string) {
@@ -172,22 +218,38 @@ export async function encodeSilk(filePath: string) {
         const pttPath = path.join(CONFIG_DIR, uuidv4());
         if (getFileHeader(filePath) !== "02232153494c4b") {
             log(`语音文件${filePath}需要转换`)
-            const sampleRate = await getAudioSampleRate(filePath) || 44100;
-            const silk = await encode(pcm, sampleRate);
-            fs.writeFileSync(pttPath, silk.data);
-            log(`语音文件${filePath}转换成功!`)
-            return {
-                converted: true,
-                path: pttPath,
-                duration: silk.duration,
-            };
-        } else {
-            const duration = getDuration(pcm);
-            return {
-                converted: false,
-                path: filePath,
-                duration: duration,
-            };
+            const isWav = await isWavFile(filePath);
+            if (!isWav) {
+                log(`语音文件${filePath}正在转换成wav`)
+                let voiceData = await fsp.readFile(filePath)
+                const wavPath = pttPath + ".wav"
+                await new Promise((resolve, reject) => {
+                    ffmpeg(filePath).toFormat("wav").on('end', function () {
+                        // console.log('转换完成');
+                        filePath = wavPath
+                    })
+                        .on('error', function (err) {
+                            // console.log('转换出错: ' + err.message);
+                        })
+                        .save(wavPath);
+                })
+                const sampleRate = await getAudioSampleRate(filePath) || 44100;
+                const silk = await encode(pcm, sampleRate);
+                fs.writeFileSync(pttPath, silk.data);
+                log(`语音文件${filePath}转换成功!`, pttPath)
+                return {
+                    converted: true,
+                    path: pttPath,
+                    duration: silk.duration,
+                };
+            } else {
+                const duration = getDuration(pcm);
+                return {
+                    converted: false,
+                    path: filePath,
+                    duration: duration,
+                };
+            }
         }
     } catch (error) {
         log("convert silk failed", error.stack);

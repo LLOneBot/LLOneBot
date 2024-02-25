@@ -3,7 +3,9 @@ import {hookApiCallbacks, ReceiveCmd, registerReceiveHook, removeReceiveHook} fr
 import {log} from "../common/utils";
 import {
     ChatType,
-    Friend, FriendRequest,
+    ElementType,
+    Friend,
+    FriendRequest,
     Group,
     GroupMember,
     GroupNotifies,
@@ -329,7 +331,7 @@ export class NTQQApi {
     }
 
     // 上传文件到QQ的文件夹
-    static async uploadFile(filePath: string) {
+    static async uploadFile(filePath: string, elementType: ElementType=ElementType.PIC) {
         const md5 = await NTQQApi.getFileMd5(filePath);
         let ext = (await NTQQApi.getFileType(filePath))?.ext
         if (ext) {
@@ -344,7 +346,7 @@ export class NTQQApi {
                 path_info: {
                     md5HexStr: md5,
                     fileName: fileName,
-                    elementType: 2,
+                    elementType: elementType,
                     elementSubType: 0,
                     thumbSize: 0,
                     needCreate: true,
