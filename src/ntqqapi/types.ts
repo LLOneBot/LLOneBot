@@ -45,11 +45,12 @@ export interface Group {
     members: GroupMember[]  // 原始数据是没有这个的，为了方便自己加了这个字段
 }
 
-export enum GroupMemberRole{
+export enum GroupMemberRole {
     normal = 2,
     admin = 3,
     owner = 4
 }
+
 export interface GroupMember {
     avatarPath: string;
     cardName: string;
@@ -142,24 +143,26 @@ export interface SendFaceElement {
     faceElement: FaceElement
 }
 
+export interface FileElement {
+    "fileMd5"?: "",
+    "fileName": string,
+    "filePath": string,
+    "fileSize": string,
+    "picHeight"?: number,
+    "picWidth"?: number,
+    "picThumbPath"?: {},
+    "file10MMd5"?: "",
+    "fileSha"?: "",
+    "fileSha3"?: "",
+    "fileUuid"?: "",
+    "fileSubId"?: "",
+    "thumbFileSize"?: number
+}
+
 export interface SendFileElement {
     "elementType": ElementType.FILE,
     "elementId": "",
-    "fileElement": {
-        "fileMd5"?: "",
-        "fileName": string,
-        "filePath": string,
-        "fileSize": string,
-        "picHeight"?: number,
-        "picWidth"?: number,
-        "picThumbPath"?: {},
-        "file10MMd5"?: "",
-        "fileSha"?: "",
-        "fileSha3"?: "",
-        "fileUuid"?: "",
-        "fileSubId"?: "",
-        "thumbFileSize"?: number
-    }
+    "fileElement": FileElement
 }
 
 export type SendMessageElement = SendTextElement | SendPttElement |
@@ -291,7 +294,8 @@ export interface RawMessage {
         arkElement: ArkElement;
         grayTipElement: GrayTipElement;
         faceElement: FaceElement;
-        videoElement: VideoElement
+        videoElement: VideoElement;
+        fileElement: FileElement;
     }[];
 }
 
