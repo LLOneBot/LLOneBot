@@ -109,15 +109,17 @@ export class OB11Constructor {
                 }
             } else if (element.videoElement) {
                 message_data["type"] = OB11MessageDataType.video;
-                message_data["data"]["file"] = element.pttElement.filePath
-                message_data["data"]["file_id"] = element.pttElement.fileUuid
+                message_data["data"]["file"] = element.videoElement.filePath
+                message_data["data"]["file_id"] = element.videoElement.fileUuid
                 // 怎么拿到url呢
-                try {
-                    // await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
-                    //     element.elementId, element.picElement.thumbPath.get(0), element.picElement.sourcePath)
-                } catch (e) {
-                }
-            } else if (element.pttElement) {
+            } else if (element.fileElement) {
+                message_data["type"] = OB11MessageDataType.file;
+                message_data["data"]["file"] = element.fileElement.filePath
+                message_data["data"]["file_id"] = element.fileElement.fileUuid
+                message_data["data"]["file_size"] = element.fileElement.fileSize
+                // 怎么拿到url呢
+            }
+            else if (element.pttElement) {
                 message_data["type"] = OB11MessageDataType.voice;
                 message_data["data"]["file"] = element.pttElement.filePath
                 message_data["data"]["file_id"] = element.pttElement.fileUuid
