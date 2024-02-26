@@ -62,6 +62,7 @@ export interface GroupMember {
 export enum ElementType {
     TEXT = 1,
     PIC = 2,
+    FILE = 3,
     PTT = 4,
     FACE = 6,
     REPLY = 7,
@@ -136,7 +137,28 @@ export interface SendFaceElement {
     faceElement: FaceElement
 }
 
-export type SendMessageElement = SendTextElement | SendPttElement | SendPicElement | SendReplyElement | SendFaceElement
+export interface SendFileElement {
+    "elementType": ElementType.FILE,
+    "elementId": "",
+    "fileElement": {
+        "fileMd5"?: "",
+        "fileName": string,
+        "filePath": string,
+        "fileSize": string,
+        "picHeight"?: number,
+        "picWidth"?: number,
+        "picThumbPath"?: {},
+        "file10MMd5"?: "",
+        "fileSha"?: "",
+        "fileSha3"?: "",
+        "fileUuid"?: "",
+        "fileSubId"?: "",
+        "thumbFileSize"?: number
+    }
+}
+
+export type SendMessageElement = SendTextElement | SendPttElement |
+    SendPicElement | SendReplyElement | SendFaceElement | SendFileElement
 
 export enum AtType {
     notAt = 0,
@@ -206,6 +228,31 @@ export interface FaceElement {
     faceType: 1
 }
 
+export interface VideoElement {
+    "filePath": string,
+    "fileName": string,
+    "videoMd5": string,
+    "thumbMd5": string
+    "fileTime": 87, // second
+    "thumbSize": 314235, // byte
+    "fileFormat": 2,  // 2表示mp4？
+    "fileSize": string,  // byte
+    "thumbWidth": number,
+    "thumbHeight": number,
+    "busiType": 0, // 未知
+    "subBusiType": 0, // 未知
+    "thumbPath": {},
+    "transferStatus": 0, // 未知
+    "progress": 0,  // 下载进度？
+    "invalidState": 0, // 未知
+    "fileUuid": string,  // 可以用于下载链接？
+    "fileSubId": "",
+    "fileBizId": null,
+    "originVideoMd5": "",
+    "import_rich_media_context": null,
+    "sourceVideoCodecFormat": 0
+}
+
 export interface RawMessage {
     msgId: string;
     msgShortId?: number;  // 自己维护的消息id
@@ -239,6 +286,7 @@ export interface RawMessage {
         arkElement: ArkElement;
         grayTipElement: GrayTipElement;
         faceElement: FaceElement;
+        videoElement: VideoElement
     }[];
 }
 
@@ -276,12 +324,12 @@ export interface GroupNotify {
     warningTips: string
 }
 
-export enum GroupRequestOperateTypes{
+export enum GroupRequestOperateTypes {
     approve = 1,
     reject = 2
 }
 
-export interface FriendRequest{
+export interface FriendRequest {
     friendUid: string,
     reqTime: string,  // 时间戳,秒
     extWords: string,  // 申请人填写的验证消息
@@ -290,7 +338,8 @@ export interface FriendRequest{
     sourceId: number,
     groupCode: string
 }
-export interface FriendRequestNotify{
+
+export interface FriendRequestNotify {
     data: {
         unreadNums: number,
         buddyReqs: FriendRequest[]
