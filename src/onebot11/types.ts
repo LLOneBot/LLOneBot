@@ -1,4 +1,4 @@
-import {AtType, RawMessage} from "../ntqqapi/types";
+import {RawMessage} from "../ntqqapi/types";
 import {EventType} from "./event/OB11BaseEvent";
 
 export interface OB11User {
@@ -85,7 +85,9 @@ export interface OB11Return<DataType> {
 export enum OB11MessageDataType {
     text = "text",
     image = "image",
+    video = "video",
     voice = "record",
+    file = "file",
     at = "at",
     reply = "reply",
     json = "json",
@@ -113,6 +115,14 @@ export interface OB11MessageImage extends OB11MessageFileBase {
 
 export interface OB11MessageRecord extends OB11MessageFileBase {
     type: OB11MessageDataType.voice
+}
+
+export interface OB11MessageFile extends OB11MessageFileBase {
+    type: OB11MessageDataType.file
+}
+
+export interface OB11MessageVideo extends OB11MessageFileBase {
+    type: OB11MessageDataType.video
 }
 
 export interface OB11MessageAt {
@@ -152,7 +162,7 @@ export type OB11MessageData =
     OB11MessageText |
     OB11MessageFace |
     OB11MessageAt | OB11MessageReply |
-    OB11MessageImage | OB11MessageRecord |
+    OB11MessageImage | OB11MessageRecord | OB11MessageFile | OB11MessageVideo |
     OB11MessageNode
 
 export interface OB11PostSendMsg {

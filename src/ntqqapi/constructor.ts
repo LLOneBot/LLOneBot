@@ -2,13 +2,14 @@ import {
     AtType,
     ElementType,
     SendFaceElement,
+    SendFileElement,
     SendPicElement,
     SendPttElement,
     SendReplyElement,
     SendTextElement
 } from "./types";
 import {NTQQApi} from "./ntcall";
-import {encodeSilk} from "../common/utils";
+import {encodeSilk, log} from "../common/utils";
 import fs from "fs";
 
 
@@ -80,12 +81,34 @@ export class SendMsgElementConstructor {
         };
     }
 
+    static async file(filePath: string, isVideo:boolean = false): Promise<SendFileElement> {
+        const {md5, fileName, path, fileSize} = await NTQQApi.uploadFile(filePath);
+        let element: SendFileElement = {
+            elementType: ElementType.FILE,
+            elementId: "",
+            fileElement: {
+                fileName,
+                "filePath": path,
+                "fileSize": (fileSize).toString(),
+            }
+        }
+        if (isVideo){
+            element.fileElement.picHeight = 0;
+            element.fileElement.picWidth = 0;
+        }
+        return element;
+    }
+
+    static video(filePath: string): Promise<SendFileElement> {
+        return SendMsgElementConstructor.file(filePath, true);
+    }
     static async ptt(pttPath: string): Promise<SendPttElement> {
         const {converted, path: silkPath, duration} = await encodeSilk(pttPath);
         // log("生成语音", silkPath, duration);
         const {md5, fileName, path, fileSize} = await NTQQApi.uploadFile(silkPath, ElementType.PTT);
-        if (converted){
-            fs.unlink(silkPath, ()=>{});
+        if (converted) {
+            fs.unlink(silkPath, () => {
+            });
         }
         return {
             elementType: ElementType.PTT,

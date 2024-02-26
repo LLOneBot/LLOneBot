@@ -88,6 +88,14 @@ export class OB11Constructor {
                     continue;
                 }
                 message_data["data"]["text"] = text
+            } else if (element.replyElement) {
+                message_data["type"] = "reply"
+                const replyMsg = getHistoryMsgBySeq(element.replyElement.replayMsgSeq)
+                if (replyMsg) {
+                    message_data["data"]["id"] = replyMsg.msgShortId.toString()
+                } else {
+                    continue
+                }
             } else if (element.picElement) {
                 message_data["type"] = "image"
                 message_data["data"]["file_id"] = element.picElement.fileUuid
@@ -99,13 +107,15 @@ export class OB11Constructor {
                         element.elementId, element.picElement.thumbPath.get(0), element.picElement.sourcePath)
                 } catch (e) {
                 }
-            } else if (element.replyElement) {
-                message_data["type"] = "reply"
-                const replyMsg = getHistoryMsgBySeq(element.replyElement.replayMsgSeq)
-                if (replyMsg) {
-                    message_data["data"]["id"] = replyMsg.msgShortId.toString()
-                } else {
-                    continue
+            } else if (element.videoElement) {
+                message_data["type"] = OB11MessageDataType.video;
+                message_data["data"]["file"] = element.pttElement.filePath
+                message_data["data"]["file_id"] = element.pttElement.fileUuid
+                // 怎么拿到url呢
+                try {
+                    // await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
+                    //     element.elementId, element.picElement.thumbPath.get(0), element.picElement.sourcePath)
+                } catch (e) {
                 }
             } else if (element.pttElement) {
                 message_data["type"] = OB11MessageDataType.voice;
@@ -125,6 +135,7 @@ export class OB11Constructor {
                 message_data["type"] = OB11MessageDataType.face;
                 message_data["data"]["id"] = element.faceElement.faceIndex.toString();
             }
+
             if (message_data.data.file) {
                 let filePath: string = message_data.data.file;
                 if (!enableLocalFile2Url) {

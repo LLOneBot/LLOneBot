@@ -10,6 +10,7 @@ import * as fs from "fs";
 import {log} from "../../common/utils";
 import {v4 as uuidv4} from "uuid"
 import {decodeCQCode} from "../cqcode";
+import {Send} from "express";
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
     function checkUri(uri: string): boolean {
@@ -145,13 +146,13 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             peerUid: selfInfo.uid
         }
         let nodeIds: string[] = []
-        for (const messageNode of messageNodes){
+        for (const messageNode of messageNodes) {
             // 一个node表示一个人的消息
             let nodeId = messageNode.data.id;
             // 有nodeId表示一个子转发消息卡片
             if (nodeId) {
                 let nodeMsg = getHistoryMsgByShortId(nodeId);
-                if (nodeMsg){
+                if (nodeMsg) {
                     nodeIds.push(nodeMsg.msgId);
                 }
             } else {
@@ -230,6 +231,8 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                 }
                     break;
                 case OB11MessageDataType.image:
+                case OB11MessageDataType.file:
+                case OB11MessageDataType.video:
                 case OB11MessageDataType.voice: {
                     const file = sendMsg.data?.file
                     if (file) {
@@ -238,11 +241,13 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                             if (!isLocal) { // 只删除http和base64转过来的文件
                                 deleteAfterSentFiles.push(path)
                             }
-                            if (sendMsg.type === OB11MessageDataType.image) {
-                                sendElements.push(await SendMsgElementConstructor.pic(path))
-                            } else {
-                                sendElements.push(await SendMsgElementConstructor.ptt(path))
+                            const constructorMap = {
+                                [OB11MessageDataType.image]: SendMsgElementConstructor.pic,
+                                [OB11MessageDataType.voice]: SendMsgElementConstructor.ptt,
+                                [OB11MessageDataType.video]: SendMsgElementConstructor.video,
+                                [OB11MessageDataType.file]: SendMsgElementConstructor.file,
                             }
+                            sendElements.push(await constructorMap[sendMsg.type](path));
                         }
                     }
                 }
