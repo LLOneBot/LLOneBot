@@ -19,4 +19,10 @@ export interface Config {
     reportSelfMessage?: boolean
     log?: boolean
     autoDeleteFile?: boolean
+    ffmpeg?: string  // ffmpeg路径
+}
+
+export type LLOneBotError = {
+    ffmpegError?: string
+    otherError?: string
 }

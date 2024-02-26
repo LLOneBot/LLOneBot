@@ -2,6 +2,7 @@
 
 
 // 打开设置界面时触发
+
 async function onSettingWindowCreated(view: Element) {
     window.llonebot.log("setting window created");
     const isEmpty = (value: any) => value === undefined || value === null || value === '';
@@ -10,7 +11,8 @@ async function onSettingWindowCreated(view: Element) {
     const httpPostClass = "http-post";
     const wsClass = "ws";
     const reverseWSClass = "reverse-ws";
-
+    const llonebotError = await window.llonebot.getError();
+    window.llonebot.log("获取error" + JSON.stringify(llonebotError));
     function createHttpHostEleStr(host: string) {
         let eleStr = `
             <setting-item data-direction="row" class="hostItem vertical-list-item ${httpPostClass}">
@@ -48,6 +50,18 @@ async function onSettingWindowCreated(view: Element) {
     let html = `
     <div class="config_view llonebot">
         <setting-section>
+            <setting-panel id="llonebotError" style="display:${llonebotError.ffmpegError || llonebotError.otherError ? '' : 'none'}">
+                <setting-item id="ffmpegError" data-direction="row" 
+                    style="diplay:${llonebotError.ffmpegError ? '' : 'none'}"
+                    class="hostItem vertical-list-item">
+                    <setting-text data-type="secondary" class="err-content">${llonebotError.ffmpegError}</setting-text>
+                </setting-item>
+                <setting-item id="otherError" data-direction="row" 
+                    style="diplay:${llonebotError.otherError ? '' : 'none'}"
+                    class="hostItem vertical-list-item">
+                    <setting-text data-type="secondary" class="err-content">${llonebotError.otherError}</setting-text>
+                </setting-item>
+            </setting-panel>
             <setting-panel>
                 <setting-list class="wrap">
                     <setting-item data-direction="row" class="hostItem vertical-list-item">
@@ -107,7 +121,16 @@ async function onSettingWindowCreated(view: Element) {
                 </setting-list>
             </setting-panel>
             <setting-panel>
-                <setting-item data-direction="row" class="hostItem vertical-list-item">
+                <setting-item data-direction="row" class="vertical-list-item">
+                    <setting-item data-direction="row" class="vertical-list-item" style="width: 80%">
+                        <setting-text>ffmpeg路径</setting-text>
+                        <input id="ffmpegPath" class="input-text" type="text" 
+                            style="width:80%;padding: 5px"
+                            value="${config.ffmpeg || ''}"/>
+                    </setting-item>
+                    <button id="selectFFMPEG" class="q-button q-button--small q-button--secondary">选择ffmpeg</button>
+                </setting-item>
+                <setting-item data-direction="row" class="vertical-list-item">
                     <div>
                         <setting-text>消息上报数据类型</setting-text>
                         <setting-text data-type="secondary">如客户端无特殊需求推荐保持默认设置，两者的详细差异可参考 <a href="javascript:LiteLoader.api.openExternal('https://github.com/botuniverse/onebot-11/tree/master/message#readme');">OneBot v11 文档</a></setting-text>
@@ -117,35 +140,35 @@ async function onSettingWindowCreated(view: Element) {
                         <setting-option data-value="string" ${config.ob11.messagePostFormat === "string" ? "is-selected" : ""}>CQ码</setting-option>
                     </setting-select>
                 </setting-item>
-                <setting-item data-direction="row" class="hostItem vertical-list-item">
+                <setting-item data-direction="row" class="vertical-list-item">
                     <div>
                         <div>上报文件不采用本地路径</div>
                         <div class="tips">开启后，上报文件(图片语音等)为http链接或base64编码</div>
                     </div>
                     <setting-switch id="switchFileUrl" ${config.enableLocalFile2Url ? "is-active" : ""}></setting-switch>
                 </setting-item>
-                <setting-item data-direction="row" class="hostItem vertical-list-item">
+                <setting-item data-direction="row" class="vertical-list-item">
                     <div>
                         <div>debug模式</div>
                         <div class="tips">开启后上报消息添加raw字段附带原始消息</div>
                     </div>
                     <setting-switch id="debug" ${config.debug ? "is-active" : ""}></setting-switch>
                 </setting-item>
-                <setting-item data-direction="row" class="hostItem vertical-list-item">
+                <setting-item data-direction="row" class="vertical-list-item">
                     <div>
                         <div>上报自身消息</div>
                         <div class="tips">慎用，不然会自己和自己聊个不停</div>
                     </div>
                     <setting-switch id="reportSelfMessage" ${config.reportSelfMessage ? "is-active" : ""}></setting-switch>
                 </setting-item>
-                <setting-item data-direction="row" class="hostItem vertical-list-item">
+                <setting-item data-direction="row" class="vertical-list-item">
                     <div>
                         <div>日志</div>
                         <div class="tips">目录:${window.LiteLoader.plugins["LLOneBot"].path.data}</div>
                     </div>
                     <setting-switch id="log" ${config.log ? "is-active" : ""}></setting-switch>
                 </setting-item>
-                <setting-item data-direction="row" class="hostItem vertical-list-item">
+                <setting-item data-direction="row" class="vertical-list-item">
                     <div>
                         <div>自动删除收到的文件</div>
                         <div class="tips">一分钟后会删除收到的图片语音</div>
@@ -173,6 +196,36 @@ async function onSettingWindowCreated(view: Element) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, "text/html");
 
+    const getError = async ()=> {
+        const llonebotError = await window.llonebot.getError();
+        console.log(llonebotError);
+        const llonebotErrorEle = document.getElementById("llonebotError");
+        const ffmpegErrorEle = document.getElementById("ffmpegError");
+        const otherErrorEle = document.getElementById("otherError");
+        if (llonebotError.otherError || llonebotError.ffmpegError){
+            llonebotErrorEle.style.display = ''
+        }
+        else{
+            llonebotErrorEle.style.display = 'none'
+        }
+        if (llonebotError.ffmpegError) {
+            const errContentEle = doc.querySelector("#ffmpegError .err-content")
+            // const errContent = ffmpegErrorEle.getElementsByClassName("err-content")[0];
+            errContentEle.textContent = llonebotError.ffmpegError;
+            (ffmpegErrorEle as HTMLElement).style.display = ''
+        }
+        else{
+            ffmpegErrorEle.style.display = ''
+        }
+        if (llonebotError.otherError) {
+            const errContentEle = doc.querySelector("#otherError .err-content")
+            errContentEle.textContent = llonebotError.otherError;
+            otherErrorEle.style.display = ''
+        }
+        else{
+            otherErrorEle.style.display = 'none'
+        }
+    }
 
     function addHostEle(type: string, initValue: string = "") {
         let addressEle, hostItemsEle;
@@ -197,8 +250,8 @@ async function onSettingWindowCreated(view: Element) {
         window.llonebot.setConfig(config);
     })
 
-    function switchClick(eleId: string, configKey: string, _config=null) {
-        if (!_config){
+    function switchClick(eleId: string, configKey: string, _config = null) {
+        if (!_config) {
             _config = config
         }
         doc.getElementById(eleId)?.addEventListener("click", (e) => {
@@ -242,6 +295,7 @@ async function onSettingWindowCreated(view: Element) {
             const wsPortEle: HTMLInputElement = document.getElementById("wsPort") as HTMLInputElement;
             const wsHostEles: HTMLCollectionOf<HTMLInputElement> = document.getElementsByClassName("wsHost") as HTMLCollectionOf<HTMLInputElement>;
             const tokenEle = document.getElementById("token") as HTMLInputElement;
+            const ffmpegPathEle = document.getElementById("ffmpegPath") as HTMLInputElement;
 
             // 获取端口和host
             const httpPort = httpPortEle.value
@@ -266,15 +320,25 @@ async function onSettingWindowCreated(view: Element) {
             config.ob11.wsPort = parseInt(wsPort);
             config.ob11.wsHosts = wsHosts;
             config.token = token;
+            config.ffmpeg = ffmpegPathEle.value.trim();
             window.llonebot.setConfig(config);
+            setTimeout(()=>{
+                getError().then();
+            }, 1000);
             alert("保存成功");
         })
 
+    doc.getElementById("selectFFMPEG")?.addEventListener("click", ()=>{
+        window.llonebot.selectFile().then(selectPath=>{
+            if (selectPath){
+                (document.getElementById("ffmpegPath") as HTMLInputElement).value = selectPath;
+            }
+        });
+    })
 
     doc.body.childNodes.forEach(node => {
         view.appendChild(node);
     });
-
 }
 
 

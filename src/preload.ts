@@ -1,7 +1,14 @@
 // Electron 主进程 与 渲染进程 交互的桥梁
 
-import {Config} from "./common/types";
-import {CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG,} from "./common/channels";
+import {Config, LLOneBotError} from "./common/types";
+import {
+    CHANNEL_ERROR,
+    CHANNEL_GET_CONFIG,
+    CHANNEL_LOG,
+    CHANNEL_SELECT_FILE,
+    CHANNEL_SET_CONFIG,
+} from "./common/channels";
+
 const {contextBridge} = require("electron");
 const {ipcRenderer} = require('electron');
 
@@ -12,9 +19,15 @@ const llonebot = {
     setConfig: (config: Config) => {
         ipcRenderer.send(CHANNEL_SET_CONFIG, config);
     },
-    getConfig: async () => {
+    getConfig: async (): Promise<Config> => {
         return ipcRenderer.invoke(CHANNEL_GET_CONFIG);
     },
+    getError: async (): Promise<LLOneBotError> => {
+        return ipcRenderer.invoke(CHANNEL_ERROR);
+    },
+    selectFile: (): Promise<string> => {
+        return ipcRenderer.invoke(CHANNEL_SELECT_FILE);
+    }
 }
 
 export type LLOneBot = typeof llonebot;

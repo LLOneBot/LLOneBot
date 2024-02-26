@@ -9,6 +9,7 @@ import {
 } from "./types";
 import {NTQQApi} from "./ntcall";
 import {encodeSilk} from "../common/utils";
+import fs from "fs";
 
 
 export class SendMsgElementConstructor {
@@ -84,7 +85,7 @@ export class SendMsgElementConstructor {
         // log("生成语音", silkPath, duration);
         const {md5, fileName, path, fileSize} = await NTQQApi.uploadFile(silkPath, ElementType.PTT);
         if (converted){
-            // fs.unlink(silkPath, ()=>{});
+            fs.unlink(silkPath, ()=>{});
         }
         return {
             elementType: ElementType.PTT,

@@ -138,17 +138,18 @@ export function mergeNewProperties(newObj: any, oldObj: any) {
     });
 }
 
-export function checkFFMPEG(): boolean {
-    let ffmpegExist: boolean;
-    exec('ffmpeg -version', (error, stdout, stderr) => {
-        if (error) {
-            log('ffmpeg is not installed or not found in PATH:', error);
-            ffmpegExist = false
-        }
-        log('ffmpeg is installed. Version info:', stdout);
-        ffmpegExist = true;
+export function checkFFMPEG(newPath: string=null): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        const ffmpegPath = newPath || 'ffmpeg'
+        exec(ffmpegPath + ' -version', (error, stdout, stderr) => {
+            if (error) {
+                log('ffmpeg is not installed or not found in PATH:', error);
+                resolve(false)
+            }
+            log('ffmpeg is installed. Version info:', stdout);
+            resolve(true);
+        });
     });
-    return ffmpegExist;
 }
 
 export async function encodeSilk(filePath: string) {
@@ -214,28 +215,37 @@ export async function encodeSilk(filePath: string) {
 
     try {
         const fileName = path.basename(filePath);
-        const pcm = fs.readFileSync(filePath);
         const pttPath = path.join(CONFIG_DIR, uuidv4());
         if (getFileHeader(filePath) !== "02232153494c4b") {
             log(`语音文件${filePath}需要转换`)
             const isWav = await isWavFile(filePath);
             if (!isWav) {
                 log(`语音文件${filePath}正在转换成wav`)
-                let voiceData = await fsp.readFile(filePath)
+                // let voiceData = await fsp.readFile(filePath)
                 const wavPath = pttPath + ".wav"
                 await new Promise((resolve, reject) => {
+                    const ffmpegPath = getConfigUtil().getConfig().ffmpeg;
+                    if (ffmpegPath){
+                        ffmpeg.setFfmpegPath(ffmpegPath);
+                    }
                     ffmpeg(filePath).toFormat("wav").on('end', function () {
-                        // console.log('转换完成');
-                        filePath = wavPath
+                        log('wav转换完成');
                     })
                         .on('error', function (err) {
-                            // console.log('转换出错: ' + err.message);
+                            log(`wav转换出错: `, err.message,);
+                            reject(err);
                         })
-                        .save(wavPath);
+                        .save(wavPath)
+                        .on("end", ()=>{
+                            filePath = wavPath
+                            resolve(wavPath);
+                        });
                 })
                 const sampleRate = await getAudioSampleRate(filePath) || 44100;
+                const pcm = fs.readFileSync(filePath);
                 const silk = await encode(pcm, sampleRate);
                 fs.writeFileSync(pttPath, silk.data);
+                fs.unlink(wavPath, (err) => {});
                 log(`语音文件${filePath}转换成功!`, pttPath)
                 return {
                     converted: true,
@@ -243,6 +253,7 @@ export async function encodeSilk(filePath: string) {
                     duration: silk.duration,
                 };
             } else {
+                const pcm = fs.readFileSync(filePath);
                 const duration = getDuration(pcm);
                 return {
                     converted: false,
