@@ -22,6 +22,12 @@ import SetGroupLeave from "./SetGroupLeave";
 import GetGuildList from "./GetGuildList";
 import Debug from "./Debug";
 import SetFriendAddRequest from "./SetFriendAddRequest";
+import SetGroupWholeBan from "./SetGroupWholeBan";
+import SetGroupName from "./SetGroupName";
+import SetGroupBan from "./SetGroupBan";
+import SetGroupKick from "./SetGroupKick";
+import SetGroupAdmin from "./SetGroupAdmin";
+import SetGroupCard from "./SetGroupCard";
 
 export const actionHandlers = [
     new Debug(),
@@ -39,6 +45,12 @@ export const actionHandlers = [
     new CanSendRecord(),
     new CanSendImage(),
     new GetStatus(),
+    new SetGroupWholeBan(),
+    new SetGroupBan(),
+    new SetGroupKick(),
+    new SetGroupAdmin(),
+    new SetGroupName(),
+    new SetGroupCard(),
 
     //以下为go-cqhttp api
     new GoCQHTTPSendGroupForwardMsg(),

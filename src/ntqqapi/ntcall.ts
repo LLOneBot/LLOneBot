@@ -7,7 +7,7 @@ import {
     Friend,
     FriendRequest,
     Group,
-    GroupMember,
+    GroupMember, GroupMemberRole,
     GroupNotifies,
     GroupNotify,
     GroupRequestOperateTypes,
@@ -62,6 +62,13 @@ export enum NTQQApiMethod {
     QUIT_GROUP = "nodeIKernelGroupService/quitGroup",
     // READ_FRIEND_REQUEST = "nodeIKernelBuddyListener/onDoubtBuddyReqUnreadNumChange"
     HANDLE_FRIEND_REQUEST = "nodeIKernelBuddyService/approvalFriendRequest",
+    KICK_MEMBER = "nodeIKernelGroupService/kickMember",
+    MUTE_MEMBER = "nodeIKernelGroupService/setMemberShutUp",
+    MUTE_GROUP = "nodeIKernelGroupService/setGroupShutUp",
+    SET_MEMBER_CARD = "nodeIKernelGroupService/modifyMemberCardName",
+    SET_MEMBER_ROLE = "nodeIKernelGroupService/modifyMemberRole",
+    PUBLISH_GROUP_BULLETIN = "nodeIKernelGroupService/publishGroupBulletinBulletin",
+    SET_GROUP_NAME = "nodeIKernelGroupService/modifyGroupName",
 }
 
 enum NTQQApiChannel {
@@ -331,7 +338,7 @@ export class NTQQApi {
     }
 
     // 上传文件到QQ的文件夹
-    static async uploadFile(filePath: string, elementType: ElementType=ElementType.PIC) {
+    static async uploadFile(filePath: string, elementType: ElementType = ElementType.PIC) {
         const md5 = await NTQQApi.getFileMd5(filePath);
         let ext = (await NTQQApi.getFileType(filePath))?.ext
         if (ext) {
@@ -582,7 +589,7 @@ export class NTQQApi {
 
     static async handleFriendRequest(sourceId: number, accept: boolean,) {
         const request: FriendRequest = friendRequests[sourceId]
-        if (!request){
+        if (!request) {
             throw `sourceId ${sourceId}, 对应的好友请求不存在`
         }
         const result = await callNTQQApi<GeneralCallResult>({
@@ -599,5 +606,89 @@ export class NTQQApi {
         })
         delete friendRequests[sourceId];
         return result;
+    }
+
+    static kickMember(groupQQ: string, kickUids: string[], refuseForever: boolean = false, kickReason: string = "") {
+        return callNTQQApi<GeneralCallResult>(
+            {
+                methodName: NTQQApiMethod.KICK_MEMBER,
+                args: [
+                    {
+                        groupCode: groupQQ,
+                        kickUids,
+                        refuseForever,
+                        kickReason,
+                    }
+                ]
+            }
+        )
+    }
+
+    static banMember(groupQQ: string, memList: { uid: string, timeStamp: number }[]) {
+        // timeStamp为秒数, 0为解除禁言
+        return callNTQQApi<GeneralCallResult>(
+            {
+                methodName: NTQQApiMethod.MUTE_MEMBER,
+                args: [
+                    {
+                        groupCode: groupQQ,
+                        memList,
+                    }
+                ]
+            }
+        )
+    }
+    static banGroup(groupQQ: string, shutUp: boolean){
+        return callNTQQApi<GeneralCallResult>({
+            methodName: NTQQApiMethod.MUTE_GROUP,
+            args: [
+                {
+                    groupCode: groupQQ,
+                    shutUp
+                }, null
+            ]
+        })
+    }
+
+    static setMemberCard(groupQQ: string, memberUid: string, cardName: string) {
+        return callNTQQApi<GeneralCallResult>({
+            methodName: NTQQApiMethod.SET_MEMBER_CARD,
+            args: [
+                {
+                    groupCode: groupQQ,
+                    uid: memberUid,
+                    cardName
+                }, null
+            ]
+        })
+    }
+
+    static setMemberRole(groupQQ: string, memberUid: string, role: GroupMemberRole) {
+        return callNTQQApi<GeneralCallResult>({
+            methodName: NTQQApiMethod.SET_MEMBER_ROLE,
+            args: [
+                {
+                    groupCode: groupQQ,
+                    uid: memberUid,
+                    role
+                }, null
+            ]
+        })
+    }
+
+    static setGroupName(groupQQ: string, groupName: string){
+        return callNTQQApi<GeneralCallResult>({
+            methodName: NTQQApiMethod.SET_GROUP_NAME,
+            args:[
+                {
+                    groupCode: groupQQ,
+                    groupName
+                },null
+            ]
+        })
+    }
+
+    static publishGroupBulletin(groupQQ: string, title: string, content: string) {
+
     }
 }
