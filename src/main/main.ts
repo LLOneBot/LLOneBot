@@ -1,17 +1,24 @@
 // 运行在 Electron 主进程 下的插件入口
 
-import {BrowserWindow, ipcMain} from 'electron';
+import {BrowserWindow, dialog, ipcMain} from 'electron';
 import fs from 'fs';
 import {Config} from "../common/types";
-import {CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG,} from "../common/channels";
+import {
+    CHANNEL_ERROR,
+    CHANNEL_GET_CONFIG,
+    CHANNEL_LOG,
+    CHANNEL_SELECT_FILE,
+    CHANNEL_SET_CONFIG,
+} from "../common/channels";
 import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
-import {CONFIG_DIR, getConfigUtil, log} from "../common/utils";
+import {checkFFMPEG, CONFIG_DIR, getConfigUtil, log} from "../common/utils";
 import {
     addHistoryMsg,
     friendRequests,
     getGroup,
     getGroupMember,
     groupNotifies,
+    llonebotError,
     msgHistory,
     selfInfo
 } from "../common/data";
@@ -35,6 +42,7 @@ import {OB11GroupAdminNoticeEvent} from "../onebot11/event/notice/OB11GroupAdmin
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {OB11GroupRequestEvent} from "../onebot11/event/request/OB11GroupRequest";
 import {OB11FriendRequestEvent} from "../onebot11/event/request/OB11FriendRequest";
+import * as path from "node:path";
 
 
 let running = false;
@@ -43,13 +51,48 @@ let running = false;
 // 加载插件时触发
 function onLoad() {
     log("llonebot main onLoad");
+
+    ipcMain.handle(CHANNEL_SELECT_FILE, async (event, arg) => {
+        const selectPath = new Promise<string>((resolve, reject) => {
+            dialog
+                .showOpenDialog({
+                    title: "请选择ffmpeg",
+                    properties: ["openFile"],
+                    buttonLabel: "确定",
+                })
+                .then((result) => {
+                    log("选择文件", result);
+                    if (!result.canceled) {
+                        const _selectPath = path.join(result.filePaths[0]);
+                        resolve(_selectPath);
+                        // let config = getConfigUtil().getConfig()
+                        // config.ffmpeg = path.join(result.filePaths[0]);
+                        // getConfigUtil().setConfig(config);
+                    }
+                    resolve("")
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        })
+        try {
+            return await selectPath;
+        } catch (e) {
+            log("选择文件出错", e)
+            return ""
+        }
+    })
     if (!fs.existsSync(CONFIG_DIR)) {
         fs.mkdirSync(CONFIG_DIR, {recursive: true});
     }
-    ipcMain.handle(CHANNEL_GET_CONFIG, (event: any, arg: any) => {
-        return getConfigUtil().getConfig()
+    ipcMain.handle(CHANNEL_ERROR, (event, arg) => {
+        return llonebotError;
     })
-    ipcMain.on(CHANNEL_SET_CONFIG, (event: any, arg: Config) => {
+    ipcMain.handle(CHANNEL_GET_CONFIG, async (event, arg) => {
+        const config = getConfigUtil().getConfig()
+        return config;
+    })
+    ipcMain.on(CHANNEL_SET_CONFIG, (event, arg: Config) => {
         let oldConfig = getConfigUtil().getConfig();
         getConfigUtil().setConfig(arg)
         if (arg.ob11.httpPort != oldConfig.ob11.httpPort && arg.ob11.enableHttp) {
@@ -94,12 +137,19 @@ function onLoad() {
                 }
             }
         }
+
+        // 检查ffmpeg
+        if (arg.ffmpeg) {
+            checkFFMPEG(arg.ffmpeg).then(success => {
+                llonebotError.ffmpegError = ''
+            })
+        }
+
     })
 
-    ipcMain.on(CHANNEL_LOG, (event: any, arg: any) => {
+    ipcMain.on(CHANNEL_LOG, (event, arg) => {
         log(arg);
     })
-
 
     function postReceiveMsg(msgList: RawMessage[]) {
         const {debug, reportSelfMessage} = getConfigUtil().getConfig();
@@ -186,7 +236,7 @@ function onLoad() {
                 let notify: GroupNotifies;
                 try {
                     notify = await NTQQApi.getGroupNotifies();
-                }catch (e) {
+                } catch (e) {
                     // log("获取群通知详情失败", e);
                     return
                 }
@@ -197,12 +247,12 @@ function onLoad() {
                     for (const notify of notifies) {
                         const notifyTime = parseInt(notify.seq) / 1000
                         log(`加群通知时间${notifyTime}`, `LLOneBot启动时间${startTime}`);
-                        if ( notifyTime < startTime){
+                        if (notifyTime < startTime) {
                             continue;
                         }
                         const member1 = await getGroupMember(notify.group.groupCode, null, notify.user1.uid);
                         let member2: GroupMember;
-                        if (notify.user2.uid){
+                        if (notify.user2.uid) {
                             member2 = await getGroupMember(notify.group.groupCode, null, notify.user2.uid);
                         }
                         if ([GroupNotifyTypes.ADMIN_SET, GroupNotifyTypes.ADMIN_UNSET].includes(notify.type)) {
@@ -210,22 +260,19 @@ function onLoad() {
                             let groupAdminNoticeEvent = new OB11GroupAdminNoticeEvent()
                             groupAdminNoticeEvent.group_id = parseInt(notify.group.groupCode);
                             log("开始获取变动的管理员")
-                            if(member1){
+                            if (member1) {
                                 log("变动管理员获取成功")
                                 groupAdminNoticeEvent.user_id = parseInt(member1.uin);
                                 groupAdminNoticeEvent.sub_type = notify.type == GroupNotifyTypes.ADMIN_UNSET ? "unset" : "set";
                                 postOB11Event(groupAdminNoticeEvent, true);
-                            }
-                            else{
+                            } else {
                                 log("获取群通知的成员信息失败", notify, getGroup(notify.group.groupCode));
                             }
-                        }
-                        else if (notify.type == GroupNotifyTypes.MEMBER_EXIT){
+                        } else if (notify.type == GroupNotifyTypes.MEMBER_EXIT) {
                             log("有成员退出通知");
                             let groupDecreaseEvent = new OB11GroupDecreaseEvent(parseInt(notify.group.groupCode), parseInt(member1.uin))
                             // postEvent(groupDecreaseEvent, true);
-                        }
-                        else if ([GroupNotifyTypes.JOIN_REQUEST].includes(notify.type)){
+                        } else if ([GroupNotifyTypes.JOIN_REQUEST].includes(notify.type)) {
                             log("有加群请求");
                             groupNotifies[notify.seq] = notify;
                             let groupRequestEvent = new OB11GroupRequestEvent();
@@ -233,7 +280,7 @@ function onLoad() {
                             let requestQQ = ""
                             try {
                                 requestQQ = (await NTQQApi.getUserDetailInfo(notify.user1.uid)).uin;
-                            }catch (e) {
+                            } catch (e) {
                                 log("获取加群人QQ号失败", e)
                             }
                             groupRequestEvent.user_id = parseInt(requestQQ) || 0;
@@ -243,22 +290,22 @@ function onLoad() {
                             postOB11Event(groupRequestEvent);
                         }
                     }
-                }catch (e) {
+                } catch (e) {
                     log("解析群通知失败", e.stack);
                 }
             }
         })
 
         registerReceiveHook<FriendRequestNotify>(ReceiveCmd.FRIEND_REQUEST, async (payload) => {
-            for(const req of payload.data.buddyReqs){
-                if (req.isUnread && !friendRequests[req.sourceId] && (parseInt(req.reqTime) > startTime / 1000)){
+            for (const req of payload.data.buddyReqs) {
+                if (req.isUnread && !friendRequests[req.sourceId] && (parseInt(req.reqTime) > startTime / 1000)) {
                     friendRequests[req.sourceId] = req;
                     log("有新的好友请求", req);
                     let friendRequestEvent = new OB11FriendRequestEvent();
-                    try{
+                    try {
                         let requester = await NTQQApi.getUserDetailInfo(req.friendUid)
                         friendRequestEvent.user_id = parseInt(requester.uin);
-                    }catch (e) {
+                    } catch (e) {
                         log("获取加好友者QQ号失败", e);
                     }
                     friendRequestEvent.flag = req.sourceId.toString();
@@ -268,12 +315,20 @@ function onLoad() {
             }
         })
     }
+
     let startTime = 0;
+
     async function start() {
         startTime = Date.now();
         startReceiveHook().then();
         NTQQApi.getGroups(true).then()
         const config = getConfigUtil().getConfig()
+        // 检查ffmpeg
+        checkFFMPEG(config.ffmpeg).then(exist => {
+            if (!exist) {
+                llonebotError.ffmpegError = `环境变量${process.env.PATH}中不存在ffmpeg,音频只能发送wav和silk`
+            }
+        })
         if (config.ob11.enableHttp) {
             try {
                 ob11HTTPServer.start(config.ob11.httpPort)
@@ -309,7 +364,7 @@ function onLoad() {
                     selfInfo.nick = userInfo.nick;
                 } else {
                     getSelfNickCount++;
-                    if (getSelfNickCount < 10){
+                    if (getSelfNickCount < 10) {
                         return setTimeout(init, 1000);
                     }
                 }

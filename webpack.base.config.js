@@ -1,4 +1,5 @@
 // import path from "path";
+const webpack = require('webpack');
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -62,13 +63,16 @@ let config = {
     },
     plugins: [
         new CopyPlugin({
-            patterns: copyModules.map(m=>{
+            patterns: copyModules.map(m => {
                 m = `node_modules/${m}`
                 return {
                     from: m,
                     to: m
                 }
             })
+        }),
+        new webpack.DefinePlugin({
+            'process.env.FLUENTFFMPEG_COV': false,
         }),
     ], // devtool: 'source-map',
 }

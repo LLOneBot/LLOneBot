@@ -1,10 +1,17 @@
 import {NTQQApi} from '../ntqqapi/ntcall';
 import {Friend, FriendRequest, Group, GroupMember, GroupNotify, RawMessage, SelfInfo} from "../ntqqapi/types";
+import {LLOneBotError} from "./types";
 
 export let groups: Group[] = []
 export let friends: Friend[] = []
 export let msgHistory: Record<string, RawMessage> = {}  // msgId: RawMessage
-
+export const version = "3.7.0"
+export let groupNotifies: Map<string, GroupNotify> = new Map<string, GroupNotify>();
+export let friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>();
+export let llonebotError: LLOneBotError = {
+    ffmpegError: "",
+    otherError: ""
+}
 let globalMsgId = Math.floor(Date.now() / 1000);
 
 export function addHistoryMsg(msg: RawMessage): boolean {
@@ -86,7 +93,3 @@ export function getUidByUin(uin: string) {
     }
 }
 
-export const version = "3.7.0"
-
-export let groupNotifies: Map<string, GroupNotify> = new Map<string, GroupNotify>();
-export let friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>();
