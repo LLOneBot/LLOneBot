@@ -33,9 +33,11 @@ TG群：<https://t.me/+nLZEnpne-pQ1OWFl>
 - [x] 获取群列表
 - [x] 获取群成员列表
 - [x] 撤回消息
+- [x] 处理添加好友请求
 - [x] 处理加群请求
 - [x] 退群
 - [x] 上报好友消息
+- [x] 上报添加好友请求
 - [x] 上报群消息
 - [x] 上报好友、群消息撤回
 - [x] 上报加群请求
@@ -65,6 +67,7 @@ TG群：<https://t.me/+nLZEnpne-pQ1OWFl>
 - [x] get_group_member_list
 - [x] get_group_member_info
 - [x] get_friend_list
+- [x] set_friend_add_request
 - [x] get_msg
 - [x] send_like
 - [x] set_group_add_request
@@ -122,3 +125,9 @@ TG群：<https://t.me/+nLZEnpne-pQ1OWFl>
 
 ## onebot11文档
 <https://11.onebot.dev/>
+
+## 鸣谢
+* [LiteLoaderQQNT](https://liteloaderqqnt.github.io/guide/install.html)
+* [LLAPI](https://github.com/Night-stars-1/LiteLoaderQQNT-Plugin-LLAPI)
+* chronocat
+* [koishi-plugin-adapter-onebot](https://github.com/koishijs/koishi-plugin-adapter-onebot)
