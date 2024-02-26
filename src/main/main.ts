@@ -326,7 +326,7 @@ function onLoad() {
         // 检查ffmpeg
         checkFFMPEG(config.ffmpeg).then(exist => {
             if (!exist) {
-                llonebotError.ffmpegError = `环境变量${process.env.PATH}中不存在ffmpeg,音频只能发送wav和silk`
+                llonebotError.ffmpegError = `没有找到ffmpeg,音频只能发送wav和silk`
             }
         })
         if (config.ob11.enableHttp) {

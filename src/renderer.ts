@@ -117,19 +117,20 @@ async function onSettingWindowCreated(view: Element) {
                         <setting-text>Access Token</setting-text>
                         <input id="token" type="text" placeholder="可为空" value="${config.token}"/>
                     </setting-item>
+                    <setting-item data-direction="row" class="vertical-list-item">
+                        <setting-item data-direction="row" class="vertical-list-item" style="width: 80%">
+                            <setting-text>ffmpeg路径</setting-text>
+                            <input id="ffmpegPath" class="input-text" type="text" 
+                                style="width:80%;padding: 5px"
+                                value="${config.ffmpeg || ''}"/>
+                        </setting-item>
+                        <button id="selectFFMPEG" class="q-button q-button--small q-button--secondary">选择ffmpeg</button>
+                    </setting-item>
                     <button id="save" class="q-button">保存</button>
                 </setting-list>
             </setting-panel>
             <setting-panel>
-                <setting-item data-direction="row" class="vertical-list-item">
-                    <setting-item data-direction="row" class="vertical-list-item" style="width: 80%">
-                        <setting-text>ffmpeg路径</setting-text>
-                        <input id="ffmpegPath" class="input-text" type="text" 
-                            style="width:80%;padding: 5px"
-                            value="${config.ffmpeg || ''}"/>
-                    </setting-item>
-                    <button id="selectFFMPEG" class="q-button q-button--small q-button--secondary">选择ffmpeg</button>
-                </setting-item>
+
                 <setting-item data-direction="row" class="vertical-list-item">
                     <div>
                         <setting-text>消息上报数据类型</setting-text>
@@ -331,7 +332,8 @@ async function onSettingWindowCreated(view: Element) {
     doc.getElementById("selectFFMPEG")?.addEventListener("click", ()=>{
         window.llonebot.selectFile().then(selectPath=>{
             if (selectPath){
-                (document.getElementById("ffmpegPath") as HTMLInputElement).value = selectPath;
+                config.ffmpeg = (document.getElementById("ffmpegPath") as HTMLInputElement).value = selectPath;
+                // window.llonebot.setConfig(config);
             }
         });
     })
