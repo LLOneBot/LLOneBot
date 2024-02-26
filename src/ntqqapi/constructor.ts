@@ -93,8 +93,8 @@ export class SendMsgElementConstructor {
             }
         }
         if (isVideo){
-            element.fileElement.picHeight = 0;
-            element.fileElement.picWidth = 0;
+            element.fileElement.picHeight = 1024;
+            element.fileElement.picWidth = 768;
         }
         return element;
     }

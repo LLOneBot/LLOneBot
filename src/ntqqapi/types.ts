@@ -45,6 +45,11 @@ export interface Group {
     members: GroupMember[]  // 原始数据是没有这个的，为了方便自己加了这个字段
 }
 
+export enum GroupMemberRole{
+    normal = 2,
+    admin = 3,
+    owner = 4
+}
 export interface GroupMember {
     avatarPath: string;
     cardName: string;
@@ -53,7 +58,7 @@ export interface GroupMember {
     nick: string;
     qid: string;
     remark: string;
-    role: number; // 群主:4, 管理员:3，群员:2
+    role: GroupMemberRole; // 群主:4, 管理员:3，群员:2
     shutUpTime: number; // 禁言时间，单位是什么暂时不清楚
     uid: string; // 加密的字符串
     uin: string; // QQ号

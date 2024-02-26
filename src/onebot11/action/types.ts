@@ -34,6 +34,12 @@ export enum ActionName {
     GetStatus = "get_status",
     CanSendRecord = "can_send_record",
     CanSendImage = "can_send_image",
+    SetGroupKick = "set_group_kick",
+    SetGroupBan = "set_group_ban",
+    SetGroupWholeBan = "set_group_whole_ban",
+    SetGroupAdmin = "set_group_admin",
+    SetGroupCard = "set_group_card",
+    SetGroupName = "set_group_name",
     // 以下为go-cqhttp api
     GoCQHTTP_SendGroupForwardMsg = "send_group_forward_msg",
     GoCQHTTP_SendPrivateForwardMsg = "send_private_forward_msg",
