@@ -93,7 +93,7 @@ export class OB11Constructor {
                 message_data["data"]["file_id"] = element.picElement.fileUuid
                 message_data["data"]["path"] = element.picElement.sourcePath
                 message_data["data"]["file"] = element.picElement.sourcePath
-                message_data["data"]["http_file"] = IMAGE_HTTP_HOST + element.picElement.originImageUrl
+                message_data["data"]["url"] = IMAGE_HTTP_HOST + element.picElement.originImageUrl
                 try {
                     await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
                         element.elementId, element.picElement.thumbPath.get(0), element.picElement.sourcePath)
@@ -130,8 +130,8 @@ export class OB11Constructor {
                 if (!enableLocalFile2Url) {
                     message_data.data.file = "file://" + filePath
                 } else { // 不使用本地路径
-                    if (message_data.data.http_file && !message_data.data.http_file.startsWith(IMAGE_HTTP_HOST + "/download")) {
-                        message_data.data.file = message_data.data.http_file
+                    if (message_data.data.url && !message_data.data.url.startsWith(IMAGE_HTTP_HOST + "/download")) {
+                        message_data.data.file = message_data.data.url
                     } else {
                         let {err, data} = await file2base64(filePath);
                         if (err) {
