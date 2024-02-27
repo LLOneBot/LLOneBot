@@ -42,6 +42,7 @@ export enum NTQQApiClass {
     FS_API = "ns-FsApi",
     OS_API = "ns-OsApi",
     HOTUPDATE_API = "ns-HotUpdateApi",
+    BUSINESS_API = "ns-BusinessApi",
     GLOBAL_DATA = "ns-GlobalDataApi"
 }
 
@@ -729,6 +730,13 @@ export class NTQQApi {
         return callNTQQApi<string>({
             className: NTQQApiClass.HOTUPDATE_API,
             methodName: NTQQApiMethod.CACHE_PATH_HOT_UPDATE
+        });
+    }
+
+    static getDesktopTmpPath() {
+        return callNTQQApi<string>({
+            className: NTQQApiClass.BUSINESS_API,
+            methodName: NTQQApiMethod.CACHE_PATH_DESKTOP_TEMP
         });
     }
 
