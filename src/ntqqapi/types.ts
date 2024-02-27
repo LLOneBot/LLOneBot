@@ -264,7 +264,7 @@ export interface VideoElement {
 export interface RawMessage {
     msgId: string;
     msgShortId?: number;  // 自己维护的消息id
-    msgTime: string;
+    msgTime: string; // 时间戳，秒
     msgSeq: string;
     senderUid: string;
     senderUin?: string; // 发送者QQ号
