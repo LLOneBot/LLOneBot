@@ -41,6 +41,7 @@ export enum NTQQApiClass {
     NT_API = "ns-ntApi",
     FS_API = "ns-FsApi",
     OS_API = "ns-OsApi",
+    HOTUPDATE_API = "ns-HotUpdateApi",
     GLOBAL_DATA = "ns-GlobalDataApi"
 }
 
@@ -721,6 +722,13 @@ export class NTQQApi {
             methodName: NTQQApiMethod.CACHE_SCAN,
             args: [null, null],
             timeoutSecond: 300,
+        });
+    }
+
+    static getHotUpdateCachePath() {
+        return callNTQQApi<string>({
+            className: NTQQApiClass.HOTUPDATE_API,
+            methodName: NTQQApiMethod.CACHE_PATH_HOT_UPDATE
         });
     }
 
