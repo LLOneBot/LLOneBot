@@ -232,7 +232,7 @@ function onLoad() {
             "unreadCount": number
         }>(ReceiveCmd.UNREAD_GROUP_NOTIFY, async (payload) => {
             if (payload.unreadCount) {
-                log("开始获取群通知详情")
+                // log("开始获取群通知详情")
                 let notify: GroupNotifies;
                 try {
                     notify = await NTQQApi.getGroupNotifies();
@@ -242,14 +242,23 @@ function onLoad() {
                 }
 
                 const notifies = notify.notifies.slice(0, payload.unreadCount)
-                log("获取群通知详情完成", notifies, payload);
+                // log("获取群通知详情完成", notifies, payload);
                 try {
                     for (const notify of notifies) {
+                        notify.time = Date.now();
                         const notifyTime = parseInt(notify.seq) / 1000
-                        log(`加群通知时间${notifyTime}`, `LLOneBot启动时间${startTime}`);
+                        // log(`加群通知时间${notifyTime}`, `LLOneBot启动时间${startTime}`);
                         if (notifyTime < startTime) {
                             continue;
                         }
+                        let existNotify = groupNotifies[notify.seq];
+                        if (existNotify){
+                            if (Date.now() - existNotify.time < 3000){
+                                continue
+                            }
+                        }
+                        log("收到群通知", notify);
+                        groupNotifies[notify.seq] = notify;
                         const member1 = await getGroupMember(notify.group.groupCode, null, notify.user1.uid);
                         let member2: GroupMember;
                         if (notify.user2.uid) {
@@ -274,7 +283,6 @@ function onLoad() {
                             // postEvent(groupDecreaseEvent, true);
                         } else if ([GroupNotifyTypes.JOIN_REQUEST].includes(notify.type)) {
                             log("有加群请求");
-                            groupNotifies[notify.seq] = notify;
                             let groupRequestEvent = new OB11GroupRequestEvent();
                             groupRequestEvent.group_id = parseInt(notify.group.groupCode);
                             let requestQQ = ""
@@ -290,7 +298,6 @@ function onLoad() {
                             postOB11Event(groupRequestEvent);
                         }
                         else if(notify.type == GroupNotifyTypes.INVITE_ME){
-                            groupNotifies[notify.seq] = notify;
                             let groupInviteEvent = new OB11GroupRequestEvent();
                             groupInviteEvent.group_id = parseInt(notify.group.groupCode);
                             let user_id = (await NTQQApi.getUserDetailInfo(notify.user2.uid))?.uin
