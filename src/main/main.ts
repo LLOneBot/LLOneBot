@@ -289,6 +289,16 @@ function onLoad() {
                             groupRequestEvent.flag = notify.seq;
                             postOB11Event(groupRequestEvent);
                         }
+                        else if(notify.type == GroupNotifyTypes.INVITE_ME){
+                            groupNotifies[notify.seq] = notify;
+                            let groupInviteEvent = new OB11GroupRequestEvent();
+                            groupInviteEvent.group_id = parseInt(notify.group.groupCode);
+                            let user_id = (await NTQQApi.getUserDetailInfo(notify.user2.uid))?.uin
+                            groupInviteEvent.user_id = parseInt(user_id);
+                            groupInviteEvent.sub_type = "invite";
+                            groupInviteEvent.flag = notify.seq;
+                            postOB11Event(groupInviteEvent);
+                        }
                     }
                 } catch (e) {
                     log("解析群通知失败", e.stack);
