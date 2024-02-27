@@ -40,8 +40,8 @@ export default class CleanCache extends BaseAction<void, void> {
 
                 // 清理聊天记录
                 // NOTE: 以防有人不需要删除聊天记录，暂时先注释掉，日后加个开关
-                // await clearChatCache(ChatCacheType.PRIVATE); // 私聊消息
-                // await clearChatCache(ChatCacheType.GROUP); // 群聊消息
+                // await clearChatCache(ChatType.PRIVATE); // 私聊消息
+                // await clearChatCache(ChatType.GROUP); // 群聊消息
 
 
 
@@ -72,12 +72,12 @@ function deleteCachePath(pathList: string[]) {
     }
 }
 
-async function clearChatCache(type: ChatCacheType) {
+async function clearChatCache(type: ChatType) {
     const cacheList = await getCacheList(type);
     return NTQQApi.clearChatCache(cacheList, []);
 }
 
-function getCacheList(type: ChatCacheType) { // NOTE: 做这个方法主要是因为目前还不支持针对频道消息的清理
+function getCacheList(type: ChatType) { // NOTE: 做这个方法主要是因为目前还不支持针对频道消息的清理
     return new Promise<Array<ChatCacheListItemBasic>>((res, rej) => {
         NTQQApi.getChatCacheList(type, 1000, 0)
             .then(data => {

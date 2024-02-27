@@ -766,7 +766,7 @@ export class NTQQApi {
         });
     }
 
-    static getChatCacheList(type: 1 | 2, pageSize: number = 80, pageIndex: number = 0) {
+    static getChatCacheList(type: ChatType, pageSize: number = 80, pageIndex: number = 0) {
         return new Promise<ChatCacheList>((res, rej) => {
             callNTQQApi<ChatCacheList>({
                 methodName: NTQQApiMethod.CACHE_CHAT_GET,

@@ -377,7 +377,7 @@ export interface ChatCacheList {
 }
 
 export interface ChatCacheListItem {
-    chatType: 1 | 2,
+    chatType: ChatType,
     basicChatCacheInfo: ChatCacheListItemBasic,
     guildChatCacheInfo: unknown[] // TODO: 没用过频道所以不知道这里边的详细内容
 }
@@ -389,6 +389,6 @@ export interface ChatCacheListItemBasic {
     uin: string,
     remarkName: string,
     nickName: string,
-    chatType?: 1 | 2,
+    chatType?: ChatType,
     isChecked?: boolean
 }
