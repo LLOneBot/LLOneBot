@@ -17,8 +17,8 @@ import {
     SendMessageElement,
     User,
     CacheScanResult,
-    ChatCacheList,
-    ChatCacheListItemBasic
+    ChatCacheList, ChatCacheListItemBasic,
+    CacheFileList, CacheFileListItem, CacheFileType,
 } from "./types";
 import * as fs from "fs";
 import {addHistoryMsg, friendRequests, groupNotifies, msgHistory, selfInfo} from "../common/data";
@@ -87,6 +87,7 @@ export enum NTQQApiMethod {
     CACHE_CLEAR = 'nodeIKernelStorageCleanService/clearCacheDataByKeys',
 
     CACHE_CHAT_GET = 'nodeIKernelStorageCleanService/getChatCacheInfo',
+    CACHE_FILE_GET = 'nodeIKernelStorageCleanService/getFileCacheInfo',
     CACHE_CHAT_CLEAR = 'nodeIKernelStorageCleanService/clearChatCacheInfo',
 }
 
@@ -766,7 +767,7 @@ export class NTQQApi {
         });
     }
 
-    static getChatCacheList(type: ChatType, pageSize: number = 80, pageIndex: number = 0) {
+    static getChatCacheList(type: ChatType, pageSize: number = 1000, pageIndex: number = 0) {
         return new Promise<ChatCacheList>((res, rej) => {
             callNTQQApi<ChatCacheList>({
                 methodName: NTQQApiMethod.CACHE_CHAT_GET,
@@ -779,6 +780,21 @@ export class NTQQApi {
             }).then(list => res(list))
             .catch(e => rej(e));
         });
+    }
+
+    static getFileCacheInfo(fileType: CacheFileType, pageSize: number = 1000, lastRecord?: CacheFileListItem) {
+        const _lastRecord = lastRecord ? lastRecord : { fileType: fileType };
+
+        return callNTQQApi<CacheFileList>({
+            methodName: NTQQApiMethod.CACHE_FILE_GET,
+            args: [{
+                fileType: fileType,
+                restart: true,
+                pageSize: pageSize,
+                order: 1,
+                lastRecord: _lastRecord,
+            }, null]
+        })
     }
 
     static async clearChatCache(chats: ChatCacheListItemBasic[] = [], fileKeys: unknown[] = []) {

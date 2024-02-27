@@ -392,3 +392,30 @@ export interface ChatCacheListItemBasic {
     chatType?: ChatType,
     isChecked?: boolean
 }
+
+export enum CacheFileType {
+    IMAGE = 0,
+    VIDEO = 1,
+    AUDIO = 2,
+    DOCUMENT = 3,
+    OTHER = 4,
+}
+
+export interface CacheFileList {
+    infos: CacheFileListItem[],
+}
+
+export interface CacheFileListItem {
+    fileSize: string,
+    fileTime: string,
+    fileKey: string,
+    elementId: string,
+    elementIdStr: string,
+    fileType: CacheFileType,
+    path: string,
+    fileName: string,
+    senderId: string,
+    previewPath: string,
+    senderName: string,
+    isChecked?: boolean,
+}
