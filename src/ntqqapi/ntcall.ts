@@ -704,7 +704,6 @@ export class NTQQApi {
 
     static async setCacheSilentScan(isSilent: boolean = true) {
         return await callNTQQApi({
-            channel: NTQQApiChannel.IPC_UP_3,
             methodName: NTQQApiMethod.CACHE_SET_SILENCE,
             args: [{
                 isSilent
@@ -714,7 +713,6 @@ export class NTQQApi {
 
     static addCacheScannedPaths(pathMap: object = {}) {
         return callNTQQApi({
-            channel: NTQQApiChannel.IPC_UP_3,
             methodName: NTQQApiMethod.CACHE_ADD_SCANNED_PATH,
             args: [{
                 pathMap: {...pathMap},
@@ -724,12 +722,10 @@ export class NTQQApi {
 
     static scanCache() {
         callNTQQApi<GeneralCallResult>({
-            channel: NTQQApiChannel.IPC_UP_3,
             methodName: ReceiveCmd.CACHE_SCAN_FINISH,
             classNameIsRegister: true,
         }).then();
         return callNTQQApi<CacheScanResult>({
-            channel: NTQQApiChannel.IPC_UP_3,
             methodName: NTQQApiMethod.CACHE_SCAN,
             args: [null, null],
             timeoutSecond: 300,
@@ -738,7 +734,6 @@ export class NTQQApi {
 
     static getHotUpdateCachePath() {
         return callNTQQApi<string>({
-            channel: NTQQApiChannel.IPC_UP_3,
             className: NTQQApiClass.HOTUPDATE_API,
             methodName: NTQQApiMethod.CACHE_PATH_HOT_UPDATE
         });
@@ -746,7 +741,6 @@ export class NTQQApi {
 
     static getDesktopTmpPath() {
         return callNTQQApi<string>({
-            channel: NTQQApiChannel.IPC_UP_3,
             className: NTQQApiClass.BUSINESS_API,
             methodName: NTQQApiMethod.CACHE_PATH_DESKTOP_TEMP
         });
@@ -757,7 +751,6 @@ export class NTQQApi {
             key: string,
             value: string
         }[]>({
-            channel: NTQQApiChannel.IPC_UP_3,
             className: NTQQApiClass.OS_API,
             methodName: NTQQApiMethod.CACHE_PATH_SESSION,
         });
@@ -766,7 +759,6 @@ export class NTQQApi {
     static clearCache(cacheKeys: Array<string> = [ 'tmp', 'hotUpdate' ]) {
         console.log(cacheKeys);
         return callNTQQApi<any>({
-            channel: NTQQApiChannel.IPC_UP_3,
             methodName: NTQQApiMethod.CACHE_CLEAR,
             args: [{
                 keys: cacheKeys
@@ -777,7 +769,6 @@ export class NTQQApi {
     static getChatCacheList(type: 1 | 2, pageSize: number = 80, pageIndex: number = 0) {
         return new Promise<ChatCacheList>((res, rej) => {
             callNTQQApi<ChatCacheList>({
-                channel: NTQQApiChannel.IPC_UP_3,
                 methodName: NTQQApiMethod.CACHE_CHAT_GET,
                 args: [{
                     ChatType: type,
@@ -792,7 +783,6 @@ export class NTQQApi {
 
     static async clearChatCache(chats: ChatCacheListItemBasic[] = [], fileKeys: unknown[] = []) {
         return await callNTQQApi<GeneralCallResult>({
-            channel: NTQQApiChannel.IPC_UP_3,
             methodName: NTQQApiMethod.CACHE_CHAT_CLEAR,
             args: [{
                 chats,
