@@ -548,6 +548,7 @@ export class NTQQApi {
         if (!notify) {
             throw `${seq}对应的加群通知不存在`
         }
+        delete groupNotifies[seq];
         return await callNTQQApi<GeneralCallResult>({
             methodName: NTQQApiMethod.HANDLE_GROUP_REQUEST,
             args: [
