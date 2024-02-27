@@ -714,6 +714,7 @@ export class NTQQApi {
 
     static addCacheScannedPaths(pathMap: object = {}) {
         return callNTQQApi({
+            channel: NTQQApiChannel.IPC_UP_3,
             methodName: NTQQApiMethod.CACHE_ADD_SCANNED_PATH,
             args: [{
                 pathMap: {...pathMap},
@@ -737,6 +738,7 @@ export class NTQQApi {
 
     static getHotUpdateCachePath() {
         return callNTQQApi<string>({
+            channel: NTQQApiChannel.IPC_UP_3,
             className: NTQQApiClass.HOTUPDATE_API,
             methodName: NTQQApiMethod.CACHE_PATH_HOT_UPDATE
         });
@@ -744,6 +746,7 @@ export class NTQQApi {
 
     static getDesktopTmpPath() {
         return callNTQQApi<string>({
+            channel: NTQQApiChannel.IPC_UP_3,
             className: NTQQApiClass.BUSINESS_API,
             methodName: NTQQApiMethod.CACHE_PATH_DESKTOP_TEMP
         });
