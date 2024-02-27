@@ -5,14 +5,14 @@ import fs from "fs";
 import Path from "path";
 import {
     ChatType,
-    ChatCacheListItemBasic
+    ChatCacheListItemBasic,
+    CacheFileType
 } from '../../ntqqapi/types';
 
 export default class CleanCache extends BaseAction<void, void> {
     actionName = ActionName.CleanCache
 
     protected _handle(): Promise<void> {
-        console.log('Start scanning cache...');
         return new Promise<void>(async (res, rej) => {
             try {
                 const cacheFilePaths: string[] = [];
@@ -33,18 +33,31 @@ export default class CleanCache extends BaseAction<void, void> {
 
                 await NTQQApi.setCacheSilentScan(true);
                 if (cacheSize > 0 && cacheFilePaths.length > 2) { // 存在缓存文件且大小不为 0 时执行清理动作
-                    console.log('Cleaning cache...');
                     // await NTQQApi.clearCache([ 'tmp', 'hotUpdate', ...cacheScanResult ]) // XXX: 也是调用就崩溃，调用 fs 删除得了
                     deleteCachePath(cacheFilePaths);
                 }
 
-                // 清理聊天记录
+                // 获取聊天记录列表
                 // NOTE: 以防有人不需要删除聊天记录，暂时先注释掉，日后加个开关
-                // await clearChatCache(ChatType.PRIVATE); // 私聊消息
-                // await clearChatCache(ChatType.GROUP); // 群聊消息
+                // const privateChatCache = await getCacheList(ChatType.friend); // 私聊消息
+                // const groupChatCache = await getCacheList(ChatType.group); // 群聊消息
+                // const chatCacheList = [ ...privateChatCache, ...groupChatCache ];
+                const chatCacheList: ChatCacheListItemBasic[] = [];
 
+                // 获取聊天缓存文件列表
+                const cacheFileList: string[] = [];
+                
+                for (const name in CacheFileType) {
+                    if (!isNaN(parseInt(name))) continue;
 
+                    const fileTypeAny: any = CacheFileType[name];
+                    const fileType: CacheFileType = fileTypeAny;
 
+                    cacheFileList.push(...(await NTQQApi.getFileCacheInfo(fileType)).infos.map(file => file.fileKey));
+                }
+
+                // 一并清除
+                await NTQQApi.clearChatCache(chatCacheList, cacheFileList);
                 res();
             } catch(e) {
                 console.error('清理缓存时发生了错误');
@@ -72,16 +85,10 @@ function deleteCachePath(pathList: string[]) {
     }
 }
 
-async function clearChatCache(type: ChatType) {
-    const cacheList = await getCacheList(type);
-    return NTQQApi.clearChatCache(cacheList, []);
-}
-
 function getCacheList(type: ChatType) { // NOTE: 做这个方法主要是因为目前还不支持针对频道消息的清理
     return new Promise<Array<ChatCacheListItemBasic>>((res, rej) => {
         NTQQApi.getChatCacheList(type, 1000, 0)
             .then(data => {
-                console.log(data);
                 const list = data.infos.filter(e => e.chatType === type && parseInt(e.basicChatCacheInfo.chatSize) > 0);
                 const result = list.map(e => {
                     const result = { ...e.basicChatCacheInfo };
