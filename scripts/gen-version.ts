@@ -13,6 +13,8 @@ function writeManifest(manifest: any){
 }
 
 let manifest = readManifest();
-manifest.version = version;
-manifest.name = `LLOneBot v${version}`;
-writeManifest(manifest);
+if (version !== manifest.version){
+    manifest.version = version;
+    manifest.name = `LLOneBot v${version}`;
+    writeManifest(manifest);
+}
