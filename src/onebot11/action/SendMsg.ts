@@ -178,12 +178,12 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         if (selfNodeMsgList.length) {
             needSendSelf = true
         } else {
-            needSendSelf = !originalNodeMsgList.every((msg, index) => msg.peerUid === originalNodeMsgList[0].peerUid)
+            needSendSelf = !originalNodeMsgList.every((msg, index) => msg.peerUid === originalNodeMsgList[0].peerUid && msg.recallTime.length < 2)
         }
         if (needSendSelf) {
             nodeIds = selfNodeMsgList.map(msg => msg.msgId);
             for (const originalNodeMsg of originalNodeMsgList) {
-                if (originalNodeMsg.peerUid === selfInfo.uid) {
+                if (originalNodeMsg.peerUid === selfInfo.uid && originalNodeMsg.recallTime.length < 2) {
                     nodeIds.push(originalNodeMsg.msgId)
                 } else { // 需要进行克隆
                     let sendElements: SendMessageElement[] = []
