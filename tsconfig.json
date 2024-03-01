@@ -1,18 +1,35 @@
 {
   "compilerOptions": {
     "target": "ESNext",
+    "useDefineForClassFields": true,
     "module": "commonjs",
-    "outDir": "dist",
     "strict": false,
     "esModuleInterop": true,
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
-//    "sourceMap": true
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "skipLibCheck": true,
+    /* Bundler mode */
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    /* Linting */
   },
-  "include": ["src/*"],
-  "exclude": [
-    "node_modules",
-    "src/common/types.ts"
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/*.d.ts",
+    "src/*.ts"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
   ]
 }

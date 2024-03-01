@@ -26,8 +26,8 @@
     "darwin"
   ],
   "injects": {
-    "renderer": "./renderer/llonebot.umd.js",
-    "main": "./main/main.js",
-    "preload": "./preload/preload.js"
+    "renderer": "./renderer.js",
+    "main": "./main.cjs",
+    "preload": "./preload.cjs"
   }
 }
