@@ -17,16 +17,16 @@ jobs:
         node-version: 20
 
     - name: install dependenies
-      run: yarn install
+      run: npm install
 
     - name: build
-      run: yarn build
+      run: npm build
 
     - name: zip
       run: |
         sudo apt install zip -y
         cd ./dist/
-        npm i
+        npm depend
         rm package-lock.json
         zip -r ../LLOneBot.zip ./* 
     
