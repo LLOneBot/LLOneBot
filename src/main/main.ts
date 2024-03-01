@@ -4,7 +4,7 @@ import {BrowserWindow, ipcMain} from 'electron';
 import fs from 'fs';
 import {Config} from "../common/types";
 import {CHANNEL_GET_CONFIG, CHANNEL_LOG, CHANNEL_SET_CONFIG,} from "../common/channels";
-//import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
+import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
 import {CONFIG_DIR, getConfigUtil, log} from "../common/utils";
 import {addHistoryMsg, getGroup, getGroupMember, groupNotifies, msgHistory, selfInfo} from "../common/data";
 import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} from "../ntqqapi/hook";
@@ -15,7 +15,7 @@ import {ob11HTTPServer} from "../onebot11/server/http";
 import {OB11FriendRecallNoticeEvent} from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
 import {OB11GroupRecallNoticeEvent} from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
 import {postEvent} from "../onebot11/server/postevent";
-//import {ob11ReverseWebsockets} from "../onebot11/server/ws/ReverseWebsocket";
+import {ob11ReverseWebsockets} from "../onebot11/server/ws/ReverseWebsocket";
 import {OB11GroupAdminNoticeEvent} from "../onebot11/event/notice/OB11GroupAdminNoticeEvent";
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {OB11GroupRequestEvent} from "../onebot11/event/request/OB11GroupRequest";
@@ -47,32 +47,32 @@ function onLoad() {
         }
         // 正向ws端口变化，重启服务
         if (arg.ob11.wsPort != oldConfig.ob11.wsPort) {
-            //ob11WebsocketServer.restart(arg.ob11.wsPort);
+            ob11WebsocketServer.restart(arg.ob11.wsPort);
         }
         // 判断是否启用或关闭正向ws
         if (arg.ob11.enableWs != oldConfig.ob11.enableWs) {
             if (arg.ob11.enableWs) {
-                //ob11WebsocketServer.start(arg.ob11.wsPort);
+                ob11WebsocketServer.start(arg.ob11.wsPort);
             } else {
-                //ob11WebsocketServer.stop();
+                ob11WebsocketServer.stop();
             }
         }
         // 判断是否启用或关闭反向ws
         if (arg.ob11.enableWsReverse != oldConfig.ob11.enableWsReverse) {
             if (arg.ob11.enableWsReverse) {
-                //ob11ReverseWebsockets.start();
+                ob11ReverseWebsockets.start();
             } else {
-                //ob11ReverseWebsockets.stop();
+                ob11ReverseWebsockets.stop();
             }
         }
         if (arg.ob11.enableWsReverse) {
             // 判断反向ws地址有变化
             if (arg.ob11.wsHosts.length != oldConfig.ob11.wsHosts.length) {
-                //ob11ReverseWebsockets.restart();
+                ob11ReverseWebsockets.restart();
             } else {
                 for (const newHost of arg.ob11.wsHosts) {
                     if (!oldConfig.ob11.wsHosts.includes(newHost)) {
-                        //ob11ReverseWebsockets.restart();
+                        ob11ReverseWebsockets.restart();
                         break;
                     }
                 }
@@ -245,10 +245,10 @@ function onLoad() {
             }
         }
         if (config.ob11.enableWs) {
-            //ob11WebsocketServer.start(config.ob11.wsPort);
+            ob11WebsocketServer.start(config.ob11.wsPort);
         }
         if (config.ob11.enableWsReverse) {
-            //ob11ReverseWebsockets.start();
+            ob11ReverseWebsockets.start();
         }
 
         log("LLOneBot start")

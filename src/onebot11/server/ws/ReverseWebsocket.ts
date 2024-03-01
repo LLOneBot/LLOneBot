@@ -1,19 +1,18 @@
-import {getConfigUtil, log} from "../../../common/utils";
+import { getConfigUtil, log } from "../../../common/utils";
 
-import * as WebSocket from "ws";
-import {selfInfo} from "../../../common/data";
-import {LifeCycleSubType, OB11LifeCycleEvent} from "../../event/meta/OB11LifeCycleEvent";
-import {ActionName} from "../../action/types";
-import {OB11Response} from "../../action/utils";
+import { selfInfo } from "../../../common/data";
+import { LifeCycleSubType, OB11LifeCycleEvent } from "../../event/meta/OB11LifeCycleEvent";
+import { ActionName } from "../../action/types";
+import { OB11Response } from "../../action/utils";
 import BaseAction from "../../action/BaseAction";
-import {actionMap} from "../../action";
-import {registerWsEventSender, unregisterWsEventSender} from "../postevent";
-import {wsReply} from "./reply";
-
+import { actionMap } from "../../action";
+import { registerWsEventSender, unregisterWsEventSender } from "../postevent";
+import { wsReply } from "./reply";
+import { WebSocket as WebSocketClass } from "ws";
 export let rwsList: ReverseWebsocket[] = [];
 
 export class ReverseWebsocket {
-    public websocket: WebSocket.WebSocket;
+    public websocket: WebSocketClass;
     public url: string;
     private running: boolean = false;
 
@@ -33,7 +32,7 @@ export class ReverseWebsocket {
     }
 
     public async onmessage(msg: string) {
-        let receiveData: { action: ActionName, params: any, echo?: any } = {action: null, params: {}}
+        let receiveData: { action: ActionName, params: any, echo?: any } = { action: null, params: {} }
         let echo = null
         try {
             receiveData = JSON.parse(msg.toString())
@@ -63,9 +62,11 @@ export class ReverseWebsocket {
     }
 
     public send(msg: string) {
+        /*
         if (this.websocket && this.websocket.readyState == WebSocket.OPEN) {
             this.websocket.send(msg);
         }
+        */
     }
 
     private reconnect() {
@@ -75,8 +76,9 @@ export class ReverseWebsocket {
     }
 
     private connect() {
-        const {token} = getConfigUtil().getConfig()
-        this.websocket = new WebSocket.WebSocket(this.url, {
+        const { token } = getConfigUtil().getConfig()
+        
+        this.websocket = new WebSocketClass(this.url, {
             handshakeTimeout: 2000,
             perMessageDeflate: false,
             headers: {
@@ -85,6 +87,7 @@ export class ReverseWebsocket {
                 'x-client-role': 'Universal',  // koishi-adapter-onebot 需要这个字段
             }
         });
+        
         registerWsEventSender(this.websocket);
         log("Trying to connect to the websocket server: " + this.url);
 
@@ -99,12 +102,12 @@ export class ReverseWebsocket {
         });
 
         this.websocket.on("error", log);
-
         this.websocket.on("close", () => {
             log("The websocket connection: " + this.url + " closed, trying reconnecting...");
             this.onclose();
         });
     }
+
 }
 
 class OB11ReverseWebsockets {

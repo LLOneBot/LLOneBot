@@ -1,9 +1,9 @@
 import * as ws from "ws";
+import { WebSocket, Server } from "ws";
 import { getConfigUtil, log } from "../utils";
 import urlParse from "url";
 import { IncomingMessage } from "node:http";
 
-const { WebSocket, Server } = ws
 
 class WebsocketClientBase {
     private wsClient: WebSocket
@@ -38,7 +38,7 @@ export class WebsocketServerBase {
             wsClient.on("message", async (msg) => {
                 this.onMessage(wsClient, url, msg.toString())
             })
-        })
+        });
     }
 
     stop() {
