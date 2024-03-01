@@ -161,6 +161,8 @@ wget -O fastboot.sh https://cdn.jsdelivr.net/gh/MliKiowa/llonebot-docker/fastboo
 - [x] get_status
 - [x] can_send_image
 - [x] can_send_record
+- [x] get_image
+- [x] get_record
 
 ### 支持的go-cqhtp api:
 - [x] send_private_forward_msg
