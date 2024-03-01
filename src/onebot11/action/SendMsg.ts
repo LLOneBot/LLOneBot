@@ -1,5 +1,13 @@
 import {AtType, ChatType, Group, RawMessage, SendMessageElement} from "../../ntqqapi/types";
-import {addHistoryMsg, friends, getGroup, getHistoryMsgByShortId, getUidByUin, selfInfo,} from "../../common/data";
+import {
+    addHistoryMsg,
+    friends,
+    getGroup,
+    getGroupMember,
+    getHistoryMsgByShortId,
+    getUidByUin,
+    selfInfo,
+} from "../../common/data";
 import {OB11MessageData, OB11MessageDataType, OB11MessageMixType, OB11MessageNode, OB11PostSendMsg} from '../types';
 import {NTQQApi, Peer} from "../../ntqqapi/ntcall";
 import {SendMsgElementConstructor} from "../../ntqqapi/constructor";
@@ -243,7 +251,8 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                         if (atQQ === "all") {
                             sendElements.push(SendMsgElementConstructor.at(atQQ, atQQ, AtType.atAll, "全体成员"))
                         } else {
-                            const atMember = group?.members.find(m => m.uin == atQQ)
+                            // const atMember = group?.members.find(m => m.uin == atQQ)
+                            const atMember = await getGroupMember(group?.groupCode, atQQ);
                             if (atMember) {
                                 sendElements.push(SendMsgElementConstructor.at(atQQ, atMember.uid, AtType.atUser, atMember.cardName || atMember.nick))
                             }

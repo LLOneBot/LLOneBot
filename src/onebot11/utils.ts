@@ -1,11 +1,12 @@
 import {CONFIG_DIR, isGIF} from "../common/utils";
 import {v4 as uuidv4} from "uuid";
 import * as path from 'path';
+import {fileCache} from "../common/data";
 
 const fs = require("fs").promises;
 
-export async function uri2local(uri: string, fileName: string=null){
-    if (!fileName){
+export async function uri2local(uri: string, fileName: string = null) {
+    if (!fileName) {
         fileName = uuidv4();
     }
     let filePath = path.join(CONFIG_DIR, fileName)
@@ -43,21 +44,33 @@ export async function uri2local(uri: string, fileName: string=null){
             res.errMsg = `${url}下载失败,` + e.toString()
             return res
         }
-    } else if (url.protocol === "file:"){
-        // await fs.copyFile(url.pathname, filePath);
-        let pathname = decodeURIComponent(url.pathname)
-        if (process.platform === "win32"){
-            filePath = pathname.slice(1)
+    } else {
+        let pathname: string;
+        if (url.protocol === "file:") {
+            // await fs.copyFile(url.pathname, filePath);
+            pathname = decodeURIComponent(url.pathname)
+            if (process.platform === "win32") {
+                filePath = pathname.slice(1)
+            } else {
+                filePath = pathname
+            }
         }
         else{
-            filePath = pathname
+            const cache = fileCache.get(uri)
+            if (cache) {
+                filePath = cache.filePath
+            }
+            else{
+                filePath = uri;
+            }
         }
+
         res.isLocal = true
     }
-    else{
-        res.errMsg = `不支持的file协议,` + url.protocol
-        return res
-    }
+    // else{
+    //     res.errMsg = `不支持的file协议,` + url.protocol
+    //     return res
+    // }
     if (isGIF(filePath) && !res.isLocal) {
         await fs.rename(filePath, filePath + ".gif");
         filePath += ".gif";

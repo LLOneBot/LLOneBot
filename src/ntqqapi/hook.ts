@@ -2,7 +2,7 @@ import {BrowserWindow} from 'electron';
 import {getConfigUtil, log, sleep} from "../common/utils";
 import {NTQQApi, NTQQApiClass, sendMessagePool} from "./ntcall";
 import {Group, RawMessage, User} from "./types";
-import {addHistoryMsg, friends, groups, msgHistory} from "../common/data";
+import {addHistoryMsg, friends, groups, msgHistory, selfInfo} from "../common/data";
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {OB11GroupIncreaseEvent} from "../onebot11/event/notice/OB11GroupIncreaseEvent";
 import {v4 as uuidv4} from "uuid"
@@ -24,7 +24,8 @@ export enum ReceiveCmd {
     MEDIA_DOWNLOAD_COMPLETE = "nodeIKernelMsgListener/onRichMediaDownloadComplete",
     UNREAD_GROUP_NOTIFY = "nodeIKernelGroupListener/onGroupNotifiesUnreadCountUpdated",
     GROUP_NOTIFY = "nodeIKernelGroupListener/onGroupSingleScreenNotifies",
-    FRIEND_REQUEST = "nodeIKernelBuddyListener/onBuddyReqChange"
+    FRIEND_REQUEST = "nodeIKernelBuddyListener/onBuddyReqChange",
+    SELF_STATUS = "nodeIKernelProfileListener/onSelfStatusChanged",
 }
 
 interface NTQQApiReturnData<PayloadType = unknown> extends Array<any> {
@@ -230,7 +231,7 @@ registerReceiveHook<{
 })
 
 registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
-    const {autoDeleteFile} = getConfigUtil().getConfig();
+    const {autoDeleteFile, autoDeleteFileSecond} = getConfigUtil().getConfig();
     for (const message of payload.msgList) {
         // log("收到新消息，push到历史记录", message)
         addHistoryMsg(message)
@@ -254,7 +255,7 @@ registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload
                         });
                     }
                 }
-            }, 60 * 1000)
+            }, autoDeleteFileSecond * 1000)
         }
     }
     const msgIds = Object.keys(msgHistory);
@@ -277,3 +278,6 @@ registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, ({msgRe
     }
 })
 
+registerReceiveHook<{info: {status: number}}>(ReceiveCmd.SELF_STATUS, (info)=>{
+    selfInfo.online = info.info.status !== 20;
+})

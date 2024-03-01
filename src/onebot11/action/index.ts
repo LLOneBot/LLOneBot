@@ -28,6 +28,8 @@ import SetGroupBan from "./SetGroupBan";
 import SetGroupKick from "./SetGroupKick";
 import SetGroupAdmin from "./SetGroupAdmin";
 import SetGroupCard from "./SetGroupCard";
+import GetImage from "./GetImage";
+import GetRecord from "./GetRecord";
 
 export const actionHandlers = [
     new Debug(),
@@ -51,6 +53,8 @@ export const actionHandlers = [
     new SetGroupAdmin(),
     new SetGroupName(),
     new SetGroupCard(),
+    new GetImage(),
+    new GetRecord(),
 
     //以下为go-cqhttp api
     new GoCQHTTPSendGroupForwardMsg(),

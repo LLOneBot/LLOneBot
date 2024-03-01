@@ -8,7 +8,7 @@ import {
     OB11User
 } from "./types";
 import { AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User } from '../ntqqapi/types';
-import { getFriend, getGroupMember, getHistoryMsgBySeq, selfInfo } from '../common/data';
+import {fileCache, getFriend, getGroupMember, getHistoryMsgBySeq, selfInfo} from '../common/data';
 import { file2base64, getConfigUtil, log } from "../common/utils";
 import { NTQQApi } from "../ntqqapi/ntcall";
 import { EventType } from "./event/OB11BaseEvent";
@@ -98,31 +98,65 @@ export class OB11Constructor {
                 }
             } else if (element.picElement) {
                 message_data["type"] = "image"
-                message_data["data"]["file_id"] = element.picElement.fileUuid
-                message_data["data"]["path"] = element.picElement.sourcePath
-                message_data["data"]["file"] = element.picElement.sourcePath
+                // message_data["data"]["file"] = element.picElement.sourcePath
+                message_data["data"]["file"] = element.picElement.fileName
+                // message_data["data"]["path"] = element.picElement.sourcePath
                 message_data["data"]["url"] = IMAGE_HTTP_HOST + element.picElement.originImageUrl
-                try {
+                // message_data["data"]["file_id"] = element.picElement.fileUuid
+                message_data["data"]["file_size"] = element.picElement.fileSize
+                fileCache.set(element.picElement.fileName, {
+                    fileName: element.picElement.fileName,
+                    filePath: element.picElement.sourcePath,
+                    fileSize: element.picElement.fileSize.toString(),
+                    url: IMAGE_HTTP_HOST + element.picElement.originImageUrl,
+                    downloadFunc: async () => {
                     await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
                         element.elementId, element.picElement.thumbPath.get(0), element.picElement.sourcePath)
-                } catch (e) {
-                }
+                }})
+                // 不在自动下载图片
+
             } else if (element.videoElement) {
                 message_data["type"] = OB11MessageDataType.video;
-                message_data["data"]["file"] = element.videoElement.filePath
-                message_data["data"]["file_id"] = element.videoElement.fileUuid
+                message_data["data"]["file"] = element.videoElement.fileName
+                message_data["data"]["path"] = element.videoElement.filePath
+                // message_data["data"]["file_id"] = element.videoElement.fileUuid
+                message_data["data"]["file_size"] = element.videoElement.fileSize
+                fileCache.set(element.videoElement.fileName, {
+                    fileName: element.videoElement.fileName,
+                    filePath: element.videoElement.filePath,
+                    fileSize: element.videoElement.fileSize,
+                    downloadFunc: async () => {
+                        await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
+                            element.elementId, element.videoElement.thumbPath.get(0), element.videoElement.filePath)
+                    }})
                 // 怎么拿到url呢
             } else if (element.fileElement) {
                 message_data["type"] = OB11MessageDataType.file;
-                message_data["data"]["file"] = element.fileElement.filePath
-                message_data["data"]["file_id"] = element.fileElement.fileUuid
+                message_data["data"]["file"] = element.fileElement.fileName
+                // message_data["data"]["path"] = element.fileElement.filePath
+                // message_data["data"]["file_id"] = element.fileElement.fileUuid
                 message_data["data"]["file_size"] = element.fileElement.fileSize
+                fileCache.set(element.fileElement.fileName, {
+                    fileName: element.fileElement.fileName,
+                    filePath: element.fileElement.filePath,
+                    fileSize: element.fileElement.fileSize,
+                    downloadFunc: async () => {
+                        await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
+                            element.elementId, null, element.fileElement.filePath)
+                    }})
                 // 怎么拿到url呢
             }
             else if (element.pttElement) {
                 message_data["type"] = OB11MessageDataType.voice;
-                message_data["data"]["file"] = element.pttElement.filePath
-                message_data["data"]["file_id"] = element.pttElement.fileUuid
+                message_data["data"]["file"] = element.pttElement.fileName
+                message_data["data"]["path"] = element.pttElement.filePath
+                // message_data["data"]["file_id"] = element.pttElement.fileUuid
+                message_data["data"]["file_size"] = element.pttElement.fileSize
+                fileCache.set(element.pttElement.fileName, {
+                    fileName: element.pttElement.fileName,
+                    filePath: element.pttElement.filePath,
+                    fileSize: element.pttElement.fileSize,
+                })
 
                 // log("收到语音消息", msg)
                 // window.LLAPI.Ptt2Text(message.raw.msgId, message.peer, messages).then(text => {
@@ -138,35 +172,36 @@ export class OB11Constructor {
                 message_data["data"]["id"] = element.faceElement.faceIndex.toString();
             }
 
-            if (message_data.data.file) {
-                let filePath: string = message_data.data.file;
-                if (!enableLocalFile2Url) {
-                    message_data.data.file = "file://" + filePath
-                } else { // 不使用本地路径
-                    const ignoreTypes = [OB11MessageDataType.file, OB11MessageDataType.video]
-                    if (!ignoreTypes.includes(message_data.type)) {
-                        if (message_data.data.url && !message_data.data.url.startsWith(IMAGE_HTTP_HOST + "/download")) {
-                            message_data.data.file = message_data.data.url
-                        } else {
-                            let { err, data } = await file2base64(filePath);
-                            if (err) {
-                                log("文件转base64失败", filePath, err)
-                            } else {
-                                message_data.data.file = "base64://" + data
-                            }
-                        }
-                    } else {
-                        message_data.data.file = "file://" + filePath
-                    }
-                }
-            }
+            // if (message_data.data.file) {
+            //     let filePath: string = message_data.data.file;
+            //     if (!enableLocalFile2Url) {
+            //         message_data.data.file = "file://" + filePath
+            //     } else { // 不使用本地路径
+            //         const ignoreTypes = [OB11MessageDataType.file, OB11MessageDataType.video]
+            //         if (!ignoreTypes.includes(message_data.type)) {
+            //             if (message_data.data.url && !message_data.data.url.startsWith(IMAGE_HTTP_HOST + "/download")) {
+            //                 message_data.data.file = message_data.data.url
+            //             } else {
+            //                 let { err, data } = await file2base64(filePath);
+            //                 if (err) {
+            //                     log("文件转base64失败", filePath, err)
+            //                 } else {
+            //                     message_data.data.file = "base64://" + data
+            //                 }
+            //             }
+            //         } else {
+            //             message_data.data.file = "file://" + filePath
+            //         }
+            //     }
+            // }
 
             if (message_data.type !== "unknown" && message_data.data) {
+                const cqCode = encodeCQCode(message_data);
                 if (messagePostFormat === 'string') {
-                    const cqCode = encodeCQCode(message_data);
                     (resMsg.message as string) += cqCode;
-                    resMsg.raw_message += cqCode;
                 } else (resMsg.message as OB11MessageData[]).push(message_data);
+
+                resMsg.raw_message += cqCode;
             }
         }
         resMsg.raw_message = resMsg.raw_message.trim();

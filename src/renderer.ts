@@ -143,8 +143,8 @@ async function onSettingWindowCreated(view: Element) {
                 </setting-item>
                 <setting-item data-direction="row" class="vertical-list-item">
                     <div>
-                        <div>上报文件不采用本地路径</div>
-                        <div class="tips">开启后，上报文件(图片语音等)为http链接或base64编码</div>
+                        <div>获取文件使用base64编码</div>
+                        <div class="tips">开启后，调用/get_image、/get_record时，获取不到url时添加一个base64字段</div>
                     </div>
                     <setting-switch id="switchFileUrl" ${config.enableLocalFile2Url ? "is-active" : ""}></setting-switch>
                 </setting-item>
@@ -172,7 +172,12 @@ async function onSettingWindowCreated(view: Element) {
                 <setting-item data-direction="row" class="vertical-list-item">
                     <div>
                         <div>自动删除收到的文件</div>
-                        <div class="tips">一分钟后会删除收到的图片语音</div>
+                        <div class="tips">
+                            收到文件
+                            <input id="autoDeleteMin" 
+                                min="1" style="width: 50px"
+                                value="${config.autoDeleteFileSecond || 60}" type="number"/>秒后自动删除
+                        </div>
                     </div>
                     <setting-switch id="autoDeleteFile" ${config.autoDeleteFile ? "is-active" : ""}></setting-switch>
                 </setting-item>
@@ -336,6 +341,20 @@ async function onSettingWindowCreated(view: Element) {
                 // window.llonebot.setConfig(config);
             }
         });
+    })
+
+    // 自动保存删除文件延时时间
+    const autoDeleteMinEle = doc.getElementById("autoDeleteMin") as HTMLInputElement;
+    let st = null;
+    autoDeleteMinEle.addEventListener("change", ()=>{
+        if (st){
+            clearTimeout(st)
+        }
+        st = setTimeout(()=>{
+            console.log("auto delete file minute change");
+            config.autoDeleteFileSecond = parseInt(autoDeleteMinEle.value) || 1;
+            window.llonebot.setConfig(config);
+        }, 1000)
     })
 
     doc.body.childNodes.forEach(node => {
