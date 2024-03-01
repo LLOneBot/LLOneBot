@@ -8,7 +8,7 @@ export interface User {
 }
 
 export interface SelfInfo extends User {
-
+    online?: boolean;
 }
 
 export interface Friend extends User {
@@ -249,7 +249,7 @@ export interface VideoElement {
     "thumbHeight": number,
     "busiType": 0, // 未知
     "subBusiType": 0, // 未知
-    "thumbPath": {},
+    "thumbPath": Map<number,any>,
     "transferStatus": 0, // 未知
     "progress": 0,  // 下载进度？
     "invalidState": 0, // 未知

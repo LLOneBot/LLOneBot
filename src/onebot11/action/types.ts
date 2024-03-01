@@ -40,6 +40,8 @@ export enum ActionName {
     SetGroupAdmin = "set_group_admin",
     SetGroupCard = "set_group_card",
     SetGroupName = "set_group_name",
+    GetImage = "get_image",
+    GetRecord = "get_record",
     // 以下为go-cqhttp api
     GoCQHTTP_SendGroupForwardMsg = "send_group_forward_msg",
     GoCQHTTP_SendPrivateForwardMsg = "send_private_forward_msg",

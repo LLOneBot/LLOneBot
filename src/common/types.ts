@@ -1,3 +1,5 @@
+import {FileElement, PicElement, PttElement, VideoElement} from "../ntqqapi/types";
+
 export interface OB11Config {
     httpPort: number
     httpHosts: string[]
@@ -19,10 +21,20 @@ export interface Config {
     reportSelfMessage?: boolean
     log?: boolean
     autoDeleteFile?: boolean
+    autoDeleteFileSecond?: number
     ffmpeg?: string  // ffmpeg路径
 }
 
 export type LLOneBotError = {
     ffmpegError?: string
     otherError?: string
+}
+
+
+export interface FileCache{
+    fileName: string,
+    filePath: string,
+    fileSize: string,
+    url?: string,
+    downloadFunc?: () => Promise<void>;
 }

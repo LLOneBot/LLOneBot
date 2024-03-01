@@ -1,7 +1,22 @@
 import {NTQQApi} from '../ntqqapi/ntcall';
-import {Friend, FriendRequest, Group, GroupMember, GroupNotify, RawMessage, SelfInfo} from "../ntqqapi/types";
-import {LLOneBotError} from "./types";
-
+import {
+    FileElement,
+    Friend,
+    FriendRequest,
+    Group,
+    GroupMember,
+    GroupNotify,
+    PicElement, PttElement,
+    RawMessage,
+    SelfInfo, VideoElement
+} from "../ntqqapi/types";
+import {FileCache, LLOneBotError} from "./types";
+export let selfInfo: SelfInfo = {
+    uid: "",
+    uin: "",
+    nick: "",
+    online: true,
+}
 export let groups: Group[] = []
 export let friends: Friend[] = []
 export let msgHistory: Record<string, RawMessage> = {}  // msgId: RawMessage
@@ -12,6 +27,8 @@ export let llonebotError: LLOneBotError = {
     otherError: ""
 }
 let globalMsgId = Math.floor(Date.now() / 1000);
+
+export let fileCache: Map<string, FileCache> = new Map();
 
 export function addHistoryMsg(msg: RawMessage): boolean {
     let existMsg = msgHistory[msg.msgId]
@@ -74,11 +91,7 @@ export async function getGroupMember(groupQQ: string | number, memberQQ: string 
     }
 }
 
-export let selfInfo: SelfInfo = {
-    uid: "",
-    uin: "",
-    nick: "",
-}
+
 
 
 export function getHistoryMsgBySeq(seq: string) {
