@@ -65,7 +65,7 @@ export class OB11Constructor {
             if (element.textElement && element.textElement?.atType !== AtType.notAt) {
                 message_data["type"] = OB11MessageDataType.at
                 if (element.textElement.atType == AtType.atAll) {
-                    message_data["data"]["mention"] = "all"
+                    // message_data["data"]["mention"] = "all"
                     message_data["data"]["qq"] = "all"
                 } else {
                     let atUid = element.textElement.atNtUid
@@ -77,7 +77,7 @@ export class OB11Constructor {
                         }
                     }
                     if (atQQ) {
-                        message_data["data"]["mention"] = atQQ
+                        // message_data["data"]["mention"] = atQQ
                         message_data["data"]["qq"] = atQQ
                     }
                 }
