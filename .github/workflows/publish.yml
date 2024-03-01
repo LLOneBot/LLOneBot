@@ -25,8 +25,9 @@ jobs:
     - name: zip
       run: |
         sudo apt install zip -y
-        cp manifest.json ./dist/manifest.json
-        cd ./out/
+        cd ./dist/
+        npm i
+        rm package-lock.json
         zip -r ../LLOneBot.zip ./* 
     
     - name: publish
