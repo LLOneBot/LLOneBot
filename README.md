@@ -41,6 +41,10 @@ wget -O fastboot.sh https://cdn.jsdelivr.net/gh/MliKiowa/llonebot-docker/fastboo
 │   │   └── node_modules/...
 ```
 
+### 使用termux安装
+
+见<https://github.com/LLOneBot/llonebot-termux>
+
 ## 支持的API
 
 目前支持的协议
