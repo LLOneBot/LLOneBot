@@ -11,7 +11,7 @@ import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} fr
 import {OB11Constructor} from "../onebot11/constructor";
 import {NTQQApi} from "../ntqqapi/ntcall";
 import {ChatType, GroupMember, GroupNotifies, GroupNotifyTypes, RawMessage} from "../ntqqapi/types";
-//import {ob11HTTPServer} from "../onebot11/server/http";
+import {ob11HTTPServer} from "../onebot11/server/http";
 import {OB11FriendRecallNoticeEvent} from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
 import {OB11GroupRecallNoticeEvent} from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
 import {postEvent} from "../onebot11/server/postevent";
@@ -37,13 +37,13 @@ function onLoad() {
         let oldConfig = getConfigUtil().getConfig();
         getConfigUtil().setConfig(arg)
         if (arg.ob11.httpPort != oldConfig.ob11.httpPort && arg.ob11.enableHttp) {
-            //ob11HTTPServer.restart(arg.ob11.httpPort);
+            ob11HTTPServer.restart(arg.ob11.httpPort);
         }
         // 判断是否启用或关闭HTTP服务
         if (!arg.ob11.enableHttp) {
-           //ob11HTTPServer.stop();
+           ob11HTTPServer.stop();
         } else {
-            //ob11HTTPServer.start(arg.ob11.httpPort);
+            ob11HTTPServer.start(arg.ob11.httpPort);
         }
         // 正向ws端口变化，重启服务
         if (arg.ob11.wsPort != oldConfig.ob11.wsPort) {
@@ -239,7 +239,7 @@ function onLoad() {
         const config = getConfigUtil().getConfig()
         if (config.ob11.enableHttp) {
             try {
-                //ob11HTTPServer.start(config.ob11.httpPort)
+                ob11HTTPServer.start(config.ob11.httpPort)
             } catch (e) {
                 log("http server start failed", e);
             }
