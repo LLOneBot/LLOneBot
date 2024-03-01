@@ -62,11 +62,9 @@ export class ReverseWebsocket {
     }
 
     public send(msg: string) {
-        /*
         if (this.websocket && this.websocket.readyState == WebSocket.OPEN) {
             this.websocket.send(msg);
         }
-        */
     }
 
     private reconnect() {
