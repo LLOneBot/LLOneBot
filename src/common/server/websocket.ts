@@ -15,7 +15,7 @@ class WebsocketClientBase {
         }
     }
 
-    onMessage(msg: string){
+    onMessage(msg: string) {
 
     }
 }
@@ -29,11 +29,11 @@ export class WebsocketServerBase {
 
     start(port: number) {
         this.ws = new WebSocketServer({port});
-        this.ws.on("connection", (wsClient, req)=>{
+        this.ws.on("connection", (wsClient, req) => {
             const url = req.url.split("?").shift()
             this.authorize(wsClient, req);
             this.onConnect(wsClient, url, req);
-            wsClient.on("message", async (msg)=>{
+            wsClient.on("message", async (msg) => {
                 this.onMessage(wsClient, url, msg.toString())
             })
         })
@@ -45,7 +45,8 @@ export class WebsocketServerBase {
         });
         this.ws = null;
     }
-    restart(port: number){
+
+    restart(port: number) {
         this.stop();
         this.start(port);
     }
@@ -85,7 +86,7 @@ export class WebsocketServerBase {
 
     }
 
-    onMessage(wsClient: WebSocket, url: string,  msg: string) {
+    onMessage(wsClient: WebSocket, url: string, msg: string) {
 
     }
 

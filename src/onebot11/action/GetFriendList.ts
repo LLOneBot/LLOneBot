@@ -8,7 +8,7 @@ import {ActionName} from "./types";
 class GetFriendList extends BaseAction<null, OB11User[]> {
     actionName = ActionName.GetFriendList
 
-    protected async _handle(payload: null){
+    protected async _handle(payload: null) {
         return OB11Constructor.friends(friends);
     }
 }

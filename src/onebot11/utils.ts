@@ -54,13 +54,11 @@ export async function uri2local(uri: string, fileName: string = null) {
             } else {
                 filePath = pathname
             }
-        }
-        else{
+        } else {
             const cache = fileCache.get(uri)
             if (cache) {
                 filePath = cache.filePath
-            }
-            else{
+            } else {
                 filePath = uri;
             }
         }

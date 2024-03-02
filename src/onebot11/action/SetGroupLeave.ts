@@ -3,18 +3,18 @@ import {NTQQApi} from "../../ntqqapi/ntcall";
 import {log} from "../../common/utils";
 import {ActionName} from "./types";
 
-interface Payload{
+interface Payload {
     group_id: number,
     is_dismiss: boolean
 }
 
-export default class SetGroupLeave extends BaseAction<Payload, any>{
+export default class SetGroupLeave extends BaseAction<Payload, any> {
     actionName = ActionName.SetGroupLeave
+
     protected async _handle(payload: Payload): Promise<any> {
-        try{
+        try {
             await NTQQApi.quitGroup(payload.group_id.toString())
-        }
-        catch (e) {
+        } catch (e) {
             log("退群失败", e)
             throw e
         }

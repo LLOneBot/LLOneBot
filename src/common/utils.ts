@@ -33,7 +33,7 @@ function truncateString(obj: any, maxLength = 500) {
 
 export function log(...msg: any[]) {
     if (!getConfigUtil().getConfig().log) {
-        return
+        return //console.log(...msg);
     }
     let currentDateTime = new Date().toLocaleString();
     const date = new Date();
@@ -195,9 +195,9 @@ export async function encodeSilk(filePath: string) {
         const pttPath = path.join(CONFIG_DIR, uuidv4());
         if (getFileHeader(filePath) !== "02232153494c4b") {
             log(`语音文件${filePath}需要转换成silk`)
-            const isWav = await isWavFile(filePath);
+            const _isWav = await isWavFile(filePath);
             const wavPath = pttPath + ".wav"
-            if (!isWav) {
+            if (!_isWav) {
                 log(`语音文件${filePath}正在转换成wav`)
                 // let voiceData = await fsp.readFile(filePath)
                 await new Promise((resolve, reject) => {

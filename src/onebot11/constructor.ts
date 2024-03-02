@@ -7,18 +7,18 @@ import {
     OB11MessageDataType,
     OB11User
 } from "./types";
-import { AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User } from '../ntqqapi/types';
+import {AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User} from '../ntqqapi/types';
 import {fileCache, getFriend, getGroupMember, getHistoryMsgBySeq, selfInfo} from '../common/data';
-import { file2base64, getConfigUtil, log } from "../common/utils";
-import { NTQQApi } from "../ntqqapi/ntcall";
-import { EventType } from "./event/OB11BaseEvent";
-import { encodeCQCode } from "./cqcode";
+import {getConfigUtil, log} from "../common/utils";
+import {NTQQApi} from "../ntqqapi/ntcall";
+import {EventType} from "./event/OB11BaseEvent";
+import {encodeCQCode} from "./cqcode";
 
 
 export class OB11Constructor {
     static async message(msg: RawMessage): Promise<OB11Message> {
 
-        const { enableLocalFile2Url, ob11: { messagePostFormat } } = getConfigUtil().getConfig()
+        const {enableLocalFile2Url, ob11: {messagePostFormat}} = getConfigUtil().getConfig()
         const message_type = msg.chatType == ChatType.group ? "group" : "private";
         const resMsg: OB11Message = {
             self_id: parseInt(selfInfo.uin),
@@ -110,9 +110,10 @@ export class OB11Constructor {
                     fileSize: element.picElement.fileSize.toString(),
                     url: IMAGE_HTTP_HOST + element.picElement.originImageUrl,
                     downloadFunc: async () => {
-                    await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
-                        element.elementId, element.picElement.thumbPath.get(0), element.picElement.sourcePath)
-                }})
+                        await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
+                            element.elementId, element.picElement.thumbPath.get(0), element.picElement.sourcePath)
+                    }
+                })
                 // 不在自动下载图片
 
             } else if (element.videoElement) {
@@ -128,7 +129,8 @@ export class OB11Constructor {
                     downloadFunc: async () => {
                         await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
                             element.elementId, element.videoElement.thumbPath.get(0), element.videoElement.filePath)
-                    }})
+                    }
+                })
                 // 怎么拿到url呢
             } else if (element.fileElement) {
                 message_data["type"] = OB11MessageDataType.file;
@@ -143,10 +145,10 @@ export class OB11Constructor {
                     downloadFunc: async () => {
                         await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
                             element.elementId, null, element.fileElement.filePath)
-                    }})
+                    }
+                })
                 // 怎么拿到url呢
-            }
-            else if (element.pttElement) {
+            } else if (element.pttElement) {
                 message_data["type"] = OB11MessageDataType.voice;
                 message_data["data"]["file"] = element.pttElement.fileName
                 message_data["data"]["path"] = element.pttElement.filePath

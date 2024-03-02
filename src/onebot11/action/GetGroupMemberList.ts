@@ -13,15 +13,14 @@ export interface PayloadType {
 class GetGroupMemberList extends BaseAction<PayloadType, OB11GroupMember[]> {
     actionName = ActionName.GetGroupMemberList
 
-    protected async _handle(payload: PayloadType){
+    protected async _handle(payload: PayloadType) {
         const group = await getGroup(payload.group_id.toString());
         if (group) {
             if (!group.members?.length) {
                 group.members = await NTQQApi.getGroupMembers(payload.group_id.toString())
             }
             return OB11Constructor.groupMembers(group);
-        }
-        else {
+        } else {
             throw (`群${payload.group_id}不存在`)
         }
     }

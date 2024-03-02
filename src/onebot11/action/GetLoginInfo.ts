@@ -8,7 +8,7 @@ import {ActionName} from "./types";
 class GetLoginInfo extends BaseAction<null, OB11User> {
     actionName = ActionName.GetLoginInfo
 
-    protected async _handle(payload: null){
+    protected async _handle(payload: null) {
         return OB11Constructor.selfInfo(selfInfo);
     }
 }

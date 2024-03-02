@@ -8,7 +8,7 @@ import {ActionName} from "./types";
 class GetGroupList extends BaseAction<null, OB11Group[]> {
     actionName = ActionName.GetGroupList
 
-    protected async _handle(payload: null){
+    protected async _handle(payload: null) {
         return OB11Constructor.groups(groups);
     }
 }

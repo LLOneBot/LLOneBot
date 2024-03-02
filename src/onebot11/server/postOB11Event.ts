@@ -3,7 +3,7 @@ import {OB11Message} from "../types";
 import {selfInfo} from "../../common/data";
 import {OB11BaseMetaEvent} from "../event/meta/OB11BaseMetaEvent";
 import {OB11BaseNoticeEvent} from "../event/notice/OB11BaseNoticeEvent";
-import { WebSocket as WebSocketClass } from "ws";
+import {WebSocket as WebSocketClass} from "ws";
 import {wsReply} from "./ws/reply";
 
 export type PostEventType = OB11Message | OB11BaseMetaEvent | OB11BaseNoticeEvent
@@ -29,7 +29,7 @@ export function postWsEvent(event: PostEventType) {
     }
 }
 
-export function postOB11Event(msg: PostEventType, reportSelf=false) {
+export function postOB11Event(msg: PostEventType, reportSelf = false) {
     const config = getConfigUtil().getConfig();
     // 判断msg是否是event
     if (!config.reportSelfMessage && !reportSelf) {

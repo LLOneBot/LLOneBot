@@ -9,7 +9,7 @@ import BaseAction from "../../action/BaseAction";
 import {actionMap} from "../../action";
 import {registerWsEventSender, unregisterWsEventSender} from "../postOB11Event";
 import {wsReply} from "./reply";
-import { WebSocket as WebSocketClass } from "ws";
+import {WebSocket as WebSocketClass} from "ws";
 
 export let rwsList: ReverseWebsocket[] = [];
 

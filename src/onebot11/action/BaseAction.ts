@@ -4,6 +4,7 @@ import {OB11Return} from "../types";
 
 class BaseAction<PayloadType, ReturnDataType> {
     actionName: ActionName
+
     protected async check(payload: PayloadType): Promise<BaseCheckResult> {
         return {
             valid: true,
