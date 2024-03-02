@@ -3,11 +3,11 @@ import {fileCache} from "../../common/data";
 import {getConfigUtil} from "../../common/utils";
 import fs from "fs/promises";
 
-export interface GetFilePayload{
+export interface GetFilePayload {
     file: string // 文件名
 }
 
-export interface GetFileResponse{
+export interface GetFileResponse {
     file?: string  // path
     url?: string
     file_size?: string
@@ -16,7 +16,7 @@ export interface GetFileResponse{
 }
 
 
-export class GetFileBase extends BaseAction<GetFilePayload, GetFileResponse>{
+export class GetFileBase extends BaseAction<GetFilePayload, GetFileResponse> {
     protected async _handle(payload: GetFilePayload): Promise<GetFileResponse> {
         const cache = fileCache.get(payload.file)
         const {autoDeleteFile, enableLocalFile2Url, autoDeleteFileSecond} = getConfigUtil().getConfig()
@@ -26,7 +26,7 @@ export class GetFileBase extends BaseAction<GetFilePayload, GetFileResponse>{
         if (cache.downloadFunc) {
             await cache.downloadFunc()
         }
-        let res : GetFileResponse=  {
+        let res: GetFileResponse = {
             file: cache.filePath,
             url: cache.url,
             file_size: cache.fileSize,

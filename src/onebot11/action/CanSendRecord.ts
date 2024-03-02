@@ -1,14 +1,14 @@
 import BaseAction from "./BaseAction";
 import {ActionName} from "./types";
 
-interface ReturnType{
+interface ReturnType {
     yes: boolean
 }
 
-export default class CanSendRecord extends BaseAction<any, ReturnType>{
+export default class CanSendRecord extends BaseAction<any, ReturnType> {
     actionName = ActionName.CanSendRecord
 
-    protected async _handle(payload): Promise<ReturnType>{
+    protected async _handle(payload): Promise<ReturnType> {
         return {
             yes: true
         }

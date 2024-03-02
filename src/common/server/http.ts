@@ -1,4 +1,4 @@
-import express, {Express, Request, Response, json} from "express";
+import express, {Express, json, Request, Response} from "express";
 import {getConfigUtil, log} from "../utils";
 import http from "http";
 
@@ -45,13 +45,13 @@ export abstract class HttpServerBase {
     }
 
     stop() {
-        if (this.server){
+        if (this.server) {
             this.server.close()
             this.server = null;
         }
     }
 
-    restart(port: number){
+    restart(port: number) {
         this.stop()
         this.start(port)
     }
@@ -63,20 +63,20 @@ export abstract class HttpServerBase {
             url = "/" + url
         }
 
-        if (!this.expressAPP[method]){
+        if (!this.expressAPP[method]) {
             const err = `${this.name} register router failed，${method} not exist`;
             log(err);
             throw err;
         }
         this.expressAPP[method](url, this.authorize, async (req: Request, res: Response) => {
             let payload = req.body;
-            if (method == "get"){
+            if (method == "get") {
                 payload = req.query
             }
             log("收到http请求", url, payload);
-            try{
+            try {
                 res.send(await handler(res, payload))
-            }catch (e) {
+            } catch (e) {
                 this.handleFailed(res, payload, e.stack.toString())
             }
         });

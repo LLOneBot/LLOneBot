@@ -14,7 +14,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "electron-vite": "^2.0.0",
     "express": "^4.18.2",
     "fluent-ffmpeg": "^2.1.2",
     "music-metadata": "^8.1.4",
@@ -29,9 +28,15 @@
     "@types/node": "^20.11.24",
     "@types/uuid": "^9.0.8",
     "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.4.0",
     "electron": "^29.0.1",
+    "electron-vite": "^2.0.0",
+    "eslint": "^8.0.1",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-n": "^15.0.0 || ^16.0.0 ",
+    "eslint-plugin-promise": "^6.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.2.2",
+    "typescript": "*",
     "vite": "^5.1.4",
     "vite-plugin-cp": "^4.0.8"
   }

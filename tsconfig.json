@@ -12,10 +12,10 @@
   },
   "include": [
     "src/*",
+    "src/**/*",
     "scripts/*"
   ],
   "exclude": [
     "node_modules",
-    "src/common/types.ts"
   ]
 }

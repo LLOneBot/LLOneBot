@@ -1,40 +1,39 @@
-import {NTQQApi} from '../ntqqapi/ntcall';
+import {NTQQApi} from '../ntqqapi/ntcall'
 import {
-    FileElement,
-    Friend,
-    FriendRequest,
-    Group,
-    GroupMember,
-    GroupNotify,
-    PicElement, PttElement,
-    RawMessage,
-    SelfInfo, VideoElement
-} from "../ntqqapi/types";
-import {FileCache, LLOneBotError} from "./types";
-export let selfInfo: SelfInfo = {
-    uid: "",
-    uin: "",
-    nick: "",
-    online: true,
-}
-export let groups: Group[] = []
-export let friends: Friend[] = []
-export let msgHistory: Record<string, RawMessage> = {}  // msgId: RawMessage
-export let groupNotifies: Map<string, GroupNotify> = new Map<string, GroupNotify>();
-export let friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>();
-export let llonebotError: LLOneBotError = {
-    ffmpegError: "",
-    otherError: ""
-}
-let globalMsgId = Math.floor(Date.now() / 1000);
+    type Friend,
+    type FriendRequest,
+    type Group,
+    type GroupMember,
+    type GroupNotify,
+    type RawMessage,
+    type SelfInfo
+} from '../ntqqapi/types'
+import {type FileCache, type LLOneBotError} from './types'
 
-export let fileCache: Map<string, FileCache> = new Map();
+export const selfInfo: SelfInfo = {
+    uid: '',
+    uin: '',
+    nick: '',
+    online: true
+}
+export const groups: Group[] = []
+export const friends: Friend[] = []
+export const msgHistory: Record<string, RawMessage> = {} // msgId: RawMessage
+export const groupNotifies: Map<string, GroupNotify> = new Map<string, GroupNotify>()
+export const friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>()
+export const llonebotError: LLOneBotError = {
+    ffmpegError: '',
+    otherError: ''
+}
+let globalMsgId = Math.floor(Date.now() / 1000)
+
+export const fileCache = new Map<string, FileCache>()
 
 export function addHistoryMsg(msg: RawMessage): boolean {
-    let existMsg = msgHistory[msg.msgId]
+    const existMsg = msgHistory[msg.msgId]
     if (existMsg) {
         Object.assign(existMsg, msg)
-        msg.msgShortId = existMsg.msgShortId;
+        msg.msgShortId = existMsg.msgShortId
         return false
     }
     msg.msgShortId = ++globalMsgId
@@ -47,9 +46,8 @@ export function getHistoryMsgByShortId(shortId: number | string) {
     return Object.values(msgHistory).find(msg => msg.msgShortId.toString() == shortId.toString())
 }
 
-
 export async function getFriend(qq: string): Promise<Friend | undefined> {
-    let friend = friends.find(friend => friend.uin === qq)
+    const friend = friends.find(friend => friend.uin === qq)
     // if (!friend){
     //     friends = (await NTQQApi.getFriends(true))
     //     friend = friends.find(friend => friend.uin === qq)
@@ -58,7 +56,7 @@ export async function getFriend(qq: string): Promise<Friend | undefined> {
 }
 
 export async function getGroup(qq: string): Promise<Group | undefined> {
-    let group = groups.find(group => group.groupCode === qq)
+    const group = groups.find(group => group.groupCode === qq)
     // if (!group){
     //     groups = await NTQQApi.getGroups(true);
     //     group = groups.find(group => group.groupCode === qq)
@@ -67,9 +65,9 @@ export async function getGroup(qq: string): Promise<Group | undefined> {
 }
 
 export async function getGroupMember(groupQQ: string | number, memberQQ: string | number, memberUid: string = null) {
-    groupQQ = groupQQ.toString();
-    if (memberQQ){
-        memberQQ = memberQQ.toString();
+    groupQQ = groupQQ.toString()
+    if (memberQQ) {
+        memberQQ = memberQQ.toString()
     }
     const group = await getGroup(groupQQ)
     if (group) {
@@ -82,7 +80,7 @@ export async function getGroupMember(groupQQ: string | number, memberQQ: string 
         let member = group.members?.find(filterFunc)
         if (!member) {
             const _members = await NTQQApi.getGroupMembers(groupQQ)
-            if (_members.length) {
+            if (_members.length > 0) {
                 group.members = _members
             }
             member = group.members?.find(filterFunc)
@@ -91,21 +89,16 @@ export async function getGroupMember(groupQQ: string | number, memberQQ: string 
     }
 }
 
-
-
-
 export function getHistoryMsgBySeq(seq: string) {
     return Object.values(msgHistory).find(msg => msg.msgSeq === seq)
 }
 
-
-export let uidMaps: Record<string, string> = {}  // 一串加密的字符串(uid) -> qq号
+export const uidMaps: Record<string, string> = {} // 一串加密的字符串(uid) -> qq号
 
 export function getUidByUin(uin: string) {
     for (const key in uidMaps) {
         if (uidMaps[key] === uin) {
-            return key;
+            return key
         }
     }
 }
-

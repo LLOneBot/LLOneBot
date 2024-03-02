@@ -141,7 +141,7 @@ function onLoad() {
         // 检查ffmpeg
         if (arg.ffmpeg) {
             checkFfmpeg(arg.ffmpeg).then(success => {
-                if (success){
+                if (success) {
                     llonebotError.ffmpegError = ''
                 }
             })
@@ -254,8 +254,8 @@ function onLoad() {
                             continue;
                         }
                         let existNotify = groupNotifies[notify.seq];
-                        if (existNotify){
-                            if (Date.now() - existNotify.time < 3000){
+                        if (existNotify) {
+                            if (Date.now() - existNotify.time < 3000) {
                                 continue
                             }
                         }
@@ -298,8 +298,7 @@ function onLoad() {
                             groupRequestEvent.comment = notify.postscript;
                             groupRequestEvent.flag = notify.seq;
                             postOB11Event(groupRequestEvent);
-                        }
-                        else if(notify.type == GroupNotifyTypes.INVITE_ME){
+                        } else if (notify.type == GroupNotifyTypes.INVITE_ME) {
                             let groupInviteEvent = new OB11GroupRequestEvent();
                             groupInviteEvent.group_id = parseInt(notify.group.groupCode);
                             let user_id = (await NTQQApi.getUserDetailInfo(notify.user2.uid))?.uin
@@ -368,16 +367,18 @@ function onLoad() {
     let getSelfNickCount = 0;
     const init = async () => {
         try {
+            log("start get self info")
             const _ = await NTQQApi.getSelfInfo();
+            log("get self info api result:", _);
             Object.assign(selfInfo, _);
             selfInfo.nick = selfInfo.uin;
-            log("get self simple info", _);
         } catch (e) {
-            log("retry get self info");
+            log("retry get self info", e);
         }
+        log("self info", selfInfo);
         if (selfInfo.uin) {
             try {
-                const userInfo = (await NTQQApi.getUserInfo(selfInfo.uid));
+                const userInfo = (await NTQQApi.getUserDetailInfo(selfInfo.uid));
                 log("self info", userInfo);
                 if (userInfo) {
                     selfInfo.nick = userInfo.nick;

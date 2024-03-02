@@ -10,7 +10,7 @@ interface Payload {
 class DeleteMsg extends BaseAction<Payload, void> {
     actionName = ActionName.DeleteMsg
 
-    protected async _handle(payload:Payload){
+    protected async _handle(payload: Payload) {
         let msg = getHistoryMsgByShortId(payload.message_id)
         await NTQQApi.recallMsg({
             chatType: msg.chatType,
