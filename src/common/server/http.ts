@@ -1,8 +1,6 @@
-import express, {Express, Request, Response} from "express";
+import express, {Express, Request, Response, json} from "express";
 import {getConfigUtil, log} from "../utils";
 import http from "http";
-
-const JSONbig = require('json-bigint')({storeAsString: true});
 
 type RegisterHandler = (res: Response, payload: any) => Promise<any>
 
@@ -14,23 +12,7 @@ export abstract class HttpServerBase {
     constructor() {
         this.expressAPP = express();
         this.expressAPP.use(express.urlencoded({extended: true, limit: "500mb"}));
-        this.expressAPP.use((req, res, next) => {
-            let data = '';
-            req.on('data', chunk => {
-                data += chunk.toString();
-            });
-            req.on('end', () => {
-                if (data) {
-                    try {
-                        // log("receive raw", data)
-                        req.body = JSONbig.parse(data);
-                    } catch (e) {
-                        return next(e);
-                    }
-                }
-                next();
-            });
-        });
+        this.expressAPP.use(json({limit: "500mb"}));
     }
 
     authorize(req: Request, res: Response, next: () => void) {

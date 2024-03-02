@@ -1,10 +1,10 @@
 {
   "manifest_version": 4,
   "type": "extension",
-  "name": "LLOneBot  v3.11.0",
+  "name": "LLOneBot v3.12.0",
   "slug": "LLOneBot",
   "description": "LiteLoaderQQNT的OneBotApi",
-  "version": "3.11.0",
+  "version": "3.12.0",
   "thumbnail": "./icon.png",
   "authors": [
     {
@@ -26,8 +26,8 @@
     "darwin"
   ],
   "injects": {
-    "renderer": "./renderer.js",
-    "main": "./main.cjs",
-    "preload": "./preload.cjs"
+    "renderer": "./renderer/renderer.js",
+    "main": "./main/main.cjs",
+    "preload": "./preload/preload.cjs"
   }
 }
