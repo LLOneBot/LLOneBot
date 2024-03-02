@@ -1,4 +1,4 @@
-import {Server, WebSocket} from "ws";
+import {WebSocket, WebSocketServer} from "ws";
 import {getConfigUtil, log} from "../utils";
 import urlParse from "url";
 import {IncomingMessage} from "node:http";
@@ -21,14 +21,14 @@ class WebsocketClientBase {
 }
 
 export class WebsocketServerBase {
-    private ws: Server = null;
+    private ws: WebSocketServer = null;
 
     constructor() {
         console.log(`llonebot websocket service started`)
     }
 
     start(port: number) {
-        this.ws = new Server({port});
+        this.ws = new WebSocketServer({port});
         this.ws.on("connection", (wsClient, req)=>{
             const url = req.url.split("?").shift()
             this.authorize(wsClient, req);

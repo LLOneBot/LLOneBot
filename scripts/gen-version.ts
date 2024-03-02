@@ -1,5 +1,5 @@
-import fs = require("fs");
-import path = require("path");
+import fs from "fs";
+import path from"path";
 import {version} from "../src/version";
 const manifestPath = path.join(__dirname, "../manifest.json");
 function readManifest(): any{
