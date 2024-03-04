@@ -24,7 +24,7 @@ async function onSettingWindowCreated(view: Element) {
                 SettingSwitch('ob11.enableHttp', config.ob11.enableHttp, { 'control-display-id': 'config-ob11-httpPort' }),
             ),
             SettingItem('HTTP 服务监听端口', null,
-                '<div class="q-input"><input class="q-input__inner" /></div>',
+                `<div class="q-input"><input class="q-input__inner" type="number" min="1" max="65534" value="${config.ob11.httpPort}" placeholder="${config.ob11.httpPort}" /></div>`,
                 'config-ob11-httpPort', config.ob11.enableHttp
             ),
             SettingItem('启用 HTTP 事件上报', null,
@@ -35,14 +35,14 @@ async function onSettingWindowCreated(view: Element) {
                 'config-ob11-httpPost', config.ob11.enableHttpPost
             ),
             SettingItem('启用正向 WebSocket 服务', null,
-                SettingSwitch('ob11.enableWs', config.ob11.enableWs, { 'config-display-id': 'config-ob11-wsPort' }),
+                SettingSwitch('ob11.enableWs', config.ob11.enableWs, { 'control-display-id': 'config-ob11-wsPort' }),
             ),
             SettingItem('正向 WebSocket 服务监听端口', null,
-                '<div class="q-input"><input class="q-input__inner" /></div>',
+                `<div class="q-input"><input class="q-input__inner" type="number" min="1" max="65534" value="${config.ob11.wsPort}" placeholder="${config.ob11.wsPort}" /></div>`,
                 'config-ob11-wsPort', config.ob11.enableWs
             ),
             SettingItem('启用反向 WebSocket 服务', null,
-                SettingSwitch('ob11.enableWsReverse', config.ob11.enableWsReverse, { 'config-display-id': 'config-ob11-wsHosts' }),
+                SettingSwitch('ob11.enableWsReverse', config.ob11.enableWsReverse, { 'control-display-id': 'config-ob11-wsHosts' }),
             ),
             SettingItem('反向 WebSocket 监听地址', null,
                 '<div></div>',
@@ -90,17 +90,33 @@ async function onSettingWindowCreated(view: Element) {
             SettingItem(
                 '自动删除收到的文件',
                 '在收到文件后的指定时间内删除该文件',
-                SettingSwitch('autoDeleteFile', config.autoDeleteFile, { 'config-display-id': 'config-auto-delete-file-second' }),
+                SettingSwitch('autoDeleteFile', config.autoDeleteFile, { 'control-display-id': 'config-auto-delete-file-second' }),
             ),
             SettingItem(
                 '自动删除文件时间',
                 '单位为秒',
-                '<div class="q-input"><input class="q-input__inner" /></div>',
+                `<div class="q-input"><input class="q-input__inner" type="number" min="1" value="${config.autoDeleteFileSecond}" placeholder="${config.autoDeleteFileSecond}" /></div>`,
                 'config-auto-delete-file-second', config.autoDeleteFile
             ),
         ]),
         '</div>',
     ].join(''), "text/html");
+
+    // 开关
+    doc.querySelectorAll('setting-switch[data-config-key]').forEach((dom: HTMLElement) => {
+        dom.addEventListener('click', () => {
+            const active = dom.getAttribute('is-active') === null;
+
+            if (active) dom.setAttribute('is-active', '');
+            else dom.removeAttribute('is-active');
+
+            if (!isEmpty(dom.dataset.controlDisplayId)) {
+                const displayDom = document.querySelector(`#${dom.dataset.controlDisplayId}`);
+                if (active) displayDom.removeAttribute('is-hidden');
+                else displayDom.setAttribute('is-hidden', '');
+            }
+        });
+    });
 
     doc.body.childNodes.forEach(node => {
         view.appendChild(node);
