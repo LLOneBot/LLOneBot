@@ -1,6 +1,6 @@
 import {
     AtType,
-    ElementType,
+    ElementType, PicType,
     SendFaceElement,
     SendFileElement,
     SendPicElement,
@@ -9,7 +9,7 @@ import {
     SendTextElement
 } from "./types";
 import {NTQQApi} from "./ntcall";
-import {encodeSilk} from "../common/utils";
+import {encodeSilk, isGIF} from "../common/utils";
 import * as fs from "node:fs";
 
 
@@ -66,7 +66,7 @@ export class SendMsgElementConstructor {
             fileName: fileName,
             sourcePath: path,
             original: true,
-            picType: 1001,
+            picType: isGIF(picPath) ? PicType.gif : PicType.jpg,
             picSubType: 0,
             fileUuid: "",
             fileSubId: "",
