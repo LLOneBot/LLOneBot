@@ -3,6 +3,16 @@ setting-item[is-hidden] + setting-divider {
   display: none !important;
 }
 
+.config-host-list {
+  width: 100%;
+  padding-left: 16px;
+  box-sizing: border-box;
+}
+.config-host-list[is-hidden],
+.config-host-list[is-hidden] + setting-divider {
+  display: none !important;
+}
+
 setting-item .q-input {
   height: 24px;
   width: 100px;
@@ -36,4 +46,8 @@ setting-item .q-input input[type=number].q-input__inner::-webkit-outer-spin-butt
 setting-item .q-input input[type=number].q-input__inner::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+.config-host-list setting-item.setting-host-list-item .q-input {
+  width: 260px;
 }
