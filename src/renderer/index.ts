@@ -62,6 +62,14 @@ async function onSettingWindowCreated(view: Element) {
                 `<div class="q-input" style="width:210px;"><input class="q-input__inner" data-config-key="token" type="text" value="${config.token}" placeholder="未设置" /></div>`,
             ),
             SettingItem(
+                '消息上报格式类型',
+                '如客户端无特殊需求推荐保持默认设置，两者的详细差异可参考 <a href="javascript:LiteLoader.api.openExternal(\'https://github.com/botuniverse/onebot-11/tree/master/message#readme\');">OneBot v11 文档</a>',
+                SettingSelect([
+                    { text: '消息段', value: 'array' },
+                    { text: 'CQ码', value: 'string' },
+                ], 'ob11.messagePostFormat', config.ob11.messagePostFormat),
+            ),
+            SettingItem(
                 'ffmpeg 路径', `${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}`,
                 SettingButton('选择', 'config-ffmpeg-select'),
                 'config-ffmpeg-path',
@@ -72,14 +80,6 @@ async function onSettingWindowCreated(view: Element) {
             )
         ]),
         SettingList([
-            SettingItem(
-                '消息上报格式类型',
-                '如客户端无特殊需求推荐保持默认设置，两者的详细差异可参考 <a href="javascript:LiteLoader.api.openExternal(\'https://github.com/botuniverse/onebot-11/tree/master/message#readme\');">OneBot v11 文档</a>',
-                SettingSelect([
-                    { text: '消息段', value: 'array' },
-                    { text: 'CQ码', value: 'string' },
-                ], 'ob11.messagePostFormat', config.ob11.messagePostFormat),
-            ),
             SettingItem(
                 '使用 Base64 编码获取文件',
                 '开启后，调用 /get_image、/get_record 时，获取不到 url 时添加一个 Base64 字段',
@@ -144,6 +144,16 @@ async function onSettingWindowCreated(view: Element) {
             const Type = dom.getAttribute('type');
             const configKey = dom.dataset.configKey;
             const configValue = Type === 'number' ? (parseInt(dom.value) >= 1 ? parseInt(dom.value) : 1) : dom.value;
+
+            setConfig(configKey, configValue);
+        });
+    });
+
+    // 下拉框
+    doc.querySelectorAll('setting-select').forEach((dom: HTMLElement) => {
+        dom.addEventListener('selected', (e: CustomEvent) => {
+            const configKey = dom.dataset.configKey;
+            const configValue = e.detail.value;
 
             setConfig(configKey, configValue);
         });
