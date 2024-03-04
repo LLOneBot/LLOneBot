@@ -34,7 +34,7 @@ async function onSettingWindowCreated(view: Element) {
                 SettingSwitch('ob11.enableHttp', config.ob11.enableHttp, { 'control-display-id': 'config-ob11-httpPort' }),
             ),
             SettingItem('HTTP 服务监听端口', null,
-                `<div class="q-input"><input class="q-input__inner" type="number" min="1" max="65534" value="${config.ob11.httpPort}" placeholder="${config.ob11.httpPort}" /></div>`,
+                `<div class="q-input"><input class="q-input__inner" data-config-key="ob11.httpPort" type="number" min="1" max="65534" value="${config.ob11.httpPort}" placeholder="${config.ob11.httpPort}" /></div>`,
                 'config-ob11-httpPort', config.ob11.enableHttp
             ),
             SettingItem('启用 HTTP 事件上报', null,
@@ -48,7 +48,7 @@ async function onSettingWindowCreated(view: Element) {
                 SettingSwitch('ob11.enableWs', config.ob11.enableWs, { 'control-display-id': 'config-ob11-wsPort' }),
             ),
             SettingItem('正向 WebSocket 服务监听端口', null,
-                `<div class="q-input"><input class="q-input__inner" type="number" min="1" max="65534" value="${config.ob11.wsPort}" placeholder="${config.ob11.wsPort}" /></div>`,
+                `<div class="q-input"><input class="q-input__inner" data-config-key="ob11.wsPort" type="number" min="1" max="65534" value="${config.ob11.wsPort}" placeholder="${config.ob11.wsPort}" /></div>`,
                 'config-ob11-wsPort', config.ob11.enableWs
             ),
             SettingItem('启用反向 WebSocket 服务', null,
@@ -58,8 +58,8 @@ async function onSettingWindowCreated(view: Element) {
                 '<div></div>',
                 'config-ob11-wsHosts', config.ob11.enableWsReverse
             ),
-            SettingItem('Access token', null
-                `<div class="q-input"><input class="q-input__inner" type="text" value="${config.token}" placeholder="未设置" /></div>`,
+            SettingItem('Access token', null,
+                `<div class="q-input" style="width:210px;"><input class="q-input__inner" data-config-key="token" type="text" value="${config.token}" placeholder="未设置" /></div>`,
             ),
             SettingItem(
                 'ffmpeg 路径', `${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}`,
@@ -103,7 +103,7 @@ async function onSettingWindowCreated(view: Element) {
             SettingItem(
                 '自动删除文件时间',
                 '单位为秒',
-                `<div class="q-input"><input class="q-input__inner" type="number" min="1" value="${config.autoDeleteFileSecond}" placeholder="${config.autoDeleteFileSecond}" /></div>`,
+                `<div class="q-input"><input class="q-input__inner" data-config-key="autoDeleteFileSecond" type="number" min="1" value="${config.autoDeleteFileSecond}" placeholder="${config.autoDeleteFileSecond}" /></div>`,
                 'config-auto-delete-file-second', config.autoDeleteFile
             ),
             SettingItem(
@@ -135,6 +135,17 @@ async function onSettingWindowCreated(view: Element) {
                 if (active) displayDom.removeAttribute('is-hidden');
                 else displayDom.setAttribute('is-hidden', '');
             }
+        });
+    });
+
+    // 输入框
+    doc.querySelectorAll('setting-item .q-input input.q-input__inner[data-config-key]').forEach((dom: HTMLInputElement) => {
+        dom.addEventListener('input', () => {
+            const Type = dom.getAttribute('type');
+            const configKey = dom.dataset.configKey;
+            const configValue = Type === 'number' ? (parseInt(dom.value) >= 1 ? parseInt(dom.value) : 1) : dom.value;
+
+            setConfig(configKey, configValue);
         });
     });
 
