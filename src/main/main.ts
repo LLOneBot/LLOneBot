@@ -19,7 +19,7 @@ import {
     getGroupMember,
     groupNotifies,
     llonebotError,
-    msgHistory,
+    msgHistory, refreshGroupMembers,
     selfInfo
 } from "../common/data";
 import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} from "../ntqqapi/hook";
@@ -262,6 +262,7 @@ function onLoad() {
                         log("收到群通知", notify);
                         groupNotifies[notify.seq] = notify;
                         const member1 = await getGroupMember(notify.group.groupCode, null, notify.user1.uid);
+                        refreshGroupMembers(notify.group.groupCode).then()
                         let member2: GroupMember;
                         if (notify.user2.uid) {
                             member2 = await getGroupMember(notify.group.groupCode, null, notify.user2.uid);
@@ -311,6 +312,9 @@ function onLoad() {
                 } catch (e) {
                     log("解析群通知失败", e.stack);
                 }
+            }
+            else if (payload.doubt){
+                // 可能有群管理员变动
             }
         })
 
