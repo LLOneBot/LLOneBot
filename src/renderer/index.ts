@@ -83,11 +83,6 @@ async function onSettingWindowCreated(view: Element) {
                 SettingSwitch('reportSelfMessage', config.reportSelfMessage),
             ),
             SettingItem(
-                '写入日志',
-                `日志文件目录：${window.LiteLoader.plugins['LLOneBot'].path.data}`,
-                SettingButton('打开', 'config-open-log-path'),
-            ),
-            SettingItem(
                 '自动删除收到的文件',
                 '在收到文件后的指定时间内删除该文件',
                 SettingSwitch('autoDeleteFile', config.autoDeleteFile, { 'control-display-id': 'config-auto-delete-file-second' }),
@@ -97,6 +92,16 @@ async function onSettingWindowCreated(view: Element) {
                 '单位为秒',
                 `<div class="q-input"><input class="q-input__inner" type="number" min="1" value="${config.autoDeleteFileSecond}" placeholder="${config.autoDeleteFileSecond}" /></div>`,
                 'config-auto-delete-file-second', config.autoDeleteFile
+            ),
+            SettingItem(
+                '写入日志',
+                `将日志文件写入插件的数据文件夹`,
+                SettingSwitch('log', config.log),
+            ),
+            SettingItem(
+                '日志文件目录',
+                `${window.LiteLoader.plugins['LLOneBot'].path.data}`,
+                SettingButton('打开', 'config-open-log-path'),
             ),
         ]),
         '</div>',
