@@ -2,6 +2,7 @@ import {CONFIG_DIR, isGIF} from "../common/utils";
 import {v4 as uuidv4} from "uuid";
 import * as path from 'node:path';
 import {fileCache} from "../common/data";
+import * as fileType from 'file-type';
 
 const fs = require("fs").promises;
 
@@ -23,6 +24,7 @@ export async function uri2local(uri: string, fileName: string = null) {
         try {
             const buffer = Buffer.from(base64Data, 'base64');
             await fs.writeFile(filePath, buffer);
+
         } catch (e: any) {
             res.errMsg = `base64文件下载失败,` + e.toString()
             return res
@@ -37,7 +39,7 @@ export async function uri2local(uri: string, fileName: string = null) {
         let blob = await fetchRes.blob();
         let buffer = await blob.arrayBuffer();
         try {
-            fileName = path.basename(url.pathname) || fileName
+            fileName = path.parse(url.pathname).name || fileName
             filePath = path.join(CONFIG_DIR, fileName)
             await fs.writeFile(filePath, Buffer.from(buffer));
         } catch (e: any) {
@@ -72,6 +74,13 @@ export async function uri2local(uri: string, fileName: string = null) {
     if (isGIF(filePath) && !res.isLocal) {
         await fs.rename(filePath, filePath + ".gif");
         filePath += ".gif";
+    }
+    if (!res.isLocal) {
+        const {ext} = await fileType.fileTypeFromFile(filePath)
+        if (ext) {
+            await fs.rename(filePath, filePath + `.${ext}`)
+            filePath += `.${ext}`
+        }
     }
     res.success = true
     res.path = filePath

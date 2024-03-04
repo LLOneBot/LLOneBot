@@ -30,6 +30,7 @@ import SetGroupAdmin from "./SetGroupAdmin";
 import SetGroupCard from "./SetGroupCard";
 import GetImage from "./GetImage";
 import GetRecord from "./GetRecord";
+import GoCQHTTPMarkMsgAsRead from "./MarkMsgAsRead";
 
 export const actionHandlers = [
     new Debug(),
@@ -60,7 +61,8 @@ export const actionHandlers = [
     new GoCQHTTPSendGroupForwardMsg(),
     new GoCQHTTPSendPrivateForwardMsg(),
     new GoCQHTTPGetStrangerInfo(),
-    new GetGuildList()
+    new GetGuildList(),
+    new GoCQHTTPMarkMsgAsRead(),
 
 ]
 

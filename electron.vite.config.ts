@@ -1,6 +1,13 @@
 import cp from 'vite-plugin-cp';
 import "./scripts/gen-version"
-export default {
+
+const external = ["silk-wasm", "ws"];
+
+function genCpModule(module: string) {
+    return { src: `./node_modules/${module}`, dest: `dist/node_modules/${module}`, flatten: false }
+}
+
+let config = {
     main: {
         build: {
             outDir: "dist/main",
@@ -10,7 +17,7 @@ export default {
                 entry: { "main": "src/main/main.ts" },
             },
             rollupOptions: {
-                external: ["silk-wasm"],
+                external,
                 input: "src/main/main.ts",
             }
         },
@@ -19,7 +26,7 @@ export default {
                 './lib-cov/fluent-ffmpeg': './lib/fluent-ffmpeg'
             },
         },
-        plugins: [cp({ targets: [{src: './node_modules/silk-wasm', dest: 'dist/node_modules/silk-wasm', flatten: false}, { src: './manifest.json', dest: 'dist' }] })]
+        plugins: [cp({ targets: [...external.map(genCpModule), { src: './manifest.json', dest: 'dist' }] })]
     },
     preload: {
         // vite config options
@@ -56,3 +63,5 @@ export default {
         }
     }
 }
+
+export default config;
