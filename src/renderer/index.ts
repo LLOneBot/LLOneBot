@@ -27,8 +27,6 @@ async function onSettingWindowCreated(view: Element) {
 
             window.llonebot.setConfig(config);
         }
-
-        console.log(config, ob11Config);
     };
 
     const parser = new DOMParser();
@@ -165,7 +163,6 @@ async function onSettingWindowCreated(view: Element) {
         dom.deleteBtn.dataset.type = 'secondary';
         dom.deleteBtn.addEventListener('click', () => {
             ob11Config[type].splice(index, 1);
-            console.log(ob11Config);
             initReverseHost(type);
         });
 
