@@ -8,41 +8,6 @@ import {
 } from './components';
 import StyleRaw from './style.css?raw';
 
-const buildHostList = (hosts: string[], type: string) => {
-    const result: HTMLElement[] = [];
-
-    hosts.forEach((host, index) => {
-        const dom = {
-            container: document.createElement('setting-item'),
-            input: document.createElement('input'),
-            inputContainer: document.createElement('div'),
-            deleteBtn: document.createElement('setting-button'),
-        };
-
-        dom.container.classList.add('setting-host-list-item');
-        dom.container.dataset.direction = 'row';
-        dom.container.dataset.configArrayKey = type;
-        dom.container.dataset.configArrayIndex = `${index}`;
-
-        dom.input.classList.add('q-input__inner');
-        dom.input.type = 'url';
-        dom.input.value = host;
-
-        dom.inputContainer.classList.add('q-input');
-        dom.inputContainer.appendChild(dom.input);
-
-        dom.deleteBtn.innerHTML = '删除';
-        dom.deleteBtn.dataset.type = 'secondary';
-
-        dom.container.appendChild(dom.inputContainer);
-        dom.container.appendChild(dom.deleteBtn);
-
-        result.push(dom.container);
-    });
-
-    return result;
-}
-
 // 打开设置界面时触发
 
 async function onSettingWindowCreated(view: Element) {
@@ -79,16 +44,16 @@ async function onSettingWindowCreated(view: Element) {
                 'config-ob11-httpPort', config.ob11.enableHttp
             ),
             SettingItem('启用 HTTP 事件上报', null,
-                SettingSwitch('ob11.enableHttpPost', config.ob11.enableHttpPost, { 'control-display-id': 'config-ob11-httpPost' }),
+                SettingSwitch('ob11.enableHttpPost', config.ob11.enableHttpPost, { 'control-display-id': 'config-ob11-httpHosts' }),
             ),
-            `<div class="config-host-list" id="config-ob11-httpPost" ${config.ob11.enableHttpPost ? '' : 'is-hidden'}>
+            `<div class="config-host-list" id="config-ob11-httpHosts" ${config.ob11.enableHttpPost ? '' : 'is-hidden'}>
                 <setting-item data-direction="row">
                     <div>
                         <setting-text>HTTP 事件上报地址</setting-text>
                     </div>
                     <setting-button data-type="primary">添加</setting-button>
                 </setting-item>
-                <div id="config-ob11-httpPost-list"></div>
+                <div id="config-ob11-httpHosts-list"></div>
             </div>`,
             SettingItem('启用正向 WebSocket 服务', null,
                 SettingSwitch('ob11.enableWs', config.ob11.enableWs, { 'control-display-id': 'config-ob11-wsPort' }),
@@ -175,6 +140,56 @@ async function onSettingWindowCreated(view: Element) {
         '</div>',
     ].join(''), "text/html");
 
+    // 生成反向地址列表
+    const buildHostList = (hosts: string[], type: string) => {
+        const result: HTMLElement[] = [];
+    
+        hosts.forEach((host, index) => {
+            const dom = {
+                container: document.createElement('setting-item'),
+                input: document.createElement('input'),
+                inputContainer: document.createElement('div'),
+                deleteBtn: document.createElement('setting-button'),
+            };
+    
+            dom.container.classList.add('setting-host-list-item');
+            dom.container.dataset.direction = 'row';
+            dom.container.dataset.configArrayKey = type;
+            dom.container.dataset.configArrayIndex = `${index}`;
+    
+            dom.input.classList.add('q-input__inner');
+            dom.input.type = 'url';
+            dom.input.value = host;
+    
+            dom.inputContainer.classList.add('q-input');
+            dom.inputContainer.appendChild(dom.input);
+    
+            dom.deleteBtn.innerHTML = '删除';
+            dom.deleteBtn.dataset.type = 'secondary';
+            dom.deleteBtn.addEventListener('click', () => {
+                ob11Config[type].splice(index, 1);
+                console.log(ob11Config);
+                initReverseHost(type);
+            });
+    
+            dom.container.appendChild(dom.inputContainer);
+            dom.container.appendChild(dom.deleteBtn);
+    
+            result.push(dom.container);
+        });
+    
+        return result;
+    };
+    const initReverseHost = (type: string, doc: Document = document) => {
+        const hostContainerDom = doc.body.querySelector(`#config-ob11-${type}-list`);
+        [ ...hostContainerDom.childNodes ].forEach(dom => dom.remove());
+        buildHostList(ob11Config[type], type).forEach(dom => {
+            hostContainerDom.appendChild(dom);
+        });
+    };
+    initReverseHost('httpHosts', doc);
+    initReverseHost('wsHosts', doc);
+
     // 开关
     doc.querySelectorAll('setting-switch[data-config-key]').forEach((dom: HTMLElement) => {
         dom.addEventListener('click', () => {
@@ -212,17 +227,6 @@ async function onSettingWindowCreated(view: Element) {
 
             setConfig(configKey, configValue);
         });
-    });
-
-    // 生成反向地址列表
-    const httpHostContainerDom = doc.querySelector('#config-ob11-httpPost-list');
-    buildHostList(ob11Config.httpHosts, 'httpHosts').forEach(dom => {
-        httpHostContainerDom.appendChild(dom);
-    });
-
-    const wsHostContainerDom = doc.querySelector('#config-ob11-wsHosts-list');
-    buildHostList(ob11Config.wsHosts, 'wsHosts').forEach(dom => {
-        wsHostContainerDom.appendChild(dom);
     });
 
     // 保存按钮
