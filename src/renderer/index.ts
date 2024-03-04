@@ -58,6 +58,9 @@ async function onSettingWindowCreated(view: Element) {
                 '<div></div>',
                 'config-ob11-wsHosts', config.ob11.enableWsReverse
             ),
+            SettingItem('Access token', null
+                `<div class="q-input"><input class="q-input__inner" type="text" value="${config.token}" placeholder="未设置" /></div>`,
+            ),
             SettingItem(
                 'ffmpeg 路径', `${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}`,
                 SettingButton('选择', 'config-ffmpeg-select'),
