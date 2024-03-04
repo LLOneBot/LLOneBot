@@ -90,9 +90,8 @@ async function onSettingWindowCreated(view: Element) {
                 ], 'ob11.messagePostFormat', config.ob11.messagePostFormat),
             ),
             SettingItem(
-                'ffmpeg 路径', `<span id="config-ffmpeg-path">${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}</span>`,
+                'ffmpeg 路径', `<span id="config-ffmpeg-path-text">${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}</span>`,
                 SettingButton('选择', 'config-ffmpeg-select'),
-                'config-ffmpeg-path',
             ),
             SettingItem(
                 '', null,
@@ -201,6 +200,16 @@ async function onSettingWindowCreated(view: Element) {
 
     doc.querySelector('#config-ob11-httpHosts-add').addEventListener('click', () => addReverseHost('httpHosts'));
     doc.querySelector('#config-ob11-wsHosts-add').addEventListener('click', () => addReverseHost('wsHosts'));
+
+    doc.querySelector('#config-ffmpeg-select').addEventListener('click', () => {
+        window.llonebot.selectFile()
+            .then(path => {
+                if (!isEmpty(path)) {
+                    setConfig('ffmpeg', path);
+                    document.querySelector('#config-ffmpeg-path-text').innerHTML = path;
+                }
+            })
+    });
 
     // 开关
     doc.querySelectorAll('setting-switch[data-config-key]').forEach((dom: HTMLElement) => {
