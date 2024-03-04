@@ -154,12 +154,13 @@ async function onSettingWindowCreated(view: Element) {
     
             dom.container.classList.add('setting-host-list-item');
             dom.container.dataset.direction = 'row';
-            dom.container.dataset.configArrayKey = type;
-            dom.container.dataset.configArrayIndex = `${index}`;
     
             dom.input.classList.add('q-input__inner');
             dom.input.type = 'url';
             dom.input.value = host;
+            dom.input.addEventListener('input', () => {
+                ob11Config[type][index] = dom.input.value;
+            });
     
             dom.inputContainer.classList.add('q-input');
             dom.inputContainer.appendChild(dom.input);
