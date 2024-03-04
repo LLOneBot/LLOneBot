@@ -159,6 +159,12 @@ async function onSettingWindowCreated(view: Element) {
         });
     });
 
+    // 保存按钮
+    doc.querySelector('#config-ob11-save').addEventListener('click', () => {
+        window.llonebot.setConfig(config)
+        alert('保存成功');
+    });
+
     doc.body.childNodes.forEach(node => {
         view.appendChild(node);
     });
