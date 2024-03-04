@@ -51,3 +51,14 @@ setting-item .q-input input[type=number].q-input__inner::-webkit-inner-spin-butt
 .config-host-list setting-item.setting-host-list-item .q-input {
   width: 260px;
 }
+
+setting-item a {
+  color: var(--text-link);
+}
+setting-item a:hover {
+  color: var(--hover-link);
+}
+setting-item a:active,
+setting-item a:visited {
+  color: var(--text-link);
+}
