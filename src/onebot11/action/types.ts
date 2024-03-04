@@ -47,4 +47,5 @@ export enum ActionName {
     GoCQHTTP_SendPrivateForwardMsg = "send_private_forward_msg",
     GoCQHTTP_GetStrangerInfo = "get_stranger_info",
     GetGuildList = "get_guild_list",
+    GoCQHTTP_MarkMsgAsRead = "mark_msg_as_read",
 }
