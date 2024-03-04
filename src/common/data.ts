@@ -16,11 +16,11 @@ export const selfInfo: SelfInfo = {
     nick: '',
     online: true
 }
-export const groups: Group[] = []
-export const friends: Friend[] = []
-export const msgHistory: Record<string, RawMessage> = {} // msgId: RawMessage
-export const groupNotifies: Map<string, GroupNotify> = new Map<string, GroupNotify>()
-export const friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>()
+export let groups: Group[] = []
+export let friends: Friend[] = []
+export let msgHistory: Record<string, RawMessage> = {} // msgId: RawMessage
+export let groupNotifies: Map<string, GroupNotify> = new Map<string, GroupNotify>()
+export let friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>()
 export const llonebotError: LLOneBotError = {
     ffmpegError: '',
     otherError: ''
@@ -47,20 +47,20 @@ export function getHistoryMsgByShortId(shortId: number | string) {
 }
 
 export async function getFriend(qq: string): Promise<Friend | undefined> {
-    const friend = friends.find(friend => friend.uin === qq)
-    // if (!friend){
-    //     friends = (await NTQQApi.getFriends(true))
-    //     friend = friends.find(friend => friend.uin === qq)
-    // }
+    let friend = friends.find(friend => friend.uin === qq)
+    if (!friend){
+        friends = (await NTQQApi.getFriends(true))
+        friend = friends.find(friend => friend.uin === qq)
+    }
     return friend
 }
 
 export async function getGroup(qq: string): Promise<Group | undefined> {
-    const group = groups.find(group => group.groupCode === qq)
-    // if (!group){
-    //     groups = await NTQQApi.getGroups(true);
-    //     group = groups.find(group => group.groupCode === qq)
-    // }
+    let group = groups.find(group => group.groupCode === qq)
+    if (!group){
+        groups = await NTQQApi.getGroups(true);
+        group = groups.find(group => group.groupCode === qq)
+    }
     return group
 }
 
@@ -86,6 +86,13 @@ export async function getGroupMember(groupQQ: string | number, memberQQ: string 
             member = group.members?.find(filterFunc)
         }
         return member
+    }
+}
+
+export async function refreshGroupMembers(groupQQ: string) {
+    const group = groups.find(group => group.groupCode === groupQQ)
+    if (group) {
+        group.members = await NTQQApi.getGroupMembers(groupQQ)
     }
 }
 
