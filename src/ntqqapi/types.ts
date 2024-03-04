@@ -107,6 +107,10 @@ export interface SendPttElement {
     }
 }
 
+export enum PicType {
+    gif = 2000,
+    jpg = 1000
+}
 export interface SendPicElement {
     elementType: ElementType.PIC,
     elementId: "",
@@ -118,7 +122,7 @@ export interface SendPicElement {
         fileName: string,
         sourcePath: string,
         original: boolean,
-        picType: number,
+        picType: PicType,
         picSubType: number,
         fileUuid: string,
         fileSubId: string,
