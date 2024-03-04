@@ -1,365 +1,110 @@
-/// <reference path="./global.d.ts" />
+/// <reference path="../global.d.ts" />
+import {
+    SettingButton,
+    SettingItem,
+    SettingList,
+    SettingSelect,
+    SettingSwitch
+} from './components';
+import StyleRaw from './style.css?raw';
 
 // 打开设置界面时触发
 
-async function onSettingWindowCreated (view: Element) {
-  window.llonebot.log('setting window created')
-  const isEmpty = (value: any) => value === undefined || value === null || value === ''
-  const config = await window.llonebot.getConfig()
-  const httpClass = 'http'
-  const httpPostClass = 'http-post'
-  const wsClass = 'ws'
-  const reverseWSClass = 'reverse-ws'
-  const llonebotError = await window.llonebot.getError()
-  window.llonebot.log('获取error' + JSON.stringify(llonebotError))
+async function onSettingWindowCreated(view: Element) {
+    window.llonebot.log("setting window created");
+    const isEmpty = (value: any) => value === undefined || value === null || value === '';
+    let config = await window.llonebot.getConfig()
 
-  function createHttpHostEleStr (host: string) {
-    const eleStr = `
-            <setting-item data-direction="row" class="hostItem vertical-list-item ${httpPostClass}">
-                <h2>HTTP事件上报地址(http)</h2>
-                <input class="httpHost input-text" type="text" value="${host}" 
-                style="width:60%;padding: 5px"
-                placeholder="如:http://127.0.0.1:8080/onebot/v11/http"/>
-            </setting-item>
-            `
-    return eleStr
-  }
+    const parser = new DOMParser();
+    const doc = parser.parseFromString([
+        '<div>',
+        `<style>${StyleRaw}</style>`,
+        SettingList([
+            SettingItem('启用 HTTP 服务', null,
+                SettingSwitch('ob11.enableHttp', config.ob11.enableHttp, { 'control-display-id': 'config-ob11-httpPort' }),
+            ),
+            SettingItem('HTTP 服务监听端口', null,
+                '<div class="q-input"><input class="q-input__inner" /></div>',
+                'config-ob11-httpPort', config.ob11.enableHttp
+            ),
+            SettingItem('启用 HTTP 事件上报', null,
+                SettingSwitch('ob11.enableHttpPost', config.ob11.enableHttpPost, { 'control-display-id': 'config-ob11-httpPost' }),
+            ),
+            SettingItem('HTTP 事件上报地址', null,
+                '<div></div>',
+                'config-ob11-httpPost', config.ob11.enableHttpPost
+            ),
+            SettingItem('启用正向 WebSocket 服务', null,
+                SettingSwitch('ob11.enableWs', config.ob11.enableWs, { 'config-display-id': 'config-ob11-wsPort' }),
+            ),
+            SettingItem('正向 WebSocket 服务监听端口', null,
+                '<div class="q-input"><input class="q-input__inner" /></div>',
+                'config-ob11-wsPort', config.ob11.enableWs
+            ),
+            SettingItem('启用反向 WebSocket 服务', null,
+                SettingSwitch('ob11.enableWsReverse', config.ob11.enableWsReverse, { 'config-display-id': 'config-ob11-wsHosts' }),
+            ),
+            SettingItem('反向 WebSocket 监听地址', null,
+                '<div></div>',
+                'config-ob11-wsHosts', config.ob11.enableWsReverse
+            ),
+            SettingItem(
+                'ffmpeg 路径', `${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}`,
+                SettingButton('选择', 'config-ffmpeg-select'),
+                'config-ffmpeg-path',
+            ),
+            SettingItem(
+                '', null,
+                SettingButton('保存', 'config-ob11-save', 'primary'),
+            )
+        ]),
+        SettingList([
+            SettingItem(
+                '消息上报格式类型',
+                '如客户端无特殊需求推荐保持默认设置，两者的详细差异可参考 <a href="javascript:LiteLoader.api.openExternal(\'https://github.com/botuniverse/onebot-11/tree/master/message#readme\');">OneBot v11 文档</a>',
+                SettingSelect([
+                    { text: '消息段', value: 'array' },
+                    { text: 'CQ码', value: 'string' },
+                ], 'ob11.messagePostFormat', config.ob11.messagePostFormat),
+            ),
+            SettingItem(
+                '使用 Base64 编码获取文件',
+                '开启后，调用 /get_image、/get_record 时，获取不到 url 时添加一个 Base64 字段',
+                SettingSwitch('enableLocalFile2Url', config.enableLocalFile2Url),
+            ),
+            SettingItem(
+                '调试模式',
+                '开启后上报信息会添加 raw 字段以附带原始信息',
+                SettingSwitch('debug', config.debug),
+            ),
+            SettingItem(
+                '上报 Bot 自身发送的消息',
+                '慎用，可能会导致自己跟自己聊个不停',
+                SettingSwitch('reportSelfMessage', config.reportSelfMessage),
+            ),
+            SettingItem(
+                '写入日志',
+                `日志文件目录：${window.LiteLoader.plugins['LLOneBot'].path.data}`,
+                SettingButton('打开', 'config-open-log-path'),
+            ),
+            SettingItem(
+                '自动删除收到的文件',
+                '在收到文件后的指定时间内删除该文件',
+                SettingSwitch('autoDeleteFile', config.autoDeleteFile, { 'config-display-id': 'config-auto-delete-file-second' }),
+            ),
+            SettingItem(
+                '自动删除文件时间',
+                '单位为秒',
+                '<div class="q-input"><input class="q-input__inner" /></div>',
+                'config-auto-delete-file-second', config.autoDeleteFile
+            ),
+        ]),
+        '</div>',
+    ].join(''), "text/html");
 
-  function createWsHostEleStr (host: string) {
-    const eleStr = `
-            <setting-item data-direction="row" class="hostItem vertical-list-item ${reverseWSClass}">
-                <h2>反向websocket地址:</h2>
-                <input class="wsHost input-text" type="text" value="${host}" 
-                style="width:60%;padding: 5px"
-                placeholder="如: ws://127.0.0.1:5410/onebot"/>
-            </setting-item>
-            `
-    return eleStr
-  }
-
-  let httpHostsEleStr = ''
-  for (const host of config.ob11.httpHosts) {
-    httpHostsEleStr += createHttpHostEleStr(host)
-  }
-
-  let wsHostsEleStr = ''
-  for (const host of config.ob11.wsHosts) {
-    wsHostsEleStr += createWsHostEleStr(host)
-  }
-
-  const html = `
-    <div class="config_view llonebot">
-        <setting-section>
-            <setting-panel id="llonebotError" style="display:${llonebotError.ffmpegError || llonebotError.otherError ? '' : 'none'}">
-                <setting-item id="ffmpegError" data-direction="row" 
-                    style="diplay:${llonebotError.ffmpegError ? '' : 'none'}"
-                    class="hostItem vertical-list-item">
-                    <setting-text data-type="secondary" class="err-content">${llonebotError.ffmpegError}</setting-text>
-                </setting-item>
-                <setting-item id="otherError" data-direction="row" 
-                    style="diplay:${llonebotError.otherError ? '' : 'none'}"
-                    class="hostItem vertical-list-item">
-                    <setting-text data-type="secondary" class="err-content">${llonebotError.otherError}</setting-text>
-                </setting-item>
-            </setting-panel>
-            <setting-panel>
-                <setting-list class="wrap">
-                    <setting-item data-direction="row" class="hostItem vertical-list-item">
-                        <div>
-                            <div>启用HTTP服务</div>
-                        </div>
-                        <setting-switch id="http" ${config.ob11.enableHttp ? 'is-active' : ''}></setting-switch>
-                    </setting-item>
-                    <setting-item class="vertical-list-item ${httpClass}" data-direction="row" style="display: ${config.ob11.enableHttp ? '' : 'none'}">
-                        <setting-text>HTTP监听端口</setting-text>
-                        <input id="httpPort" type="number" value="${config.ob11.httpPort}"/>
-                    </setting-item>
-                    <setting-item data-direction="row" class="hostItem vertical-list-item">
-                        <div>
-                            <div>启用HTTP事件上报</div>
-                        </div>
-                        <setting-switch id="httpPost" ${config.ob11.enableHttpPost ? 'is-active' : ''}></setting-switch>
-                    </setting-item>
-                    <div class="${httpPostClass}" style="display: ${config.ob11.enableHttpPost ? '' : 'none'}">
-                        <div >
-                            <button id="addHttpHost" class="q-button">添加HTTP POST上报地址</button>
-                        </div>
-                        <div id="httpHostItems">
-                            ${httpHostsEleStr}
-                        </div>
-                    </div>
-                    <setting-item data-direction="row" class="hostItem vertical-list-item">
-                        <div>
-                            <div>启用正向Websocket协议</div>
-                        </div>
-                        <setting-switch id="websocket" ${config.ob11.enableWs ? 'is-active' : ''}></setting-switch>
-                    </setting-item>
-                    <setting-item class="vertical-list-item ${wsClass}" data-direction="row" style="display: ${config.ob11.enableWs ? '' : 'none'}">
-                        <setting-text>正向Websocket监听端口</setting-text>
-                        <input id="wsPort" type="number" value="${config.ob11.wsPort}"/>
-                    </setting-item>
-                    
-                    <setting-item data-direction="row" class="hostItem vertical-list-item">
-                        <div>
-                            <div>启用反向Websocket协议</div>
-                        </div>
-                        <setting-switch id="websocketReverse" ${config.ob11.enableWsReverse ? 'is-active' : ''}></setting-switch>
-                    </setting-item>
-                    <div class="${reverseWSClass}" style="display: ${config.ob11.enableWsReverse ? '' : 'none'}">
-                        <div>
-                            <button id="addWsHost" class="q-button">添加反向Websocket地址</button>
-                        </div>
-                        <div id="wsHostItems">
-                            ${wsHostsEleStr}
-                        </div>
-                    </div>
-                    <setting-item class="vertical-list-item" data-direction="row">
-                        <setting-text>Access Token</setting-text>
-                        <input id="token" type="text" placeholder="可为空" value="${config.token}"/>
-                    </setting-item>
-                    <setting-item data-direction="row" class="vertical-list-item">
-                        <setting-item data-direction="row" class="vertical-list-item" style="width: 80%">
-                            <setting-text>ffmpeg路径</setting-text>
-                            <input id="ffmpegPath" class="input-text" type="text" 
-                                style="width:80%;padding: 5px"
-                                value="${config.ffmpeg || ''}"/>
-                        </setting-item>
-                        <button id="selectFFMPEG" class="q-button q-button--small q-button--secondary">选择ffmpeg</button>
-                    </setting-item>
-                    <button id="save" class="q-button">保存</button>
-                </setting-list>
-            </setting-panel>
-            <setting-panel>
-
-                <setting-item data-direction="row" class="vertical-list-item">
-                    <div>
-                        <setting-text>消息上报数据类型</setting-text>
-                        <setting-text data-type="secondary">如客户端无特殊需求推荐保持默认设置，两者的详细差异可参考 <a href="javascript:LiteLoader.api.openExternal('https://github.com/botuniverse/onebot-11/tree/master/message#readme');">OneBot v11 文档</a></setting-text>
-                    </div>
-                    <setting-select id="messagePostFormat">
-                        <setting-option data-value="array" ${config.ob11.messagePostFormat !== 'string' ? 'is-selected' : ''}>消息段</setting-option>
-                        <setting-option data-value="string" ${config.ob11.messagePostFormat === 'string' ? 'is-selected' : ''}>CQ码</setting-option>
-                    </setting-select>
-                </setting-item>
-                <setting-item data-direction="row" class="vertical-list-item">
-                    <div>
-                        <div>获取文件使用base64编码</div>
-                        <div class="tips">开启后，调用/get_image、/get_record时，获取不到url时添加一个base64字段</div>
-                    </div>
-                    <setting-switch id="switchFileUrl" ${config.enableLocalFile2Url ? 'is-active' : ''}></setting-switch>
-                </setting-item>
-                <setting-item data-direction="row" class="vertical-list-item">
-                    <div>
-                        <div>debug模式</div>
-                        <div class="tips">开启后上报消息添加raw字段附带原始消息</div>
-                    </div>
-                    <setting-switch id="debug" ${config.debug ? 'is-active' : ''}></setting-switch>
-                </setting-item>
-                <setting-item data-direction="row" class="vertical-list-item">
-                    <div>
-                        <div>上报自身发送消息</div>
-                        <div class="tips"></div>
-                    </div>
-                    <setting-switch id="reportSelfMessage" ${config.reportSelfMessage ? 'is-active' : ''}></setting-switch>
-                </setting-item>
-                <setting-item data-direction="row" class="vertical-list-item">
-                    <div>
-                        <div>日志</div>
-                        <div class="tips">目录:${window.LiteLoader.plugins.LLOneBot.path.data}</div>
-                    </div>
-                    <setting-switch id="log" ${config.log ? 'is-active' : ''}></setting-switch>
-                </setting-item>
-                <setting-item data-direction="row" class="vertical-list-item">
-                    <div>
-                        <div>自动删除收到的文件</div>
-                        <div class="tips">
-                            收到文件
-                            <input id="autoDeleteMin" 
-                                min="1" style="width: 50px"
-                                value="${config.autoDeleteFileSecond || 60}" type="number"/>秒后自动删除
-                        </div>
-                    </div>
-                    <setting-switch id="autoDeleteFile" ${config.autoDeleteFile ? 'is-active' : ''}></setting-switch>
-                </setting-item>
-            </setting-panel>
-        </setting-section>
-    </div>
-    <style>
-        setting-panel {
-            padding: 10px;
-        }
-        .tips {
-            font-size: 0.75rem;
-        }
-        @media (prefers-color-scheme: dark){
-            .llonebot input {
-                color: white;
-            }
-        }
-    </style>
-    `
-
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(html, 'text/html')
-
-  const getError = async () => {
-    const llonebotError = await window.llonebot.getError()
-    console.log(llonebotError)
-    const llonebotErrorEle = document.getElementById('llonebotError')
-    const ffmpegErrorEle = document.getElementById('ffmpegError')
-    const otherErrorEle = document.getElementById('otherError')
-    if (llonebotError.otherError || llonebotError.ffmpegError) {
-      llonebotErrorEle.style.display = ''
-    } else {
-      llonebotErrorEle.style.display = 'none'
-    }
-    if (llonebotError.ffmpegError) {
-      const errContentEle = doc.querySelector('#ffmpegError .err-content')
-      // const errContent = ffmpegErrorEle.getElementsByClassName("err-content")[0];
-      errContentEle.textContent = llonebotError.ffmpegError;
-      (ffmpegErrorEle).style.display = ''
-    } else {
-      ffmpegErrorEle.style.display = ''
-    }
-    if (llonebotError.otherError) {
-      const errContentEle = doc.querySelector('#otherError .err-content')
-      errContentEle.textContent = llonebotError.otherError
-      otherErrorEle.style.display = ''
-    } else {
-      otherErrorEle.style.display = 'none'
-    }
-  }
-
-  function addHostEle (type: string, initValue: string = '') {
-    let addressEle, hostItemsEle
-    if (type === 'ws') {
-      const addressDoc = parser.parseFromString(createWsHostEleStr(initValue), 'text/html')
-      addressEle = addressDoc.querySelector('setting-item')
-      hostItemsEle = document.getElementById('wsHostItems')
-    } else {
-      const addressDoc = parser.parseFromString(createHttpHostEleStr(initValue), 'text/html')
-      addressEle = addressDoc.querySelector('setting-item')
-      hostItemsEle = document.getElementById('httpHostItems')
-    }
-
-    hostItemsEle.appendChild(addressEle)
-  }
-
-  doc.getElementById('addHttpHost').addEventListener('click', () => {
-    addHostEle('http')
-  })
-  doc.getElementById('addWsHost').addEventListener('click', () => {
-    addHostEle('ws')
-  })
-  doc.getElementById('messagePostFormat').addEventListener('selected', (e: CustomEvent) => {
-    config.ob11.messagePostFormat = e.detail && !isEmpty(e.detail.value) ? e.detail.value : 'array'
-    window.llonebot.setConfig(config)
-  })
-
-  function switchClick (eleId: string, configKey: string, _config = null) {
-    if (!_config) {
-      _config = config
-    }
-    doc.getElementById(eleId)?.addEventListener('click', (e) => {
-      const switchEle = e.target as HTMLInputElement
-      if (_config[configKey]) {
-        _config[configKey] = false
-        switchEle.removeAttribute('is-active')
-      } else {
-        _config[configKey] = true
-        switchEle.setAttribute('is-active', '')
-      }
-      // 妈蛋，手动操作DOM越写越麻烦，要不用vue算了
-      const keyClassMap = {
-        enableHttp: httpClass,
-        enableHttpPost: httpPostClass,
-        enableWs: wsClass,
-        enableWsReverse: reverseWSClass
-      }
-      for (const e of document.getElementsByClassName(keyClassMap[configKey])) {
-        (e as HTMLElement).style.display = _config[configKey] ? '' : 'none'
-      }
-
-      window.llonebot.setConfig(config)
-    })
-  }
-
-  switchClick('http', 'enableHttp', config.ob11)
-  switchClick('httpPost', 'enableHttpPost', config.ob11)
-  switchClick('websocket', 'enableWs', config.ob11)
-  switchClick('websocketReverse', 'enableWsReverse', config.ob11)
-  switchClick('debug', 'debug')
-  switchClick('switchFileUrl', 'enableLocalFile2Url')
-  switchClick('reportSelfMessage', 'reportSelfMessage')
-  switchClick('log', 'log')
-  switchClick('autoDeleteFile', 'autoDeleteFile')
-
-  doc.getElementById('save')?.addEventListener('click',
-    () => {
-      const httpPortEle: HTMLInputElement = document.getElementById('httpPort') as HTMLInputElement
-      const httpHostEles: HTMLCollectionOf<HTMLInputElement> = document.getElementsByClassName('httpHost') as HTMLCollectionOf<HTMLInputElement>
-      const wsPortEle: HTMLInputElement = document.getElementById('wsPort') as HTMLInputElement
-      const wsHostEles: HTMLCollectionOf<HTMLInputElement> = document.getElementsByClassName('wsHost') as HTMLCollectionOf<HTMLInputElement>
-      const tokenEle = document.getElementById('token') as HTMLInputElement
-      const ffmpegPathEle = document.getElementById('ffmpegPath') as HTMLInputElement
-
-      // 获取端口和host
-      const httpPort = httpPortEle.value
-      const httpHosts: string[] = []
-
-      for (const hostEle of httpHostEles) {
-        const value = hostEle.value.trim()
-        value && httpHosts.push(value)
-      }
-
-      const wsPort = wsPortEle.value
-      const token = tokenEle.value.trim()
-      const wsHosts: string[] = []
-
-      for (const hostEle of wsHostEles) {
-        const value = hostEle.value.trim()
-        value && wsHosts.push(value)
-      }
-
-      config.ob11.httpPort = parseInt(httpPort)
-      config.ob11.httpHosts = httpHosts
-      config.ob11.wsPort = parseInt(wsPort)
-      config.ob11.wsHosts = wsHosts
-      config.token = token
-      config.ffmpeg = ffmpegPathEle.value.trim()
-      window.llonebot.setConfig(config)
-      setTimeout(() => {
-        getError().then()
-      }, 1000)
-      alert('保存成功')
-    })
-
-  doc.getElementById('selectFFMPEG')?.addEventListener('click', () => {
-    window.llonebot.selectFile().then(selectPath => {
-      if (selectPath) {
-        config.ffmpeg = (document.getElementById('ffmpegPath') as HTMLInputElement).value = selectPath
-        // window.llonebot.setConfig(config);
-      }
-    })
-  })
-
-  // 自动保存删除文件延时时间
-  const autoDeleteMinEle = doc.getElementById('autoDeleteMin') as HTMLInputElement
-  let st = null
-  autoDeleteMinEle.addEventListener('change', () => {
-    if (st) {
-      clearTimeout(st)
-    }
-    st = setTimeout(() => {
-      console.log('auto delete file minute change')
-      config.autoDeleteFileSecond = parseInt(autoDeleteMinEle.value) || 1
-      window.llonebot.setConfig(config)
-    }, 1000)
-  })
-
-  doc.body.childNodes.forEach(node => {
-    view.appendChild(node)
-  })
+    doc.body.childNodes.forEach(node => {
+        view.appendChild(node);
+    });
 }
 
 function init () {
