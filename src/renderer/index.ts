@@ -211,6 +211,10 @@ async function onSettingWindowCreated(view: Element) {
             })
     });
 
+    doc.querySelector('#config-open-log-path').addEventListener('click', () => {
+        window.LiteLoader.api.openPath(window.LiteLoader.plugins['LLOneBot'].path.data);
+    })
+
     // 开关
     doc.querySelectorAll('setting-switch[data-config-key]').forEach((dom: HTMLElement) => {
         dom.addEventListener('click', () => {
