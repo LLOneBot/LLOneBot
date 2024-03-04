@@ -51,7 +51,7 @@ async function onSettingWindowCreated(view: Element) {
                     <div>
                         <setting-text>HTTP 事件上报地址</setting-text>
                     </div>
-                    <setting-button data-type="primary">添加</setting-button>
+                    <setting-button id="config-ob11-httpHosts-add" data-type="primary">添加</setting-button>
                 </setting-item>
                 <div id="config-ob11-httpHosts-list"></div>
             </div>`,
@@ -70,7 +70,7 @@ async function onSettingWindowCreated(view: Element) {
                     <div>
                         <setting-text>反向 WebSocket 监听地址</setting-text>
                     </div>
-                    <setting-button data-type="primary">添加</setting-button>
+                    <setting-button id="config-ob11-wsHosts-add" data-type="primary">添加</setting-button>
                 </setting-item>
                 <div id="config-ob11-wsHosts-list"></div>
             </div>`,
@@ -141,45 +141,53 @@ async function onSettingWindowCreated(view: Element) {
     ].join(''), "text/html");
 
     // 生成反向地址列表
+    const buildHostListItem = (type: string, host: string, index: number) => {
+        const dom = {
+            container: document.createElement('setting-item'),
+            input: document.createElement('input'),
+            inputContainer: document.createElement('div'),
+            deleteBtn: document.createElement('setting-button'),
+        };
+
+        dom.container.classList.add('setting-host-list-item');
+        dom.container.dataset.direction = 'row';
+
+        dom.input.classList.add('q-input__inner');
+        dom.input.type = 'url';
+        dom.input.value = host;
+        dom.input.addEventListener('input', () => {
+            ob11Config[type][index] = dom.input.value;
+        });
+
+        dom.inputContainer.classList.add('q-input');
+        dom.inputContainer.appendChild(dom.input);
+
+        dom.deleteBtn.innerHTML = '删除';
+        dom.deleteBtn.dataset.type = 'secondary';
+        dom.deleteBtn.addEventListener('click', () => {
+            ob11Config[type].splice(index, 1);
+            console.log(ob11Config);
+            initReverseHost(type);
+        });
+
+        dom.container.appendChild(dom.inputContainer);
+        dom.container.appendChild(dom.deleteBtn);
+
+        return dom.container;
+    };
     const buildHostList = (hosts: string[], type: string) => {
         const result: HTMLElement[] = [];
     
         hosts.forEach((host, index) => {
-            const dom = {
-                container: document.createElement('setting-item'),
-                input: document.createElement('input'),
-                inputContainer: document.createElement('div'),
-                deleteBtn: document.createElement('setting-button'),
-            };
-    
-            dom.container.classList.add('setting-host-list-item');
-            dom.container.dataset.direction = 'row';
-    
-            dom.input.classList.add('q-input__inner');
-            dom.input.type = 'url';
-            dom.input.value = host;
-            dom.input.addEventListener('input', () => {
-                ob11Config[type][index] = dom.input.value;
-            });
-    
-            dom.inputContainer.classList.add('q-input');
-            dom.inputContainer.appendChild(dom.input);
-    
-            dom.deleteBtn.innerHTML = '删除';
-            dom.deleteBtn.dataset.type = 'secondary';
-            dom.deleteBtn.addEventListener('click', () => {
-                ob11Config[type].splice(index, 1);
-                console.log(ob11Config);
-                initReverseHost(type);
-            });
-    
-            dom.container.appendChild(dom.inputContainer);
-            dom.container.appendChild(dom.deleteBtn);
-    
-            result.push(dom.container);
+            result.push(buildHostListItem(type, host, index));
         });
     
         return result;
+    };
+    const addReverseHost = (type: string, doc: Document = document) => {
+        const hostContainerDom = doc.body.querySelector(`#config-ob11-${type}-list`);
+        hostContainerDom.appendChild(buildHostListItem(type, '', ob11Config[type].length));
+        ob11Config[type].push('');
     };
     const initReverseHost = (type: string, doc: Document = document) => {
         const hostContainerDom = doc.body.querySelector(`#config-ob11-${type}-list`);
@@ -190,6 +198,9 @@ async function onSettingWindowCreated(view: Element) {
     };
     initReverseHost('httpHosts', doc);
     initReverseHost('wsHosts', doc);
+
+    doc.querySelector('#config-ob11-httpHosts-add').addEventListener('click', () => addReverseHost('httpHosts'));
+    doc.querySelector('#config-ob11-wsHosts-add').addEventListener('click', () => addReverseHost('wsHosts'));
 
     // 开关
     doc.querySelectorAll('setting-switch[data-config-key]').forEach((dom: HTMLElement) => {
