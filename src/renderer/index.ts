@@ -13,7 +13,17 @@ import StyleRaw from './style.css?raw';
 async function onSettingWindowCreated(view: Element) {
     window.llonebot.log("setting window created");
     const isEmpty = (value: any) => value === undefined || value === null || value === '';
-    let config = await window.llonebot.getConfig()
+    let config = await window.llonebot.getConfig();
+    const setConfig = (key: string, value: any) => {
+        const configKey = key.split('.');
+
+        if (configKey.length === 2) config[configKey[0]][configKey[1]] = value;
+        else config[key] = value;
+
+        if (key.indexOf('ob11') === -1) window.llonebot.setConfig(config);
+
+        console.log(config);
+    };
 
     const parser = new DOMParser();
     const doc = parser.parseFromString([
@@ -111,6 +121,8 @@ async function onSettingWindowCreated(view: Element) {
     doc.querySelectorAll('setting-switch[data-config-key]').forEach((dom: HTMLElement) => {
         dom.addEventListener('click', () => {
             const active = dom.getAttribute('is-active') === null;
+
+            setConfig(dom.dataset.configKey, active);
 
             if (active) dom.setAttribute('is-active', '');
             else dom.removeAttribute('is-active');
