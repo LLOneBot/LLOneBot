@@ -52,11 +52,11 @@ let config = {
             emptyOutDir: true,
             lib: {
                 formats: ["es"],
-                entry: { "renderer": "src/renderer.ts" },
+                entry: { "renderer": "src/renderer/index.ts" },
             },
             rollupOptions: {
                 // external: externalAll,
-                input: "src/renderer.ts",
+                input: "src/renderer/index.ts",
             }
         },
         resolve:{
