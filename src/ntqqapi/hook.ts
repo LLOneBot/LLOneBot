@@ -2,7 +2,7 @@ import {type BrowserWindow} from 'electron'
 import {getConfigUtil, log, sleep} from '../common/utils'
 import {NTQQApi, type NTQQApiClass, sendMessagePool} from './ntcall'
 import {type Group, type RawMessage, type User} from './types'
-import {addHistoryMsg, friends, groups, msgHistory, selfInfo} from '../common/data'
+import {addHistoryMsg, friends, groups, msgHistory, selfInfo, tempGroupCodeMap} from '../common/data'
 import {OB11GroupDecreaseEvent} from '../onebot11/event/notice/OB11GroupDecreaseEvent'
 import {OB11GroupIncreaseEvent} from '../onebot11/event/notice/OB11GroupIncreaseEvent'
 import {v4 as uuidv4} from 'uuid'
@@ -245,6 +245,10 @@ registerReceiveHook<{ msgList: RawMessage[] }>(ReceiveCmd.NEW_MSG, (payload) => 
                 const pathList = [picPath, pttPath]
                 if (msgElement.picElement) {
                     pathList.push(...Object.values(msgElement.picElement.thumbPath))
+                }
+                const aioOpGrayTipElement = msgElement.grayTipElement?.aioOpGrayTipElement
+                if (aioOpGrayTipElement){
+                    tempGroupCodeMap[aioOpGrayTipElement.peerUid] = aioOpGrayTipElement.fromGrpCodeOfTmpChat;
                 }
                 // log("需要清理的文件", pathList);
                 for (const path of pathList) {

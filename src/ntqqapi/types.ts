@@ -95,7 +95,7 @@ export interface SendPttElement {
         filePath: string,
         md5HexStr: string,
         fileSize: number,
-        duration: number,
+        duration: number,  // 单位是秒
         formatType: number,
         voiceType: number,
         voiceChangeType: number,
@@ -234,6 +234,7 @@ export interface GrayTipElement {
         operatorMemRemark?: string;
         wording: string;  // 自定义的撤回提示语
     }
+    aioOpGrayTipElement: TipAioOpGrayTipElement
 }
 
 export interface FaceElement {
@@ -265,6 +266,13 @@ export interface VideoElement {
     "import_rich_media_context": null,
     "sourceVideoCodecFormat": 0
 }
+
+export interface TipAioOpGrayTipElement{
+    operateType: number,
+    peerUid: string,
+    fromGrpCodeOfTmpChat: string,
+}
+
 
 export interface RawMessage {
     msgId: string;

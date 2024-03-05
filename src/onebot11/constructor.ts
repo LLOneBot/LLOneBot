@@ -9,7 +9,7 @@ import {
     OB11UserSex
 } from "./types";
 import {AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User} from '../ntqqapi/types';
-import {fileCache, getFriend, getGroupMember, getHistoryMsgBySeq, selfInfo} from '../common/data';
+import {fileCache, getFriend, getGroupMember, getHistoryMsgBySeq, selfInfo, tempGroupCodeMap} from '../common/data';
 import {getConfigUtil, log} from "../common/utils";
 import {NTQQApi} from "../ntqqapi/ntcall";
 import {EventType} from "./event/OB11BaseEvent";
@@ -56,6 +56,10 @@ export class OB11Constructor {
             }
         } else if (msg.chatType == ChatType.temp) {
             resMsg.sub_type = "group"
+            const tempGroupCode = tempGroupCodeMap[msg.peerUin]
+            if (tempGroupCode) {
+                resMsg.group_id = parseInt(tempGroupCode)
+            }
         }
 
         for (let element of msg.elements) {
