@@ -25,7 +25,9 @@ async function onSettingWindowCreated(view: Element) {
             if (configKey.length === 2) config[configKey[0]][configKey[1]] = value;
             else config[key] = value;
 
-            window.llonebot.setConfig(config);
+            if (!['heartInterval', 'token', 'ffmpeg'].includes(key)){
+                window.llonebot.setConfig(config);
+            }
         }
     };
 
