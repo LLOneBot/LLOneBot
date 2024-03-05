@@ -1,4 +1,4 @@
-import {CONFIG_DIR, isGIF} from "../common/utils";
+import {CONFIG_DIR, isGIF, log} from "../common/utils";
 import {v4 as uuidv4} from "uuid";
 import * as path from 'node:path';
 import {fileCache} from "../common/data";
@@ -71,15 +71,20 @@ export async function uri2local(uri: string, fileName: string = null) {
     //     res.errMsg = `不支持的file协议,` + url.protocol
     //     return res
     // }
-    if (isGIF(filePath) && !res.isLocal) {
-        await fs.rename(filePath, filePath + ".gif");
-        filePath += ".gif";
-    }
+    // if (isGIF(filePath) && !res.isLocal) {
+    //     await fs.rename(filePath, filePath + ".gif");
+    //     filePath += ".gif";
+    // }
     if (!res.isLocal) {
+        try{
         const {ext} = await fileType.fileTypeFromFile(filePath)
         if (ext) {
+            log("获取文件类型", ext, filePath)
             await fs.rename(filePath, filePath + `.${ext}`)
             filePath += `.${ext}`
+        }
+        }catch (e){
+            // log("获取文件类型失败", filePath,e.stack)
         }
     }
     res.success = true

@@ -109,3 +109,5 @@ export function getUidByUin(uin: string) {
         }
     }
 }
+
+export let tempGroupCodeMap: Record<string, string> = {}  // peerUid => 群号

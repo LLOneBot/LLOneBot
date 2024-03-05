@@ -233,7 +233,17 @@ export async function encodeSilk(filePath: string) {
             };
         } else {
             const pcm = fs.readFileSync(filePath);
-            const duration = getDuration(pcm);
+            let duration = 0;
+            try{
+                duration = getDuration(pcm);
+            }catch (e) {
+                log("获取语音文件时长失败", filePath, e.stack)
+                duration = fs.statSync(filePath).size / 1024 / 3  // 每3kb大约1s
+                duration = Math.floor(duration)
+                duration = Math.max(1, duration)
+                log("使用文件大小估算时长", duration)
+            }
+
             return {
                 converted: false,
                 path: filePath,
