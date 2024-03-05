@@ -74,7 +74,7 @@ async function onSettingWindowCreated(view: Element) {
                 </setting-item>
                 <div id="config-ob11-wsHosts-list"></div>
             </div>`,
-            SettingItem('反向 WebSocket 服务心跳间隔',
+            SettingItem(' WebSocket 服务心跳间隔',
                 '控制每隔多久发送一个心跳包，单位为毫秒',
                 `<div class="q-input"><input class="q-input__inner" data-config-key="heartInterval" type="number" min="1000" value="${config.heartInterval}" placeholder="${config.heartInterval}" /></div>`,
             ),

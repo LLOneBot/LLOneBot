@@ -7,9 +7,10 @@ import {ActionName} from "../../action/types";
 import {OB11Response} from "../../action/utils";
 import BaseAction from "../../action/BaseAction";
 import {actionMap} from "../../action";
-import {registerWsEventSender, unregisterWsEventSender} from "../postOB11Event";
+import {postWsEvent, registerWsEventSender, unregisterWsEventSender} from "../postOB11Event";
 import {wsReply} from "./reply";
 import {WebSocket as WebSocketClass} from "ws";
+import {OB11HeartbeatEvent} from "../../event/meta/OB11HeartbeatEvent";
 
 export let rwsList: ReverseWebsocket[] = [];
 
@@ -76,7 +77,7 @@ export class ReverseWebsocket {
     }
 
     private connect() {
-        const {token} = getConfigUtil().getConfig()
+        const {token, heartInterval} = getConfigUtil().getConfig()
         this.websocket = new WebSocketClass(this.url, {
             handshakeTimeout: 2000,
             perMessageDeflate: false,
@@ -101,7 +102,11 @@ export class ReverseWebsocket {
 
         this.websocket.on("error", log);
 
+        const wsClientInterval = setInterval(() => {
+            postWsEvent(new OB11HeartbeatEvent(selfInfo.online, true, heartInterval));
+        }, heartInterval);  // 心跳包
         this.websocket.on("close", () => {
+            clearInterval(wsClientInterval);
             log("The websocket connection: " + this.url + " closed, trying reconnecting...");
             this.onclose();
         });
