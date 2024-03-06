@@ -245,14 +245,15 @@ function onLoad() {
 
                 const notifies = notify.notifies.slice(0, payload.unreadCount)
                 // log("获取群通知详情完成", notifies, payload);
-                try {
-                    for (const notify of notifies) {
+
+                for (const notify of notifies) {
+                    try {
                         notify.time = Date.now();
                         const notifyTime = parseInt(notify.seq) / 1000
                         // log(`加群通知时间${notifyTime}`, `LLOneBot启动时间${startTime}`);
-                        if (notifyTime < startTime) {
-                            continue;
-                        }
+                        // if (notifyTime < startTime) {
+                        //     continue;
+                        // }
                         let existNotify = groupNotifies[notify.seq];
                         if (existNotify) {
                             if (Date.now() - existNotify.time < 3000) {
@@ -261,14 +262,14 @@ function onLoad() {
                         }
                         log("收到群通知", notify);
                         groupNotifies[notify.seq] = notify;
-                        const member1 = await getGroupMember(notify.group.groupCode, null, notify.user1.uid);
-                        refreshGroupMembers(notify.group.groupCode).then()
-                        let member2: GroupMember;
-                        if (notify.user2.uid) {
-                            member2 = await getGroupMember(notify.group.groupCode, null, notify.user2.uid);
-                        }
+                        // let member2: GroupMember;
+                        // if (notify.user2.uid) {
+                        //     member2 = await getGroupMember(notify.group.groupCode, null, notify.user2.uid);
+                        // }
                         if ([GroupNotifyTypes.ADMIN_SET, GroupNotifyTypes.ADMIN_UNSET].includes(notify.type)) {
+                            const member1 = await getGroupMember(notify.group.groupCode, null, notify.user1.uid);
                             log("有管理员变动通知");
+                            refreshGroupMembers(notify.group.groupCode).then()
                             let groupAdminNoticeEvent = new OB11GroupAdminNoticeEvent()
                             groupAdminNoticeEvent.group_id = parseInt(notify.group.groupCode);
                             log("开始获取变动的管理员")
@@ -282,6 +283,7 @@ function onLoad() {
                             }
                         } else if (notify.type == GroupNotifyTypes.MEMBER_EXIT) {
                             log("有成员退出通知");
+                            const member1 = await getGroupMember(notify.group.groupCode, null, notify.user1.uid);
                             let groupDecreaseEvent = new OB11GroupDecreaseEvent(parseInt(notify.group.groupCode), parseInt(member1.uin))
                             // postEvent(groupDecreaseEvent, true);
                         } else if ([GroupNotifyTypes.JOIN_REQUEST].includes(notify.type)) {
@@ -300,6 +302,7 @@ function onLoad() {
                             groupRequestEvent.flag = notify.seq;
                             postOB11Event(groupRequestEvent);
                         } else if (notify.type == GroupNotifyTypes.INVITE_ME) {
+                            log("收到邀请我加群通知")
                             let groupInviteEvent = new OB11GroupRequestEvent();
                             groupInviteEvent.group_id = parseInt(notify.group.groupCode);
                             let user_id = (await NTQQApi.getUserDetailInfo(notify.user2.uid))?.uin
@@ -308,12 +311,12 @@ function onLoad() {
                             groupInviteEvent.flag = notify.seq;
                             postOB11Event(groupInviteEvent);
                         }
+                    } catch (e) {
+                        log("解析群通知失败", e.stack.toString());
                     }
-                } catch (e) {
-                    log("解析群通知失败", e.stack);
                 }
-            }
-            else if (payload.doubt){
+
+            } else if (payload.doubt) {
                 // 可能有群管理员变动
             }
         })
