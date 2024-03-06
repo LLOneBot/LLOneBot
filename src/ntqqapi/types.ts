@@ -283,6 +283,30 @@ export interface TipAioOpGrayTipElement{
     fromGrpCodeOfTmpChat: string,
 }
 
+export interface TipGroupElement {
+    "type": 1,  // 1是表示有人加入群, 自己加入群也会收到这个
+    "role": 0,
+    "groupName": string,  // 暂时获取不到
+    "memberUid": string,
+    "memberNick": string,
+    "memberRemark": string,
+    "adminUid": string,  // 同意加群的管理员uid
+    "adminNick": string,
+    "adminRemark": string,
+    "createGroup": null,
+    "memberAdd": {
+        "showType": 1,
+        "otherAdd": null,
+        "otherAddByOtherQRCode": null,
+        "otherAddByYourQRCode": null,
+        "youAddByOtherQRCode": null,
+        "otherInviteOther": null,
+        "otherInviteYou": null,
+        "youInviteOther": null
+    },
+    "shutUp": null
+}
+
 
 export interface RawMessage {
     msgId: string;

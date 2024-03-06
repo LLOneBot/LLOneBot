@@ -92,7 +92,8 @@ wget -O fastboot.sh https://cdn.jsdelivr.net/gh/LLOneBot/llonebot-docker/fastboo
     {
         "type": "file",
         "data": {
-            "file": "file:///D:/1.txt"
+            "file": "file:///D:/1.txt",
+            "name": "自定义显示的文件名"  // 此字段不是必须的
         }
     }
     ```

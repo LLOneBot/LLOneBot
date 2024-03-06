@@ -282,9 +282,9 @@ function onLoad() {
                                 log("获取群通知的成员信息失败", notify, getGroup(notify.group.groupCode));
                             }
                         } else if (notify.type == GroupNotifyTypes.MEMBER_EXIT) {
-                            log("有成员退出通知");
-                            const member1 = await getGroupMember(notify.group.groupCode, null, notify.user1.uid);
-                            let groupDecreaseEvent = new OB11GroupDecreaseEvent(parseInt(notify.group.groupCode), parseInt(member1.uin))
+                            // log("有成员退出通知");
+                            // const member1 = await getGroupMember(notify.group.groupCode, null, notify.user1.uid);
+                            // let groupDecreaseEvent = new OB11GroupDecreaseEvent(parseInt(notify.group.groupCode), parseInt(member1.uin))
                             // postEvent(groupDecreaseEvent, true);
                         } else if ([GroupNotifyTypes.JOIN_REQUEST].includes(notify.type)) {
                             log("有加群请求");
