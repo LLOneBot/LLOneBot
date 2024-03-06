@@ -17,9 +17,10 @@ import {
     type User
 } from './types'
 import * as fs from 'node:fs'
-import {addHistoryMsg, friendRequests, groupNotifies, msgHistory, selfInfo} from '../common/data'
+import {friendRequests, groupNotifies, selfInfo} from '../common/data'
 import {v4 as uuidv4} from 'uuid'
 import path from 'path'
+import {dbUtil} from "../common/db";
 
 interface IPCReceiveEvent {
     eventName: string
@@ -57,6 +58,7 @@ export enum NTQQApiMethod {
     RECALL_MSG = 'nodeIKernelMsgService/recallMsg',
     SEND_MSG = 'nodeIKernelMsgService/sendMsg',
     DOWNLOAD_MEDIA = 'nodeIKernelMsgService/downloadRichMedia',
+    FORWARD_MSG = "nodeIKernelMsgService/forwardMsgWithComment",  // 逐条转发
     MULTI_FORWARD_MSG = 'nodeIKernelMsgService/multiForwardMsgWithComment', // 合并转发
     GET_GROUP_NOTICE = 'nodeIKernelGroupService/getSingleScreenNotifies',
     HANDLE_GROUP_REQUEST = 'nodeIKernelGroupService/operateSysNotify',
@@ -449,7 +451,14 @@ export class NTQQApi {
 
         let checkSendCompleteUsingTime = 0
         const checkSendComplete = async (): Promise<RawMessage> => {
-            if (sentMessage && msgHistory[sentMessage.msgId]?.sendStatus == 2) {
+            if (sentMessage) {
+                if (waitComplete) {
+                    if ((await dbUtil.getMsgByLongId(sentMessage.msgId)).sendStatus == 2) {
+                        return sentMessage
+                    } else {
+                        return await checkSendComplete()
+                    }
+                }
                 // log(`给${peerUid}发送消息成功`)
                 return sentMessage
             } else {
@@ -474,6 +483,24 @@ export class NTQQApi {
         return await checkSendComplete()
     }
 
+    static async forwardMsg(srcPeer: Peer, destPeer: Peer, msgIds: string[]) {
+        return await callNTQQApi<GeneralCallResult>({
+            methodName: NTQQApiMethod.FORWARD_MSG,
+            args:[
+                {
+                    msgIds: msgIds,
+                    srcContact: srcPeer,
+                    dstContacts: [
+                        destPeer
+                    ],
+                    commentElements: [],
+                    msgAttributeInfos: new Map()
+                },
+                null,
+            ]
+        })
+
+    }
     static async multiForwardMsg(srcPeer: Peer, destPeer: Peer, msgIds: string[]) {
         const msgInfos = msgIds.map(id => {
             return {msgId: id, senderShowName: selfInfo.nick}
@@ -495,7 +522,7 @@ export class NTQQApi {
                     reject('转发消息超时')
                 }
             }, 5000)
-            registerReceiveHook(ReceiveCmd.SELF_SEND_MSG, (payload: { msgRecord: RawMessage }) => {
+            registerReceiveHook(ReceiveCmd.SELF_SEND_MSG, async (payload: { msgRecord: RawMessage }) => {
                 const msg = payload.msgRecord
                 // 需要判断它是转发的消息，并且识别到是当前转发的这一条
                 const arkElement = msg.elements.find(ele => ele.arkElement)
@@ -509,7 +536,7 @@ export class NTQQApi {
                 }
                 if (msg.peerUid == destPeer.peerUid && msg.senderUid == selfInfo.uid) {
                     complete = true
-                    addHistoryMsg(msg)
+                    await dbUtil.addMsg(msg)
                     resolve(msg)
                     log('转发消息成功：', payload)
                 }

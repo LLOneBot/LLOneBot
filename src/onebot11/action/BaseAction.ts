@@ -1,6 +1,7 @@
 import {ActionName, BaseCheckResult} from "./types"
 import {OB11Response} from "./utils"
 import {OB11Return} from "../types";
+import {log} from "../../common/utils";
 
 class BaseAction<PayloadType, ReturnDataType> {
     actionName: ActionName
@@ -20,6 +21,7 @@ class BaseAction<PayloadType, ReturnDataType> {
             const resData = await this._handle(payload);
             return OB11Response.ok(resData);
         } catch (e) {
+            log("发送错误", e.stack)
             return OB11Response.error(e.toString(), 200);
         }
     }
@@ -33,6 +35,7 @@ class BaseAction<PayloadType, ReturnDataType> {
             const resData = await this._handle(payload)
             return OB11Response.ok(resData, echo);
         } catch (e) {
+            log("发生错误", e.stack.toString())
             return OB11Response.error(e.toString(), 1200, echo)
         }
     }

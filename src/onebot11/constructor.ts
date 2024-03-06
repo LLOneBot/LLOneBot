@@ -9,11 +9,12 @@ import {
     OB11UserSex
 } from "./types";
 import {AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User} from '../ntqqapi/types';
-import {fileCache, getFriend, getGroupMember, getHistoryMsgBySeq, selfInfo, tempGroupCodeMap} from '../common/data';
+import {fileCache, getFriend, getGroupMember, selfInfo, tempGroupCodeMap} from '../common/data';
 import {getConfigUtil, log} from "../common/utils";
 import {NTQQApi} from "../ntqqapi/ntcall";
 import {EventType} from "./event/OB11BaseEvent";
 import {encodeCQCode} from "./cqcode";
+import {dbUtil} from "../common/db";
 
 
 export class OB11Constructor {
@@ -95,7 +96,7 @@ export class OB11Constructor {
                 message_data["data"]["text"] = text
             } else if (element.replyElement) {
                 message_data["type"] = "reply"
-                const replyMsg = getHistoryMsgBySeq(element.replyElement.replayMsgSeq)
+                const replyMsg = await dbUtil.getMsgBySeqId(element.replyElement.replayMsgSeq)
                 if (replyMsg) {
                     message_data["data"]["id"] = replyMsg.msgShortId.toString()
                 } else {

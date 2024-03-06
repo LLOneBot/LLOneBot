@@ -1,14 +1,13 @@
-import {AtType, ChatType, Group, RawMessage, SendMessageElement} from "../../ntqqapi/types";
+import {AtType, ChatType, Group, RawMessage, SendArkElement, SendMessageElement} from "../../ntqqapi/types";
+import {friends, getGroup, getGroupMember, getUidByUin, selfInfo,} from "../../common/data";
 import {
-    addHistoryMsg,
-    friends,
-    getGroup,
-    getGroupMember,
-    getHistoryMsgByShortId,
-    getUidByUin,
-    selfInfo,
-} from "../../common/data";
-import {OB11MessageData, OB11MessageDataType, OB11MessageMixType, OB11MessageNode, OB11PostSendMsg} from '../types';
+    OB11MessageCustomMusic,
+    OB11MessageData,
+    OB11MessageDataType,
+    OB11MessageMixType,
+    OB11MessageNode,
+    OB11PostSendMsg
+} from '../types';
 import {NTQQApi, Peer} from "../../ntqqapi/ntcall";
 import {SendMsgElementConstructor} from "../../ntqqapi/constructor";
 import {uri2local} from "../utils";
@@ -17,6 +16,7 @@ import {ActionName, BaseCheckResult} from "./types";
 import * as fs from "node:fs";
 import {log} from "../../common/utils";
 import {decodeCQCode} from "../cqcode";
+import {dbUtil} from "../../common/db";
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
     function checkUri(uri: string): boolean {
@@ -62,7 +62,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
 
     protected async check(payload: OB11PostSendMsg): Promise<BaseCheckResult> {
         const messages = this.convertMessage2List(payload.message);
-        const fmNum = this.forwardMsgNum(payload)
+        const fmNum = this.getSpecialMsgNum(payload, OB11MessageDataType.node)
         if (fmNum && fmNum != messages.length) {
             return {
                 valid: false,
@@ -105,12 +105,26 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             }
         }
         const messages = this.convertMessage2List(payload.message);
-        if (this.forwardMsgNum(payload)) {
+        if (this.getSpecialMsgNum(payload, OB11MessageDataType.node)) {
             try {
                 const returnMsg = await this.handleForwardNode(peer, messages as OB11MessageNode[], group)
                 return {message_id: returnMsg.msgShortId}
             } catch (e) {
                 throw ("发送转发消息失败 " + e.toString())
+            }
+        } else {
+            if (this.getSpecialMsgNum(payload, OB11MessageDataType.music)) {
+                const music: OB11MessageCustomMusic = messages[0] as OB11MessageCustomMusic
+                if (music) {
+                    const {url, audio, title, content, image} = music.data;
+                    const selfPeer: Peer = {peerUid: selfInfo.uid, chatType: ChatType.friend}
+                    // 搞不定！
+                    // const musicMsg = await this.send(selfPeer, [this.genMusicElement(url, audio, title, content, image)], [], false)
+                    // 转发
+                    // const res = await NTQQApi.forwardMsg(selfPeer, peer, [musicMsg.msgId])
+                    // log("转发音乐消息成功", res);
+                    // return {message_id: musicMsg.msgShortId}
+                }
             }
         }
         // log("send msg:", peer, sendElements)
@@ -138,9 +152,9 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         return message;
     }
 
-    private forwardMsgNum(payload: OB11PostSendMsg): number {
+    private getSpecialMsgNum(payload: OB11PostSendMsg, msgType: OB11MessageDataType): number {
         if (Array.isArray(payload.message)) {
-            return payload.message.filter(msg => msg.type == OB11MessageDataType.node).length
+            return payload.message.filter(msg => msg.type == msgType).length
         }
         return 0
     }
@@ -158,7 +172,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             let nodeId = messageNode.data.id;
             // 有nodeId表示一个子转发消息卡片
             if (nodeId) {
-                let nodeMsg = getHistoryMsgByShortId(nodeId);
+                let nodeMsg = await dbUtil.getMsgByShortId(parseInt(nodeId));
                 if (nodeMsg) {
                     originalNodeMsgList.push(nodeMsg);
                 }
@@ -263,8 +277,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                 case OB11MessageDataType.reply: {
                     let replyMsgId = sendMsg.data.id;
                     if (replyMsgId) {
-                        replyMsgId = replyMsgId.toString()
-                        const replyMsg = getHistoryMsgByShortId(replyMsgId)
+                        const replyMsg = await dbUtil.getMsgByShortId(parseInt(replyMsgId))
                         if (replyMsg) {
                             sendElements.push(SendMsgElementConstructor.reply(replyMsg.msgSeq, replyMsg.msgId, replyMsg.senderUin, replyMsg.senderUin))
                         }
@@ -278,6 +291,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                     }
                 }
                     break;
+
                 case OB11MessageDataType.image:
                 case OB11MessageDataType.file:
                 case OB11MessageDataType.video:
@@ -315,10 +329,46 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             throw ("消息体无法解析")
         }
         const returnMsg = await NTQQApi.sendMsg(peer, sendElements, waitComplete, 20000);
-        addHistoryMsg(returnMsg)
+        await dbUtil.addMsg(returnMsg)
         deleteAfterSentFiles.map(f => fs.unlink(f, () => {
         }))
         return returnMsg
+    }
+
+    private genMusicElement(url: string, audio: string, title: string, content: string, image: string): SendArkElement {
+        const musicJson = {
+            app: 'com.tencent.structmsg',
+            config: {
+                ctime: 1709689928,
+                forward: 1,
+                token: '5c1e4905f926dd3a64a4bd3841460351',
+                type: 'normal'
+            },
+            extra: {app_type: 1, appid: 100497308, uin: selfInfo.uin},
+            meta: {
+                news: {
+                    action: '',
+                    android_pkg_name: '',
+                    app_type: 1,
+                    appid: 100497308,
+                    ctime: 1709689928,
+                    desc: content || title,
+                    jumpUrl: url,
+                    musicUrl: audio,
+                    preview: image,
+                    source_icon: 'https://p.qpic.cn/qqconnect/0/app_100497308_1626060999/100?max-age=2592000&t=0',
+                    source_url: '',
+                    tag: 'QQ音乐',
+                    title: title,
+                    uin: selfInfo.uin,
+                }
+            },
+            prompt: content || title,
+            ver: '0.0.0.1',
+            view: 'news'
+        }
+
+        return SendMsgElementConstructor.ark(musicJson)
     }
 }
 

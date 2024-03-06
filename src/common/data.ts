@@ -9,6 +9,8 @@ import {
     type SelfInfo
 } from '../ntqqapi/types'
 import {type FileCache, type LLOneBotError} from './types'
+import {dbUtil} from "./db";
+import {raw} from "express";
 
 export const selfInfo: SelfInfo = {
     uid: '',
@@ -18,32 +20,19 @@ export const selfInfo: SelfInfo = {
 }
 export let groups: Group[] = []
 export let friends: Friend[] = []
-export let msgHistory: Record<string, RawMessage> = {} // msgId: RawMessage
 export let groupNotifies: Map<string, GroupNotify> = new Map<string, GroupNotify>()
 export let friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>()
 export const llonebotError: LLOneBotError = {
     ffmpegError: '',
     otherError: ''
 }
-let globalMsgId = Math.floor(Date.now() / 1000)
 
 export const fileCache = new Map<string, FileCache>()
 
-export function addHistoryMsg(msg: RawMessage): boolean {
-    const existMsg = msgHistory[msg.msgId]
-    if (existMsg) {
-        Object.assign(existMsg, msg)
-        msg.msgShortId = existMsg.msgShortId
-        return false
-    }
-    msg.msgShortId = ++globalMsgId
-    msgHistory[msg.msgId] = msg
-    return true
-}
 
-export function getHistoryMsgByShortId(shortId: number | string) {
+export async function getHistoryMsgByShortId(shortId: number) {
     // log("getHistoryMsgByShortId", shortId, Object.values(msgHistory).map(m=>m.msgShortId))
-    return Object.values(msgHistory).find(msg => msg.msgShortId.toString() == shortId.toString())
+    return await dbUtil.getMsgByShortId(shortId);
 }
 
 export async function getFriend(qq: string): Promise<Friend | undefined> {
@@ -58,8 +47,11 @@ export async function getFriend(qq: string): Promise<Friend | undefined> {
 export async function getGroup(qq: string): Promise<Group | undefined> {
     let group = groups.find(group => group.groupCode === qq)
     if (!group){
-        groups = await NTQQApi.getGroups(true);
-        group = groups.find(group => group.groupCode === qq)
+        const _groups = await NTQQApi.getGroups(true);
+        group = _groups.find(group => group.groupCode === qq)
+        if (group){
+            groups.push(group)
+        }
     }
     return group
 }
@@ -94,10 +86,6 @@ export async function refreshGroupMembers(groupQQ: string) {
     if (group) {
         group.members = await NTQQApi.getGroupMembers(groupQQ)
     }
-}
-
-export function getHistoryMsgBySeq(seq: string) {
-    return Object.values(msgHistory).find(msg => msg.msgSeq === seq)
 }
 
 export const uidMaps: Record<string, string> = {} // 一串加密的字符串(uid) -> qq号

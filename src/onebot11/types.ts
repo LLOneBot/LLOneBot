@@ -93,6 +93,7 @@ export interface OB11Return<DataType> {
 export enum OB11MessageDataType {
     text = "text",
     image = "image",
+    music = "music",
     video = "video",
     voice = "record",
     file = "file",
@@ -100,7 +101,7 @@ export enum OB11MessageDataType {
     reply = "reply",
     json = "json",
     face = "face",
-    node = "node"  // 合并转发消息
+    node = "node",  // 合并转发消息
 }
 
 export interface OB11MessageText {
@@ -166,12 +167,24 @@ export interface OB11MessageNode {
     }
 }
 
+export interface OB11MessageCustomMusic{
+    type: OB11MessageDataType.music
+    data: {
+        type: "custom"
+        url: string,
+        audio: string,
+        title: string,
+        content?: string,
+        image?: string
+    }
+}
+
 export type OB11MessageData =
     OB11MessageText |
     OB11MessageFace |
     OB11MessageAt | OB11MessageReply |
     OB11MessageImage | OB11MessageRecord | OB11MessageFile | OB11MessageVideo |
-    OB11MessageNode
+    OB11MessageNode | OB11MessageCustomMusic
 
 export interface OB11PostSendMsg {
     message_type?: "private" | "group"
