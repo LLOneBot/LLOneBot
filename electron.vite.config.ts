@@ -1,7 +1,9 @@
 import cp from 'vite-plugin-cp';
 import "./scripts/gen-version"
 
-const external = ["silk-wasm", "ws"];
+const external = ["silk-wasm", "ws",
+    "level", "classic-level", "abstract-level", "level-supports", "level-transcoder",
+    "module-error", "catering", "node-gyp-build"];
 
 function genCpModule(module: string) {
     return { src: `./node_modules/${module}`, dest: `dist/node_modules/${module}`, flatten: false }

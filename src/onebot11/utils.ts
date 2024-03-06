@@ -1,4 +1,4 @@
-import {CONFIG_DIR, isGIF, log} from "../common/utils";
+import {DATA_DIR, isGIF, log} from "../common/utils";
 import {v4 as uuidv4} from "uuid";
 import * as path from 'node:path';
 import {fileCache} from "../common/data";
@@ -10,7 +10,7 @@ export async function uri2local(uri: string, fileName: string = null) {
     if (!fileName) {
         fileName = uuidv4();
     }
-    let filePath = path.join(CONFIG_DIR, fileName)
+    let filePath = path.join(DATA_DIR, fileName)
     let url = new URL(uri);
     let res = {
         success: false,
@@ -40,7 +40,7 @@ export async function uri2local(uri: string, fileName: string = null) {
         let buffer = await blob.arrayBuffer();
         try {
             fileName = path.parse(url.pathname).name || fileName
-            filePath = path.join(CONFIG_DIR, uuidv4() + fileName)
+            filePath = path.join(DATA_DIR, uuidv4() + fileName)
             await fs.writeFile(filePath, Buffer.from(buffer));
         } catch (e: any) {
             res.errMsg = `${url}下载失败,` + e.toString()

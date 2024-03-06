@@ -2,13 +2,14 @@ import {type BrowserWindow} from 'electron'
 import {getConfigUtil, log, sleep} from '../common/utils'
 import {NTQQApi, type NTQQApiClass, sendMessagePool} from './ntcall'
 import {type Group, type RawMessage, type User} from './types'
-import {addHistoryMsg, friends, groups, msgHistory, selfInfo, tempGroupCodeMap} from '../common/data'
+import {friends, groups, selfInfo, tempGroupCodeMap} from '../common/data'
 import {OB11GroupDecreaseEvent} from '../onebot11/event/notice/OB11GroupDecreaseEvent'
 import {OB11GroupIncreaseEvent} from '../onebot11/event/notice/OB11GroupIncreaseEvent'
 import {v4 as uuidv4} from 'uuid'
 import {postOB11Event} from '../onebot11/server/postOB11Event'
 import {HOOK_LOG} from '../common/config'
 import fs from 'fs'
+import {dbUtil} from "../common/db";
 
 export const hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 
@@ -233,7 +234,7 @@ registerReceiveHook<{ msgList: RawMessage[] }>(ReceiveCmd.NEW_MSG, (payload) => 
     const {autoDeleteFile, autoDeleteFileSecond} = getConfigUtil().getConfig()
     for (const message of payload.msgList) {
         // log("收到新消息，push到历史记录", message)
-        addHistoryMsg(message)
+        dbUtil.addMsg(message).then()
         // 清理文件
         if (!autoDeleteFile) {
             continue
@@ -260,10 +261,6 @@ registerReceiveHook<{ msgList: RawMessage[] }>(ReceiveCmd.NEW_MSG, (payload) => 
                 }
             }, autoDeleteFileSecond * 1000)
         }
-    }
-    const msgIds = Object.keys(msgHistory)
-    if (msgIds.length > 30000) {
-        delete msgHistory[msgIds.sort()[0]]
     }
 })
 

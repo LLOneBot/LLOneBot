@@ -73,6 +73,7 @@ export enum ElementType {
     PTT = 4,
     FACE = 6,
     REPLY = 7,
+    ARK = 10,
 }
 
 export interface SendTextElement {
@@ -165,13 +166,20 @@ export interface FileElement {
 }
 
 export interface SendFileElement {
-    "elementType": ElementType.FILE,
-    "elementId": "",
-    "fileElement": FileElement
+    elementType: ElementType.FILE,
+    elementId: "",
+    fileElement: FileElement
+}
+
+export interface SendArkElement {
+    elementType: ElementType.ARK,
+    elementId: "",
+    arkElement: ArkElement
+
 }
 
 export type SendMessageElement = SendTextElement | SendPttElement |
-    SendPicElement | SendReplyElement | SendFaceElement | SendFileElement
+    SendPicElement | SendReplyElement | SendFaceElement | SendFileElement | SendArkElement
 
 export enum AtType {
     notAt = 0,
@@ -210,6 +218,8 @@ export interface PttElement {
 
 export interface ArkElement {
     bytesData: string;
+    linkInfo:null,
+    subElementType:null
 }
 
 export const IMAGE_HTTP_HOST = "https://gchat.qpic.cn"

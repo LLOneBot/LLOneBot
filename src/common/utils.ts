@@ -7,10 +7,10 @@ import fs from 'fs';
 import {v4 as uuidv4} from "uuid";
 import ffmpeg from "fluent-ffmpeg"
 
-export const CONFIG_DIR = global.LiteLoader.plugins["LLOneBot"].path.data;
+export const DATA_DIR = global.LiteLoader.plugins["LLOneBot"].path.data;
 
 export function getConfigUtil() {
-    const configFilePath = path.join(CONFIG_DIR, `config_${selfInfo.uin}.json`)
+    const configFilePath = path.join(DATA_DIR, `config_${selfInfo.uin}.json`)
     return new ConfigUtil(configFilePath)
 }
 
@@ -55,7 +55,7 @@ export function log(...msg: any[]) {
     logMsg = `${currentDateTime} ${userInfo}: ${logMsg}\n\n`
     // sendLog(...msg);
     // console.log(msg)
-    fs.appendFile(path.join(CONFIG_DIR, `llonebot-${currentDate}.log`), logMsg, (err: any) => {
+    fs.appendFile(path.join(DATA_DIR, `llonebot-${currentDate}.log`), logMsg, (err: any) => {
 
     })
 }
@@ -192,7 +192,7 @@ export async function encodeSilk(filePath: string) {
 
     try {
         const fileName = path.basename(filePath);
-        const pttPath = path.join(CONFIG_DIR, uuidv4());
+        const pttPath = path.join(DATA_DIR, uuidv4());
         if (getFileHeader(filePath) !== "02232153494c4b") {
             log(`语音文件${filePath}需要转换成silk`)
             const _isWav = await isWavFile(filePath);

@@ -1,6 +1,6 @@
 import {
     AtType,
-    ElementType, PicType,
+    ElementType, PicType, SendArkElement,
     SendFaceElement,
     SendFileElement,
     SendPicElement,
@@ -148,6 +148,14 @@ export class SendMsgElementConstructor {
                 faceIndex: faceId,
                 faceType: 1
             }
+        }
+    }
+
+    static ark(data: any): SendArkElement {
+        return {
+            elementType: ElementType.ARK,
+            elementId: "",
+            arkElement: data
         }
     }
 }

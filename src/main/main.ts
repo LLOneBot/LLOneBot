@@ -11,15 +11,13 @@ import {
     CHANNEL_SET_CONFIG,
 } from "../common/channels";
 import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
-import {checkFfmpeg, CONFIG_DIR, getConfigUtil, log} from "../common/utils";
+import {checkFfmpeg, DATA_DIR, getConfigUtil, log} from "../common/utils";
 import {
-    addHistoryMsg,
     friendRequests,
     getGroup,
     getGroupMember,
     groupNotifies,
-    llonebotError,
-    msgHistory, refreshGroupMembers,
+    llonebotError, refreshGroupMembers,
     selfInfo
 } from "../common/data";
 import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} from "../ntqqapi/hook";
@@ -43,6 +41,7 @@ import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecrease
 import {OB11GroupRequestEvent} from "../onebot11/event/request/OB11GroupRequest";
 import {OB11FriendRequestEvent} from "../onebot11/event/request/OB11FriendRequest";
 import * as path from "node:path";
+import {dbUtil} from "../common/db";
 
 
 let running = false;
@@ -82,8 +81,8 @@ function onLoad() {
             return ""
         }
     })
-    if (!fs.existsSync(CONFIG_DIR)) {
-        fs.mkdirSync(CONFIG_DIR, {recursive: true});
+    if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, {recursive: true});
     }
     ipcMain.handle(CHANNEL_ERROR, (event, arg) => {
         return llonebotError;
@@ -153,14 +152,12 @@ function onLoad() {
         log(arg);
     })
 
-    function postReceiveMsg(msgList: RawMessage[]) {
+    async function postReceiveMsg(msgList: RawMessage[]) {
         const {debug, reportSelfMessage} = getConfigUtil().getConfig();
         for (let message of msgList) {
             // log("收到新消息", message)
-            message.msgShortId = msgHistory[message.msgId]?.msgShortId
-            if (!message.msgShortId) {
-                addHistoryMsg(message);
-            }
+            message.msgShortId = await dbUtil.addMsg(message)
+
             OB11Constructor.message(message).then((msg) => {
                 if (debug) {
                     msg.raw = message;
@@ -171,14 +168,14 @@ function onLoad() {
                 }
                 postOB11Event(msg);
                 // log("post msg", msg)
-            }).catch(e => log("constructMessage error: ", e.toString()));
+            }).catch(e => log("constructMessage error: ", e.stack.toString()));
         }
     }
 
     async function startReceiveHook() {
-        registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
+        registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, async (payload) => {
             try {
-                postReceiveMsg(payload.msgList);
+                await postReceiveMsg(payload.msgList);
             } catch (e) {
                 log("report message error: ", e.toString());
             }
@@ -188,10 +185,12 @@ function onLoad() {
                 // log("message update", message.sendStatus, message)
                 if (message.recallTime != "0") {
                     // 撤回消息上报
-                    const oriMessage = msgHistory[message.msgId]
+                    const oriMessage = await dbUtil.getMsgByLongId(message.msgId)
                     if (!oriMessage) {
                         continue
                     }
+                    oriMessage.recallTime = message.recallTime
+                    dbUtil.updateMsg(oriMessage).then();
                     if (message.chatType == ChatType.friend) {
                         const friendRecallEvent = new OB11FriendRecallNoticeEvent(parseInt(message.senderUin), oriMessage.msgShortId);
                         postOB11Event(friendRecallEvent);
@@ -211,21 +210,22 @@ function onLoad() {
 
                         postOB11Event(groupRecallEvent);
                     }
+                    // 不让入库覆盖原来消息，不然就获取不到撤回的消息内容了
                     continue
                 }
-                addHistoryMsg(message)
+                dbUtil.addMsg(message).then();
             }
         })
-        registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, (payload) => {
+        registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, async (payload) => {
             const {reportSelfMessage} = getConfigUtil().getConfig();
             if (!reportSelfMessage) {
                 return
             }
             // log("reportSelfMessage", payload)
             try {
-                postReceiveMsg([payload.msgRecord]);
+                await postReceiveMsg([payload.msgRecord]);
             } catch (e) {
-                log("report self message error: ", e.toString());
+                log("report self message error: ", e.stack.toString());
             }
         })
         registerReceiveHook<{
