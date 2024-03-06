@@ -24,9 +24,9 @@ class DBUtil {
         new Promise((resolve, reject) => {
             const initDB = () => {
                 initCount++;
-                if (initCount > 50) {
-                    return reject("init db fail")
-                }
+                // if (initCount > 50) {
+                //     return reject("init db fail")
+                // }
 
                 try {
                     if (!selfInfo.uin) {
@@ -38,7 +38,7 @@ class DBUtil {
                     console.log("llonebot init db success")
                     resolve(null)
                 } catch (e) {
-                    // console.log("init db fail", e.stack.toString())
+                    console.log("init db fail", e.stack.toString())
                     setTimeout(initDB, 300);
                 }
             }
