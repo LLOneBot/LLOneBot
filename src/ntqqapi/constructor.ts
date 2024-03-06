@@ -104,8 +104,8 @@ export class SendMsgElementConstructor {
         return element;
     }
 
-    static video(filePath: string): Promise<SendFileElement> {
-        return SendMsgElementConstructor.file(filePath, true);
+    static video(filePath: string, fileName: string=""): Promise<SendFileElement> {
+        return SendMsgElementConstructor.file(filePath, true, fileName);
     }
 
     static async ptt(pttPath: string): Promise<SendPttElement> {
