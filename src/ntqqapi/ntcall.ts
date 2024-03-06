@@ -455,20 +455,19 @@ export class NTQQApi {
                 if (waitComplete) {
                     if ((await dbUtil.getMsgByLongId(sentMessage.msgId)).sendStatus == 2) {
                         return sentMessage
-                    } else {
-                        return await checkSendComplete()
                     }
                 }
-                // log(`给${peerUid}发送消息成功`)
-                return sentMessage
-            } else {
-                checkSendCompleteUsingTime += 500
-                if (checkSendCompleteUsingTime > timeout) {
-                    throw ('发送超时')
+                else{
+                    return sentMessage
                 }
-                await sleep(500)
-                return await checkSendComplete()
+                // log(`给${peerUid}发送消息成功`)
             }
+            checkSendCompleteUsingTime += 500
+            if (checkSendCompleteUsingTime > timeout) {
+                throw ('发送超时')
+            }
+            await sleep(500)
+            return await checkSendComplete()
         }
 
         callNTQQApi({

@@ -79,6 +79,7 @@ export async function getGroupMember(groupQQ: string | number, memberQQ: string 
         }
         return member
     }
+    return null
 }
 
 export async function refreshGroupMembers(groupQQ: string) {

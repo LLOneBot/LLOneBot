@@ -113,6 +113,7 @@ export interface OB11MessageText {
 
 interface OB11MessageFileBase {
     data: {
+        name?: string;
         file: string,
         url?: string;
     }

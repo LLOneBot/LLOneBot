@@ -297,8 +297,9 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                 case OB11MessageDataType.video:
                 case OB11MessageDataType.voice: {
                     const file = sendMsg.data?.file
+                    const payloadFileName = sendMsg.data?.name
                     if (file) {
-                        const {path, isLocal} = (await uri2local(file))
+                        const {path, isLocal, fileName} = (await uri2local(file))
                         if (path) {
                             if (!isLocal) { // 只删除http和base64转过来的文件
                                 deleteAfterSentFiles.push(path)
@@ -309,7 +310,12 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                                 [OB11MessageDataType.video]: SendMsgElementConstructor.video,
                                 [OB11MessageDataType.file]: SendMsgElementConstructor.file,
                             }
-                            sendElements.push(await constructorMap[sendMsg.type](path));
+                            if (sendMsg.type === OB11MessageDataType.file) {
+                                log("发送文件", path, payloadFileName || fileName)
+                                sendElements.push(await SendMsgElementConstructor.file(path, false, payloadFileName || fileName));
+                            } else {
+                                sendElements.push(await constructorMap[sendMsg.type](path));
+                            }
                         }
                     }
                 }
@@ -329,6 +335,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             throw ("消息体无法解析")
         }
         const returnMsg = await NTQQApi.sendMsg(peer, sendElements, waitComplete, 20000);
+        log("消息发送结果", returnMsg)
         await dbUtil.addMsg(returnMsg)
         deleteAfterSentFiles.map(f => fs.unlink(f, () => {
         }))

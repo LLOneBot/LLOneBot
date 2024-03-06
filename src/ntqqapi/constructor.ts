@@ -81,19 +81,19 @@ export class SendMsgElementConstructor {
         };
     }
 
-    static async file(filePath: string, isVideo: boolean = false): Promise<SendFileElement> {
+    static async file(filePath: string, showPreview: boolean = false, fileName: string = ""): Promise<SendFileElement> {
         let picHeight = 0;
         let picWidth = 0;
-        if (isVideo) {
+        if (showPreview) {
             picHeight = 1024;
             picWidth = 768;
         }
-        const {md5, fileName, path, fileSize} = await NTQQApi.uploadFile(filePath, ElementType.FILE);
+        const {md5, fileName: _fileName, path, fileSize} = await NTQQApi.uploadFile(filePath, ElementType.FILE);
         let element: SendFileElement = {
             elementType: ElementType.FILE,
             elementId: "",
             fileElement: {
-                fileName,
+                fileName: fileName || _fileName,
                 "filePath": path,
                 "fileSize": (fileSize).toString(),
                 picHeight,

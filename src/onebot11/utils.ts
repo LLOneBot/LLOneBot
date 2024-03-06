@@ -15,6 +15,8 @@ export async function uri2local(uri: string, fileName: string = null) {
     let res = {
         success: false,
         errMsg: "",
+        fileName: "",
+        ext: "",
         path: "",
         isLocal: false
     }
@@ -39,7 +41,15 @@ export async function uri2local(uri: string, fileName: string = null) {
         let blob = await fetchRes.blob();
         let buffer = await blob.arrayBuffer();
         try {
-            fileName = path.parse(url.pathname).name || fileName
+            const pathInfo = path.parse(decodeURIComponent(url.pathname))
+            if (pathInfo.name){
+                fileName = pathInfo.name
+                if (pathInfo.ext){
+                    fileName += pathInfo.ext
+                    res.ext = pathInfo.ext
+                }
+            }
+            res.fileName = fileName
             filePath = path.join(DATA_DIR, uuidv4() + fileName)
             await fs.writeFile(filePath, Buffer.from(buffer));
         } catch (e: any) {
@@ -75,15 +85,17 @@ export async function uri2local(uri: string, fileName: string = null) {
     //     await fs.rename(filePath, filePath + ".gif");
     //     filePath += ".gif";
     // }
-    if (!res.isLocal) {
-        try{
-        const {ext} = await fileType.fileTypeFromFile(filePath)
-        if (ext) {
-            log("获取文件类型", ext, filePath)
-            await fs.rename(filePath, filePath + `.${ext}`)
-            filePath += `.${ext}`
-        }
-        }catch (e){
+    if (!res.isLocal && !res.ext) {
+        try {
+            let ext: string = (await fileType.fileTypeFromFile(filePath)).ext
+            if (ext) {
+                log("获取文件类型", ext, filePath)
+                await fs.rename(filePath, filePath + `.${ext}`)
+                filePath += `.${ext}`
+                res.fileName += `.${ext}`
+                res.ext = ext
+            }
+        } catch (e) {
             // log("获取文件类型失败", filePath,e.stack)
         }
     }
