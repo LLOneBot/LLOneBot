@@ -133,6 +133,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             const returnMsg = await this.send(peer, sendElements, deleteAfterSentFiles)
             return {message_id: returnMsg.msgShortId}
         } catch (e) {
+            log("发送消息失败", e.stack.toString())
             throw (e.toString())
         }
     }
@@ -313,6 +314,9 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                             if (sendMsg.type === OB11MessageDataType.file) {
                                 log("发送文件", path, payloadFileName || fileName)
                                 sendElements.push(await SendMsgElementConstructor.file(path, false, payloadFileName || fileName));
+                            } else if (sendMsg.type === OB11MessageDataType.video) {
+                                log("发送视频", path, payloadFileName || fileName)
+                                sendElements.push(await SendMsgElementConstructor.video(path, payloadFileName || fileName));
                             } else {
                                 sendElements.push(await constructorMap[sendMsg.type](path));
                             }
@@ -336,7 +340,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         }
         const returnMsg = await NTQQApi.sendMsg(peer, sendElements, waitComplete, 20000);
         log("消息发送结果", returnMsg)
-        await dbUtil.addMsg(returnMsg)
+        returnMsg.msgShortId = await dbUtil.addMsg(returnMsg)
         deleteAfterSentFiles.map(f => fs.unlink(f, () => {
         }))
         return returnMsg
