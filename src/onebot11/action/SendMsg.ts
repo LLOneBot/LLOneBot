@@ -1,5 +1,5 @@
 import {AtType, ChatType, Group, RawMessage, SendArkElement, SendMessageElement} from "../../ntqqapi/types";
-import {friends, getGroup, getGroupMember, getUidByUin, selfInfo,} from "../../common/data";
+import {friends, getFriend, getGroup, getGroupMember, getUidByUin, selfInfo,} from "../../common/data";
 import {
     OB11MessageCustomMusic,
     OB11MessageData,
@@ -17,6 +17,7 @@ import * as fs from "node:fs";
 import {log} from "../../common/utils";
 import {decodeCQCode} from "../cqcode";
 import {dbUtil} from "../../common/db";
+import {ALLOW_SEND_TEMP_MSG} from "../../common/config";
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
     function checkUri(uri: string): boolean {
@@ -69,6 +70,22 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                 message: "转发消息不能和普通消息混在一起发送,转发需要保证message只有type为node的元素"
             }
         }
+        if (payload.group_id && !(await getGroup(payload.group_id))) {
+            return {
+                valid: false,
+                message: `群${payload.group_id}不存在`
+            }
+        }
+        if (payload.user_id && payload.message_type !== "group") {
+            if (!(await getFriend(payload.user_id))) {
+                if (!ALLOW_SEND_TEMP_MSG) {
+                    return {
+                        valid: false,
+                        message: `不能发送临时消息`
+                    }
+                }
+            }
+        }
         return {
             valid: true,
         }
@@ -79,17 +96,16 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             chatType: ChatType.friend,
             peerUid: ""
         }
-
+        let isTempMsg = false;
         let group: Group | undefined = undefined;
-        if (payload?.group_id) {
+        const genGroupPeer = async () => {
             group = await getGroup(payload.group_id.toString())
-            if (!group) {
-                throw (`群${payload.group_id}不存在`)
-            }
             peer.chatType = ChatType.group
             // peer.name = group.name
             peer.peerUid = group.groupCode
-        } else if (payload?.user_id) {
+        }
+
+        const genFriendPeer = () => {
             const friend = friends.find(f => f.uin == payload.user_id.toString())
             if (friend) {
                 // peer.name = friend.nickName
@@ -101,8 +117,19 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                     throw (`找不到私聊对象${payload.user_id}`)
                 }
                 // peer.name = tempUser.nickName
+                isTempMsg = true;
                 peer.peerUid = tempUserUid;
             }
+        }
+        if (payload?.group_id && payload.message_type === "group") {
+            await genGroupPeer()
+
+        } else if (payload?.user_id) {
+            genFriendPeer()
+        } else if (payload.group_id) {
+            await genGroupPeer()
+        } else {
+            throw ("发送消息参数错误, 请指定group_id或user_id")
         }
         const messages = this.convertMessage2List(payload.message);
         if (this.getSpecialMsgNum(payload, OB11MessageDataType.node)) {
@@ -130,7 +157,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         // log("send msg:", peer, sendElements)
         const {sendElements, deleteAfterSentFiles} = await this.createSendElements(messages, group)
         try {
-            const returnMsg = await this.send(peer, sendElements, deleteAfterSentFiles)
+            const returnMsg = await this.send(peer, sendElements, deleteAfterSentFiles, isTempMsg)
             return {message_id: returnMsg.msgShortId}
         } catch (e) {
             log("发送消息失败", e.stack.toString())
@@ -278,7 +305,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                 case OB11MessageDataType.reply: {
                     let replyMsgId = sendMsg.data.id;
                     if (replyMsgId) {
-                        const replyMsg = await dbUtil.getMsgByShortId(parseInt(replyMsgId))
+                        const replyMsg = await dbUtil.getMsgBySeqId(replyMsgId)
                         if (replyMsg) {
                             sendElements.push(SendMsgElementConstructor.reply(replyMsg.msgSeq, replyMsg.msgId, replyMsg.senderUin, replyMsg.senderUin))
                         }

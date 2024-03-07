@@ -4,6 +4,8 @@ import {mergeNewProperties} from "./utils";
 
 export const HOOK_LOG = false;
 
+export const ALLOW_SEND_TEMP_MSG = false;
+
 export class ConfigUtil {
     private readonly configPath: string;
     private config: Config | null = null;

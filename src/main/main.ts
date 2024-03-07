@@ -13,7 +13,7 @@ import {
 import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
 import {checkFfmpeg, DATA_DIR, getConfigUtil, log} from "../common/utils";
 import {
-    friendRequests,
+    friendRequests, getFriend,
     getGroup,
     getGroupMember,
     groupNotifies,
@@ -305,7 +305,10 @@ function onLoad() {
                             log("收到邀请我加群通知")
                             let groupInviteEvent = new OB11GroupRequestEvent();
                             groupInviteEvent.group_id = parseInt(notify.group.groupCode);
-                            let user_id = (await NTQQApi.getUserDetailInfo(notify.user2.uid))?.uin
+                            let user_id = (await getFriend("", notify.user2.uid))?.uin
+                            if (!user_id){
+                                user_id = (await NTQQApi.getUserDetailInfo(notify.user2.uid))?.uin
+                            }
                             groupInviteEvent.user_id = parseInt(user_id);
                             groupInviteEvent.sub_type = "invite";
                             groupInviteEvent.flag = notify.seq;

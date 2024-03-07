@@ -114,7 +114,7 @@ class DBUtil {
             this.db.put(shortIdKey, msg.msgId).then();
             this.db.put(longIdKey, JSON.stringify(msg)).then();
             this.db.put(seqIdKey, msg.msgId).then();
-
+            log(`消息入库 ${seqIdKey}: ${msg.msgId}, ${shortMsgId}: ${msg.msgId}`);
         } catch (e) {
             log("addMsg db error", e.stack.toString());
         }
@@ -134,7 +134,11 @@ class DBUtil {
         }
 
         Object.assign(existMsg, msg)
-        await this.db.put(longIdKey, JSON.stringify(existMsg));
+        this.db.put(longIdKey, JSON.stringify(existMsg)).then();
+        const shortIdKey = this.DB_KEY_PREFIX_MSG_SHORT_ID + existMsg.msgShortId;
+        const seqIdKey = this.DB_KEY_PREFIX_MSG_SEQ_ID + msg.msgSeq;
+        this.db.put(shortIdKey, msg.msgId).then();
+        this.db.put(seqIdKey, msg.msgId).then();
     }
 
     private async genMsgShortId(): Promise<number> {
