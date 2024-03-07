@@ -158,6 +158,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         const {sendElements, deleteAfterSentFiles} = await this.createSendElements(messages, group)
         try {
             const returnMsg = await this.send(peer, sendElements, deleteAfterSentFiles)
+            deleteAfterSentFiles.map(f => fs.unlink(f, () => {}));
             return {message_id: returnMsg.msgShortId}
         } catch (e) {
             log("发送消息失败", e.stack.toString())
