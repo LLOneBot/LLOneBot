@@ -17,7 +17,7 @@ import {
     type User
 } from './types'
 import * as fs from 'node:fs'
-import {friendRequests, groupNotifies, selfInfo} from '../common/data'
+import {friendRequests, groupNotifies, selfInfo, uidMaps} from '../common/data'
 import {v4 as uuidv4} from 'uuid'
 import path from 'path'
 import {dbUtil} from "../common/db";
@@ -292,7 +292,7 @@ export class NTQQApi {
 
             const members: GroupMember[] = Array.from(values)
             for (const member of members) {
-                // uidMaps[member.uid] = member.uin;
+                uidMaps[member.uid] = member.uin;
             }
             // log(uidMaps);
             // log("members info", values);
@@ -469,7 +469,7 @@ export class NTQQApi {
             await sleep(500)
             return await checkSendComplete()
         }
-
+        log("开始发送消息", peer, msgElements)
         callNTQQApi({
             methodName: NTQQApiMethod.SEND_MSG,
             args: [{

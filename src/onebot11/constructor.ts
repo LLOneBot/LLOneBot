@@ -96,12 +96,18 @@ export class OB11Constructor {
                 message_data["data"]["text"] = text
             } else if (element.replyElement) {
                 message_data["type"] = "reply"
-                const replyMsg = await dbUtil.getMsgBySeqId(element.replyElement.replayMsgSeq)
-                if (replyMsg) {
-                    message_data["data"]["id"] = replyMsg.msgShortId.toString()
-                } else {
-                    continue
+                log("收到回复消息", element.replyElement.replayMsgSeq)
+                try{
+                    const replyMsg = await dbUtil.getMsgBySeqId(element.replyElement.replayMsgSeq)
+                    if (replyMsg) {
+                        message_data["data"]["id"] = replyMsg.msgShortId.toString()
+                    } else {
+                        continue
+                    }
+                }catch (e) {
+                    log("获取不到引用的消息", e.stack)
                 }
+
             } else if (element.picElement) {
                 message_data["type"] = "image"
                 // message_data["data"]["file"] = element.picElement.sourcePath
