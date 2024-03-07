@@ -89,6 +89,9 @@ export class SendMsgElementConstructor {
             picWidth = 768;
         }
         const {md5, fileName: _fileName, path, fileSize} = await NTQQApi.uploadFile(filePath, ElementType.FILE);
+        if (fileSize === 0){
+            throw "文件异常，大小为0";
+        }
         let element: SendFileElement = {
             elementType: ElementType.FILE,
             elementId: "",
