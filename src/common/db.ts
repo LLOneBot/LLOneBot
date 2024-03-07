@@ -11,6 +11,7 @@ class DBUtil {
     private readonly DB_KEY_PREFIX_MSG_SEQ_ID = "msg_seq_id_";
     private db: Level;
     private cache: Record<string, RawMessage> = {}  // <msg_id_ | msg_short_id_ | msg_seq_id_><id>: RawMessage
+    private currentShortId: number;
 
     /*
     * 数据库结构
@@ -110,9 +111,9 @@ class DBUtil {
         const seqIdKey = this.DB_KEY_PREFIX_MSG_SEQ_ID + msg.msgSeq;
         msg.msgShortId = shortMsgId;
         try {
-            await this.db.put(shortIdKey, msg.msgId);
-            await this.db.put(longIdKey, JSON.stringify(msg));
-            await this.db.put(seqIdKey, msg.msgId);
+            this.db.put(shortIdKey, msg.msgId).then();
+            this.db.put(longIdKey, JSON.stringify(msg)).then();
+            this.db.put(seqIdKey, msg.msgId).then();
 
         } catch (e) {
             log("addMsg db error", e.stack.toString());
@@ -137,16 +138,19 @@ class DBUtil {
     }
 
     private async genMsgShortId(): Promise<number> {
-        let shortId = -2147483640
         const key = "msg_current_short_id";
-        try {
-            let id: string = await this.db.get(key);
-            shortId = parseInt(id);
-        } catch (e) {
+        if (this.currentShortId === undefined){
+            try {
+                let id: string = await this.db.get(key);
+                this.currentShortId = parseInt(id);
+            } catch (e) {
+                this.currentShortId = -2147483640
+            }
         }
-        shortId++;
-        await this.db.put(key, shortId.toString());
-        return shortId;
+
+        this.currentShortId++;
+        await this.db.put(key, this.currentShortId.toString());
+        return this.currentShortId;
     }
 }
 
