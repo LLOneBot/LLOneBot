@@ -9,7 +9,7 @@ import {
     OB11UserSex
 } from "./types";
 import {AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User} from '../ntqqapi/types';
-import {fileCache, getFriend, getGroupMember, selfInfo, tempGroupCodeMap} from '../common/data';
+import {getFriend, getGroupMember, selfInfo, tempGroupCodeMap} from '../common/data';
 import {getConfigUtil, log} from "../common/utils";
 import {NTQQApi} from "../ntqqapi/ntcall";
 import {EventType} from "./event/OB11BaseEvent";
@@ -120,11 +120,11 @@ export class OB11Constructor {
                     message_data["data"]["url"] = IMAGE_HTTP_HOST + url
                 }
                 else if (fileMd5){
-                    message_data["data"]["file_id"] = `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${fileMd5}/0`
+                    message_data["data"]["file_id"] = `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${fileMd5.toUpperCase()}/0`
                 }
                 // message_data["data"]["file_id"] = element.picElement.fileUuid
                 message_data["data"]["file_size"] = element.picElement.fileSize
-                fileCache.set(element.picElement.fileName, {
+                dbUtil.addFileCache(element.picElement.fileName, {
                     fileName: element.picElement.fileName,
                     filePath: element.picElement.sourcePath,
                     fileSize: element.picElement.fileSize.toString(),
@@ -133,7 +133,7 @@ export class OB11Constructor {
                         await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
                             element.elementId, element.picElement.thumbPath?.get(0) || "", element.picElement.sourcePath)
                     }
-                })
+                }).then()
                 // 不在自动下载图片
 
             } else if (element.videoElement) {
@@ -142,7 +142,7 @@ export class OB11Constructor {
                 message_data["data"]["path"] = element.videoElement.filePath
                 // message_data["data"]["file_id"] = element.videoElement.fileUuid
                 message_data["data"]["file_size"] = element.videoElement.fileSize
-                fileCache.set(element.videoElement.fileName, {
+                dbUtil.addFileCache(element.videoElement.fileName, {
                     fileName: element.videoElement.fileName,
                     filePath: element.videoElement.filePath,
                     fileSize: element.videoElement.fileSize,
@@ -150,7 +150,7 @@ export class OB11Constructor {
                         await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
                             element.elementId, element.videoElement.thumbPath.get(0), element.videoElement.filePath)
                     }
-                })
+                }).then()
                 // 怎么拿到url呢
             } else if (element.fileElement) {
                 message_data["type"] = OB11MessageDataType.file;
@@ -158,7 +158,7 @@ export class OB11Constructor {
                 // message_data["data"]["path"] = element.fileElement.filePath
                 // message_data["data"]["file_id"] = element.fileElement.fileUuid
                 message_data["data"]["file_size"] = element.fileElement.fileSize
-                fileCache.set(element.fileElement.fileName, {
+                dbUtil.addFileCache(element.fileElement.fileName, {
                     fileName: element.fileElement.fileName,
                     filePath: element.fileElement.filePath,
                     fileSize: element.fileElement.fileSize,
@@ -166,7 +166,7 @@ export class OB11Constructor {
                         await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
                             element.elementId, null, element.fileElement.filePath)
                     }
-                })
+                }).then()
                 // 怎么拿到url呢
             } else if (element.pttElement) {
                 message_data["type"] = OB11MessageDataType.voice;
@@ -174,11 +174,11 @@ export class OB11Constructor {
                 message_data["data"]["path"] = element.pttElement.filePath
                 // message_data["data"]["file_id"] = element.pttElement.fileUuid
                 message_data["data"]["file_size"] = element.pttElement.fileSize
-                fileCache.set(element.pttElement.fileName, {
+                dbUtil.addFileCache(element.pttElement.fileName, {
                     fileName: element.pttElement.fileName,
                     filePath: element.pttElement.filePath,
                     fileSize: element.pttElement.fileSize,
-                })
+                }).then()
 
                 // log("收到语音消息", msg)
                 // window.LLAPI.Ptt2Text(message.raw.msgId, message.peer, messages).then(text => {

@@ -18,6 +18,7 @@ import {log} from "../../common/utils";
 import {decodeCQCode} from "../cqcode";
 import {dbUtil} from "../../common/db";
 import {ALLOW_SEND_TEMP_MSG} from "../../common/config";
+import {FileCache} from "../../common/types";
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
     function checkUri(uri: string): boolean {
@@ -328,9 +329,20 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                 case OB11MessageDataType.file:
                 case OB11MessageDataType.video:
                 case OB11MessageDataType.voice: {
-                    const file = sendMsg.data?.file
+                    let file = sendMsg.data?.file
                     const payloadFileName = sendMsg.data?.name
                     if (file) {
+                        const cache = await dbUtil.getFileCache(file)
+                        if (cache){
+                            if (fs.existsSync(cache.filePath)){
+                                file = "file://" + cache.filePath
+                            }
+                            else if (cache.downloadFunc){
+                                await cache.downloadFunc()
+                                file = cache.filePath;
+                                log("找到文件缓存", file);
+                            }
+                        }
                         const {path, isLocal, fileName, errMsg} = (await uri2local(file))
                         if (errMsg){
                             throw errMsg

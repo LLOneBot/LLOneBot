@@ -1,7 +1,7 @@
 import BaseAction from "./BaseAction";
-import {fileCache} from "../../common/data";
 import {getConfigUtil} from "../../common/utils";
 import fs from "fs/promises";
+import {dbUtil} from "../../common/db";
 
 export interface GetFilePayload {
     file: string // 文件名
@@ -18,7 +18,7 @@ export interface GetFileResponse {
 
 export class GetFileBase extends BaseAction<GetFilePayload, GetFileResponse> {
     protected async _handle(payload: GetFilePayload): Promise<GetFileResponse> {
-        const cache = fileCache.get(payload.file)
+        const cache = await dbUtil.getFileCache(payload.file)
         const {autoDeleteFile, enableLocalFile2Url, autoDeleteFileSecond} = getConfigUtil().getConfig()
         if (!cache) {
             throw new Error('file not found')

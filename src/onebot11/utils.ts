@@ -1,8 +1,8 @@
 import {DATA_DIR, isGIF, log} from "../common/utils";
 import {v4 as uuidv4} from "uuid";
 import * as path from 'node:path';
-import {fileCache} from "../common/data";
 import * as fileType from 'file-type';
+import {dbUtil} from "../common/db";
 
 const fs = require("fs").promises;
 
@@ -73,7 +73,7 @@ export async function uri2local(uri: string, fileName: string = null) {
                 filePath = pathname
             }
         } else {
-            const cache = fileCache.get(uri)
+            const cache = await dbUtil.getFileCache(uri);
             if (cache) {
                 filePath = cache.filePath
             } else {
