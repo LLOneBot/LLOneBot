@@ -233,6 +233,7 @@ export interface PicElement {
     fileSize: number;
     fileName: string;
     fileUuid: string;
+    md5HexStr?: string;
 }
 
 export interface GrayTipElement {
