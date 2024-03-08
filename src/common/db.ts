@@ -1,17 +1,17 @@
-// import {DATA_DIR} from "./utils";
 import {Level} from "level";
 import {RawMessage} from "../ntqqapi/types";
 import {DATA_DIR, log} from "./utils";
 import {selfInfo} from "./data";
-import * as wasi from "wasi";
+import {FileCache} from "./types";
 
 
 class DBUtil {
     private readonly DB_KEY_PREFIX_MSG_ID = "msg_id_";
     private readonly DB_KEY_PREFIX_MSG_SHORT_ID = "msg_short_id_";
     private readonly DB_KEY_PREFIX_MSG_SEQ_ID = "msg_seq_id_";
+    private readonly DB_KEY_PREFIX_FILE = "file_";
     private db: Level;
-    private cache: Record<string, RawMessage> = {}  // <msg_id_ | msg_short_id_ | msg_seq_id_><id>: RawMessage
+    private cache: Record<string, RawMessage | string | FileCache> = {}  // <msg_id_ | msg_short_id_ | msg_seq_id_><id>: RawMessage
     private currentShortId: number;
 
     /*
@@ -19,6 +19,7 @@ class DBUtil {
     * msg_id_101231230999: {} // 长id: RawMessage
     * msg_short_id_1: 101231230999  // 短id: 长id
     * msg_seq_id_1: 101231230999  // 序列id: 长id
+    * file_7827DBAFJFW2323.png: {} // 文件名: FileCache
     * */
 
     constructor() {
@@ -61,7 +62,7 @@ class DBUtil {
     async getMsgByShortId(shortMsgId: number): Promise<RawMessage> {
         const shortMsgIdKey = this.DB_KEY_PREFIX_MSG_SHORT_ID + shortMsgId;
         if (this.cache[shortMsgIdKey]) {
-            return this.cache[shortMsgIdKey]
+            return this.cache[shortMsgIdKey] as RawMessage
         }
         const longId = await this.db.get(shortMsgIdKey);
         const msg = await this.getMsgByLongId(longId)
@@ -72,7 +73,7 @@ class DBUtil {
     async getMsgByLongId(longId: string): Promise<RawMessage> {
         const longIdKey = this.DB_KEY_PREFIX_MSG_ID + longId;
         if (this.cache[longIdKey]) {
-            return this.cache[longIdKey]
+            return this.cache[longIdKey] as RawMessage
         }
         const data = await this.db.get(longIdKey)
         const msg = JSON.parse(data)
@@ -83,7 +84,7 @@ class DBUtil {
     async getMsgBySeqId(seqId: string): Promise<RawMessage> {
         const seqIdKey = this.DB_KEY_PREFIX_MSG_SEQ_ID + seqId;
         if (this.cache[seqIdKey]) {
-            return this.cache[seqIdKey]
+            return this.cache[seqIdKey] as RawMessage
         }
         const longId = await this.db.get(seqIdKey);
         const msg = await this.getMsgByLongId(longId)
@@ -95,7 +96,7 @@ class DBUtil {
         // 有则更新，无则添加
         // log("addMsg", msg.msgId, msg.msgSeq, msg.msgShortId);
         const longIdKey = this.DB_KEY_PREFIX_MSG_ID + msg.msgId
-        let existMsg = this.cache[longIdKey]
+        let existMsg = this.cache[longIdKey] as RawMessage
         if (!existMsg) {
             try {
                 existMsg = await this.getMsgByLongId(msg.msgId)
@@ -136,7 +137,7 @@ class DBUtil {
 
     async updateMsg(msg: RawMessage) {
         const longIdKey = this.DB_KEY_PREFIX_MSG_ID + msg.msgId
-        let existMsg = this.cache[longIdKey]
+        let existMsg = this.cache[longIdKey] as RawMessage
         if (!existMsg) {
             try {
                 existMsg = await this.getMsgByLongId(msg.msgId)
@@ -178,6 +179,31 @@ class DBUtil {
         this.currentShortId++;
         await this.db.put(key, this.currentShortId.toString());
         return this.currentShortId;
+    }
+
+    async addFileCache(fileName: string, data: FileCache) {
+        const key = this.DB_KEY_PREFIX_FILE + fileName;
+        if (this.cache[key]) {
+            return
+        }
+        let cacheDBData = {...data}
+        delete cacheDBData['downloadFunc']
+        this.cache[fileName] = data;
+        await this.db.put(key, JSON.stringify(cacheDBData));
+    }
+
+    async getFileCache(fileName: string): Promise<FileCache | undefined> {
+        const key = this.DB_KEY_PREFIX_FILE + fileName;
+        if (this.cache[key]) {
+            return this.cache[key] as FileCache
+        }
+        try{
+
+            let data = await this.db.get(key);
+            return JSON.parse(data);
+        }catch (e) {
+
+        }
     }
 }
 

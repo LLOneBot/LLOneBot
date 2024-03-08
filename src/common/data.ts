@@ -28,8 +28,6 @@ export const llonebotError: LLOneBotError = {
     otherError: ''
 }
 
-export const fileCache = new Map<string, FileCache>()
-
 
 export async function getFriend(qq: string, uid: string = ""): Promise<Friend | undefined> {
     let filterKey = uid ? "uid" : "uin"
