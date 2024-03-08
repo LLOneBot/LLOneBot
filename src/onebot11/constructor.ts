@@ -106,7 +106,7 @@ export class OB11Constructor {
                         continue
                     }
                 }catch (e) {
-                    log("获取不到引用的消息", e.stack)
+                    log("获取不到引用的消息", e.stack, element.replyElement.replayMsgSeq)
                 }
 
             } else if (element.picElement) {
@@ -119,7 +119,7 @@ export class OB11Constructor {
                 if (url){
                     message_data["data"]["url"] = IMAGE_HTTP_HOST + url
                 }
-                else if (fileMd5){
+                else if (fileMd5 && element.picElement.fileUuid.indexOf("_") === -1){ // fileuuid有下划线的是Linux发送的，这个url是另外的格式，目前尚未得知如何组装
                     message_data["data"]["url"] = `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${fileMd5.toUpperCase()}/0`
                 }
                 // message_data["data"]["file_id"] = element.picElement.fileUuid

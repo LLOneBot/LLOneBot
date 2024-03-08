@@ -118,11 +118,10 @@ class DBUtil {
             this.db.put(shortIdKey, msg.msgId).then();
             this.db.put(longIdKey, JSON.stringify(msg)).then();
             try {
-                if (!(await this.db.get(seqIdKey))) {
-                    this.db.put(seqIdKey, msg.msgId).then();
-                }
+                await this.db.get(seqIdKey)
             } catch (e) {
-
+                // log("新的seqId", seqIdKey)
+                this.db.put(seqIdKey, msg.msgId).then();
             }
             this.cache[shortIdKey] = this.cache[longIdKey] = msg;
             if (!this.cache[seqIdKey]) {
@@ -142,7 +141,7 @@ class DBUtil {
             try {
                 existMsg = await this.getMsgByLongId(msg.msgId)
             } catch (e) {
-                return
+                existMsg = msg
             }
         }
 
@@ -155,11 +154,10 @@ class DBUtil {
         }
         this.db.put(shortIdKey, msg.msgId).then();
         try {
-            if (!(await this.db.get(seqIdKey))) {
-                this.db.put(seqIdKey, msg.msgId).then();
-            }
+            await this.db.get(seqIdKey)
         } catch (e) {
-
+            this.db.put(seqIdKey, msg.msgId).then();
+            // log("更新seqId error", e.stack, seqIdKey);
         }
         // log("更新消息", existMsg.msgSeq, existMsg.msgShortId, existMsg.msgId);
     }
@@ -197,11 +195,11 @@ class DBUtil {
         if (this.cache[key]) {
             return this.cache[key] as FileCache
         }
-        try{
+        try {
 
             let data = await this.db.get(key);
             return JSON.parse(data);
-        }catch (e) {
+        } catch (e) {
 
         }
     }
