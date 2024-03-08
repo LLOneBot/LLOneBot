@@ -120,7 +120,7 @@ export class OB11Constructor {
                     message_data["data"]["url"] = IMAGE_HTTP_HOST + url
                 }
                 else if (fileMd5){
-                    message_data["data"]["file_id"] = `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${fileMd5.toUpperCase()}/0`
+                    message_data["data"]["url"] = `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${fileMd5.toUpperCase()}/0`
                 }
                 // message_data["data"]["file_id"] = element.picElement.fileUuid
                 message_data["data"]["file_size"] = element.picElement.fileSize
@@ -128,7 +128,7 @@ export class OB11Constructor {
                     fileName: element.picElement.fileName,
                     filePath: element.picElement.sourcePath,
                     fileSize: element.picElement.fileSize.toString(),
-                    url: IMAGE_HTTP_HOST + element.picElement.originImageUrl,
+                    url: message_data["data"]["url"],
                     downloadFunc: async () => {
                         await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
                             element.elementId, element.picElement.thumbPath?.get(0) || "", element.picElement.sourcePath)
