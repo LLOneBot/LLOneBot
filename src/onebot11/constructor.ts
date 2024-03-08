@@ -114,7 +114,14 @@ export class OB11Constructor {
                 // message_data["data"]["file"] = element.picElement.sourcePath
                 message_data["data"]["file"] = element.picElement.fileName
                 // message_data["data"]["path"] = element.picElement.sourcePath
-                message_data["data"]["url"] = IMAGE_HTTP_HOST + element.picElement.originImageUrl
+                const url = element.picElement.originImageUrl
+                const fileMd5 = element.picElement.md5HexStr
+                if (url){
+                    message_data["data"]["url"] = IMAGE_HTTP_HOST + url
+                }
+                else if (fileMd5){
+                    message_data["data"]["file_id"] = `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${fileMd5}/0`
+                }
                 // message_data["data"]["file_id"] = element.picElement.fileUuid
                 message_data["data"]["file_size"] = element.picElement.fileSize
                 fileCache.set(element.picElement.fileName, {

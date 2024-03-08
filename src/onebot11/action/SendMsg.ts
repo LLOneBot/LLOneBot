@@ -214,7 +214,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                         deleteAfterSentFiles
                     } = await this.createSendElements(this.convertMessage2List(messageNode.data.content), group);
                     log("开始生成转发节点", sendElements);
-                    const nodeMsg = await this.send(selfPeer, sendElements, deleteAfterSentFiles, true);
+                    const nodeMsg = await this.send(selfPeer, sendElements, deleteAfterSentFiles, false);
                     selfNodeMsgList.push(nodeMsg);
                     log("转发节点生成成功", nodeMsg.msgId);
                 } catch (e) {
@@ -368,7 +368,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         }
     }
 
-    private async send(peer: Peer, sendElements: SendMessageElement[], deleteAfterSentFiles: string[], waitComplete = false) {
+    private async send(peer: Peer, sendElements: SendMessageElement[], deleteAfterSentFiles: string[], waitComplete = true) {
         if (!sendElements.length) {
             throw ("消息体无法解析")
         }

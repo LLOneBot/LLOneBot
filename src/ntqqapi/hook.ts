@@ -268,7 +268,7 @@ registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, ({msgRe
     const message = msgRecord
     const peerUid = message.peerUid
     // log("收到自己发送成功的消息", Object.keys(sendMessagePool), message);
-    // log("收到自己发送成功的消息", message.msgSeq);
+    // log("收到自己发送成功的消息", message);
     dbUtil.addMsg(message).then()
     const sendCallback = sendMessagePool[peerUid]
     if (sendCallback) {
