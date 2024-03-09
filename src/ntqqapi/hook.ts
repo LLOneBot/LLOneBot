@@ -235,8 +235,8 @@ registerReceiveHook<{
 registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
     const {autoDeleteFile} = getConfigUtil().getConfig();
     for (const message of payload.msgList) {
-        // log("收到新消息，push到历史记录", message.msgSeq)
-        dbUtil.addMsg(message).then()
+        // log("收到新消息，push到历史记录", message.msgId)
+        // dbUtil.addMsg(message).then()
         // 清理文件
         if (!autoDeleteFile) {
             continue
@@ -270,7 +270,7 @@ registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, ({msgRe
     const message = msgRecord;
     const peerUid = message.peerUid;
     // log("收到自己发送成功的消息", Object.keys(sendMessagePool), message);
-    // log("收到自己发送成功的消息", message);
+    // log("收到自己发送成功的消息", message.msgId, message.msgSeq);
     dbUtil.addMsg(message).then()
     const sendCallback = sendMessagePool[peerUid]
     if (sendCallback) {
