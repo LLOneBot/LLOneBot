@@ -10,9 +10,9 @@ TG群：<https://t.me/+nLZEnpne-pQ1OWFl>
 
 ## 设置界面
 
-![](doc/image/setting.png)
+<img src="./doc/image/setting.png" width="500px" alt="图片名称"/>
 
-## 调用示例
+## HTTP 调用示例
 
 ![](doc/image/example.jpg)
 
