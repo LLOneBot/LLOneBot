@@ -155,8 +155,10 @@ function onLoad() {
     async function postReceiveMsg(msgList: RawMessage[]) {
         const {debug, reportSelfMessage} = getConfigUtil().getConfig();
         for (let message of msgList) {
-            // log("收到新消息", message.msgSeq)
-            message.msgShortId = await dbUtil.addMsg(message)
+            // log("收到新消息", message.msgId, message.msgSeq)
+            // if (message.senderUin !== selfInfo.uin){
+                message.msgShortId = await dbUtil.addMsg(message);
+            // }
 
             OB11Constructor.message(message).then((msg) => {
                 if (debug) {
@@ -182,7 +184,7 @@ function onLoad() {
         })
         registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.UPDATE_MSG, async (payload) => {
             for (const message of payload.msgList) {
-                // log("message update", message.sendStatus, message)
+                // log("message update", message.sendStatus, message.msgId, message.msgSeq)
                 if (message.recallTime != "0") {
                     // 撤回消息上报
                     const oriMessage = await dbUtil.getMsgByLongId(message.msgId)

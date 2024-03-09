@@ -11,7 +11,7 @@ class DBUtil {
     private readonly DB_KEY_PREFIX_MSG_SEQ_ID = "msg_seq_id_";
     private readonly DB_KEY_PREFIX_FILE = "file_";
     private db: Level;
-    private cache: Record<string, RawMessage | string | FileCache> = {}  // <msg_id_ | msg_short_id_ | msg_seq_id_><id>: RawMessage
+    public cache: Record<string, RawMessage | string | FileCache> = {}  // <msg_id_ | msg_short_id_ | msg_seq_id_><id>: RawMessage
     private currentShortId: number;
 
     /*
@@ -101,7 +101,7 @@ class DBUtil {
             try {
                 existMsg = await this.getMsgByLongId(msg.msgId)
             } catch (e) {
-
+                // log("addMsg getMsgByLongId error", e.stack.toString())
             }
         }
         if (existMsg) {
@@ -109,7 +109,8 @@ class DBUtil {
             this.updateMsg(msg).then()
             return existMsg.msgShortId
         }
-
+        this.addCache(msg);
+        // log("新增消息记录", msg.msgId)
         const shortMsgId = await this.genMsgShortId();
         const shortIdKey = this.DB_KEY_PREFIX_MSG_SHORT_ID + shortMsgId;
         const seqIdKey = this.DB_KEY_PREFIX_MSG_SEQ_ID + msg.msgSeq;
@@ -123,7 +124,6 @@ class DBUtil {
                 // log("新的seqId", seqIdKey)
                 this.db.put(seqIdKey, msg.msgId).then();
             }
-            this.cache[shortIdKey] = this.cache[longIdKey] = msg;
             if (!this.cache[seqIdKey]) {
                 this.cache[seqIdKey] = msg;
             }
