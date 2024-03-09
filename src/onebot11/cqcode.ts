@@ -46,15 +46,22 @@ export function decodeCQCode(source: string): OB11MessageData[] {
 
 
 export function encodeCQCode(data: OB11MessageData) {
-    const CQCodeEscape = (text: string) => {
-        return text.replace(/\[/g, '&#91;')
+    const CQCodeEscapeText = (text: string) => {
+        return text.replace(/\&/g, '&amp;')
+            .replace(/\[/g, '&#91;')
             .replace(/\]/g, '&#93;')
-            .replace(/\&/g, '&amp;')
+            
+    };
+
+    const CQCodeEscape = (text: string) => {
+        return text.replace(/\&/g, '&amp;')
+            .replace(/\[/g, '&#91;')
+            .replace(/\]/g, '&#93;')
             .replace(/,/g, '&#44;');
     };
 
     if (data.type === 'text') {
-        return CQCodeEscape(data.data.text);
+        return CQCodeEscapeText(data.data.text);
     }
 
     let result = '[CQ:' + data.type;
