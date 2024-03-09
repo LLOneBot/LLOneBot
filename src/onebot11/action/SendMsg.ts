@@ -14,7 +14,7 @@ import {uri2local} from "../utils";
 import BaseAction from "./BaseAction";
 import {ActionName, BaseCheckResult} from "./types";
 import * as fs from "node:fs";
-import {log} from "../../common/utils";
+import {log, sleep} from "../../common/utils";
 import {decodeCQCode} from "../cqcode";
 import {dbUtil} from "../../common/db";
 import {ALLOW_SEND_TEMP_MSG} from "../../common/config";
@@ -195,8 +195,9 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             chatType: ChatType.friend,
             peerUid: selfInfo.uid
         }
-        let selfNodeMsgList: RawMessage[] = [];
+        let selfNodeMsgList: RawMessage[] = []; // 自己给自己发的消息
         let originalNodeMsgList: RawMessage[] = [];
+        let sendForwardElements: SendMessageElement[] = []
         for (const messageNode of messageNodes) {
             // 一个node表示一个人的消息
             let nodeId = messageNode.data.id;
@@ -215,9 +216,11 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                         deleteAfterSentFiles
                     } = await this.createSendElements(this.convertMessage2List(messageNode.data.content), group);
                     log("开始生成转发节点", sendElements);
+                    sendForwardElements.push(...sendElements);
                     const nodeMsg = await this.send(selfPeer, sendElements, deleteAfterSentFiles, true);
                     selfNodeMsgList.push(nodeMsg);
                     log("转发节点生成成功", nodeMsg.msgId);
+                    await sleep(500);
                 } catch (e) {
                     log("生效转发消息节点失败", e)
                 }
@@ -227,27 +230,28 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         let nodeIds: string[] = []
         // 检查是否需要克隆直接引用消息id的节点
         let needSendSelf = false;
-        if (selfNodeMsgList.length) {
+        if (sendForwardElements.length) {
             needSendSelf = true
         } else {
             needSendSelf = !originalNodeMsgList.every((msg, index) => msg.peerUid === originalNodeMsgList[0].peerUid && msg.recallTime.length < 2)
         }
         if (needSendSelf) {
             nodeIds = selfNodeMsgList.map(msg => msg.msgId);
+            let sendElements: SendMessageElement[] = [];
             for (const originalNodeMsg of originalNodeMsgList) {
                 if (originalNodeMsg.peerUid === selfInfo.uid && originalNodeMsg.recallTime.length < 2) {
                     nodeIds.push(originalNodeMsg.msgId)
                 } else { // 需要进行克隆
-                    let sendElements: SendMessageElement[] = []
                     Object.keys(originalNodeMsg.elements).forEach((eleKey) => {
                         if (eleKey !== "elementId") {
+                            sendForwardElements.push(originalNodeMsg.elements[eleKey])
                             sendElements.push(originalNodeMsg.elements[eleKey])
                         }
                     })
                     try {
                         const nodeMsg = await NTQQApi.sendMsg(selfPeer, sendElements, true);
                         nodeIds.push(nodeMsg.msgId)
-                        log("克隆转发消息成功")
+                        log("克隆转发消息到节点")
                     } catch (e) {
                         log("克隆转发消息失败", e)
                     }
@@ -264,6 +268,15 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                 peerUid: originalNodeMsgList[0].peerUid
             }
         }
+        // elements之间用换行符分隔
+        // let _sendForwardElements: SendMessageElement[] = []
+        // for(let i = 0; i < sendForwardElements.length; i++){
+        //     _sendForwardElements.push(sendForwardElements[i])
+        //     _sendForwardElements.push(SendMsgElementConstructor.text("\n\n"))
+        // }
+        // const nodeMsg = await NTQQApi.sendMsg(selfPeer, _sendForwardElements, true);
+        // nodeIds.push(nodeMsg.msgId)
+        // await sleep(500);
         // 开发转发
         try {
             return await NTQQApi.multiForwardMsg(srcPeer, destPeer, nodeIds)
