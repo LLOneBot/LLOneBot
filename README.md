@@ -43,3 +43,6 @@ TG群：<https://t.me/+nLZEnpne-pQ1OWFl>
 * [LLAPI](https://github.com/Night-stars-1/LiteLoaderQQNT-Plugin-LLAPI)
 * chronocat
 * [koishi-plugin-adapter-onebot](https://github.com/koishijs/koishi-plugin-adapter-onebot)
+
+## 友链
+* [Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core)(一款用C#实现的NTQQ纯协议跨平台QQ机器人框架)
