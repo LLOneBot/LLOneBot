@@ -12,7 +12,36 @@ export abstract class HttpServerBase {
     constructor() {
         this.expressAPP = express();
         this.expressAPP.use(express.urlencoded({extended: true, limit: "500mb"}));
-        this.expressAPP.use(json({limit: "500mb"}));
+        // 自定义JSON解析中间件，避免有些人不填写Content-Type导致无法解析JSON
+        const customJsonParser = (req, res, next) => {
+            // 确保我们只处理`POST`请求
+            if (req.method === 'POST') {
+                // 临时存储请求体数据
+                let data = '';
+
+                // 监听data事件以收集数据片段
+                req.on('data', chunk => {
+                    data += chunk;
+                });
+
+                // 数据接收完成
+                req.on('end', () => {
+                    if (data) {
+                        try {
+                            // 尝试解析JSON
+                            req.body = JSON.parse(data);
+                        } catch (error) {
+                            // 解析失败，返回错误响应
+                            return res.status(400).send('Invalid JSON');
+                        }
+                    }
+                    next();
+                });
+            } else {
+                next();
+            }
+        };
+        this.expressAPP.use(customJsonParser);
     }
 
     authorize(req: Request, res: Response, next: () => void) {
