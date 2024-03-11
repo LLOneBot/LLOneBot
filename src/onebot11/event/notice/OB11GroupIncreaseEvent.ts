@@ -5,10 +5,10 @@ export class OB11GroupIncreaseEvent extends OB11GroupNoticeEvent {
     sub_type = "approve";  // TODO: 实现其他几种子类型的识别 ("approve" | "invite")
     operator_id: number;
 
-    constructor(groupId: number, userId: number) {
+    constructor(groupId: number, userId: number, operatorId: number) {
         super();
         this.group_id = groupId;
-        this.operator_id = userId;  // 实际上不应该这么实现，但是现在还没有办法识别用户是被邀请的，还是主动加入的
+        this.operator_id = operatorId;
         this.user_id = userId;
     }
 }

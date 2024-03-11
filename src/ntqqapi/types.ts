@@ -112,6 +112,7 @@ export enum PicType {
     gif = 2000,
     jpg = 1000
 }
+
 export interface SendPicElement {
     elementType: ElementType.PIC,
     elementId: "",
@@ -218,8 +219,8 @@ export interface PttElement {
 
 export interface ArkElement {
     bytesData: string;
-    linkInfo:null,
-    subElementType:null
+    linkInfo: null,
+    subElementType: null
 }
 
 export const IMAGE_HTTP_HOST = "https://gchat.qpic.cn"
@@ -233,6 +234,7 @@ export interface PicElement {
     fileSize: number;
     fileName: string;
     fileUuid: string;
+    md5HexStr?: string;
 }
 
 export interface GrayTipElement {
@@ -244,7 +246,8 @@ export interface GrayTipElement {
         operatorMemRemark?: string;
         wording: string;  // 自定义的撤回提示语
     }
-    aioOpGrayTipElement: TipAioOpGrayTipElement
+    aioOpGrayTipElement: TipAioOpGrayTipElement,
+    groupElement: TipGroupElement
 }
 
 export interface FaceElement {
@@ -277,15 +280,20 @@ export interface VideoElement {
     "sourceVideoCodecFormat": 0
 }
 
-export interface TipAioOpGrayTipElement{
+export interface TipAioOpGrayTipElement {  // 这是什么提示来着？
     operateType: number,
     peerUid: string,
     fromGrpCodeOfTmpChat: string,
 }
 
+export enum TipGroupElementType {
+    memberIncrease = 1,
+    ban = 8
+}
+
 export interface TipGroupElement {
-    "type": 1,  // 1是表示有人加入群, 自己加入群也会收到这个
-    "role": 0,
+    "type": TipGroupElementType,  // 1是表示有人加入群, 自己加入群也会收到这个
+    "role": 0,  // 暂时不知
     "groupName": string,  // 暂时获取不到
     "memberUid": string,
     "memberNick": string,
@@ -294,7 +302,7 @@ export interface TipGroupElement {
     "adminNick": string,
     "adminRemark": string,
     "createGroup": null,
-    "memberAdd": {
+    "memberAdd"?: {
         "showType": 1,
         "otherAdd": null,
         "otherAddByOtherQRCode": null,
@@ -304,7 +312,22 @@ export interface TipGroupElement {
         "otherInviteYou": null,
         "youInviteOther": null
     },
-    "shutUp": null
+    "shutUp"?: {
+        "curTime": string,
+        "duration": string,  // 禁言时间，秒
+        "admin": {
+            "uid": string,
+            "card": string,
+            "name": string,
+            "role": GroupMemberRole
+        },
+        "member": {
+            "uid": string
+            "card": string,
+            "name": string,
+            "role": GroupMemberRole
+        }
+    }
 }
 
 
@@ -365,7 +388,7 @@ export interface GroupNotifies {
 
 export interface GroupNotify {
     time: number;  // 自己添加的字段，时间戳，毫秒, 用于判断收到短时间内收到重复的notify
-    seq: string, // 转成数字，再除以1000应该就是时间戳？
+    seq: string, // 唯一标识符，转成数字再除以1000应该就是时间戳？
     type: GroupNotifyTypes,
     status: 0,  // 未知
     group: { groupCode: string, groupName: string },
@@ -402,4 +425,68 @@ export interface FriendRequestNotify {
         unreadNums: number,
         buddyReqs: FriendRequest[]
     }
+}
+
+export interface CacheScanResult {
+    result: number,
+    size: [ // 单位为字节
+        string, // 系统总存储空间
+        string, // 系统可用存储空间
+        string, // 系统已用存储空间
+        string, // QQ总大小
+        string, // 「聊天与文件」大小
+        string, // 未知
+        string, // 「缓存数据」大小
+        string, // 「其他数据」大小
+        string, // 未知
+    ]
+}
+
+export interface ChatCacheList {
+    pageCount: number,
+    infos: ChatCacheListItem[]
+}
+
+export interface ChatCacheListItem {
+    chatType: ChatType,
+    basicChatCacheInfo: ChatCacheListItemBasic,
+    guildChatCacheInfo: unknown[] // TODO: 没用过频道所以不知道这里边的详细内容
+}
+
+export interface ChatCacheListItemBasic {
+    chatSize: string,
+    chatTime: string,
+    uid: string,
+    uin: string,
+    remarkName: string,
+    nickName: string,
+    chatType?: ChatType,
+    isChecked?: boolean
+}
+
+export enum CacheFileType {
+    IMAGE = 0,
+    VIDEO = 1,
+    AUDIO = 2,
+    DOCUMENT = 3,
+    OTHER = 4,
+}
+
+export interface CacheFileList {
+    infos: CacheFileListItem[],
+}
+
+export interface CacheFileListItem {
+    fileSize: string,
+    fileTime: string,
+    fileKey: string,
+    elementId: string,
+    elementIdStr: string,
+    fileType: CacheFileType,
+    path: string,
+    fileName: string,
+    senderId: string,
+    previewPath: string,
+    senderName: string,
+    isChecked?: boolean,
 }

@@ -21,14 +21,11 @@ export const selfInfo: SelfInfo = {
 }
 export let groups: Group[] = []
 export let friends: Friend[] = []
-export let groupNotifies: Map<string, GroupNotify> = new Map<string, GroupNotify>()
 export let friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>()
 export const llonebotError: LLOneBotError = {
     ffmpegError: '',
     otherError: ''
 }
-
-export const fileCache = new Map<string, FileCache>()
 
 
 export async function getFriend(qq: string, uid: string = ""): Promise<Friend | undefined> {

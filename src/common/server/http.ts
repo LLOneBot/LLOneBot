@@ -11,8 +11,21 @@ export abstract class HttpServerBase {
 
     constructor() {
         this.expressAPP = express();
-        this.expressAPP.use(express.urlencoded({extended: true, limit: "500mb"}));
-        this.expressAPP.use(json({limit: "500mb"}));
+        this.expressAPP.use(express.urlencoded({extended: true, limit: "5000mb"}));
+        this.expressAPP.use((req, res, next) => {
+            // 兼容处理没有带content-type的请求
+            // log("req.headers['content-type']", req.headers['content-type'])
+            req.headers['content-type'] = 'application/json';
+            const originalJson = express.json({limit: "5000mb"});
+            // 调用原始的express.json()处理器
+            originalJson(req, res, (err) => {
+                if (err) {
+                    log("Error parsing JSON:", err);
+                    return res.status(400).send("Invalid JSON");
+                }
+                next();
+            });
+        });
     }
 
     authorize(req: Request, res: Response, next: () => void) {

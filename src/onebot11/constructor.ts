@@ -8,13 +8,25 @@ import {
     OB11User,
     OB11UserSex
 } from "./types";
-import {AtType, ChatType, Group, GroupMember, IMAGE_HTTP_HOST, RawMessage, SelfInfo, User} from '../ntqqapi/types';
-import {fileCache, getFriend, getGroupMember, selfInfo, tempGroupCodeMap} from '../common/data';
-import {getConfigUtil, log} from "../common/utils";
+import {
+    AtType,
+    ChatType,
+    Group,
+    GroupMember,
+    IMAGE_HTTP_HOST,
+    RawMessage,
+    SelfInfo,
+    TipGroupElementType,
+    User
+} from '../ntqqapi/types';
+import {getFriend, getGroup, getGroupMember, selfInfo, tempGroupCodeMap} from '../common/data';
+import {getConfigUtil, log, sleep} from "../common/utils";
 import {NTQQApi} from "../ntqqapi/ntcall";
 import {EventType} from "./event/OB11BaseEvent";
 import {encodeCQCode} from "./cqcode";
 import {dbUtil} from "../common/db";
+import {OB11GroupIncreaseEvent} from "./event/notice/OB11GroupIncreaseEvent";
+import {OB11GroupBanEvent} from "./event/notice/OB11GroupBanEvent";
 
 
 export class OB11Constructor {
@@ -27,7 +39,7 @@ export class OB11Constructor {
             user_id: parseInt(msg.senderUin),
             time: parseInt(msg.msgTime) || Date.now(),
             message_id: msg.msgShortId,
-            real_id: msg.msgId,
+            real_id: msg.msgShortId,
             message_type: msg.chatType == ChatType.group ? "group" : "private",
             sender: {
                 user_id: parseInt(msg.senderUin),
@@ -97,7 +109,7 @@ export class OB11Constructor {
             } else if (element.replyElement) {
                 message_data["type"] = "reply"
                 // log("收到回复消息", element.replyElement.replayMsgSeq)
-                try{
+                try {
                     const replyMsg = await dbUtil.getMsgBySeqId(element.replyElement.replayMsgSeq)
                     // log("找到回复消息", replyMsg.msgShortId, replyMsg.msgId)
                     if (replyMsg) {
@@ -105,8 +117,8 @@ export class OB11Constructor {
                     } else {
                         continue
                     }
-                }catch (e) {
-                    log("获取不到引用的消息", e.stack)
+                } catch (e) {
+                    log("获取不到引用的消息", e.stack, element.replyElement.replayMsgSeq)
                 }
 
             } else if (element.picElement) {
@@ -114,19 +126,25 @@ export class OB11Constructor {
                 // message_data["data"]["file"] = element.picElement.sourcePath
                 message_data["data"]["file"] = element.picElement.fileName
                 // message_data["data"]["path"] = element.picElement.sourcePath
-                message_data["data"]["url"] = IMAGE_HTTP_HOST + element.picElement.originImageUrl
+                const url = element.picElement.originImageUrl
+                const fileMd5 = element.picElement.md5HexStr
+                if (url) {
+                    message_data["data"]["url"] = IMAGE_HTTP_HOST + url
+                } else if (fileMd5 && element.picElement.fileUuid.indexOf("_") === -1) { // fileuuid有下划线的是Linux发送的，这个url是另外的格式，目前尚未得知如何组装
+                    message_data["data"]["url"] = `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${fileMd5.toUpperCase()}/0`
+                }
                 // message_data["data"]["file_id"] = element.picElement.fileUuid
                 message_data["data"]["file_size"] = element.picElement.fileSize
-                fileCache.set(element.picElement.fileName, {
+                dbUtil.addFileCache(element.picElement.fileName, {
                     fileName: element.picElement.fileName,
                     filePath: element.picElement.sourcePath,
                     fileSize: element.picElement.fileSize.toString(),
-                    url: IMAGE_HTTP_HOST + element.picElement.originImageUrl,
+                    url: message_data["data"]["url"],
                     downloadFunc: async () => {
                         await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
                             element.elementId, element.picElement.thumbPath?.get(0) || "", element.picElement.sourcePath)
                     }
-                })
+                }).then()
                 // 不在自动下载图片
 
             } else if (element.videoElement) {
@@ -135,7 +153,7 @@ export class OB11Constructor {
                 message_data["data"]["path"] = element.videoElement.filePath
                 // message_data["data"]["file_id"] = element.videoElement.fileUuid
                 message_data["data"]["file_size"] = element.videoElement.fileSize
-                fileCache.set(element.videoElement.fileName, {
+                dbUtil.addFileCache(element.videoElement.fileName, {
                     fileName: element.videoElement.fileName,
                     filePath: element.videoElement.filePath,
                     fileSize: element.videoElement.fileSize,
@@ -143,7 +161,7 @@ export class OB11Constructor {
                         await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
                             element.elementId, element.videoElement.thumbPath.get(0), element.videoElement.filePath)
                     }
-                })
+                }).then()
                 // 怎么拿到url呢
             } else if (element.fileElement) {
                 message_data["type"] = OB11MessageDataType.file;
@@ -151,7 +169,7 @@ export class OB11Constructor {
                 // message_data["data"]["path"] = element.fileElement.filePath
                 // message_data["data"]["file_id"] = element.fileElement.fileUuid
                 message_data["data"]["file_size"] = element.fileElement.fileSize
-                fileCache.set(element.fileElement.fileName, {
+                dbUtil.addFileCache(element.fileElement.fileName, {
                     fileName: element.fileElement.fileName,
                     filePath: element.fileElement.filePath,
                     fileSize: element.fileElement.fileSize,
@@ -159,7 +177,7 @@ export class OB11Constructor {
                         await NTQQApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
                             element.elementId, null, element.fileElement.filePath)
                     }
-                })
+                }).then()
                 // 怎么拿到url呢
             } else if (element.pttElement) {
                 message_data["type"] = OB11MessageDataType.voice;
@@ -167,11 +185,11 @@ export class OB11Constructor {
                 message_data["data"]["path"] = element.pttElement.filePath
                 // message_data["data"]["file_id"] = element.pttElement.fileUuid
                 message_data["data"]["file_size"] = element.pttElement.fileSize
-                fileCache.set(element.pttElement.fileName, {
+                dbUtil.addFileCache(element.pttElement.fileName, {
                     fileName: element.pttElement.fileName,
                     filePath: element.pttElement.filePath,
                     fileSize: element.pttElement.fileSize,
-                })
+                }).then()
 
                 // log("收到语音消息", msg)
                 // window.LLAPI.Ptt2Text(message.raw.msgId, message.peer, messages).then(text => {
@@ -186,7 +204,10 @@ export class OB11Constructor {
                 message_data["type"] = OB11MessageDataType.face;
                 message_data["data"]["id"] = element.faceElement.faceIndex.toString();
             }
-
+            // todo: 解析入群grayTipElement
+            else if (element.grayTipElement?.aioOpGrayTipElement) {
+                log("收到 group gray tip 消息", element.grayTipElement.aioOpGrayTipElement)
+            }
             // if (message_data.data.file) {
             //     let filePath: string = message_data.data.file;
             //     if (!enableLocalFile2Url) {
@@ -221,6 +242,54 @@ export class OB11Constructor {
         }
         resMsg.raw_message = resMsg.raw_message.trim();
         return resMsg;
+    }
+
+    static async GroupEvent(msg: RawMessage): Promise<OB11GroupIncreaseEvent> {
+        for (let element of msg.elements) {
+            const groupElement = element.grayTipElement?.groupElement
+            if (groupElement) {
+                // log("收到群提示消息", groupElement)
+                if (groupElement.type == TipGroupElementType.memberIncrease) {
+                    log("收到群成员增加消息", groupElement)
+                    await sleep(1000);
+                    const member = await getGroupMember(msg.peerUid, null, groupElement.memberUid);
+                    let memberUin = member?.uin;
+                    if (!memberUin) {
+                        memberUin = (await NTQQApi.getUserDetailInfo(groupElement.memberUid)).uin
+                    }
+                    // log("获取新群成员QQ", memberUin)
+                    const adminMember = await getGroupMember(msg.peerUid, null, groupElement.adminUid);
+                    // log("获取同意新成员入群的管理员", adminMember)
+                    if (memberUin) {
+                        const operatorUin = adminMember?.uin || memberUin
+                        let event = new OB11GroupIncreaseEvent(parseInt(msg.peerUid), parseInt(memberUin), parseInt(operatorUin));
+                        // log("构造群增加事件", event)
+                        return event;
+                    }
+                }
+                else if (groupElement.type === TipGroupElementType.ban) {
+                    log("收到群群员禁言提示", groupElement)
+                    const memberUid = groupElement.shutUp.member.uid
+                    const adminUid = groupElement.shutUp.admin.uid
+                    let memberUin: string = ""
+                    let duration = parseInt(groupElement.shutUp.duration)
+                    let sub_type: "ban" | "lift_ban" = duration > 0 ? "ban" : "lift_ban"
+                    if (memberUid){
+                        memberUin = (await getGroupMember(msg.peerUid, null, memberUid))?.uin || (await NTQQApi.getUserDetailInfo(memberUid))?.uin
+                    }
+                    else {
+                        memberUin = "0";  // 0表示全员禁言
+                        if (duration > 0) {
+                            duration = -1
+                        }
+                    }
+                    const adminUin = (await getGroupMember(msg.peerUid, null, adminUid))?.uin || (await NTQQApi.getUserDetailInfo(adminUid))?.uin
+                    if (memberUin && adminUin) {
+                        return new OB11GroupBanEvent(parseInt(msg.peerUid), parseInt(memberUin), parseInt(adminUin), duration, sub_type);
+                    }
+                }
+            }
+        }
     }
 
     static friend(friend: User): OB11User {

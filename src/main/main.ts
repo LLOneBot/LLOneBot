@@ -16,7 +16,6 @@ import {
     friendRequests, getFriend,
     getGroup,
     getGroupMember,
-    groupNotifies,
     llonebotError, refreshGroupMembers,
     selfInfo
 } from "../common/data";
@@ -155,8 +154,10 @@ function onLoad() {
     async function postReceiveMsg(msgList: RawMessage[]) {
         const {debug, reportSelfMessage} = getConfigUtil().getConfig();
         for (let message of msgList) {
-            // log("收到新消息", message.msgSeq)
-            message.msgShortId = await dbUtil.addMsg(message)
+            // log("收到新消息", message.msgId, message.msgSeq)
+            // if (message.senderUin !== selfInfo.uin){
+                message.msgShortId = await dbUtil.addMsg(message);
+            // }
 
             OB11Constructor.message(message).then((msg) => {
                 if (debug) {
@@ -169,6 +170,12 @@ function onLoad() {
                 postOB11Event(msg);
                 // log("post msg", msg)
             }).catch(e => log("constructMessage error: ", e.stack.toString()));
+            OB11Constructor.GroupEvent(message).then(groupEvent=>{
+                if (groupEvent){
+                    // log("post group event", groupEvent);
+                    postOB11Event(groupEvent);
+                }
+            })
         }
     }
 
@@ -182,7 +189,7 @@ function onLoad() {
         })
         registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.UPDATE_MSG, async (payload) => {
             for (const message of payload.msgList) {
-                // log("message update", message.sendStatus, message)
+                // log("message update", message.sendStatus, message.msgId, message.msgSeq)
                 if (message.recallTime != "0") {
                     // 撤回消息上报
                     const oriMessage = await dbUtil.getMsgByLongId(message.msgId)
@@ -249,19 +256,17 @@ function onLoad() {
                 for (const notify of notifies) {
                     try {
                         notify.time = Date.now();
-                        const notifyTime = parseInt(notify.seq) / 1000
+                        // const notifyTime = parseInt(notify.seq) / 1000
                         // log(`加群通知时间${notifyTime}`, `LLOneBot启动时间${startTime}`);
                         // if (notifyTime < startTime) {
                         //     continue;
                         // }
-                        let existNotify = groupNotifies[notify.seq];
+                        let existNotify = await dbUtil.getGroupNotify(notify.seq);
                         if (existNotify) {
-                            if (Date.now() - existNotify.time < 3000) {
-                                continue
-                            }
+                            continue
                         }
                         log("收到群通知", notify);
-                        groupNotifies[notify.seq] = notify;
+                        await dbUtil.addGroupNotify(notify);
                         // let member2: GroupMember;
                         // if (notify.user2.uid) {
                         //     member2 = await getGroupMember(notify.group.groupCode, null, notify.user2.uid);
