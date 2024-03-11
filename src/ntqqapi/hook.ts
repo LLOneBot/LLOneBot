@@ -168,24 +168,6 @@ async function processGroupEvent(payload) {
                             break;
                         }
                     }
-
-                } else if (existGroup.memberCount < group.memberCount) {
-                    const oldMembers = existGroup.members;
-                    const oldMembersSet = new Set<string>();
-                    for (const member of oldMembers) {
-                        oldMembersSet.add(member.uin);
-                    }
-
-                    await sleep(200);
-                    const newMembers = await NTQQApi.getGroupMembers(group.groupCode);
-
-                    group.members = newMembers;
-                    for (const member of newMembers) {
-                        if (!oldMembersSet.has(member.uin)) {
-                            postOB11Event(new OB11GroupIncreaseEvent(group.groupCode, parseInt(member.uin)));
-                            break;
-                        }
-                    }
                 }
             }
         }

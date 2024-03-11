@@ -170,6 +170,12 @@ function onLoad() {
                 postOB11Event(msg);
                 // log("post msg", msg)
             }).catch(e => log("constructMessage error: ", e.stack.toString()));
+            OB11Constructor.GroupEvent(message).then(groupEvent=>{
+                if (groupEvent){
+                    // log("post group event", groupEvent);
+                    postOB11Event(groupEvent);
+                }
+            })
         }
     }
 
