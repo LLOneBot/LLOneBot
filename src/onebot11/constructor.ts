@@ -271,11 +271,21 @@ export class OB11Constructor {
                     log("收到群群员禁言提示", groupElement)
                     const memberUid = groupElement.shutUp.member.uid
                     const adminUid = groupElement.shutUp.admin.uid
-                    const memberUin = (await getGroupMember(msg.peerUid, null, memberUid))?.uin || (await NTQQApi.getUserDetailInfo(memberUid))?.uin
+                    let memberUin: string = ""
+                    let duration = parseInt(groupElement.shutUp.duration)
+                    let sub_type: "ban" | "lift_ban" = duration > 0 ? "ban" : "lift_ban"
+                    if (memberUid){
+                        memberUin = (await getGroupMember(msg.peerUid, null, memberUid))?.uin || (await NTQQApi.getUserDetailInfo(memberUid))?.uin
+                    }
+                    else {
+                        memberUin = "0";  // 0表示全员禁言
+                        if (duration > 0) {
+                            duration = -1
+                        }
+                    }
                     const adminUin = (await getGroupMember(msg.peerUid, null, adminUid))?.uin || (await NTQQApi.getUserDetailInfo(adminUid))?.uin
-                    const duration = parseInt(groupElement.shutUp.duration)
                     if (memberUin && adminUin) {
-                        return new OB11GroupBanEvent(parseInt(msg.peerUid), parseInt(memberUin), parseInt(adminUin), duration, duration > 0 ? "ban" : "lift_ban");
+                        return new OB11GroupBanEvent(parseInt(msg.peerUid), parseInt(memberUin), parseInt(adminUin), duration, sub_type);
                     }
                 }
             }
