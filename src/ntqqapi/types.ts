@@ -112,6 +112,7 @@ export enum PicType {
     gif = 2000,
     jpg = 1000
 }
+
 export interface SendPicElement {
     elementType: ElementType.PIC,
     elementId: "",
@@ -218,8 +219,8 @@ export interface PttElement {
 
 export interface ArkElement {
     bytesData: string;
-    linkInfo:null,
-    subElementType:null
+    linkInfo: null,
+    subElementType: null
 }
 
 export const IMAGE_HTTP_HOST = "https://gchat.qpic.cn"
@@ -245,7 +246,8 @@ export interface GrayTipElement {
         operatorMemRemark?: string;
         wording: string;  // 自定义的撤回提示语
     }
-    aioOpGrayTipElement: TipAioOpGrayTipElement
+    aioOpGrayTipElement: TipAioOpGrayTipElement,
+    groupElement: TipGroupElement
 }
 
 export interface FaceElement {
@@ -278,15 +280,20 @@ export interface VideoElement {
     "sourceVideoCodecFormat": 0
 }
 
-export interface TipAioOpGrayTipElement{
+export interface TipAioOpGrayTipElement {  // 这是什么提示来着？
     operateType: number,
     peerUid: string,
     fromGrpCodeOfTmpChat: string,
 }
 
+export enum TipGroupElementType {
+    memberIncrease = 1,
+    ban = 8
+}
+
 export interface TipGroupElement {
-    "type": 1,  // 1是表示有人加入群, 自己加入群也会收到这个
-    "role": 0,
+    "type": TipGroupElementType,  // 1是表示有人加入群, 自己加入群也会收到这个
+    "role": 0,  // 暂时不知
     "groupName": string,  // 暂时获取不到
     "memberUid": string,
     "memberNick": string,
@@ -295,7 +302,7 @@ export interface TipGroupElement {
     "adminNick": string,
     "adminRemark": string,
     "createGroup": null,
-    "memberAdd": {
+    "memberAdd"?: {
         "showType": 1,
         "otherAdd": null,
         "otherAddByOtherQRCode": null,
@@ -305,7 +312,22 @@ export interface TipGroupElement {
         "otherInviteYou": null,
         "youInviteOther": null
     },
-    "shutUp": null
+    "shutUp"?: {
+        "curTime": string,
+        "duration": string,  // 禁言时间，秒
+        "admin": {
+            "uid": string,
+            "card": string,
+            "name": string,
+            "role": GroupMemberRole
+        },
+        "member": {
+            "uid": string
+            "card": string,
+            "name": string,
+            "role": GroupMemberRole
+        }
+    }
 }
 
 
