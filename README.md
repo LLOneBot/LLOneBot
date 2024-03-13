@@ -49,4 +49,4 @@ TG群：<https://t.me/+nLZEnpne-pQ1OWFl>
 * [koishi-plugin-adapter-onebot](https://github.com/koishijs/koishi-plugin-adapter-onebot)
 
 ## 友链
-* [Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core)(一款用C#实现的NTQQ纯协议跨平台QQ机器人框架)
+* [Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core) 一款用C#实现的NTQQ纯协议跨平台QQ机器人框架
