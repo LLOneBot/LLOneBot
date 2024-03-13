@@ -8,6 +8,7 @@ import {
     ChatCacheListItemBasic,
     CacheFileType
 } from '../../ntqqapi/types';
+import {dbUtil} from "../../common/db";
 
 export default class CleanCache extends BaseAction<void, void> {
     actionName = ActionName.CleanCache
@@ -15,6 +16,7 @@ export default class CleanCache extends BaseAction<void, void> {
     protected _handle(): Promise<void> {
         return new Promise<void>(async (res, rej) => {
             try {
+                // dbUtil.clearCache();
                 const cacheFilePaths: string[] = [];
 
                 await NTQQApi.setCacheSilentScan(false);

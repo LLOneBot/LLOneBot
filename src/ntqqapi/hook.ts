@@ -180,6 +180,7 @@ async function processGroupEvent(payload) {
     }
 }
 
+// 群列表变动
 registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmd.GROUPS, (payload) => {
     if (payload.updateType != 2) {
         updateGroups(payload.groupList).then();
@@ -199,6 +200,7 @@ registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmd.GROUP
     }
 })
 
+// 好友列表变动
 registerReceiveHook<{
     data: { categoryId: number, categroyName: string, categroyMbCount: number, buddyList: User[] }[]
 }>(ReceiveCmd.FRIENDS, payload => {
@@ -215,6 +217,7 @@ registerReceiveHook<{
     }
 })
 
+// 新消息
 registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload) => {
     const {autoDeleteFile} = getConfigUtil().getConfig();
     for (const message of payload.msgList) {
@@ -232,7 +235,9 @@ registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload
             setTimeout(() => {
                 const picPath = msgElement.picElement?.sourcePath
                 const pttPath = msgElement.pttElement?.filePath
-                const pathList = [picPath, pttPath]
+                const filePath = msgElement.fileElement?.filePath
+                const videoPath = msgElement.videoElement?.filePath
+                const pathList = [picPath, pttPath, filePath, videoPath]
                 if (msgElement.picElement) {
                     pathList.push(...Object.values(msgElement.picElement.thumbPath))
                 }
@@ -249,7 +254,7 @@ registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, (payload
                         });
                     }
                 }
-            }, 60 * 1000)
+            }, getConfigUtil().getConfig().autoDeleteFileSecond * 1000)
         }
     }
 })
