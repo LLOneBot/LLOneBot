@@ -48,9 +48,23 @@ class DBUtil {
             }
             initDB();
         }).then()
+
+        const expiredMilliSecond = 1000 * 60 * 60;
+
         setInterval(() => {
-            this.cache = {}
-        }, 1000 * 60 * 10)
+            // this.cache = {}
+            // 清理时间较久的缓存
+            const now = Date.now()
+            for (let key in this.cache) {
+                let message: RawMessage = this.cache[key] as RawMessage;
+                if (message?.msgTime){
+                    if ((now - (parseInt(message.msgTime) * 1000)) > expiredMilliSecond) {
+                        delete this.cache[key]
+                        // log("clear cache", key, message.msgTime);
+                    }
+                }
+            }
+        }, expiredMilliSecond)
     }
 
     private addCache(msg: RawMessage) {
@@ -60,15 +74,24 @@ class DBUtil {
         this.cache[longIdKey] = this.cache[shortIdKey] = msg
     }
 
+    public clearCache() {
+        this.cache = {}
+    }
+
     async getMsgByShortId(shortMsgId: number): Promise<RawMessage> {
         const shortMsgIdKey = this.DB_KEY_PREFIX_MSG_SHORT_ID + shortMsgId;
         if (this.cache[shortMsgIdKey]) {
+            // log("getMsgByShortId cache", shortMsgIdKey, this.cache[shortMsgIdKey])
             return this.cache[shortMsgIdKey] as RawMessage
         }
-        const longId = await this.db.get(shortMsgIdKey);
-        const msg = await this.getMsgByLongId(longId)
-        this.addCache(msg)
-        return msg
+        try {
+            const longId = await this.db.get(shortMsgIdKey);
+            const msg = await this.getMsgByLongId(longId)
+            this.addCache(msg)
+            return msg
+        } catch (e) {
+            log("getMsgByShortId db error", e.stack.toString())
+        }
     }
 
     async getMsgByLongId(longId: string): Promise<RawMessage> {
@@ -76,10 +99,14 @@ class DBUtil {
         if (this.cache[longIdKey]) {
             return this.cache[longIdKey] as RawMessage
         }
-        const data = await this.db.get(longIdKey)
-        const msg = JSON.parse(data)
-        this.addCache(msg)
-        return msg
+        try {
+            const data = await this.db.get(longIdKey)
+            const msg = JSON.parse(data)
+            this.addCache(msg)
+            return msg
+        } catch (e) {
+            // log("getMsgByLongId db error", e.stack.toString())
+        }
     }
 
     async getMsgBySeqId(seqId: string): Promise<RawMessage> {
@@ -87,10 +114,14 @@ class DBUtil {
         if (this.cache[seqIdKey]) {
             return this.cache[seqIdKey] as RawMessage
         }
-        const longId = await this.db.get(seqIdKey);
-        const msg = await this.getMsgByLongId(longId)
-        this.addCache(msg)
-        return msg
+        try {
+            const longId = await this.db.get(seqIdKey);
+            const msg = await this.getMsgByLongId(longId)
+            this.addCache(msg)
+            return msg
+        } catch (e) {
+            log("getMsgBySeqId db error", e.stack.toString())
+        }
     }
 
     async addMsg(msg: RawMessage) {
@@ -111,28 +142,25 @@ class DBUtil {
             return existMsg.msgShortId
         }
         this.addCache(msg);
-        // log("新增消息记录", msg.msgId)
+
         const shortMsgId = await this.genMsgShortId();
         const shortIdKey = this.DB_KEY_PREFIX_MSG_SHORT_ID + shortMsgId;
         const seqIdKey = this.DB_KEY_PREFIX_MSG_SEQ_ID + msg.msgSeq;
         msg.msgShortId = shortMsgId;
+        // log("新增消息记录", msg.msgId)
+        this.db.put(shortIdKey, msg.msgId).then().catch();
+        this.db.put(longIdKey, JSON.stringify(msg)).then().catch();
         try {
-            this.db.put(shortIdKey, msg.msgId).then();
-            this.db.put(longIdKey, JSON.stringify(msg)).then();
-            try {
-                await this.db.get(seqIdKey)
-            } catch (e) {
-                // log("新的seqId", seqIdKey)
-                this.db.put(seqIdKey, msg.msgId).then();
-            }
-            if (!this.cache[seqIdKey]) {
-                this.cache[seqIdKey] = msg;
-            }
-            // log(`消息入库 ${seqIdKey}: ${msg.msgId}, ${shortMsgId}: ${msg.msgId}`);
+            await this.db.get(seqIdKey)
         } catch (e) {
-            // log("addMsg db error", e.stack.toString());
+            // log("新的seqId", seqIdKey)
+            this.db.put(seqIdKey, msg.msgId).then().catch();
+        }
+        if (!this.cache[seqIdKey]) {
+            this.cache[seqIdKey] = msg;
         }
         return shortMsgId
+        // log(`消息入库 ${seqIdKey}: ${msg.msgId}, ${shortMsgId}: ${msg.msgId}`);
     }
 
     async updateMsg(msg: RawMessage) {
@@ -147,17 +175,17 @@ class DBUtil {
         }
 
         Object.assign(existMsg, msg)
-        this.db.put(longIdKey, JSON.stringify(existMsg)).then();
+        this.db.put(longIdKey, JSON.stringify(existMsg)).then().catch();
         const shortIdKey = this.DB_KEY_PREFIX_MSG_SHORT_ID + existMsg.msgShortId;
         const seqIdKey = this.DB_KEY_PREFIX_MSG_SEQ_ID + msg.msgSeq;
         if (!this.cache[seqIdKey]) {
             this.cache[seqIdKey] = existMsg;
         }
-        this.db.put(shortIdKey, msg.msgId).then();
+        this.db.put(shortIdKey, msg.msgId).then().catch();
         try {
             await this.db.get(seqIdKey)
         } catch (e) {
-            this.db.put(seqIdKey, msg.msgId).then();
+            this.db.put(seqIdKey, msg.msgId).then().catch();
             // log("更新seqId error", e.stack, seqIdKey);
         }
         // log("更新消息", existMsg.msgSeq, existMsg.msgShortId, existMsg.msgId);
@@ -176,7 +204,7 @@ class DBUtil {
         }
 
         this.currentShortId++;
-        await this.db.put(key, this.currentShortId.toString());
+        this.db.put(key, this.currentShortId.toString()).then().catch();
         return this.currentShortId;
     }
 
@@ -188,7 +216,11 @@ class DBUtil {
         let cacheDBData = {...data}
         delete cacheDBData['downloadFunc']
         this.cache[fileName] = data;
-        await this.db.put(key, JSON.stringify(cacheDBData));
+        try {
+            await this.db.put(key, JSON.stringify(cacheDBData));
+        } catch (e) {
+            log("addFileCache db error", e.stack.toString())
+        }
     }
 
     async getFileCache(fileName: string): Promise<FileCache | undefined> {
@@ -197,22 +229,21 @@ class DBUtil {
             return this.cache[key] as FileCache
         }
         try {
-
             let data = await this.db.get(key);
             return JSON.parse(data);
         } catch (e) {
-
+            // log("getFileCache db error", e.stack.toString())
         }
     }
 
     async addGroupNotify(notify: GroupNotify) {
         const key = this.DB_KEY_PREFIX_GROUP_NOTIFY + notify.seq;
         let existNotify = this.cache[key] as GroupNotify
-        if (existNotify){
+        if (existNotify) {
             return
         }
         this.cache[key] = notify;
-        this.db.put(key, JSON.stringify(notify)).then();
+        this.db.put(key, JSON.stringify(notify)).then().catch();
     }
 
     async getGroupNotify(seq: string): Promise<GroupNotify | undefined> {
@@ -224,7 +255,7 @@ class DBUtil {
             let data = await this.db.get(key);
             return JSON.parse(data);
         } catch (e) {
-
+            // log("getGroupNotify db error", e.stack.toString())
         }
     }
 }
