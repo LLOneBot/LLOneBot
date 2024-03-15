@@ -49,4 +49,5 @@ export enum ActionName {
     GoCQHTTP_GetStrangerInfo = "get_stranger_info",
     GetGuildList = "get_guild_list",
     GoCQHTTP_MarkMsgAsRead = "mark_msg_as_read",
+    GoCQHTTP_UploadGroupFile = "upload_group_file",
 }

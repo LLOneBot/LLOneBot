@@ -90,7 +90,7 @@ async function onSettingWindowCreated(view: Element) {
                 ], 'ob11.messagePostFormat', config.ob11.messagePostFormat),
             ),
             SettingItem(
-                'ffmpeg 路径, 用于发送语音时进行转码', `<span id="config-ffmpeg-path-text">${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}</span>`,
+                'ffmpeg 路径, 发送语音、视频需要，同时保证ffprobe和ffmpeg在一起', `<span id="config-ffmpeg-path-text">${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}</span>`,
                 SettingButton('选择', 'config-ffmpeg-select'),
             ),
             SettingItem(

@@ -206,7 +206,7 @@ export async function encodeSilk(filePath: string) {
                     if (ffmpegPath) {
                         ffmpeg.setFfmpegPath(ffmpegPath);
                     }
-                    ffmpeg(filePath).toFormat("wav").on('end', function () {
+                    ffmpeg(filePath).toFormat("wav").audioChannels(2).on('end', function () {
                         log('wav转换完成');
                     })
                         .on('error', function (err) {
@@ -221,11 +221,12 @@ export async function encodeSilk(filePath: string) {
                 })
             }
             // const sampleRate = await getAudioSampleRate(filePath) || 0;
+            // log("音频采样率", sampleRate)
             const pcm = fs.readFileSync(filePath);
             const silk = await encode(pcm, 0);
             fs.writeFileSync(pttPath, silk.data);
-            fs.unlink(wavPath, (err) => {
-            });
+            // fs.unlink(wavPath, (err) => {
+            // });
             log(`语音文件${filePath}转换成功!`, pttPath)
             return {
                 converted: true,
@@ -260,7 +261,7 @@ export async function encodeSilk(filePath: string) {
 export async function getVideoInfo(filePath: string) {
     const size = fs.statSync(filePath).size;
     return new Promise<{ width: number, height: number, time: number, format: string, size: number, filePath: string }>((resolve, reject) => {
-        ffmpeg.ffprobe(filePath, (err, metadata) => {
+        ffmpeg(filePath).ffprobe( (err, metadata) => {
             if (err) {
                 reject(err);
             } else {
@@ -281,6 +282,7 @@ export async function getVideoInfo(filePath: string) {
         });
     })
 }
+
 
 export async function encodeMp4(filePath: string) {
     let videoInfo = await getVideoInfo(filePath);

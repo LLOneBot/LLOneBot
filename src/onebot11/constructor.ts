@@ -27,6 +27,8 @@ import {encodeCQCode} from "./cqcode";
 import {dbUtil} from "../common/db";
 import {OB11GroupIncreaseEvent} from "./event/notice/OB11GroupIncreaseEvent";
 import {OB11GroupBanEvent} from "./event/notice/OB11GroupBanEvent";
+import {OB11GroupUploadNoticeEvent} from "./event/notice/OB11GroupUploadNoticeEvent";
+import {OB11GroupNoticeEvent} from "./event/notice/OB11GroupNoticeEvent";
 
 
 export class OB11Constructor {
@@ -244,7 +246,10 @@ export class OB11Constructor {
         return resMsg;
     }
 
-    static async GroupEvent(msg: RawMessage): Promise<OB11GroupIncreaseEvent> {
+    static async GroupEvent(msg: RawMessage): Promise<OB11GroupNoticeEvent> {
+        if (msg.chatType !== ChatType.group) {
+            return;
+        }
         for (let element of msg.elements) {
             const groupElement = element.grayTipElement?.groupElement
             if (groupElement) {
@@ -288,6 +293,9 @@ export class OB11Constructor {
                         return new OB11GroupBanEvent(parseInt(msg.peerUid), parseInt(memberUin), parseInt(adminUin), duration, sub_type);
                     }
                 }
+            }
+            else if (element.fileElement){
+                return new OB11GroupUploadNoticeEvent(parseInt(msg.peerUid), parseInt(msg.senderUin), {id: element.fileElement.fileName, name: element.fileElement.fileName, size: parseInt(element.fileElement.fileSize)})
             }
         }
     }
