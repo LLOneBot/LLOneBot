@@ -32,6 +32,7 @@ import GetImage from "./GetImage";
 import GetRecord from "./GetRecord";
 import GoCQHTTPMarkMsgAsRead from "./MarkMsgAsRead";
 import CleanCache from "./CleanCache";
+import GoCQHTTPUploadGroupFile from "./go-cqhttp/UploadGroupFile";
 
 export const actionHandlers = [
     new Debug(),
@@ -65,6 +66,7 @@ export const actionHandlers = [
     new GoCQHTTPGetStrangerInfo(),
     new GetGuildList(),
     new GoCQHTTPMarkMsgAsRead(),
+    new GoCQHTTPUploadGroupFile(),
 
 ]
 
