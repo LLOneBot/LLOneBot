@@ -33,9 +33,13 @@ import GetRecord from "./GetRecord";
 import GoCQHTTPMarkMsgAsRead from "./MarkMsgAsRead";
 import CleanCache from "./CleanCache";
 import GoCQHTTPUploadGroupFile from "./go-cqhttp/UploadGroupFile";
+import {GetConfigAction, SetConfigAction} from "./llonebot/Config";
 
 export const actionHandlers = [
     new Debug(),
+    new GetConfigAction(),
+    new SetConfigAction(),
+    // onebot11
     new SendLike(),
     new GetMsg(),
     new GetLoginInfo(),
