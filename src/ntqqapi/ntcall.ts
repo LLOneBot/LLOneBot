@@ -48,6 +48,7 @@ export enum NTQQApiClass {
 }
 
 export enum NTQQApiMethod {
+    SET_HEADER = "nodeIKernelProfileService/setHeader",
     LIKE_FRIEND = "nodeIKernelProfileLikeService/setBuddyProfileLike",
     SELF_INFO = "fetchAuthData",
     FRIENDS = "nodeIKernelBuddyService/getBuddyList",
@@ -202,7 +203,12 @@ interface GeneralCallResult {
 
 
 export class NTQQApi {
-    // static likeFriend = defineNTQQApi<void>(NTQQApiChannel.IPC_UP_2, NTQQApiClass.NT_API, NTQQApiMethod.LIKE_FRIEND)
+    static async setHeader(path: string){
+        return await callNTQQApi<GeneralCallResult>({
+            methodName: NTQQApiMethod.SET_HEADER,
+            args: [path]
+        })
+    }
     static async likeFriend(uid: string, count = 1) {
         return await callNTQQApi<GeneralCallResult>({
             methodName: NTQQApiMethod.LIKE_FRIEND,
@@ -728,8 +734,9 @@ export class NTQQApi {
         })
     }
 
-    static async call(cmdName: string, args: any[],) {
+    static async call(className: NTQQApiClass, cmdName: string, args: any[],) {
         return await callNTQQApi<GeneralCallResult>({
+            className,
             methodName: cmdName,
             args: [
                 ...args,
