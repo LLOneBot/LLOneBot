@@ -121,7 +121,7 @@ export class SendMsgElementConstructor {
         thumb = pathLib.dirname(thumb)
         // log("thumb 目录", thumb)
         const videoInfo = await getVideoInfo(path);
-        // log("视频信息", videoInfo)
+        log("视频信息", videoInfo)
         const createThumb = new Promise<string>((resolve, reject) => {
             const thumbFileName = `${md5}_0.png`
             ffmpeg(filePath)
