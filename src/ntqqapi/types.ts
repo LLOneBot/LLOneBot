@@ -178,6 +178,7 @@ export interface SendVideoElement {
     elementId: "",
     videoElement: VideoElement
 }
+
 export interface SendArkElement {
     elementType: ElementType.ARK,
     elementId: "",
@@ -243,7 +244,12 @@ export interface PicElement {
     md5HexStr?: string;
 }
 
+export enum GrayTipElementSubType {
+    INVITE_NEW_MEMBER = 12,
+}
+
 export interface GrayTipElement {
+    subElementType: GrayTipElementSubType;
     revokeElement: {
         operatorRole: string;
         operatorUid: string;
@@ -253,7 +259,10 @@ export interface GrayTipElement {
         wording: string;  // 自定义的撤回提示语
     }
     aioOpGrayTipElement: TipAioOpGrayTipElement,
-    groupElement: TipGroupElement
+    groupElement: TipGroupElement,
+    xmlElement: {
+        content: string;
+    }
 }
 
 export interface FaceElement {
@@ -398,6 +407,7 @@ export enum GroupNotifyStatus {
     APPROVE = 2,
     REJECT = 3
 }
+
 export interface GroupNotify {
     time: number;  // 自己添加的字段，时间戳，毫秒, 用于判断收到短时间内收到重复的notify
     seq: string, // 唯一标识符，转成数字再除以1000应该就是时间戳？
