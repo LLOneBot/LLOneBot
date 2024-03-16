@@ -11,6 +11,7 @@ import {
 import {
     AtType,
     ChatType,
+    GrayTipElementSubType,
     Group,
     GroupMember,
     IMAGE_HTTP_HOST,
@@ -19,7 +20,7 @@ import {
     TipGroupElementType,
     User
 } from '../ntqqapi/types';
-import {getFriend, getGroup, getGroupMember, selfInfo, tempGroupCodeMap} from '../common/data';
+import {getFriend, getGroupMember, selfInfo, tempGroupCodeMap} from '../common/data';
 import {getConfigUtil, log, sleep} from "../common/utils";
 import {NTQQApi} from "../ntqqapi/ntcall";
 import {EventType} from "./event/OB11BaseEvent";
@@ -206,33 +207,6 @@ export class OB11Constructor {
                 message_data["type"] = OB11MessageDataType.face;
                 message_data["data"]["id"] = element.faceElement.faceIndex.toString();
             }
-            // todo: 解析入群grayTipElement
-            else if (element.grayTipElement?.aioOpGrayTipElement) {
-                log("收到 group gray tip 消息", element.grayTipElement.aioOpGrayTipElement)
-            }
-            // if (message_data.data.file) {
-            //     let filePath: string = message_data.data.file;
-            //     if (!enableLocalFile2Url) {
-            //         message_data.data.file = "file://" + filePath
-            //     } else { // 不使用本地路径
-            //         const ignoreTypes = [OB11MessageDataType.file, OB11MessageDataType.video]
-            //         if (!ignoreTypes.includes(message_data.type)) {
-            //             if (message_data.data.url && !message_data.data.url.startsWith(IMAGE_HTTP_HOST + "/download")) {
-            //                 message_data.data.file = message_data.data.url
-            //             } else {
-            //                 let { err, data } = await file2base64(filePath);
-            //                 if (err) {
-            //                     log("文件转base64失败", filePath, err)
-            //                 } else {
-            //                     message_data.data.file = "base64://" + data
-            //                 }
-            //             }
-            //         } else {
-            //             message_data.data.file = "file://" + filePath
-            //         }
-            //     }
-            // }
-
             if (message_data.type !== "unknown" && message_data.data) {
                 const cqCode = encodeCQCode(message_data);
                 if (messagePostFormat === 'string') {
@@ -251,7 +225,8 @@ export class OB11Constructor {
             return;
         }
         for (let element of msg.elements) {
-            const groupElement = element.grayTipElement?.groupElement
+            const grayTipElement = element.grayTipElement
+            const groupElement = grayTipElement?.groupElement
             if (groupElement) {
                 // log("收到群提示消息", groupElement)
                 if (groupElement.type == TipGroupElementType.memberIncrease) {
@@ -296,6 +271,27 @@ export class OB11Constructor {
             }
             else if (element.fileElement){
                 return new OB11GroupUploadNoticeEvent(parseInt(msg.peerUid), parseInt(msg.senderUin), {id: element.fileElement.fileName, name: element.fileElement.fileName, size: parseInt(element.fileElement.fileSize)})
+            }
+
+            if (grayTipElement) {
+                if (grayTipElement.subElementType == GrayTipElementSubType.INVITE_NEW_MEMBER){
+                    log("收到新人被邀请进群消息", grayTipElement)
+                    const xmlElement = grayTipElement.xmlElement
+                    if (xmlElement?.content){
+                        const regex = /jp="(\d+)"/g;
+
+                        let matches = [];
+                        let match = null
+
+                        while ((match = regex.exec(xmlElement.content)) !== null) {
+                            matches.push(match[1]);
+                        }
+                        if (matches.length === 2){
+                            const [inviter, invitee] = matches;
+                            return new OB11GroupIncreaseEvent(parseInt(msg.peerUid), parseInt(invitee), parseInt(inviter), "invite");
+                        }
+                    }
+                }
             }
         }
     }
