@@ -417,20 +417,16 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                             if (!isLocal) { // 只删除http和base64转过来的文件
                                 deleteAfterSentFiles.push(path)
                             }
-                            const constructorMap = {
-                                [OB11MessageDataType.image]: SendMsgElementConstructor.pic,
-                                [OB11MessageDataType.voice]: SendMsgElementConstructor.ptt,
-                                [OB11MessageDataType.video]: SendMsgElementConstructor.video,
-                                [OB11MessageDataType.file]: SendMsgElementConstructor.file,
-                            }
                             if (sendMsg.type === OB11MessageDataType.file) {
                                 log("发送文件", path, payloadFileName || fileName)
                                 sendElements.push(await SendMsgElementConstructor.file(path, payloadFileName || fileName));
                             } else if (sendMsg.type === OB11MessageDataType.video) {
                                 log("发送视频", path, payloadFileName || fileName)
                                 sendElements.push(await SendMsgElementConstructor.video(path, payloadFileName || fileName));
-                            } else {
-                                sendElements.push(await constructorMap[sendMsg.type](path));
+                            } else if (sendMsg.type === OB11MessageDataType.voice) {
+                                sendElements.push(await SendMsgElementConstructor.ptt(path));
+                            }else if (sendMsg.type === OB11MessageDataType.image) {
+                                sendElements.push(await SendMsgElementConstructor.pic(path, sendMsg.data.summary || ""));
                             }
                         }
                     }

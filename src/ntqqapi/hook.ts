@@ -144,10 +144,20 @@ export function removeReceiveHook(id: string) {
     receiveHooks.splice(index, 1);
 }
 
+let activatedGroups: string[] = [];
 async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
     for (let group of _groups) {
-        log("update group", group)
-        NTQQMsgApi.activateGroupChat(group.groupCode).then()
+        // log("update group", group)
+        if (!activatedGroups.includes(group.groupCode)) {
+            NTQQMsgApi.activateGroupChat(group.groupCode).then((r) => {
+                activatedGroups.push(group.groupCode);
+                // log(`激活群聊天窗口${group.groupName}(${group.groupCode})`, r)
+                // if (r.result !== 0) {
+                //     setTimeout(() => NTQQMsgApi.activateGroupChat(group.groupCode).then(r => log(`再次激活群聊天窗口${group.groupName}(${group.groupCode})`, r)), 500);
+                // }else {
+                // }
+            }).catch(log)
+        }
         let existGroup = groups.find(g => g.groupCode == group.groupCode);
         if (existGroup) {
             Object.assign(existGroup, group);

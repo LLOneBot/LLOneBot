@@ -121,6 +121,9 @@ interface OB11MessageFileBase {
 
 export interface OB11MessageImage extends OB11MessageFileBase {
     type: OB11MessageDataType.image
+    data: OB11MessageFileBase['data'] & {
+        summary ? : string; // 图片摘要
+    }
 }
 
 export interface OB11MessageRecord extends OB11MessageFileBase {

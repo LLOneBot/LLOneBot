@@ -37,6 +37,8 @@ import {dbUtil} from "../common/db";
 import {setConfig} from "./setConfig";
 import {NTQQUserApi} from "../ntqqapi/api/user";
 import {NTQQGroupApi} from "../ntqqapi/api/group";
+import {registerPokeHandler} from "../ntqqapi/external/ccpoke";
+import {OB11FriendPokeEvent, OB11GroupPokeEvent} from "../onebot11/event/notice/OB11PokeEvent";
 
 
 let running = false;
@@ -124,6 +126,16 @@ function onLoad() {
     }
 
     async function startReceiveHook() {
+        registerPokeHandler((id, isGroup) => {
+            log(`收到戳一戳消息了！是否群聊：${isGroup}，id:${id}`)
+            let pokeEvent: OB11FriendPokeEvent | OB11GroupPokeEvent;
+            if (isGroup) {
+                pokeEvent = new OB11GroupPokeEvent(parseInt(id));
+            }else{
+                pokeEvent = new OB11FriendPokeEvent(parseInt(id));
+            }
+            postOB11Event(pokeEvent);
+        })
         registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.NEW_MSG, ReceiveCmdS.NEW_ACTIVE_MSG], async (payload) => {
             try {
                 await postReceiveMsg(payload.msgList);
@@ -297,6 +309,7 @@ function onLoad() {
 
     async function start() {
         log("llonebot pid", process.pid)
+
         startTime = Date.now();
         startReceiveHook().then();
         NTQQGroupApi.getGroups(true).then()
