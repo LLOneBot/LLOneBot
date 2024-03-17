@@ -59,7 +59,7 @@ export class SendMsgElementConstructor {
         }
     }
 
-    static async pic(picPath: string): Promise<SendPicElement> {
+    static async pic(picPath: string, summary: string = ""): Promise<SendPicElement> {
         const {md5, fileName, path, fileSize} = await NTQQFileApi.uploadFile(picPath, ElementType.PIC);
         if (fileSize === 0) {
             throw "文件异常，大小为0";
@@ -78,7 +78,7 @@ export class SendMsgElementConstructor {
             fileUuid: "",
             fileSubId: "",
             thumbFileSize: 0,
-            summary: "",
+            summary,
         };
 
         return {
@@ -136,7 +136,7 @@ export class SendMsgElementConstructor {
                     folder: thumb,
                     size: videoInfo.width + "x" + videoInfo.height
                 }).on("end", () => {
-                    resolve(pathLib.join(thumb, thumbFileName));
+                resolve(pathLib.join(thumb, thumbFileName));
             });
         })
         let thumbPath = new Map()
