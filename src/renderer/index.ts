@@ -90,7 +90,7 @@ async function onSettingWindowCreated(view: Element) {
                 ], 'ob11.messagePostFormat', config.ob11.messagePostFormat),
             ),
             SettingItem(
-                'ffmpeg 路径，发送语音、视频需要，同时保证ffprobe和ffmpeg在一起', `配置可参考 <a href="javascript:LiteLoader.api.openExternal(\'https://llonebot.github.io/zh-CN/guide/voice\');">官方文档</a> <span id="config-ffmpeg-path-text"> 路径:${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}</span>`,
+                'ffmpeg 路径，发送语音、视频需要，同时保证ffprobe和ffmpeg在一起', `配置可参考 <a href="javascript:LiteLoader.api.openExternal(\'https://llonebot.github.io/zh-CN/guide/ffmpeg\');">官方文档</a> <span id="config-ffmpeg-path-text"> 路径:${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}</span>`,
                 SettingButton('选择', 'config-ffmpeg-select'),
             ),
             SettingItem(

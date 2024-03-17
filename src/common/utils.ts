@@ -38,7 +38,12 @@ export function isNumeric(str: string) {
 }
 export async function updateLLOneBot() {
     let mirrorGithubList = ["https://mirror.ghproxy.com"];
-    return true;
+    const latestVersion = await getRemoteVersion();
+    if (latestVersion && latestVersion != "") {
+        const downloadUrl = "https://github.com/LLOneBot/LLOneBot/releases/download/v" + latestVersion + "/LLOneBot.zip";
+        const realUrl = mirrorGithubList[0] + downloadUrl;
+    }
+    return false;
 }
 export async function getRemoteVersion() {
     let mirrorGithubList = ["https://521github.com"];
