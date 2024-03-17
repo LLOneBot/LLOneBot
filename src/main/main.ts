@@ -1,17 +1,19 @@
 // 运行在 Electron 主进程 下的插件入口
 
-import {BrowserWindow, dialog, ipcMain} from 'electron';
+import { BrowserWindow, dialog, ipcMain } from 'electron';
 import * as fs from 'node:fs';
-import {Config} from "../common/types";
+import { Config } from "../common/types";
 import {
     CHANNEL_ERROR,
     CHANNEL_GET_CONFIG,
     CHANNEL_LOG,
+    CHANNEL_REMOTEVERSION,
     CHANNEL_SELECT_FILE,
     CHANNEL_SET_CONFIG,
+    CHANNEL_UPDATE,
 } from "../common/channels";
-import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
-import {checkFfmpeg, DATA_DIR, getConfigUtil, log} from "../common/utils";
+import { ob11WebsocketServer } from "../onebot11/server/ws/WebsocketServer";
+import { checkFfmpeg, DATA_DIR, getConfigUtil, getRemoteVersion, log, updateLLOneBot } from "../common/utils";
 import {
     friendRequests,
     getFriend,
@@ -21,21 +23,21 @@ import {
     refreshGroupMembers,
     selfInfo
 } from "../common/data";
-import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} from "../ntqqapi/hook";
-import {OB11Constructor} from "../onebot11/constructor";
-import {NTQQApi} from "../ntqqapi/ntcall";
-import {ChatType, FriendRequestNotify, GroupNotifies, GroupNotifyTypes, RawMessage} from "../ntqqapi/types";
-import {ob11HTTPServer} from "../onebot11/server/http";
-import {OB11FriendRecallNoticeEvent} from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
-import {OB11GroupRecallNoticeEvent} from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
-import {postOB11Event} from "../onebot11/server/postOB11Event";
-import {ob11ReverseWebsockets} from "../onebot11/server/ws/ReverseWebsocket";
-import {OB11GroupAdminNoticeEvent} from "../onebot11/event/notice/OB11GroupAdminNoticeEvent";
-import {OB11GroupRequestEvent} from "../onebot11/event/request/OB11GroupRequest";
-import {OB11FriendRequestEvent} from "../onebot11/event/request/OB11FriendRequest";
+import { hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook } from "../ntqqapi/hook";
+import { OB11Constructor } from "../onebot11/constructor";
+import { NTQQApi } from "../ntqqapi/ntcall";
+import { ChatType, FriendRequestNotify, GroupNotifies, GroupNotifyTypes, RawMessage } from "../ntqqapi/types";
+import { ob11HTTPServer } from "../onebot11/server/http";
+import { OB11FriendRecallNoticeEvent } from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
+import { OB11GroupRecallNoticeEvent } from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
+import { postOB11Event } from "../onebot11/server/postOB11Event";
+import { ob11ReverseWebsockets } from "../onebot11/server/ws/ReverseWebsocket";
+import { OB11GroupAdminNoticeEvent } from "../onebot11/event/notice/OB11GroupAdminNoticeEvent";
+import { OB11GroupRequestEvent } from "../onebot11/event/request/OB11GroupRequest";
+import { OB11FriendRequestEvent } from "../onebot11/event/request/OB11FriendRequest";
 import * as path from "node:path";
-import {dbUtil} from "../common/db";
-import {setConfig} from "./setConfig";
+import { dbUtil } from "../common/db";
+import { setConfig } from "./setConfig";
 
 
 let running = false;
@@ -44,7 +46,12 @@ let running = false;
 // 加载插件时触发
 function onLoad() {
     log("llonebot main onLoad");
-
+    ipcMain.handle(CHANNEL_REMOTEVERSION, async (event, arg) => {
+        return getRemoteVersion();
+    });
+    ipcMain.handle(CHANNEL_UPDATE, async (event, arg) => {
+        return updateLLOneBot();
+    });
     ipcMain.handle(CHANNEL_SELECT_FILE, async (event, arg) => {
         const selectPath = new Promise<string>((resolve, reject) => {
             dialog
@@ -76,7 +83,7 @@ function onLoad() {
         }
     })
     if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, {recursive: true});
+        fs.mkdirSync(DATA_DIR, { recursive: true });
     }
     ipcMain.handle(CHANNEL_ERROR, (event, arg) => {
         return llonebotError;
@@ -94,7 +101,7 @@ function onLoad() {
     })
 
     async function postReceiveMsg(msgList: RawMessage[]) {
-        const {debug, reportSelfMessage} = getConfigUtil().getConfig();
+        const { debug, reportSelfMessage } = getConfigUtil().getConfig();
         for (let message of msgList) {
 
             // log("收到新消息", message.msgId, message.msgSeq)
@@ -167,7 +174,7 @@ function onLoad() {
             }
         })
         registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, async (payload) => {
-            const {reportSelfMessage} = getConfigUtil().getConfig();
+            const { reportSelfMessage } = getConfigUtil().getConfig();
             if (!reportSelfMessage) {
                 return
             }

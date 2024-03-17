@@ -5,8 +5,10 @@ import {
     CHANNEL_ERROR,
     CHANNEL_GET_CONFIG,
     CHANNEL_LOG,
+    CHANNEL_REMOTEVERSION,
     CHANNEL_SELECT_FILE,
     CHANNEL_SET_CONFIG,
+    CHANNEL_UPDATE,
 } from "./common/channels";
 
 const {contextBridge} = require("electron");
@@ -15,6 +17,12 @@ const {ipcRenderer} = require('electron');
 const llonebot = {
     log: (data: any) => {
         ipcRenderer.send(CHANNEL_LOG, data);
+    },
+    getRemoteVersion:async (): Promise<string> => {
+        return ipcRenderer.invoke(CHANNEL_REMOTEVERSION);
+    },
+    updateLLOneBot:async (): Promise<boolean> => {
+        return ipcRenderer.invoke(CHANNEL_UPDATE);
     },
     setConfig: (config: Config) => {
         ipcRenderer.send(CHANNEL_SET_CONFIG, config);
