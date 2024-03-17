@@ -13,7 +13,7 @@ import {
     CHANNEL_UPDATE,
 } from "../common/channels";
 import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
-import {checkFfmpeg, DATA_DIR, getConfigUtil, log} from "../common/utils";
+import {checkFfmpeg, checkVersion, DATA_DIR, getConfigUtil, log, updateLLOneBot} from "../common/utils";
 import {
     friendRequests,
     getFriend,
@@ -202,12 +202,12 @@ function onLoad() {
             "doubt": boolean,
             "oldestUnreadSeq": string,
             "unreadCount": number
-        }>(ReceiveCmd.UNREAD_GROUP_NOTIFY, async (payload) => {
+        }>(ReceiveCmdS.UNREAD_GROUP_NOTIFY, async (payload) => {
             if (payload.unreadCount) {
                 // log("开始获取群通知详情")
                 let notify: GroupNotifies;
                 try {
-                    notify = await NTQQApi.getGroupNotifies();
+                    notify = await NTQQGroupApi.getGroupNotifies();
                 } catch (e) {
                     // log("获取群通知详情失败", e);
                     return
@@ -260,7 +260,7 @@ function onLoad() {
                             groupRequestEvent.group_id = parseInt(notify.group.groupCode);
                             let requestQQ = ""
                             try {
-                                requestQQ = (await NTQQApi.getUserDetailInfo(notify.user1.uid)).uin;
+                                requestQQ = (await NTQQUserApi.getUserDetailInfo(notify.user1.uid)).uin;
                             } catch (e) {
                                 log("获取加群人QQ号失败", e)
                             }
@@ -275,7 +275,7 @@ function onLoad() {
                             groupInviteEvent.group_id = parseInt(notify.group.groupCode);
                             let user_id = (await getFriend(notify.user2.uid))?.uin
                             if (!user_id) {
-                                user_id = (await NTQQApi.getUserDetailInfo(notify.user2.uid))?.uin
+                                user_id = (await NTQQUserApi.getUserDetailInfo(notify.user2.uid))?.uin
                             }
                             groupInviteEvent.user_id = parseInt(user_id);
                             groupInviteEvent.sub_type = "invite";
@@ -292,14 +292,14 @@ function onLoad() {
             }
         })
 
-        registerReceiveHook<FriendRequestNotify>(ReceiveCmd.FRIEND_REQUEST, async (payload) => {
+        registerReceiveHook<FriendRequestNotify>(ReceiveCmdS.FRIEND_REQUEST, async (payload) => {
             for (const req of payload.data.buddyReqs) {
                 if (req.isUnread && !friendRequests[req.sourceId] && (parseInt(req.reqTime) > startTime / 1000)) {
                     friendRequests[req.sourceId] = req;
                     log("有新的好友请求", req);
                     let friendRequestEvent = new OB11FriendRequestEvent();
                     try {
-                        let requester = await NTQQApi.getUserDetailInfo(req.friendUid)
+                        let requester = await NTQQUserApi.getUserDetailInfo(req.friendUid)
                         friendRequestEvent.user_id = parseInt(requester.uin);
                     } catch (e) {
                         log("获取加好友者QQ号失败", e);
@@ -318,7 +318,7 @@ function onLoad() {
         log("llonebot pid", process.pid)
         startTime = Date.now();
         startReceiveHook().then();
-        NTQQApi.getGroups(true).then()
+        NTQQGroupApi.getGroups(true).then()
         const config = getConfigUtil().getConfig()
         // 检查ffmpeg
         checkFfmpeg(config.ffmpeg).then(exist => {
@@ -347,7 +347,7 @@ function onLoad() {
     const init = async () => {
         try {
             log("start get self info")
-            const _ = await NTQQApi.getSelfInfo();
+            const _ = await NTQQUserApi.getSelfInfo();
             log("get self info api result:", _);
             Object.assign(selfInfo, _);
             selfInfo.nick = selfInfo.uin;
@@ -357,7 +357,7 @@ function onLoad() {
         log("self info", selfInfo);
         if (selfInfo.uin) {
             try {
-                const userInfo = (await NTQQApi.getUserDetailInfo(selfInfo.uid));
+                const userInfo = (await NTQQUserApi.getUserDetailInfo(selfInfo.uid));
                 log("self info", userInfo);
                 if (userInfo) {
                     selfInfo.nick = userInfo.nick;
