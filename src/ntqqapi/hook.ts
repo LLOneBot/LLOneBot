@@ -1,8 +1,8 @@
 import {BrowserWindow} from 'electron';
 import {getConfigUtil, log, sleep} from "../common/utils";
 import {NTQQApiClass} from "./ntcall";
-import {sendMessagePool} from "./api/msg"
-import {Group, RawMessage, User} from "./types";
+import {NTQQMsgApi, sendMessagePool} from "./api/msg"
+import {ChatType, Group, RawMessage, User} from "./types";
 import {friends, groups, selfInfo, tempGroupCodeMap} from "../common/data";
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {v4 as uuidv4} from "uuid"
@@ -146,6 +146,8 @@ export function removeReceiveHook(id: string) {
 
 async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
     for (let group of _groups) {
+        log("update group", group)
+        NTQQMsgApi.activateGroupChat(group.groupCode).then()
         let existGroup = groups.find(g => g.groupCode == group.groupCode);
         if (existGroup) {
             Object.assign(existGroup, group);
