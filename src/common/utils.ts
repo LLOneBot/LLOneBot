@@ -8,6 +8,7 @@ import * as crypto from 'crypto';
 import { v4 as uuidv4 } from "uuid";
 import ffmpeg from "fluent-ffmpeg"
 import * as https from "node:https";
+import { version } from "../version";
 
 export const DATA_DIR = global.LiteLoader.plugins["LLOneBot"].path.data;
 
@@ -35,6 +36,18 @@ function truncateString(obj: any, maxLength = 500) {
 
 export function isNumeric(str: string) {
     return /^\d+$/.test(str);
+}
+// 判断是否为最新版本
+export async function checkVersion() {
+    const latestVersionText = await getRemoteVersion();
+    const latestVersion = latestVersionText.split(".");
+    const currentVersion = version.split(".");
+    for (let k in [0, 1, 2]) {
+        if (latestVersion[k] > currentVersion[k]) {
+            return { result: true, version: latestVersion };
+        }
+    }
+    return { result: true, version: version };
 }
 export async function updateLLOneBot() {
     let mirrorGithubList = ["https://mirror.ghproxy.com"];
