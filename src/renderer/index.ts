@@ -90,7 +90,7 @@ async function onSettingWindowCreated(view: Element) {
                 ], 'ob11.messagePostFormat', config.ob11.messagePostFormat),
             ),
             SettingItem(
-                'ffmpeg 路径, 发送语音、视频需要，同时保证ffprobe和ffmpeg在一起', `<span id="config-ffmpeg-path-text">${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}</span>`,
+                'ffmpeg 路径，发送语音、视频需要，同时保证ffprobe和ffmpeg在一起', `配置可参考 <a href="javascript:LiteLoader.api.openExternal(\'https://llonebot.github.io/zh-CN/guide/voice\');">官方文档</a> <span id="config-ffmpeg-path-text"> 路径:${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}</span>`,
                 SettingButton('选择', 'config-ffmpeg-select'),
             ),
             SettingItem(
@@ -138,9 +138,14 @@ async function onSettingWindowCreated(view: Element) {
         ]),
         SettingList([
             SettingItem(
-                'GitHub和文档',
+                'GitHub 仓库',
                 `https://github.com/LLOneBot/LLOneBot`,
-                SettingButton('点个Star', 'open-github'),
+                SettingButton('点个星星', 'open-github'),
+            ),
+            SettingItem(
+                'LLOneBot 文档',
+                `https://llonebot.github.io/`,
+                SettingButton('看看文档', 'open-docs'),
             ),
             SettingItem(
                 'Telegram 群',
@@ -165,6 +170,9 @@ async function onSettingWindowCreated(view: Element) {
     })
     doc.querySelector('#open-qq-group').addEventListener('click', () => {
         window.LiteLoader.api.openExternal('https://qm.qq.com/q/bDnHRG38aI')
+    })
+    doc.querySelector('#open-docs').addEventListener('click', () => {
+        window.LiteLoader.api.openExternal('https://llonebot.github.io/')
     })
     // 生成反向地址列表
     const buildHostListItem = (type: string, host: string, index: number, inputAttrs: any={}) => {
