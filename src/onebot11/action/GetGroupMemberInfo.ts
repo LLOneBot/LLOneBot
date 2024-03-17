@@ -19,7 +19,9 @@ class GetGroupMemberInfo extends BaseAction<PayloadType, OB11GroupMember> {
         const member = await getGroupMember(payload.group_id.toString(), payload.user_id.toString())
         if (member) {
             if (isNull(member.sex)){
+                log("获取群成员详细信息")
                 let info = (await NTQQUserApi.getUserDetailInfo(member.uid))
+                log("群成员详细信息结果", info)
                 Object.assign(member, info);
             }
             return OB11Constructor.groupMember(payload.group_id.toString(), member)
