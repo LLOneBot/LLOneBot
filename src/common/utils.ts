@@ -44,7 +44,7 @@ export async function checkVersion() {
     const currentVersion = version.split(".");
     for (let k in [0, 1, 2]) {
         if (latestVersion[k] > currentVersion[k]) {
-            return { result: true, version: latestVersionText };
+            return { result: false, version: latestVersionText };
         }
     }
     return { result: true, version: version };
@@ -64,7 +64,6 @@ export async function getRemoteVersion() {
     for (let i = 0; i < mirrorGithubList.length; i++) {
         let mirrorGithub = mirrorGithubList[i];
         let tVersion = await getRemoteVersionByMirror(mirrorGithub);
-        console.log("tVersion", tVersion);
         if (tVersion && tVersion != "") {
             Version = tVersion;
             break;
