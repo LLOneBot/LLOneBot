@@ -15,7 +15,9 @@ export interface Peer {
 
 export class NTQQMsgApi {
     static async activateGroupChat(groupCode: string) {
-        return await callNTQQApi({
+        // await this.fetchRecentContact();
+        // await sleep(500);
+        return await callNTQQApi<GeneralCallResult>({
             methodName: NTQQApiMethod.ADD_ACTIVE_CHAT,
             args: [{peer:{peerUid: groupCode, chatType: ChatType.group}, cnt: 20}]
         })
