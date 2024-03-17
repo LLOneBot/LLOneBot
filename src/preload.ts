@@ -1,11 +1,11 @@
 // Electron 主进程 与 渲染进程 交互的桥梁
 
-import {Config, LLOneBotError} from "./common/types";
+import {CheckVersion, Config, LLOneBotError} from "./common/types";
 import {
     CHANNEL_ERROR,
     CHANNEL_GET_CONFIG,
     CHANNEL_LOG,
-    CHANNEL_REMOTEVERSION,
+    CHANNEL_CHECKVERSION,
     CHANNEL_SELECT_FILE,
     CHANNEL_SET_CONFIG,
     CHANNEL_UPDATE,
@@ -18,8 +18,8 @@ const llonebot = {
     log: (data: any) => {
         ipcRenderer.send(CHANNEL_LOG, data);
     },
-    getRemoteVersion:async (): Promise<string> => {
-        return ipcRenderer.invoke(CHANNEL_REMOTEVERSION);
+    checkVersion:async (): Promise<CheckVersion> => {
+        return ipcRenderer.invoke(CHANNEL_CHECKVERSION);
     },
     updateLLOneBot:async (): Promise<boolean> => {
         return ipcRenderer.invoke(CHANNEL_UPDATE);

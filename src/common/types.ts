@@ -9,7 +9,10 @@ export interface OB11Config {
   enableWsReverse?: boolean
   messagePostFormat?: 'array' | 'string'
 }
-
+export interface CheckVersion {
+  result: boolean,
+  version: string
+}
 export interface Config {
   ob11: OB11Config
   token?: string

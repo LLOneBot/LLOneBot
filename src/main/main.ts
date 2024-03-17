@@ -7,13 +7,13 @@ import {
     CHANNEL_ERROR,
     CHANNEL_GET_CONFIG,
     CHANNEL_LOG,
-    CHANNEL_REMOTEVERSION,
+    CHANNEL_CHECKVERSION,
     CHANNEL_SELECT_FILE,
     CHANNEL_SET_CONFIG,
     CHANNEL_UPDATE,
 } from "../common/channels";
 import { ob11WebsocketServer } from "../onebot11/server/ws/WebsocketServer";
-import { checkFfmpeg, DATA_DIR, getConfigUtil, getRemoteVersion, log, updateLLOneBot } from "../common/utils";
+import { checkFfmpeg, checkVersion, DATA_DIR, getConfigUtil, getRemoteVersion, log, updateLLOneBot } from "../common/utils";
 import {
     friendRequests,
     getFriend,
@@ -46,8 +46,8 @@ let running = false;
 // 加载插件时触发
 function onLoad() {
     log("llonebot main onLoad");
-    ipcMain.handle(CHANNEL_REMOTEVERSION, async (event, arg) => {
-        return getRemoteVersion();
+    ipcMain.handle(CHANNEL_CHECKVERSION, async (event, arg) => {
+        return checkVersion();
     });
     ipcMain.handle(CHANNEL_UPDATE, async (event, arg) => {
         return updateLLOneBot();
