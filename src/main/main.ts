@@ -1,8 +1,8 @@
 // 运行在 Electron 主进程 下的插件入口
 
-import { BrowserWindow, dialog, ipcMain } from 'electron';
+import {BrowserWindow, dialog, ipcMain} from 'electron';
 import * as fs from 'node:fs';
-import { Config } from "../common/types";
+import {Config} from "../common/types";
 import {
     CHANNEL_ERROR,
     CHANNEL_GET_CONFIG,
@@ -12,8 +12,8 @@ import {
     CHANNEL_SET_CONFIG,
     CHANNEL_UPDATE,
 } from "../common/channels";
-import { ob11WebsocketServer } from "../onebot11/server/ws/WebsocketServer";
-import { checkFfmpeg, checkVersion, DATA_DIR, getConfigUtil, getRemoteVersion, log, updateLLOneBot } from "../common/utils";
+import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
+import {checkFfmpeg, DATA_DIR, getConfigUtil, log} from "../common/utils";
 import {
     friendRequests,
     getFriend,
@@ -23,21 +23,24 @@ import {
     refreshGroupMembers,
     selfInfo
 } from "../common/data";
-import { hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook } from "../ntqqapi/hook";
-import { OB11Constructor } from "../onebot11/constructor";
-import { NTQQApi } from "../ntqqapi/ntcall";
-import { ChatType, FriendRequestNotify, GroupNotifies, GroupNotifyTypes, RawMessage } from "../ntqqapi/types";
-import { ob11HTTPServer } from "../onebot11/server/http";
-import { OB11FriendRecallNoticeEvent } from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
-import { OB11GroupRecallNoticeEvent } from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
-import { postOB11Event } from "../onebot11/server/postOB11Event";
-import { ob11ReverseWebsockets } from "../onebot11/server/ws/ReverseWebsocket";
-import { OB11GroupAdminNoticeEvent } from "../onebot11/event/notice/OB11GroupAdminNoticeEvent";
-import { OB11GroupRequestEvent } from "../onebot11/event/request/OB11GroupRequest";
-import { OB11FriendRequestEvent } from "../onebot11/event/request/OB11FriendRequest";
+import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmdS, registerReceiveHook} from "../ntqqapi/hook";
+import {OB11Constructor} from "../onebot11/constructor";
+import {ChatType, FriendRequestNotify, GroupNotifies, GroupNotifyTypes, RawMessage} from "../ntqqapi/types";
+import {ob11HTTPServer} from "../onebot11/server/http";
+import {OB11FriendRecallNoticeEvent} from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
+import {OB11GroupRecallNoticeEvent} from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
+import {postOB11Event} from "../onebot11/server/postOB11Event";
+import {ob11ReverseWebsockets} from "../onebot11/server/ws/ReverseWebsocket";
+import {OB11GroupAdminNoticeEvent} from "../onebot11/event/notice/OB11GroupAdminNoticeEvent";
+import {OB11GroupRequestEvent} from "../onebot11/event/request/OB11GroupRequest";
+import {OB11FriendRequestEvent} from "../onebot11/event/request/OB11FriendRequest";
 import * as path from "node:path";
-import { dbUtil } from "../common/db";
-import { setConfig } from "./setConfig";
+import {dbUtil} from "../common/db";
+import {setConfig} from "./setConfig";
+import {NTQQUserApi} from "../ntqqapi/api/user";
+import {NTQQGroupApi} from "../ntqqapi/api/group";
+import {registerPokeHandler} from "../ntqqapi/external/ccpoke";
+import {OB11FriendPokeEvent, OB11GroupPokeEvent} from "../onebot11/event/notice/OB11PokeEvent";
 
 
 let running = false;
@@ -83,7 +86,7 @@ function onLoad() {
         }
     })
     if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
+        fs.mkdirSync(DATA_DIR, {recursive: true});
     }
     ipcMain.handle(CHANNEL_ERROR, (event, arg) => {
         return llonebotError;
@@ -101,7 +104,7 @@ function onLoad() {
     })
 
     async function postReceiveMsg(msgList: RawMessage[]) {
-        const { debug, reportSelfMessage } = getConfigUtil().getConfig();
+        const {debug, reportSelfMessage} = getConfigUtil().getConfig();
         for (let message of msgList) {
 
             // log("收到新消息", message.msgId, message.msgSeq)
@@ -130,14 +133,24 @@ function onLoad() {
     }
 
     async function startReceiveHook() {
-        registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, async (payload) => {
+        registerPokeHandler((id, isGroup) => {
+            log(`收到戳一戳消息了！是否群聊：${isGroup}，id:${id}`)
+            let pokeEvent: OB11FriendPokeEvent | OB11GroupPokeEvent;
+            if (isGroup) {
+                pokeEvent = new OB11GroupPokeEvent(parseInt(id));
+            }else{
+                pokeEvent = new OB11FriendPokeEvent(parseInt(id));
+            }
+            postOB11Event(pokeEvent);
+        })
+        registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.NEW_MSG, ReceiveCmdS.NEW_ACTIVE_MSG], async (payload) => {
             try {
                 await postReceiveMsg(payload.msgList);
             } catch (e) {
                 log("report message error: ", e.stack.toString());
             }
         })
-        registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.UPDATE_MSG, async (payload) => {
+        registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.UPDATE_MSG], async (payload) => {
             for (const message of payload.msgList) {
                 // log("message update", message.sendStatus, message.msgId, message.msgSeq)
                 if (message.recallTime != "0") { //todo: 这个判断方法不太好，应该使用灰色消息元素来判断
@@ -173,8 +186,8 @@ function onLoad() {
                 dbUtil.updateMsg(message).then();
             }
         })
-        registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, async (payload) => {
-            const { reportSelfMessage } = getConfigUtil().getConfig();
+        registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmdS.SELF_SEND_MSG, async (payload) => {
+            const {reportSelfMessage} = getConfigUtil().getConfig();
             if (!reportSelfMessage) {
                 return
             }
