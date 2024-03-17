@@ -16,7 +16,7 @@ import {
     GroupMember,
     IMAGE_HTTP_HOST,
     RawMessage,
-    SelfInfo,
+    SelfInfo, Sex,
     TipGroupElementType,
     User
 } from '../ntqqapi/types';
@@ -31,6 +31,7 @@ import {OB11GroupUploadNoticeEvent} from "./event/notice/OB11GroupUploadNoticeEv
 import {OB11GroupNoticeEvent} from "./event/notice/OB11GroupNoticeEvent";
 import {NTQQUserApi} from "../ntqqapi/api/user";
 import {NTQQFileApi} from "../ntqqapi/api/file";
+import {calcQQLevel} from "../common/utils/qqlevel";
 
 
 export class OB11Constructor {
@@ -225,6 +226,7 @@ export class OB11Constructor {
         if (msg.chatType !== ChatType.group) {
             return;
         }
+        // log("group msg", msg);
         for (let element of msg.elements) {
             const grayTipElement = element.grayTipElement
             const groupElement = grayTipElement?.groupElement
@@ -325,16 +327,24 @@ export class OB11Constructor {
         }[role]
     }
 
+    static sex(sex: Sex): OB11UserSex{
+        const sexMap = {
+            [Sex.male]: OB11UserSex.male,
+            [Sex.female]: OB11UserSex.female,
+            [Sex.unknown]: OB11UserSex.unknown
+        }
+        return sexMap[sex] || OB11UserSex.unknown
+    }
     static groupMember(group_id: string, member: GroupMember): OB11GroupMember {
         return {
             group_id: parseInt(group_id),
             user_id: parseInt(member.uin),
             nickname: member.nick,
             card: member.cardName,
-            sex: OB11UserSex.unknown,
+            sex: OB11Constructor.sex(member.sex),
             age: 0,
             area: "",
-            level: 0,
+            level: member.qqLevel && calcQQLevel(member.qqLevel) || 0,
             join_time: 0,  // 暂时没法获取
             last_sent_time: 0,  // 暂时没法获取
             title_expire_time: 0,

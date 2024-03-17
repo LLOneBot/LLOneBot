@@ -4,6 +4,7 @@ import {log, sleep} from "../../common/utils";
 import {dbUtil} from "../../common/db";
 import {selfInfo} from "../../common/data";
 import {ReceiveCmdS, registerReceiveHook} from "../hook";
+
 export let sendMessagePool: Record<string, ((sendSuccessMsg: RawMessage) => void) | null> = {}// peerUid: callbackFunnc
 
 export interface Peer {
@@ -13,12 +14,33 @@ export interface Peer {
 }
 
 export class NTQQMsgApi {
-    static async activateChat(peer: Peer) {
+    static async activateGroupChat(groupCode: string) {
         return await callNTQQApi({
             methodName: NTQQApiMethod.ADD_ACTIVE_CHAT,
-            args: [{peer, cnt: 20}]
+            args: [{peer:{peerUid: groupCode, chatType: ChatType.group}, cnt: 20}]
         })
     }
+    static async fetchRecentContact(){
+        await callNTQQApi({
+            methodName: NTQQApiMethod.RECENT_CONTACT,
+            args: [
+                {
+                    fetchParam: {
+                        anchorPointContact: {
+                            contactId: '',
+                            sortField: '',
+                            pos: 0,
+                        },
+                        relativeMoveCount: 0,
+                        listType: 2,  // 1普通消息，2群助手内的消息
+                        count: 200,
+                        fetchOld: true,
+                    },
+                }
+            ]
+        })
+    }
+
     static async recallMsg(peer: Peer, msgIds: string[]) {
         return await callNTQQApi({
             methodName: NTQQApiMethod.RECALL_MSG,

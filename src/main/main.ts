@@ -131,7 +131,7 @@ function onLoad() {
                 log("report message error: ", e.stack.toString());
             }
         })
-        registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.UPDATE_MSG, ReceiveCmdS.UPDATE_ACTIVE_MSG], async (payload) => {
+        registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.UPDATE_MSG], async (payload) => {
             for (const message of payload.msgList) {
                 // log("message update", message.sendStatus, message.msgId, message.msgSeq)
                 if (message.recallTime != "0") { //todo: 这个判断方法不太好，应该使用灰色消息元素来判断
