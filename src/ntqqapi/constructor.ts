@@ -11,10 +11,12 @@ import {
     SendTextElement,
     SendVideoElement
 } from "./types";
-import {calculateFileMD5, encodeSilk, getVideoInfo, isGIF, log, sleep} from "../common/utils";
 import {promises as fs} from "node:fs";
 import ffmpeg from "fluent-ffmpeg"
 import {NTQQFileApi} from "./api/file";
+import {calculateFileMD5, encodeSilk, getVideoInfo, isGIF} from "../common/utils/file";
+import {log} from "../common/utils/log";
+import {sleep} from "../common/utils/helper";
 
 
 export class SendMsgElementConstructor {

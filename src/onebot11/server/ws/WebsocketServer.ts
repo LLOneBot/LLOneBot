@@ -1,5 +1,4 @@
 import {WebSocket} from "ws";
-import {getConfigUtil, log} from "../../../common/utils";
 import {actionMap} from "../../action";
 import {OB11Response} from "../../action/utils";
 import {postWsEvent, registerWsEventSender, unregisterWsEventSender} from "../postOB11Event";
@@ -11,6 +10,8 @@ import {WebsocketServerBase} from "../../../common/server/websocket";
 import {IncomingMessage} from "node:http";
 import {wsReply} from "./reply";
 import {selfInfo} from "../../../common/data";
+import {log} from "../../../common/utils/log";
+import {getConfigUtil} from "../../../common/config";
 
 let heartbeatRunning = false;
 

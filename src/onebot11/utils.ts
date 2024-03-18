@@ -1,8 +1,10 @@
-import {DATA_DIR, isGIF, log} from "../common/utils";
+import {DATA_DIR} from "../common/utils";
 import {v4 as uuidv4} from "uuid";
 import * as path from 'node:path';
 import * as fileType from 'file-type';
 import {dbUtil} from "../common/db";
+import {isGIF} from "../common/utils/file";
+import {log} from "../common/utils/log";
 
 const fs = require("fs").promises;
 

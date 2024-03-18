@@ -2,9 +2,9 @@ import {ReceiveCmdS} from "../hook";
 import {Group, GroupMember, GroupMemberRole, GroupNotifies, GroupNotify, GroupRequestOperateTypes} from "../types";
 import {callNTQQApi, GeneralCallResult, NTQQApiClass, NTQQApiMethod} from "../ntcall";
 import {uidMaps} from "../../common/data";
-import {log} from "../../common/utils";
 import {BrowserWindow} from "electron";
 import {dbUtil} from "../../common/db";
+import {log} from "../../common/utils/log";
 
 export class NTQQGroupApi{
     static async getGroups(forced = false) {

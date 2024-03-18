@@ -9,9 +9,9 @@ import {
     ElementType
 } from "../types";
 import path from "path";
-import {log} from "../../common/utils";
 import fs from "fs";
 import {ReceiveCmdS} from "../hook";
+import {log} from "../../common/utils/log";
 
 export class NTQQFileApi{
     static async getFileType(filePath: string) {

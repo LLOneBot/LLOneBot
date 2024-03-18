@@ -1,16 +1,17 @@
 import {BrowserWindow} from 'electron';
-import {getConfigUtil, log, sleep} from "../common/utils";
 import {NTQQApiClass} from "./ntcall";
 import {NTQQMsgApi, sendMessagePool} from "./api/msg"
 import {ChatType, Group, RawMessage, User} from "./types";
-import {friends, groups, receivedTempUinMap, selfInfo, tempGroupCodeMap, uidMaps} from "../common/data";
+import {friends, groups, selfInfo, tempGroupCodeMap, uidMaps} from "../common/data";
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {v4 as uuidv4} from "uuid"
 import {postOB11Event} from "../onebot11/server/postOB11Event";
-import {HOOK_LOG} from "../common/config";
+import {getConfigUtil, HOOK_LOG} from "../common/config";
 import fs from "fs";
 import {dbUtil} from "../common/db";
 import {NTQQGroupApi} from "./api/group";
+import {log} from "../common/utils/log";
+import {sleep} from "../common/utils/helper";
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 

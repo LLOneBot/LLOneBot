@@ -13,7 +13,7 @@ import {
     CHANNEL_UPDATE,
 } from "../common/channels";
 import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
-import {checkFfmpeg, DATA_DIR, getConfigUtil, log} from "../common/utils";
+import {DATA_DIR} from "../common/utils";
 import {
     friendRequests,
     getFriend,
@@ -42,6 +42,9 @@ import {NTQQGroupApi} from "../ntqqapi/api/group";
 import {registerPokeHandler} from "../ntqqapi/external/ccpoke";
 import {OB11FriendPokeEvent, OB11GroupPokeEvent} from "../onebot11/event/notice/OB11PokeEvent";
 import {checkVersion, updateLLOneBot} from "../common/utils/update";
+import {checkFfmpeg} from "../common/utils/file";
+import {log} from "../common/utils/log";
+import {getConfigUtil} from "../common/config";
 
 
 let running = false;

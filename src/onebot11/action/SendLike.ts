@@ -1,8 +1,8 @@
 import BaseAction from "./BaseAction";
 import {getFriend, getUidByUin, uidMaps} from "../../common/data";
 import {ActionName} from "./types";
-import {log} from "../../common/utils";
 import {NTQQFriendApi} from "../../ntqqapi/api/friend";
+import {log} from "../../common/utils/log";
 
 interface Payload {
     user_id: number,

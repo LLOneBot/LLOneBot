@@ -6,8 +6,9 @@ import {
     type SelfInfo
 } from '../ntqqapi/types'
 import {type FileCache, type LLOneBotError} from './types'
-import {isNumeric, log} from "./utils";
 import {NTQQGroupApi} from "../ntqqapi/api/group";
+import {log} from "./utils/log";
+import {isNumeric} from "./utils/helper";
 
 export const selfInfo: SelfInfo = {
     uid: '',

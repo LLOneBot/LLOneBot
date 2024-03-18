@@ -1,8 +1,8 @@
 import BaseAction from "../BaseAction";
 import {Config} from "../../../common/types";
-import {getConfigUtil} from "../../../common/utils";
 import {ActionName} from "../types";
 import {setConfig} from "../../../main/setConfig";
+import {getConfigUtil} from "../../../common/config";
 
 
 export class GetConfigAction extends BaseAction<null, Config> {

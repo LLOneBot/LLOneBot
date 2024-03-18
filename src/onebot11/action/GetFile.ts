@@ -1,7 +1,7 @@
 import BaseAction from "./BaseAction";
-import {getConfigUtil} from "../../common/utils";
 import fs from "fs/promises";
 import {dbUtil} from "../../common/db";
+import {getConfigUtil} from "../../common/config";
 
 export interface GetFilePayload {
     file: string // 文件名

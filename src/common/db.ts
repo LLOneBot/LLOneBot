@@ -1,8 +1,9 @@
 import {Level} from "level";
 import {type GroupNotify, RawMessage} from "../ntqqapi/types";
-import {DATA_DIR, log} from "./utils";
+import {DATA_DIR} from "./utils";
 import {selfInfo} from "./data";
 import {FileCache} from "./types";
+import {log} from "./utils/log";
 
 type ReceiveTempUinMap = Record<string, string>;
 

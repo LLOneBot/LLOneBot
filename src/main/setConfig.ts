@@ -1,9 +1,10 @@
 import {Config} from "../common/types";
-import {checkFfmpeg, getConfigUtil} from "../common/utils";
 import {ob11HTTPServer} from "../onebot11/server/http";
 import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
 import {ob11ReverseWebsockets} from "../onebot11/server/ws/ReverseWebsocket";
 import {llonebotError} from "../common/data";
+import {checkFfmpeg} from "../common/utils/file";
+import {getConfigUtil} from "../common/config";
 
 export async function setConfig(config: Config) {
     let oldConfig = getConfigUtil().getConfig();
