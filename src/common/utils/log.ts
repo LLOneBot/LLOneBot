@@ -1,7 +1,7 @@
 import {selfInfo} from "../data";
 import fs from "fs";
 import path from "node:path";
-import {DATA_DIR} from "./index";
+import {DATA_DIR, truncateString} from "./index";
 import {getConfigUtil} from "../config";
 
 export function log(...msg: any[]) {
