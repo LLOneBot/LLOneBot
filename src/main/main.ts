@@ -7,11 +7,13 @@ import {
     CHANNEL_ERROR,
     CHANNEL_GET_CONFIG,
     CHANNEL_LOG,
+    CHANNEL_CHECKVERSION,
     CHANNEL_SELECT_FILE,
     CHANNEL_SET_CONFIG,
+    CHANNEL_UPDATE,
 } from "../common/channels";
 import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
-import {checkFfmpeg, DATA_DIR, getConfigUtil, log} from "../common/utils";
+import {checkFfmpeg, checkVersion, DATA_DIR, getConfigUtil, log, updateLLOneBot} from "../common/utils";
 import {
     friendRequests,
     getFriend,
@@ -47,7 +49,12 @@ let running = false;
 // 加载插件时触发
 function onLoad() {
     log("llonebot main onLoad");
-
+    ipcMain.handle(CHANNEL_CHECKVERSION, async (event, arg) => {
+        return checkVersion();
+    });
+    ipcMain.handle(CHANNEL_UPDATE, async (event, arg) => {
+        return updateLLOneBot();
+    });
     ipcMain.handle(CHANNEL_SELECT_FILE, async (event, arg) => {
         const selectPath = new Promise<string>((resolve, reject) => {
             dialog
@@ -309,7 +316,6 @@ function onLoad() {
 
     async function start() {
         log("llonebot pid", process.pid)
-
         startTime = Date.now();
         startReceiveHook().then();
         NTQQGroupApi.getGroups(true).then()

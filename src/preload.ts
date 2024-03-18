@@ -1,12 +1,14 @@
 // Electron 主进程 与 渲染进程 交互的桥梁
 
-import {Config, LLOneBotError} from "./common/types";
+import {CheckVersion, Config, LLOneBotError} from "./common/types";
 import {
     CHANNEL_ERROR,
     CHANNEL_GET_CONFIG,
     CHANNEL_LOG,
+    CHANNEL_CHECKVERSION,
     CHANNEL_SELECT_FILE,
     CHANNEL_SET_CONFIG,
+    CHANNEL_UPDATE,
 } from "./common/channels";
 
 const {contextBridge} = require("electron");
@@ -15,6 +17,12 @@ const {ipcRenderer} = require('electron');
 const llonebot = {
     log: (data: any) => {
         ipcRenderer.send(CHANNEL_LOG, data);
+    },
+    checkVersion:async (): Promise<CheckVersion> => {
+        return ipcRenderer.invoke(CHANNEL_CHECKVERSION);
+    },
+    updateLLOneBot:async (): Promise<boolean> => {
+        return ipcRenderer.invoke(CHANNEL_UPDATE);
     },
     setConfig: (config: Config) => {
         ipcRenderer.send(CHANNEL_SET_CONFIG, config);
