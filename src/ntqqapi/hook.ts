@@ -3,7 +3,7 @@ import {getConfigUtil, log, sleep} from "../common/utils";
 import {NTQQApiClass} from "./ntcall";
 import {NTQQMsgApi, sendMessagePool} from "./api/msg"
 import {ChatType, Group, RawMessage, User} from "./types";
-import {friends, groups, selfInfo, tempGroupCodeMap} from "../common/data";
+import {friends, groups, receivedTempUinMap, selfInfo, tempGroupCodeMap, uidMaps} from "../common/data";
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {v4 as uuidv4} from "uuid"
 import {postOB11Event} from "../onebot11/server/postOB11Event";
@@ -249,8 +249,26 @@ registerReceiveHook<{
     }
 })
 
-// 新消息
 registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.NEW_MSG, ReceiveCmdS.NEW_ACTIVE_MSG], (payload) => {
+    // 保存一下uid
+    for (const message of payload.msgList) {
+        const uid = message.senderUid;
+        const uin = message.senderUin;
+        if (uid && uin) {
+            if (message.chatType === ChatType.temp){
+                dbUtil.getReceivedTempUinMap().then(receivedTempUinMap=>{
+                    if (!receivedTempUinMap[uin]){
+                        receivedTempUinMap[uin] = uid;
+                        dbUtil.setReceivedTempUinMap(receivedTempUinMap)
+                    }
+                })
+            }
+            uidMaps[uid] = uin;
+        }
+    }
+
+
+    // 自动清理新消息文件
     const {autoDeleteFile} = getConfigUtil().getConfig();
     if (!autoDeleteFile) {
         return

@@ -4,6 +4,7 @@ import {DATA_DIR, log} from "./utils";
 import {selfInfo} from "./data";
 import {FileCache} from "./types";
 
+type ReceiveTempUinMap = Record<string, string>;
 
 class DBUtil {
     public readonly DB_KEY_PREFIX_MSG_ID = "msg_id_";
@@ -11,8 +12,9 @@ class DBUtil {
     public readonly DB_KEY_PREFIX_MSG_SEQ_ID = "msg_seq_id_";
     public readonly DB_KEY_PREFIX_FILE = "file_";
     public readonly DB_KEY_PREFIX_GROUP_NOTIFY = "group_notify_";
+    private readonly DB_KEY_RECEIVED_TEMP_UIN_MAP = "received_temp_uin_map";
     public db: Level;
-    public cache: Record<string, RawMessage | string | FileCache | GroupNotify> = {}  // <msg_id_ | msg_short_id_ | msg_seq_id_><id>: RawMessage
+    public cache: Record<string, RawMessage | string | FileCache | GroupNotify | ReceiveTempUinMap> = {}  // <msg_id_ | msg_short_id_ | msg_seq_id_><id>: RawMessage
     private currentShortId: number;
 
     /*
@@ -67,6 +69,17 @@ class DBUtil {
         }, expiredMilliSecond)
     }
 
+    public async getReceivedTempUinMap(): Promise<ReceiveTempUinMap> {
+        try{
+            this.cache[this.DB_KEY_RECEIVED_TEMP_UIN_MAP] = JSON.parse(await this.db.get(this.DB_KEY_RECEIVED_TEMP_UIN_MAP));
+        }catch (e) {
+        }
+        return (this.cache[this.DB_KEY_RECEIVED_TEMP_UIN_MAP] || {}) as ReceiveTempUinMap;
+    }
+    public setReceivedTempUinMap(data: ReceiveTempUinMap) {
+        this.cache[this.DB_KEY_RECEIVED_TEMP_UIN_MAP] = data;
+        this.db.put(this.DB_KEY_RECEIVED_TEMP_UIN_MAP, JSON.stringify(data)).then();
+    }
     private addCache(msg: RawMessage) {
         const longIdKey = this.DB_KEY_PREFIX_MSG_ID + msg.msgId
         const shortIdKey = this.DB_KEY_PREFIX_MSG_SHORT_ID + msg.msgShortId

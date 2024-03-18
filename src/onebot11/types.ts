@@ -29,6 +29,7 @@ export interface OB11GroupMember {
     join_time?: number
     last_sent_time?: number
     level?: number
+    qq_level?: number
     role?: OB11GroupMemberRole
     title?: string
     area?: string
@@ -64,6 +65,7 @@ export enum OB11MessageType {
 }
 
 export interface OB11Message {
+    target_id?: number;  // 自己发送的消息才有此字段
     self_id?: number,
     time: number,
     message_id: number,
