@@ -2,7 +2,8 @@ import BaseAction from "../BaseAction";
 import {ActionName} from "../types";
 import fs from "fs";
 import {join as joinPath} from "node:path";
-import {calculateFileMD5, DATA_DIR} from "../../../common/utils";
+import {calculateFileMD5, TEMP_DIR} from "../../../common/utils";
+import {v4 as uuid4} from "uuid";
 
 interface Payload {
     thread_count?: number
@@ -16,29 +17,13 @@ interface FileResponse {
     file: string
 }
 
-const localPath = joinPath(DATA_DIR, "file_cache")
 export default class GoCQHTTPDownloadFile extends BaseAction<Payload, FileResponse> {
     actionName = ActionName.GoCQHTTP_DownloadFile
 
-    constructor() {
-        super();
-        if (!fs.existsSync(localPath)) {
-            fs.mkdirSync(localPath)
-        }
-    }
-
     protected async _handle(payload: Payload): Promise<FileResponse> {
-        let name = payload.name || "";
         const isRandomName = !payload.name
-
-        if (isRandomName) {
-            do {
-                name = this.generateRandomString(10);
-                // 使用循环防止极低概率的情况下随机出已有的文件, 导致覆盖
-            } while (fs.existsSync(joinPath(localPath, name)));
-        }
-
-        const filePath = joinPath(localPath, name);
+        let name = payload.name || uuid4();
+        const filePath = joinPath(TEMP_DIR, name);
 
         if (payload.base64) {
             fs.writeFileSync(filePath, payload.base64, 'base64')
@@ -59,7 +44,7 @@ export default class GoCQHTTPDownloadFile extends BaseAction<Payload, FileRespon
             if (isRandomName) {
                 // 默认实现要名称未填写时文件名为文件 md5
                 const md5 = await calculateFileMD5(filePath);
-                const newPath = joinPath(localPath, md5);
+                const newPath = joinPath(TEMP_DIR, md5);
                 fs.renameSync(filePath, newPath);
                 return { file: newPath }
             }
@@ -67,16 +52,6 @@ export default class GoCQHTTPDownloadFile extends BaseAction<Payload, FileRespon
         } else {
             throw new Error("文件写入失败, 检查权限")
         }
-    }
-
-    generateRandomString(length: number): string {
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let randomString = '';
-        for (let i = 0; i < length; i++) {
-            const randomIndex = Math.floor(Math.random() * characters.length);
-            randomString += characters.charAt(randomIndex);
-        }
-        return randomString;
     }
 
     getHeaders(headersIn?: string | string[]): any {
