@@ -18,6 +18,7 @@
     "file-type": "^19.0.0",
     "fluent-ffmpeg": "^2.1.2",
     "level": "^8.0.1",
+    "node-stream-zip": "^1.15.0",
     "silk-wasm": "^3.2.3",
     "utf-8-validate": "^6.0.3",
     "uuid": "^9.0.1",
