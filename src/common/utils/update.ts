@@ -13,7 +13,7 @@ export async function checkVersion() {
     return { result: true, version: version };
 }
 export async function updateLLOneBot() {
-    let mirrorGithubList = ["https://mirror.ghproxy.com"];
+    let mirrorGithubList = ["https://mirror.ghproxy.com/"];
     const latestVersion = await getRemoteVersion();
     if (latestVersion && latestVersion != "") {
         const downloadUrl = "https://github.com/LLOneBot/LLOneBot/releases/download/v" + latestVersion + "/LLOneBot.zip";
