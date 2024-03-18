@@ -3,6 +3,8 @@ import {OB11User} from "../../types";
 import {getFriend, getGroupMember, groups} from "../../../common/data";
 import {OB11Constructor} from "../../constructor";
 import {ActionName} from "../types";
+import {isNull, log} from "../../../common/utils";
+import {NTQQUserApi} from "../../../ntqqapi/api/user";
 
 
 export default class GoCQHTTPGetStrangerInfo extends BaseAction<{ user_id: number }, OB11User> {
@@ -17,9 +19,13 @@ export default class GoCQHTTPGetStrangerInfo extends BaseAction<{ user_id: numbe
         for (const group of groups) {
             const member = await getGroupMember(group.groupCode, user_id)
             if (member) {
+                if (isNull(member.sex)){
+                    let info = (await NTQQUserApi.getUserDetailInfo(member.uid))
+                    Object.assign(member, info);
+                }
                 return OB11Constructor.groupMember(group.groupCode, member) as OB11User
             }
         }
-        throw ("查无此人")
+        throw new Error("查无此人")
     }
 }
