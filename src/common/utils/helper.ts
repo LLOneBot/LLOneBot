@@ -1,4 +1,4 @@
-function truncateString(obj: any, maxLength = 500) {
+export function truncateString(obj: any, maxLength = 500) {
     if (obj !== null && typeof obj === 'object') {
         Object.keys(obj).forEach(key => {
             if (typeof obj[key] === 'string') {
