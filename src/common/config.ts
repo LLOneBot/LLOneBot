@@ -44,6 +44,7 @@ export class ConfigUtil {
             reportSelfMessage: false,
             autoDeleteFile: false,
             autoDeleteFileSecond: 60,
+            enablePoke: false
         };
 
         if (!fs.existsSync(this.configPath)) {

@@ -7,7 +7,14 @@ import {
     SendArkElement,
     SendMessageElement
 } from "../../ntqqapi/types";
-import {friends, getFriend, getGroup, getGroupMember, getUidByUin, selfInfo,} from "../../common/data";
+import {
+    friends,
+    getFriend,
+    getGroup,
+    getGroupMember,
+    getUidByUin,
+    selfInfo,
+} from "../../common/data";
 import {
     OB11MessageCustomMusic,
     OB11MessageData,
@@ -87,7 +94,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         }
         if (payload.user_id && payload.message_type !== "group") {
             if (!(await getFriend(payload.user_id))) {
-                if (!ALLOW_SEND_TEMP_MSG) {
+                if (!ALLOW_SEND_TEMP_MSG && !(await dbUtil.getReceivedTempUinMap())[payload.user_id.toString()]) {
                     return {
                         valid: false,
                         message: `不能发送临时消息`
