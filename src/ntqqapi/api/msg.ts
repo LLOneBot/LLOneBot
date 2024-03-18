@@ -19,7 +19,7 @@ export class NTQQMsgApi {
         // await sleep(500);
         return await callNTQQApi<GeneralCallResult>({
             methodName: NTQQApiMethod.ADD_ACTIVE_CHAT,
-            args: [{peer:{peerUid: groupCode, chatType: ChatType.group}, cnt: 20}]
+            args: [{peer:{peerUid: groupCode, chatType: ChatType.group}, cnt: 20}, null]
         })
     }
     static async fetchRecentContact(){
