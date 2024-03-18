@@ -19,7 +19,7 @@ import {
     getGroupMember,
     llonebotError,
     refreshGroupMembers,
-    selfInfo
+    selfInfo, uidMaps
 } from "../common/data";
 import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmdS, registerReceiveHook} from "../ntqqapi/hook";
 import {OB11Constructor} from "../onebot11/constructor";
@@ -108,10 +108,17 @@ function onLoad() {
             OB11Constructor.message(message).then((msg) => {
                 if (debug) {
                     msg.raw = message;
+                } else {
+                    if (msg.message.length === 0) {
+                        return
+                    }
                 }
                 const isSelfMsg = msg.user_id.toString() == selfInfo.uin
                 if (isSelfMsg && !reportSelfMessage) {
                     return
+                }
+                if (isSelfMsg) {
+                    msg.target_id = parseInt(message.peerUin);
                 }
                 postOB11Event(msg);
                 // log("post msg", msg)
@@ -126,17 +133,21 @@ function onLoad() {
     }
 
     async function startReceiveHook() {
-        registerPokeHandler((id, isGroup) => {
-            log(`收到戳一戳消息了！是否群聊：${isGroup}，id:${id}`)
-            let pokeEvent: OB11FriendPokeEvent | OB11GroupPokeEvent;
-            if (isGroup) {
-                pokeEvent = new OB11GroupPokeEvent(parseInt(id));
-            }else{
-                pokeEvent = new OB11FriendPokeEvent(parseInt(id));
-            }
-            postOB11Event(pokeEvent);
-        })
-        registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.NEW_MSG, ReceiveCmdS.NEW_ACTIVE_MSG], async (payload) => {
+        if (getConfigUtil().getConfig().enablePoke) {
+            registerPokeHandler((id, isGroup) => {
+                log(`收到戳一戳消息了！是否群聊：${isGroup}，id:${id}`)
+                let pokeEvent: OB11FriendPokeEvent | OB11GroupPokeEvent;
+                if (isGroup) {
+                    pokeEvent = new OB11GroupPokeEvent(parseInt(id));
+                } else {
+                    pokeEvent = new OB11FriendPokeEvent(parseInt(id));
+                }
+                postOB11Event(pokeEvent);
+            })
+        }
+        registerReceiveHook<{
+            msgList: Array<RawMessage>
+        }>([ReceiveCmdS.NEW_MSG, ReceiveCmdS.NEW_ACTIVE_MSG], async (payload) => {
             try {
                 await postReceiveMsg(payload.msgList);
             } catch (e) {
@@ -311,6 +322,11 @@ function onLoad() {
         log("llonebot pid", process.pid)
 
         startTime = Date.now();
+        dbUtil.getReceivedTempUinMap().then(m=>{
+            for (const [key, value] of Object.entries(m)) {
+                uidMaps[value] = key;
+            }
+        })
         startReceiveHook().then();
         NTQQGroupApi.getGroups(true).then()
         const config = getConfigUtil().getConfig()
