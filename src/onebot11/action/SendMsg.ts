@@ -29,11 +29,12 @@ import {uri2local} from "../utils";
 import BaseAction from "./BaseAction";
 import {ActionName, BaseCheckResult} from "./types";
 import * as fs from "node:fs";
-import {log, sleep} from "../../common/utils";
 import {decodeCQCode} from "../cqcode";
 import {dbUtil} from "../../common/db";
 import {ALLOW_SEND_TEMP_MSG} from "../../common/config";
 import {NTQQMsgApi} from "../../ntqqapi/api/msg";
+import {log} from "../../common/utils/log";
+import {sleep} from "../../common/utils/helper";
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
     function checkUri(uri: string): boolean {

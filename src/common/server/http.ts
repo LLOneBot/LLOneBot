@@ -1,6 +1,7 @@
 import express, {Express, json, Request, Response} from "express";
-import {getConfigUtil, log} from "../utils";
 import http from "http";
+import {log} from "../utils/log";
+import {getConfigUtil} from "../config";
 
 type RegisterHandler = (res: Response, payload: any) => Promise<any>
 

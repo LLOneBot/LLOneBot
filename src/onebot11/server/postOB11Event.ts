@@ -1,10 +1,11 @@
-import {getConfigUtil, log} from "../../common/utils";
 import {OB11Message} from "../types";
 import {selfInfo} from "../../common/data";
 import {OB11BaseMetaEvent} from "../event/meta/OB11BaseMetaEvent";
 import {OB11BaseNoticeEvent} from "../event/notice/OB11BaseNoticeEvent";
 import {WebSocket as WebSocketClass} from "ws";
 import {wsReply} from "./ws/reply";
+import {log} from "../../common/utils/log";
+import {getConfigUtil} from "../../common/config";
 
 export type PostEventType = OB11Message | OB11BaseMetaEvent | OB11BaseNoticeEvent
 

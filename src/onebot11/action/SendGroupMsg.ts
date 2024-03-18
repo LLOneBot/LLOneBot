@@ -1,7 +1,8 @@
 import SendMsg from "./SendMsg";
 import {ActionName, BaseCheckResult} from "./types";
 import {OB11PostSendMsg} from "../types";
-import {log} from "../../common/utils";
+
+import {log} from "../../common/utils/log";
 
 
 class SendGroupMsg extends SendMsg {

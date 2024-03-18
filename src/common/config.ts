@@ -1,6 +1,10 @@
 import fs from "fs";
 import {Config, OB11Config} from './types';
-import {mergeNewProperties} from "./utils";
+
+import {mergeNewProperties} from "./utils/helper";
+import path from "node:path";
+import {selfInfo} from "./data";
+import {DATA_DIR} from "./utils";
 
 export const HOOK_LOG = false;
 
@@ -84,4 +88,9 @@ export class ConfigUtil {
             delete oldConfig[oldKey];
         }
     }
+}
+
+export function getConfigUtil() {
+    const configFilePath = path.join(DATA_DIR, `config_${selfInfo.uin}.json`)
+    return new ConfigUtil(configFilePath)
 }

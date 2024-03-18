@@ -1,9 +1,10 @@
 import {callNTQQApi, GeneralCallResult, NTQQApiMethod} from "../ntcall";
 import {ChatType, RawMessage, SendMessageElement} from "../types";
-import {log, sleep} from "../../common/utils";
 import {dbUtil} from "../../common/db";
 import {selfInfo} from "../../common/data";
 import {ReceiveCmdS, registerReceiveHook} from "../hook";
+import {log} from "../../common/utils/log";
+import {sleep} from "../../common/utils/helper";
 
 export let sendMessagePool: Record<string, ((sendSuccessMsg: RawMessage) => void) | null> = {}// peerUid: callbackFunnc
 

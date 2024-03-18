@@ -4,7 +4,8 @@ import {OB11Constructor} from "../constructor";
 import BaseAction from "./BaseAction";
 import {ActionName} from "./types";
 import {NTQQUserApi} from "../../ntqqapi/api/user";
-import {isNull, log} from "../../common/utils";
+import {log} from "../../common/utils/log";
+import {isNull} from "../../common/utils/helper";
 
 
 export interface PayloadType {

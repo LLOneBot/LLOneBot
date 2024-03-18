@@ -1,4 +1,4 @@
-import {log} from "../../../common/utils";
+import {log} from "../../../common/utils/log";
 
 let pokeEngine: any = null
 

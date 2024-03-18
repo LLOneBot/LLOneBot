@@ -21,7 +21,6 @@ import {
     User
 } from '../ntqqapi/types';
 import {getFriend, getGroupMember, selfInfo, tempGroupCodeMap} from '../common/data';
-import {getConfigUtil, log, sleep} from "../common/utils";
 import {EventType} from "./event/OB11BaseEvent";
 import {encodeCQCode} from "./cqcode";
 import {dbUtil} from "../common/db";
@@ -32,6 +31,9 @@ import {OB11GroupNoticeEvent} from "./event/notice/OB11GroupNoticeEvent";
 import {NTQQUserApi} from "../ntqqapi/api/user";
 import {NTQQFileApi} from "../ntqqapi/api/file";
 import {calcQQLevel} from "../common/utils/qqlevel";
+import {log} from "../common/utils/log";
+import {sleep} from "../common/utils/helper";
+import {getConfigUtil} from "../common/config";
 
 
 export class OB11Constructor {

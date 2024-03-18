@@ -1,8 +1,8 @@
 import {ipcMain} from "electron";
 import {hookApiCallbacks, ReceiveCmd, registerReceiveHook, removeReceiveHook} from "./hook";
-import {log} from "../common/utils";
 
 import {v4 as uuidv4} from "uuid"
+import {log} from "../common/utils/log";
 
 export enum NTQQApiClass {
     NT_API = "ns-ntApi",
