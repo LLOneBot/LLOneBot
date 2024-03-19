@@ -438,8 +438,10 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                             }
                         }
                     }
-                }
-                    break;
+                } break;
+                case OB11MessageDataType.json: {
+                    sendElements.push(SendMsgElementConstructor.ark(sendMsg.data.data))
+                }break
             }
 
         }
