@@ -1,5 +1,20 @@
-import {AtType, ChatType, Group, RawMessage, SendArkElement, SendMessageElement} from "../../ntqqapi/types";
-import {friends, getFriend, getGroup, getGroupMember, getUidByUin, selfInfo,} from "../../common/data";
+import {
+    AtType,
+    ChatType,
+    ElementType,
+    Group,
+    RawMessage,
+    SendArkElement,
+    SendMessageElement
+} from "../../ntqqapi/types";
+import {
+    friends,
+    getFriend,
+    getGroup,
+    getGroupMember,
+    getUidByUin,
+    selfInfo,
+} from "../../common/data";
 import {
     OB11MessageCustomMusic,
     OB11MessageData,
@@ -8,17 +23,18 @@ import {
     OB11MessageNode,
     OB11PostSendMsg
 } from '../types';
-import {NTQQApi, Peer} from "../../ntqqapi/ntcall";
+import {Peer} from "../../ntqqapi/api/msg";
 import {SendMsgElementConstructor} from "../../ntqqapi/constructor";
 import {uri2local} from "../utils";
 import BaseAction from "./BaseAction";
 import {ActionName, BaseCheckResult} from "./types";
 import * as fs from "node:fs";
-import {log, sleep} from "../../common/utils";
 import {decodeCQCode} from "../cqcode";
 import {dbUtil} from "../../common/db";
 import {ALLOW_SEND_TEMP_MSG} from "../../common/config";
-import {FileCache} from "../../common/types";
+import {NTQQMsgApi} from "../../ntqqapi/api/msg";
+import {log} from "../../common/utils/log";
+import {sleep} from "../../common/utils/helper";
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
     function checkUri(uri: string): boolean {
@@ -79,7 +95,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         }
         if (payload.user_id && payload.message_type !== "group") {
             if (!(await getFriend(payload.user_id))) {
-                if (!ALLOW_SEND_TEMP_MSG) {
+                if (!ALLOW_SEND_TEMP_MSG && !(await dbUtil.getReceivedTempUinMap())[payload.user_id.toString()]) {
                     return {
                         valid: false,
                         message: `不能发送临时消息`
@@ -93,6 +109,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     }
 
     protected async _handle(payload: OB11PostSendMsg) {
+
         const peer: Peer = {
             chatType: ChatType.friend,
             peerUid: ""
@@ -157,14 +174,10 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         }
         // log("send msg:", peer, sendElements)
         const {sendElements, deleteAfterSentFiles} = await this.createSendElements(messages, group)
-        try {
-            const returnMsg = await this.send(peer, sendElements, deleteAfterSentFiles)
-            deleteAfterSentFiles.map(f => fs.unlink(f, () => {}));
-            return {message_id: returnMsg.msgShortId}
-        } catch (e) {
-            log("发送消息失败", e.stack.toString())
-            throw (e.toString())
-        }
+        const returnMsg = await this.send(peer, sendElements, deleteAfterSentFiles)
+        deleteAfterSentFiles.map(f => fs.unlink(f, () => {
+        }));
+        return {message_id: returnMsg.msgShortId}
     }
 
     protected convertMessage2List(message: OB11MessageMixType) {
@@ -189,23 +202,58 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         return 0
     }
 
+    private async cloneMsg(msg: RawMessage): Promise<RawMessage> {
+        log("克隆的目标消息", msg)
+        let sendElements: SendMessageElement[] = [];
+        for (const ele of msg.elements) {
+            sendElements.push(ele as SendMessageElement)
+            // Object.keys(ele).forEach((eleKey) => {
+            //     if (eleKey.endsWith("Element")) {
+            //     }
+
+        }
+        if (sendElements.length === 0) {
+            log("需要clone的消息无法解析，将会忽略掉", msg)
+        }
+        log("克隆消息", sendElements)
+        try {
+            const nodeMsg = await NTQQMsgApi.sendMsg({
+                chatType: ChatType.friend,
+                peerUid: selfInfo.uid
+            }, sendElements, true);
+            await sleep(500);
+            return nodeMsg
+        } catch (e) {
+            log(e, "克隆转发消息失败,将忽略本条消息", msg);
+        }
+
+    }
+
     // 返回一个合并转发的消息id
     private async handleForwardNode(destPeer: Peer, messageNodes: OB11MessageNode[], group: Group | undefined) {
-        const selfPeer: Peer = {
+
+        const selfPeer = {
             chatType: ChatType.friend,
             peerUid: selfInfo.uid
         }
-        let selfNodeMsgList: RawMessage[] = []; // 自己给自己发的消息
-        let originalNodeMsgList: RawMessage[] = [];
-        let sendForwardElements: SendMessageElement[] = []
+        let nodeMsgIds: string[] = []
+        // 先判断一遍是不是id和自定义混用
+        let needClone = messageNodes.filter(node => node.data.id).length && messageNodes.filter(node => !node.data.id).length
         for (const messageNode of messageNodes) {
             // 一个node表示一个人的消息
             let nodeId = messageNode.data.id;
             // 有nodeId表示一个子转发消息卡片
             if (nodeId) {
                 let nodeMsg = await dbUtil.getMsgByShortId(parseInt(nodeId));
-                if (nodeMsg) {
-                    originalNodeMsgList.push(nodeMsg);
+                if (!needClone) {
+                    nodeMsgIds.push(nodeMsg.msgId)
+                } else {
+                    if (nodeMsg.peerUid !== selfInfo.uid) {
+                        const cloneMsg = await this.cloneMsg(nodeMsg)
+                        if (cloneMsg) {
+                            nodeMsgIds.push(cloneMsg.msgId)
+                        }
+                    }
                 }
             } else {
                 // 自定义的消息
@@ -216,56 +264,67 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                         deleteAfterSentFiles
                     } = await this.createSendElements(this.convertMessage2List(messageNode.data.content), group);
                     log("开始生成转发节点", sendElements);
-                    sendForwardElements.push(...sendElements);
-                    const nodeMsg = await this.send(selfPeer, sendElements, deleteAfterSentFiles, true);
-                    selfNodeMsgList.push(nodeMsg);
-                    log("转发节点生成成功", nodeMsg.msgId);
-                    await sleep(500);
+                    let sendElementsSplit: SendMessageElement[][] = []
+                    let splitIndex = 0;
+                    for (const ele of sendElements) {
+                        if (!sendElementsSplit[splitIndex]) {
+                            sendElementsSplit[splitIndex] = []
+                        }
+
+                        if (ele.elementType === ElementType.FILE || ele.elementType === ElementType.VIDEO) {
+                            if (sendElementsSplit[splitIndex].length > 0) {
+                                splitIndex++;
+                            }
+                            sendElementsSplit[splitIndex] = [ele]
+                            splitIndex++;
+                        } else {
+                            sendElementsSplit[splitIndex].push(ele)
+                        }
+                        log(sendElementsSplit)
+                    }
+                    // log("分割后的转发节点", sendElementsSplit)
+                    for (const eles of sendElementsSplit) {
+                        const nodeMsg = await this.send(selfPeer, eles, [], true);
+                        nodeMsgIds.push(nodeMsg.msgId)
+                        await sleep(500);
+                        log("转发节点生成成功", nodeMsg.msgId);
+                    }
+                    deleteAfterSentFiles.map(f => fs.unlink(f, () => {
+                    }));
+
                 } catch (e) {
-                    log("生效转发消息节点失败", e)
+                    log("生成转发消息节点失败", e)
                 }
             }
         }
 
-        let nodeIds: string[] = []
-        // 检查是否需要克隆直接引用消息id的节点
+        // 检查srcPeer是否一致，不一致则需要克隆成自己的消息, 让所有srcPeer都变成自己的，使其保持一致才能够转发
+        let nodeMsgArray: Array<RawMessage> = []
+        let srcPeer: Peer = null;
         let needSendSelf = false;
-        if (sendForwardElements.length) {
-            needSendSelf = true
-        } else {
-            needSendSelf = !originalNodeMsgList.every((msg, index) => msg.peerUid === originalNodeMsgList[0].peerUid && msg.recallTime.length < 2)
+        for (const [index, msgId] of nodeMsgIds.entries()) {
+            const nodeMsg = await dbUtil.getMsgByLongId(msgId)
+            if (nodeMsg) {
+                nodeMsgArray.push(nodeMsg)
+                if (!srcPeer) {
+                    srcPeer = {chatType: nodeMsg.chatType, peerUid: nodeMsg.peerUid}
+                } else if (srcPeer.peerUid !== nodeMsg.peerUid) {
+                    needSendSelf = true
+                    srcPeer = selfPeer
+                }
+            }
         }
+        log("nodeMsgArray", nodeMsgArray);
+        nodeMsgIds = nodeMsgArray.map(msg => msg.msgId);
         if (needSendSelf) {
-            nodeIds = selfNodeMsgList.map(msg => msg.msgId);
-            let sendElements: SendMessageElement[] = [];
-            for (const originalNodeMsg of originalNodeMsgList) {
-                if (originalNodeMsg.peerUid === selfInfo.uid && originalNodeMsg.recallTime.length < 2) {
-                    nodeIds.push(originalNodeMsg.msgId)
-                } else { // 需要进行克隆
-                    Object.keys(originalNodeMsg.elements).forEach((eleKey) => {
-                        if (eleKey !== "elementId") {
-                            sendForwardElements.push(originalNodeMsg.elements[eleKey])
-                            sendElements.push(originalNodeMsg.elements[eleKey])
-                        }
-                    })
-                    try {
-                        const nodeMsg = await NTQQApi.sendMsg(selfPeer, sendElements, true);
-                        nodeIds.push(nodeMsg.msgId)
-                        log("克隆转发消息到节点")
-                    } catch (e) {
-                        log("克隆转发消息失败", e)
+            log("需要克隆转发消息");
+            for (const [index, msg] of nodeMsgArray.entries()) {
+                if (msg.peerUid !== selfInfo.uid) {
+                    const cloneMsg = await this.cloneMsg(msg)
+                    if (cloneMsg) {
+                        nodeMsgIds[index] = cloneMsg.msgId
                     }
                 }
-            }
-        } else {
-            nodeIds = originalNodeMsgList.map(msg => msg.msgId)
-        }
-
-        let srcPeer = selfPeer;
-        if (!needSendSelf) {
-            srcPeer = {
-                chatType: originalNodeMsgList[0].chatType === ChatType.group ? ChatType.group : ChatType.friend,
-                peerUid: originalNodeMsgList[0].peerUid
             }
         }
         // elements之间用换行符分隔
@@ -279,7 +338,8 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         // await sleep(500);
         // 开发转发
         try {
-            return await NTQQApi.multiForwardMsg(srcPeer, destPeer, nodeIds)
+            log("开发转发", nodeMsgIds)
+            return await NTQQMsgApi.multiForwardMsg(srcPeer, destPeer, nodeMsgIds)
         } catch (e) {
             log("forward failed", e)
             return null;
@@ -302,7 +362,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                 }
                     break;
                 case OB11MessageDataType.at: {
-                    if (!group){
+                    if (!group) {
                         continue
                     }
                     let atQQ = sendMsg.data?.qq;
@@ -346,38 +406,35 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
                     const payloadFileName = sendMsg.data?.name
                     if (file) {
                         const cache = await dbUtil.getFileCache(file)
-                        if (cache){
-                            if (fs.existsSync(cache.filePath)){
+                        if (cache) {
+                            if (fs.existsSync(cache.filePath)) {
                                 file = "file://" + cache.filePath
-                            }
-                            else if (cache.downloadFunc){
+                            } else if (cache.downloadFunc) {
                                 await cache.downloadFunc()
                                 file = cache.filePath;
-                                log("找到文件缓存", file);
+                            } else if (cache.url) {
+                                file = cache.url
                             }
+                            log("找到文件缓存", file);
                         }
                         const {path, isLocal, fileName, errMsg} = (await uri2local(file))
-                        if (errMsg){
+                        if (errMsg) {
                             throw errMsg
                         }
                         if (path) {
                             if (!isLocal) { // 只删除http和base64转过来的文件
                                 deleteAfterSentFiles.push(path)
                             }
-                            const constructorMap = {
-                                [OB11MessageDataType.image]: SendMsgElementConstructor.pic,
-                                [OB11MessageDataType.voice]: SendMsgElementConstructor.ptt,
-                                [OB11MessageDataType.video]: SendMsgElementConstructor.video,
-                                [OB11MessageDataType.file]: SendMsgElementConstructor.file,
-                            }
                             if (sendMsg.type === OB11MessageDataType.file) {
                                 log("发送文件", path, payloadFileName || fileName)
-                                sendElements.push(await SendMsgElementConstructor.file(path, false, payloadFileName || fileName));
+                                sendElements.push(await SendMsgElementConstructor.file(path, payloadFileName || fileName));
                             } else if (sendMsg.type === OB11MessageDataType.video) {
                                 log("发送视频", path, payloadFileName || fileName)
                                 sendElements.push(await SendMsgElementConstructor.video(path, payloadFileName || fileName));
-                            } else {
-                                sendElements.push(await constructorMap[sendMsg.type](path));
+                            } else if (sendMsg.type === OB11MessageDataType.voice) {
+                                sendElements.push(await SendMsgElementConstructor.ptt(path));
+                            }else if (sendMsg.type === OB11MessageDataType.image) {
+                                sendElements.push(await SendMsgElementConstructor.pic(path, sendMsg.data.summary || ""));
                             }
                         }
                     }
@@ -397,7 +454,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         if (!sendElements.length) {
             throw ("消息体无法解析")
         }
-        const returnMsg = await NTQQApi.sendMsg(peer, sendElements, waitComplete, 20000);
+        const returnMsg = await NTQQMsgApi.sendMsg(peer, sendElements, waitComplete, 20000);
         log("消息发送结果", returnMsg)
         returnMsg.msgShortId = await dbUtil.addMsg(returnMsg)
         deleteAfterSentFiles.map(f => fs.unlink(f, () => {

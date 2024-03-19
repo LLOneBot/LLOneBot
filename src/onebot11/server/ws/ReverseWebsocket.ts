@@ -1,6 +1,3 @@
-import {getConfigUtil, log} from "../../../common/utils";
-
-
 import {selfInfo} from "../../../common/data";
 import {LifeCycleSubType, OB11LifeCycleEvent} from "../../event/meta/OB11LifeCycleEvent";
 import {ActionName} from "../../action/types";
@@ -11,6 +8,8 @@ import {postWsEvent, registerWsEventSender, unregisterWsEventSender} from "../po
 import {wsReply} from "./reply";
 import {WebSocket as WebSocketClass} from "ws";
 import {OB11HeartbeatEvent} from "../../event/meta/OB11HeartbeatEvent";
+import {log} from "../../../common/utils/log";
+import {getConfigUtil} from "../../../common/config";
 
 export let rwsList: ReverseWebsocket[] = [];
 

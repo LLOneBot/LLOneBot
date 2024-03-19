@@ -1,17 +1,23 @@
-import {DATA_DIR, isGIF, log} from "../common/utils";
+import {DATA_DIR} from "../common/utils";
 import {v4 as uuidv4} from "uuid";
 import * as path from 'node:path';
 import * as fileType from 'file-type';
 import {dbUtil} from "../common/db";
+import {isGIF} from "../common/utils/file";
+import {log} from "../common/utils/log";
 
 const fs = require("fs").promises;
 
-export async function uri2local(uri: string, fileName: string = null) {
-    if (!fileName) {
-        fileName = uuidv4();
-    }
-    let filePath = path.join(DATA_DIR, fileName)
-    let url = new URL(uri);
+type Uri2LocalRes = {
+    success: boolean,
+    errMsg: string,
+    fileName: string,
+    ext: string,
+    path: string,
+    isLocal: boolean
+}
+
+export async function uri2local(uri: string, fileName: string = null) : Promise<Uri2LocalRes>{
     let res = {
         success: false,
         errMsg: "",
@@ -20,6 +26,19 @@ export async function uri2local(uri: string, fileName: string = null) {
         path: "",
         isLocal: false
     }
+    if (!fileName) {
+        fileName = uuidv4();
+    }
+    let filePath = path.join(DATA_DIR, fileName)
+    let url = null;
+    try{
+        url = new URL(uri);
+    }catch (e) {
+        res.errMsg = `uri ${uri} 解析失败,` + e.toString() + ` 可能${uri}不存在`
+        return res
+    }
+
+    // log("uri protocol", url.protocol, uri);
     if (url.protocol == "base64:") {
         // base64转成文件
         let base64Data = uri.split("base64://")[1]

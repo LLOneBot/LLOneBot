@@ -90,8 +90,8 @@ async function onSettingWindowCreated(view: Element) {
                 ], 'ob11.messagePostFormat', config.ob11.messagePostFormat),
             ),
             SettingItem(
-                'ffmpeg 路径, 用于发送语音时进行转码', `<span id="config-ffmpeg-path-text">${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}</span>`,
-                SettingButton('选择', 'config-ffmpeg-select'),
+                'ffmpeg 路径，发送语音、视频需要，同时保证ffprobe和ffmpeg在一起', ` <a href="javascript:LiteLoader.api.openExternal(\'https://llonebot.github.io/zh-CN/guide/ffmpeg\');">下载地址</a> <span id="config-ffmpeg-path-text">, 路径:${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}</span>`,
+                SettingButton('选择ffmpeg', 'config-ffmpeg-select'),
             ),
             SettingItem(
                 '', null,
@@ -99,6 +99,11 @@ async function onSettingWindowCreated(view: Element) {
             )
         ]),
         SettingList([
+            SettingItem(
+                '接收戳一戳消息, 暂时只支持Windows版的LLOneBot',
+                `重启QQ后生效，如果导致QQ崩溃请勿开启此项`,
+                SettingSwitch('enablePoke', config.enablePoke),
+            ),
             SettingItem(
                 '使用 Base64 编码获取文件',
                 '开启后，调用 /get_image、/get_record 时，获取不到 url 时添加一个 Base64 字段',
@@ -138,9 +143,14 @@ async function onSettingWindowCreated(view: Element) {
         ]),
         SettingList([
             SettingItem(
-                'GitHub和文档',
+                'GitHub 仓库',
                 `https://github.com/LLOneBot/LLOneBot`,
-                SettingButton('点个Star', 'open-github'),
+                SettingButton('点个星星', 'open-github'),
+            ),
+            SettingItem(
+                'LLOneBot 文档',
+                `https://llonebot.github.io/`,
+                SettingButton('看看文档', 'open-docs'),
             ),
             SettingItem(
                 'Telegram 群',
@@ -165,6 +175,9 @@ async function onSettingWindowCreated(view: Element) {
     })
     doc.querySelector('#open-qq-group').addEventListener('click', () => {
         window.LiteLoader.api.openExternal('https://qm.qq.com/q/bDnHRG38aI')
+    })
+    doc.querySelector('#open-docs').addEventListener('click', () => {
+        window.LiteLoader.api.openExternal('https://llonebot.github.io/')
     })
     // 生成反向地址列表
     const buildHostListItem = (type: string, host: string, index: number, inputAttrs: any={}) => {

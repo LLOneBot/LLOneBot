@@ -29,6 +29,7 @@ export interface OB11GroupMember {
     join_time?: number
     last_sent_time?: number
     level?: number
+    qq_level?: number
     role?: OB11GroupMemberRole
     title?: string
     area?: string
@@ -64,6 +65,7 @@ export enum OB11MessageType {
 }
 
 export interface OB11Message {
+    target_id?: number;  // 自己发送的消息才有此字段
     self_id?: number,
     time: number,
     message_id: number,
@@ -121,6 +123,9 @@ interface OB11MessageFileBase {
 
 export interface OB11MessageImage extends OB11MessageFileBase {
     type: OB11MessageDataType.image
+    data: OB11MessageFileBase['data'] & {
+        summary ? : string; // 图片摘要
+    }
 }
 
 export interface OB11MessageRecord extends OB11MessageFileBase {

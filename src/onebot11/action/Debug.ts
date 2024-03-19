@@ -1,7 +1,8 @@
 import BaseAction from "./BaseAction";
 import {NTQQApi} from "../../ntqqapi/ntcall";
 import {ActionName} from "./types";
-import {log} from "../../common/utils";
+
+import {log} from "../../common/utils/log";
 
 interface Payload {
     method: string,

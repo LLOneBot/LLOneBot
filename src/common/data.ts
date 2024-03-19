@@ -1,17 +1,14 @@
-import {NTQQApi} from '../ntqqapi/ntcall'
 import {
     type Friend,
     type FriendRequest,
     type Group,
     type GroupMember,
-    type GroupNotify,
-    type RawMessage,
     type SelfInfo
 } from '../ntqqapi/types'
 import {type FileCache, type LLOneBotError} from './types'
-import {dbUtil} from "./db";
-import {raw} from "express";
-import {log} from "./utils";
+import {NTQQGroupApi} from "../ntqqapi/api/group";
+import {log} from "./utils/log";
+import {isNumeric} from "./utils/helper";
 
 export const selfInfo: SelfInfo = {
     uid: '',
@@ -28,9 +25,9 @@ export const llonebotError: LLOneBotError = {
 }
 
 
-export async function getFriend(qq: string, uid: string = ""): Promise<Friend | undefined> {
-    let filterKey = uid ? "uid" : "uin"
-    let filterValue = uid ? uid : qq
+export async function getFriend(uinOrUid: string): Promise<Friend | undefined> {
+    let filterKey = isNumeric(uinOrUid) ? "uin" : "uid"
+    let filterValue = uinOrUid
     let friend = friends.find(friend => friend[filterKey] === filterValue.toString())
     // if (!friend) {
     //     try {
@@ -47,7 +44,7 @@ export async function getGroup(qq: string): Promise<Group | undefined> {
     let group = groups.find(group => group.groupCode === qq.toString())
     if (!group) {
         try {
-            const _groups = await NTQQApi.getGroups(true);
+            const _groups = await NTQQGroupApi.getGroups(true);
             group = _groups.find(group => group.groupCode === qq.toString())
             if (group) {
                 groups.push(group)
@@ -59,20 +56,18 @@ export async function getGroup(qq: string): Promise<Group | undefined> {
     return group
 }
 
-export async function getGroupMember(groupQQ: string | number, memberQQ: string | number, memberUid: string = null) {
+export async function getGroupMember(groupQQ: string | number, memberUinOrUid: string | number) {
     groupQQ = groupQQ.toString()
-    if (memberQQ) {
-        memberQQ = memberQQ.toString()
-    }
+    memberUinOrUid = memberUinOrUid.toString()
     const group = await getGroup(groupQQ)
     if (group) {
-        const filterKey = memberQQ ? "uin" : "uid"
-        const filterValue = memberQQ ? memberQQ : memberUid
+        const filterKey = isNumeric(memberUinOrUid) ? "uin" : "uid"
+        const filterValue = memberUinOrUid
         let filterFunc: (member: GroupMember) => boolean = member => member[filterKey] === filterValue
         let member = group.members?.find(filterFunc)
         if (!member) {
             try {
-                const _members = await NTQQApi.getGroupMembers(groupQQ)
+                const _members = await NTQQGroupApi.getGroupMembers(groupQQ)
                 if (_members.length > 0) {
                     group.members = _members
                 }
@@ -90,7 +85,7 @@ export async function getGroupMember(groupQQ: string | number, memberQQ: string 
 export async function refreshGroupMembers(groupQQ: string) {
     const group = groups.find(group => group.groupCode === groupQQ)
     if (group) {
-        group.members = await NTQQApi.getGroupMembers(groupQQ)
+        group.members = await NTQQGroupApi.getGroupMembers(groupQQ)
     }
 }
 

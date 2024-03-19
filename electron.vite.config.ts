@@ -6,7 +6,7 @@ const external = ["silk-wasm", "ws",
     "module-error", "catering", "node-gyp-build"];
 
 function genCpModule(module: string) {
-    return { src: `./node_modules/${module}`, dest: `dist/node_modules/${module}`, flatten: false }
+    return {src: `./node_modules/${module}`, dest: `dist/node_modules/${module}`, flatten: false}
 }
 
 let config = {
@@ -16,19 +16,25 @@ let config = {
             emptyOutDir: true,
             lib: {
                 formats: ["cjs"],
-                entry: { "main": "src/main/main.ts" },
+                entry: {"main": "src/main/main.ts"},
             },
             rollupOptions: {
                 external,
                 input: "src/main/main.ts",
             }
         },
-        resolve:{
+        resolve: {
             alias: {
                 './lib-cov/fluent-ffmpeg': './lib/fluent-ffmpeg'
             },
         },
-        plugins: [cp({ targets: [...external.map(genCpModule), { src: './manifest.json', dest: 'dist' }] })]
+        plugins: [cp({
+            targets: [
+                ...external.map(genCpModule),
+                {src: './manifest.json', dest: 'dist'}, {src: './icon.jpg', dest: 'dist'},
+                {src: './src/ntqqapi/external/ccpoke/poke-win32-x64.node', dest: 'dist/main/ccpoke/'},
+            ]
+        })]
     },
     preload: {
         // vite config options
@@ -37,15 +43,14 @@ let config = {
             emptyOutDir: true,
             lib: {
                 formats: ["cjs"],
-                entry: { "preload": "src/preload.ts" },
+                entry: {"preload": "src/preload.ts"},
             },
             rollupOptions: {
                 // external: externalAll,
                 input: "src/preload.ts",
             }
         },
-        resolve:{
-        }
+        resolve: {}
     },
     renderer: {
         // vite config options
@@ -54,15 +59,14 @@ let config = {
             emptyOutDir: true,
             lib: {
                 formats: ["es"],
-                entry: { "renderer": "src/renderer/index.ts" },
+                entry: {"renderer": "src/renderer/index.ts"},
             },
             rollupOptions: {
                 // external: externalAll,
                 input: "src/renderer/index.ts",
             }
         },
-        resolve:{
-        }
+        resolve: {}
     }
 }
 

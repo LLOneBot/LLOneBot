@@ -1,7 +1,8 @@
 import {WebSocket, WebSocketServer} from "ws";
-import {getConfigUtil, log} from "../utils";
 import urlParse from "url";
 import {IncomingMessage} from "node:http";
+import {log} from "../utils/log";
+import {getConfigUtil} from "../config";
 
 class WebsocketClientBase {
     private wsClient: WebSocket

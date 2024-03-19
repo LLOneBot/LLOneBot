@@ -32,9 +32,18 @@ import GetImage from "./GetImage";
 import GetRecord from "./GetRecord";
 import GoCQHTTPMarkMsgAsRead from "./MarkMsgAsRead";
 import CleanCache from "./CleanCache";
+import GoCQHTTPUploadGroupFile from "./go-cqhttp/UploadGroupFile";
+import {GetConfigAction, SetConfigAction} from "./llonebot/Config";
+import GetGroupAddRequest from "./llonebot/GetGroupAddRequest";
+import SetQQAvatar from './llonebot/SetQQAvatar'
 
 export const actionHandlers = [
     new Debug(),
+    new GetConfigAction(),
+    new SetConfigAction(),
+    new GetGroupAddRequest(),
+    new SetQQAvatar(),
+    // onebot11
     new SendLike(),
     new GetMsg(),
     new GetLoginInfo(),
@@ -65,6 +74,7 @@ export const actionHandlers = [
     new GoCQHTTPGetStrangerInfo(),
     new GetGuildList(),
     new GoCQHTTPMarkMsgAsRead(),
+    new GoCQHTTPUploadGroupFile(),
 
 ]
 

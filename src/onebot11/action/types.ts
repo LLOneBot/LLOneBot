@@ -14,6 +14,10 @@ export interface InvalidCheckResult {
 }
 
 export enum ActionName {
+    GetGroupIgnoreAddRequest = "get_group_ignore_add_request",
+    SetQQAvatar = "set_qq_avatar",
+    GetConfig = "get_config",
+    SetConfig = "set_config",
     Debug = "llonebot_debug",
     SendLike = "send_like",
     GetLoginInfo = "get_login_info",
@@ -49,4 +53,5 @@ export enum ActionName {
     GoCQHTTP_GetStrangerInfo = "get_stranger_info",
     GetGuildList = "get_guild_list",
     GoCQHTTP_MarkMsgAsRead = "mark_msg_as_read",
+    GoCQHTTP_UploadGroupFile = "upload_group_file",
 }

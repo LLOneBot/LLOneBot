@@ -1,64 +1,13 @@
-import * as path from "node:path";
-import {selfInfo} from "./data";
-import {ConfigUtil} from "./config";
+import fs from "fs";
+import crypto from "crypto";
+import ffmpeg from "fluent-ffmpeg";
 import util from "util";
 import {encode, getDuration, isWav} from "silk-wasm";
-import fs from 'fs';
+import path from "node:path";
 import {v4 as uuidv4} from "uuid";
-import ffmpeg from "fluent-ffmpeg"
-
-export const DATA_DIR = global.LiteLoader.plugins["LLOneBot"].path.data;
-
-export function getConfigUtil() {
-    const configFilePath = path.join(DATA_DIR, `config_${selfInfo.uin}.json`)
-    return new ConfigUtil(configFilePath)
-}
-
-function truncateString(obj: any, maxLength = 500) {
-    if (obj !== null && typeof obj === 'object') {
-        Object.keys(obj).forEach(key => {
-            if (typeof obj[key] === 'string') {
-                // 如果是字符串且超过指定长度，则截断
-                if (obj[key].length > maxLength) {
-                    obj[key] = obj[key].substring(0, maxLength) + '...';
-                }
-            } else if (typeof obj[key] === 'object') {
-                // 如果是对象或数组，则递归调用
-                truncateString(obj[key], maxLength);
-            }
-        });
-    }
-    return obj;
-}
-
-export function log(...msg: any[]) {
-    if (!getConfigUtil().getConfig().log) {
-        return //console.log(...msg);
-    }
-    let currentDateTime = new Date().toLocaleString();
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const currentDate = `${year}-${month}-${day}`;
-    const userInfo = selfInfo.uin ? `${selfInfo.nick}(${selfInfo.uin})` : ""
-    let logMsg = "";
-    for (let msgItem of msg) {
-        // 判断是否是对象
-        if (typeof msgItem === "object") {
-            let obj = JSON.parse(JSON.stringify(msgItem));
-            logMsg += JSON.stringify(truncateString(obj)) + " ";
-            continue;
-        }
-        logMsg += msgItem + " ";
-    }
-    logMsg = `${currentDateTime} ${userInfo}: ${logMsg}\n\n`
-    // sendLog(...msg);
-    // console.log(msg)
-    fs.appendFile(path.join(DATA_DIR, `llonebot-${currentDate}.log`), logMsg, (err: any) => {
-
-    })
-}
+import {DATA_DIR} from "./index";
+import {log} from "./log";
+import {getConfigUtil} from "../config";
 
 export function isGIF(path: string) {
     const buffer = Buffer.alloc(4);
@@ -67,11 +16,6 @@ export function isGIF(path: string) {
     fs.closeSync(fd);
     return buffer.toString() === 'GIF8'
 }
-
-export function sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 
 // 定义一个异步函数来检查文件是否存在
 export function checkFileReceived(path: string, timeout: number = 3000): Promise<void> {
@@ -116,25 +60,6 @@ export async function file2base64(path: string) {
         result.err = err.toString();
     }
     return result;
-}
-
-
-// 在保证老对象已有的属性不变化的情况下将新对象的属性复制到老对象
-export function mergeNewProperties(newObj: any, oldObj: any) {
-    Object.keys(newObj).forEach(key => {
-        // 如果老对象不存在当前属性，则直接复制
-        if (!oldObj.hasOwnProperty(key)) {
-            oldObj[key] = newObj[key];
-        } else {
-            // 如果老对象和新对象的当前属性都是对象，则递归合并
-            if (typeof oldObj[key] === 'object' && typeof newObj[key] === 'object') {
-                mergeNewProperties(newObj[key], oldObj[key]);
-            } else if (typeof oldObj[key] === 'object' || typeof newObj[key] === 'object') {
-                // 属性冲突，有一方不是对象，直接覆盖
-                oldObj[key] = newObj[key];
-            }
-        }
-    });
 }
 
 export function checkFfmpeg(newPath: string = null): Promise<boolean> {
@@ -205,7 +130,7 @@ export async function encodeSilk(filePath: string) {
                     if (ffmpegPath) {
                         ffmpeg.setFfmpegPath(ffmpegPath);
                     }
-                    ffmpeg(filePath).toFormat("wav").on('end', function () {
+                    ffmpeg(filePath).toFormat("wav").audioChannels(2).on('end', function () {
                         log('wav转换完成');
                     })
                         .on('error', function (err) {
@@ -220,6 +145,7 @@ export async function encodeSilk(filePath: string) {
                 })
             }
             // const sampleRate = await getAudioSampleRate(filePath) || 0;
+            // log("音频采样率", sampleRate)
             const pcm = fs.readFileSync(filePath);
             const silk = await encode(pcm, 0);
             fs.writeFileSync(pttPath, silk.data);
@@ -234,9 +160,9 @@ export async function encodeSilk(filePath: string) {
         } else {
             const pcm = fs.readFileSync(filePath);
             let duration = 0;
-            try{
+            try {
                 duration = getDuration(pcm);
-            }catch (e) {
+            } catch (e) {
                 log("获取语音文件时长失败", filePath, e.stack)
                 duration = fs.statSync(filePath).size / 1024 / 3  // 每3kb大约1s
                 duration = Math.floor(duration)
@@ -256,6 +182,82 @@ export async function encodeSilk(filePath: string) {
     }
 }
 
-export function isNull(value: any) {
-    return value === undefined || value === null;
+export async function getVideoInfo(filePath: string) {
+    const size = fs.statSync(filePath).size;
+    return new Promise<{
+        width: number,
+        height: number,
+        time: number,
+        format: string,
+        size: number,
+        filePath: string
+    }>((resolve, reject) => {
+        ffmpeg(filePath).ffprobe((err, metadata) => {
+            if (err) {
+                reject(err);
+            } else {
+                const videoStream = metadata.streams.find(s => s.codec_type === 'video');
+                if (videoStream) {
+                    console.log(`视频尺寸: ${videoStream.width}x${videoStream.height}`);
+                } else {
+                    console.log('未找到视频流信息。');
+                }
+                resolve({
+                    width: videoStream.width, height: videoStream.height,
+                    time: parseInt(videoStream.duration),
+                    format: metadata.format.format_name,
+                    size,
+                    filePath
+                });
+            }
+        });
+    })
+}
+
+export async function encodeMp4(filePath: string) {
+    let videoInfo = await getVideoInfo(filePath);
+    log("视频信息", videoInfo)
+    if (videoInfo.format.indexOf("mp4") === -1) {
+        log("视频需要转换为MP4格式", filePath)
+        // 转成mp4
+        const newPath: string = await new Promise<string>((resolve, reject) => {
+            const newPath = filePath + ".mp4"
+            ffmpeg(filePath)
+                .toFormat('mp4')
+                .on('error', (err) => {
+                    reject(`转换视频格式失败: ${err.message}`);
+                })
+                .on('end', () => {
+                    log('视频转换为MP4格式完成');
+                    resolve(newPath); // 返回转换后的文件路径
+                })
+                .save(newPath);
+        });
+        return await getVideoInfo(newPath)
+    }
+    return videoInfo
+}
+
+export function calculateFileMD5(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        // 创建一个流式读取器
+        const stream = fs.createReadStream(filePath);
+        const hash = crypto.createHash('md5');
+
+        stream.on('data', (data: Buffer) => {
+            // 当读取到数据时，更新哈希对象的状态
+            hash.update(data);
+        });
+
+        stream.on('end', () => {
+            // 文件读取完成，计算哈希
+            const md5 = hash.digest('hex');
+            resolve(md5);
+        });
+
+        stream.on('error', (err: Error) => {
+            // 处理可能的读取错误
+            reject(err);
+        });
+    });
 }

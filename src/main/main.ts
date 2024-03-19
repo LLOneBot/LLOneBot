@@ -7,40 +7,44 @@ import {
     CHANNEL_ERROR,
     CHANNEL_GET_CONFIG,
     CHANNEL_LOG,
+    CHANNEL_CHECKVERSION,
     CHANNEL_SELECT_FILE,
     CHANNEL_SET_CONFIG,
+    CHANNEL_UPDATE,
 } from "../common/channels";
 import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
-import {checkFfmpeg, DATA_DIR, getConfigUtil, log} from "../common/utils";
+import {DATA_DIR} from "../common/utils";
 import {
-    friendRequests, getFriend,
+    friendRequests,
+    getFriend,
     getGroup,
     getGroupMember,
-    llonebotError, refreshGroupMembers,
-    selfInfo
+    llonebotError,
+    refreshGroupMembers,
+    selfInfo, uidMaps
 } from "../common/data";
-import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} from "../ntqqapi/hook";
+import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmdS, registerReceiveHook} from "../ntqqapi/hook";
 import {OB11Constructor} from "../onebot11/constructor";
-import {NTQQApi} from "../ntqqapi/ntcall";
-import {
-    ChatType,
-    FriendRequestNotify,
-    GroupMember,
-    GroupNotifies,
-    GroupNotifyTypes,
-    RawMessage
-} from "../ntqqapi/types";
+import {ChatType, FriendRequestNotify, GroupNotifies, GroupNotifyTypes, RawMessage} from "../ntqqapi/types";
 import {ob11HTTPServer} from "../onebot11/server/http";
 import {OB11FriendRecallNoticeEvent} from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
 import {OB11GroupRecallNoticeEvent} from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
 import {postOB11Event} from "../onebot11/server/postOB11Event";
 import {ob11ReverseWebsockets} from "../onebot11/server/ws/ReverseWebsocket";
 import {OB11GroupAdminNoticeEvent} from "../onebot11/event/notice/OB11GroupAdminNoticeEvent";
-import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {OB11GroupRequestEvent} from "../onebot11/event/request/OB11GroupRequest";
 import {OB11FriendRequestEvent} from "../onebot11/event/request/OB11FriendRequest";
 import * as path from "node:path";
 import {dbUtil} from "../common/db";
+import {setConfig} from "./setConfig";
+import {NTQQUserApi} from "../ntqqapi/api/user";
+import {NTQQGroupApi} from "../ntqqapi/api/group";
+import {registerPokeHandler} from "../ntqqapi/external/ccpoke";
+import {OB11FriendPokeEvent, OB11GroupPokeEvent} from "../onebot11/event/notice/OB11PokeEvent";
+import {checkVersion, updateLLOneBot} from "../common/utils/update";
+import {checkFfmpeg} from "../common/utils/file";
+import {log} from "../common/utils/log";
+import {getConfigUtil} from "../common/config";
 
 
 let running = false;
@@ -49,7 +53,12 @@ let running = false;
 // 加载插件时触发
 function onLoad() {
     log("llonebot main onLoad");
-
+    ipcMain.handle(CHANNEL_CHECKVERSION, async (event, arg) => {
+        return checkVersion();
+    });
+    ipcMain.handle(CHANNEL_UPDATE, async (event, arg) => {
+        return updateLLOneBot();
+    });
     ipcMain.handle(CHANNEL_SELECT_FILE, async (event, arg) => {
         const selectPath = new Promise<string>((resolve, reject) => {
             dialog
@@ -90,61 +99,8 @@ function onLoad() {
         const config = getConfigUtil().getConfig()
         return config;
     })
-    ipcMain.on(CHANNEL_SET_CONFIG, (event, arg: Config) => {
-        let oldConfig = getConfigUtil().getConfig();
-        getConfigUtil().setConfig(arg)
-        if (arg.ob11.httpPort != oldConfig.ob11.httpPort && arg.ob11.enableHttp) {
-            ob11HTTPServer.restart(arg.ob11.httpPort);
-        }
-        // 判断是否启用或关闭HTTP服务
-        if (!arg.ob11.enableHttp) {
-            ob11HTTPServer.stop();
-        } else {
-            ob11HTTPServer.start(arg.ob11.httpPort);
-        }
-        // 正向ws端口变化，重启服务
-        if (arg.ob11.wsPort != oldConfig.ob11.wsPort) {
-            ob11WebsocketServer.restart(arg.ob11.wsPort);
-        }
-        // 判断是否启用或关闭正向ws
-        if (arg.ob11.enableWs != oldConfig.ob11.enableWs) {
-            if (arg.ob11.enableWs) {
-                ob11WebsocketServer.start(arg.ob11.wsPort);
-            } else {
-                ob11WebsocketServer.stop();
-            }
-        }
-        // 判断是否启用或关闭反向ws
-        if (arg.ob11.enableWsReverse != oldConfig.ob11.enableWsReverse) {
-            if (arg.ob11.enableWsReverse) {
-                ob11ReverseWebsockets.start();
-            } else {
-                ob11ReverseWebsockets.stop();
-            }
-        }
-        if (arg.ob11.enableWsReverse) {
-            // 判断反向ws地址有变化
-            if (arg.ob11.wsHosts.length != oldConfig.ob11.wsHosts.length) {
-                ob11ReverseWebsockets.restart();
-            } else {
-                for (const newHost of arg.ob11.wsHosts) {
-                    if (!oldConfig.ob11.wsHosts.includes(newHost)) {
-                        ob11ReverseWebsockets.restart();
-                        break;
-                    }
-                }
-            }
-        }
-
-        // 检查ffmpeg
-        if (arg.ffmpeg) {
-            checkFfmpeg(arg.ffmpeg).then(success => {
-                if (success) {
-                    llonebotError.ffmpegError = ''
-                }
-            })
-        }
-
+    ipcMain.on(CHANNEL_SET_CONFIG, (event, config: Config) => {
+        setConfig(config).then();
     })
 
     ipcMain.on(CHANNEL_LOG, (event, arg) => {
@@ -154,24 +110,32 @@ function onLoad() {
     async function postReceiveMsg(msgList: RawMessage[]) {
         const {debug, reportSelfMessage} = getConfigUtil().getConfig();
         for (let message of msgList) {
+
             // log("收到新消息", message.msgId, message.msgSeq)
             // if (message.senderUin !== selfInfo.uin){
-                message.msgShortId = await dbUtil.addMsg(message);
+            message.msgShortId = await dbUtil.addMsg(message);
             // }
 
             OB11Constructor.message(message).then((msg) => {
                 if (debug) {
                     msg.raw = message;
+                } else {
+                    if (msg.message.length === 0) {
+                        return
+                    }
                 }
                 const isSelfMsg = msg.user_id.toString() == selfInfo.uin
                 if (isSelfMsg && !reportSelfMessage) {
                     return
                 }
+                if (isSelfMsg) {
+                    msg.target_id = parseInt(message.peerUin);
+                }
                 postOB11Event(msg);
                 // log("post msg", msg)
             }).catch(e => log("constructMessage error: ", e.stack.toString()));
-            OB11Constructor.GroupEvent(message).then(groupEvent=>{
-                if (groupEvent){
+            OB11Constructor.GroupEvent(message).then(groupEvent => {
+                if (groupEvent) {
                     // log("post group event", groupEvent);
                     postOB11Event(groupEvent);
                 }
@@ -180,17 +144,31 @@ function onLoad() {
     }
 
     async function startReceiveHook() {
-        registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.NEW_MSG, async (payload) => {
+        if (getConfigUtil().getConfig().enablePoke) {
+            registerPokeHandler((id, isGroup) => {
+                log(`收到戳一戳消息了！是否群聊：${isGroup}，id:${id}`)
+                let pokeEvent: OB11FriendPokeEvent | OB11GroupPokeEvent;
+                if (isGroup) {
+                    pokeEvent = new OB11GroupPokeEvent(parseInt(id));
+                } else {
+                    pokeEvent = new OB11FriendPokeEvent(parseInt(id));
+                }
+                postOB11Event(pokeEvent);
+            })
+        }
+        registerReceiveHook<{
+            msgList: Array<RawMessage>
+        }>([ReceiveCmdS.NEW_MSG, ReceiveCmdS.NEW_ACTIVE_MSG], async (payload) => {
             try {
                 await postReceiveMsg(payload.msgList);
             } catch (e) {
                 log("report message error: ", e.stack.toString());
             }
         })
-        registerReceiveHook<{ msgList: Array<RawMessage> }>(ReceiveCmd.UPDATE_MSG, async (payload) => {
+        registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.UPDATE_MSG], async (payload) => {
             for (const message of payload.msgList) {
                 // log("message update", message.sendStatus, message.msgId, message.msgSeq)
-                if (message.recallTime != "0") {
+                if (message.recallTime != "0") { //todo: 这个判断方法不太好，应该使用灰色消息元素来判断
                     // 撤回消息上报
                     const oriMessage = await dbUtil.getMsgByLongId(message.msgId)
                     if (!oriMessage) {
@@ -205,7 +183,7 @@ function onLoad() {
                         let operatorId = message.senderUin
                         for (const element of message.elements) {
                             const operatorUid = element.grayTipElement?.revokeElement.operatorUid
-                            const operator = await getGroupMember(message.peerUin, null, operatorUid)
+                            const operator = await getGroupMember(message.peerUin, operatorUid)
                             operatorId = operator.uin
                         }
                         const groupRecallEvent = new OB11GroupRecallNoticeEvent(
@@ -223,7 +201,7 @@ function onLoad() {
                 dbUtil.updateMsg(message).then();
             }
         })
-        registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmd.SELF_SEND_MSG, async (payload) => {
+        registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmdS.SELF_SEND_MSG, async (payload) => {
             const {reportSelfMessage} = getConfigUtil().getConfig();
             if (!reportSelfMessage) {
                 return
@@ -239,12 +217,12 @@ function onLoad() {
             "doubt": boolean,
             "oldestUnreadSeq": string,
             "unreadCount": number
-        }>(ReceiveCmd.UNREAD_GROUP_NOTIFY, async (payload) => {
+        }>(ReceiveCmdS.UNREAD_GROUP_NOTIFY, async (payload) => {
             if (payload.unreadCount) {
                 // log("开始获取群通知详情")
                 let notify: GroupNotifies;
                 try {
-                    notify = await NTQQApi.getGroupNotifies();
+                    notify = await NTQQGroupApi.getGroupNotifies();
                 } catch (e) {
                     // log("获取群通知详情失败", e);
                     return
@@ -272,7 +250,7 @@ function onLoad() {
                         //     member2 = await getGroupMember(notify.group.groupCode, null, notify.user2.uid);
                         // }
                         if ([GroupNotifyTypes.ADMIN_SET, GroupNotifyTypes.ADMIN_UNSET].includes(notify.type)) {
-                            const member1 = await getGroupMember(notify.group.groupCode, null, notify.user1.uid);
+                            const member1 = await getGroupMember(notify.group.groupCode, notify.user1.uid);
                             log("有管理员变动通知");
                             refreshGroupMembers(notify.group.groupCode).then()
                             let groupAdminNoticeEvent = new OB11GroupAdminNoticeEvent()
@@ -297,7 +275,7 @@ function onLoad() {
                             groupRequestEvent.group_id = parseInt(notify.group.groupCode);
                             let requestQQ = ""
                             try {
-                                requestQQ = (await NTQQApi.getUserDetailInfo(notify.user1.uid)).uin;
+                                requestQQ = (await NTQQUserApi.getUserDetailInfo(notify.user1.uid)).uin;
                             } catch (e) {
                                 log("获取加群人QQ号失败", e)
                             }
@@ -310,9 +288,9 @@ function onLoad() {
                             log("收到邀请我加群通知")
                             let groupInviteEvent = new OB11GroupRequestEvent();
                             groupInviteEvent.group_id = parseInt(notify.group.groupCode);
-                            let user_id = (await getFriend("", notify.user2.uid))?.uin
-                            if (!user_id){
-                                user_id = (await NTQQApi.getUserDetailInfo(notify.user2.uid))?.uin
+                            let user_id = (await getFriend(notify.user2.uid))?.uin
+                            if (!user_id) {
+                                user_id = (await NTQQUserApi.getUserDetailInfo(notify.user2.uid))?.uin
                             }
                             groupInviteEvent.user_id = parseInt(user_id);
                             groupInviteEvent.sub_type = "invite";
@@ -329,14 +307,14 @@ function onLoad() {
             }
         })
 
-        registerReceiveHook<FriendRequestNotify>(ReceiveCmd.FRIEND_REQUEST, async (payload) => {
+        registerReceiveHook<FriendRequestNotify>(ReceiveCmdS.FRIEND_REQUEST, async (payload) => {
             for (const req of payload.data.buddyReqs) {
                 if (req.isUnread && !friendRequests[req.sourceId] && (parseInt(req.reqTime) > startTime / 1000)) {
                     friendRequests[req.sourceId] = req;
                     log("有新的好友请求", req);
                     let friendRequestEvent = new OB11FriendRequestEvent();
                     try {
-                        let requester = await NTQQApi.getUserDetailInfo(req.friendUid)
+                        let requester = await NTQQUserApi.getUserDetailInfo(req.friendUid)
                         friendRequestEvent.user_id = parseInt(requester.uin);
                     } catch (e) {
                         log("获取加好友者QQ号失败", e);
@@ -352,9 +330,16 @@ function onLoad() {
     let startTime = 0;
 
     async function start() {
+        log("llonebot pid", process.pid)
+
         startTime = Date.now();
+        dbUtil.getReceivedTempUinMap().then(m=>{
+            for (const [key, value] of Object.entries(m)) {
+                uidMaps[value] = key;
+            }
+        })
         startReceiveHook().then();
-        NTQQApi.getGroups(true).then()
+        NTQQGroupApi.getGroups(true).then()
         const config = getConfigUtil().getConfig()
         // 检查ffmpeg
         checkFfmpeg(config.ffmpeg).then(exist => {
@@ -383,7 +368,7 @@ function onLoad() {
     const init = async () => {
         try {
             log("start get self info")
-            const _ = await NTQQApi.getSelfInfo();
+            const _ = await NTQQUserApi.getSelfInfo();
             log("get self info api result:", _);
             Object.assign(selfInfo, _);
             selfInfo.nick = selfInfo.uin;
@@ -393,7 +378,7 @@ function onLoad() {
         log("self info", selfInfo);
         if (selfInfo.uin) {
             try {
-                const userInfo = (await NTQQApi.getUserDetailInfo(selfInfo.uid));
+                const userInfo = (await NTQQUserApi.getUserDetailInfo(selfInfo.uid));
                 log("self info", userInfo);
                 if (userInfo) {
                     selfInfo.nick = userInfo.nick;
@@ -418,6 +403,10 @@ function onLoad() {
 
 // 创建窗口时触发
 function onBrowserWindowCreated(window: BrowserWindow) {
+    if (selfInfo.uid) {
+        return
+    }
+    log("window create", window.webContents.getURL().toString())
     try {
         hookNTQQApiCall(window);
         hookNTQQApiReceive(window);
