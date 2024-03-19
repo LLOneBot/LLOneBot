@@ -1,4 +1,5 @@
 import fs from "fs";
+import fsPromise from "fs/promises";
 import crypto from "crypto";
 import ffmpeg from "fluent-ffmpeg";
 import util from "util";
@@ -10,7 +11,7 @@ import {getConfigUtil} from "../config";
 import {dbUtil} from "../db";
 import * as fileType from "file-type";
 import {net} from "electron";
-import ClientRequestConstructorOptions = Electron.ClientRequestConstructorOptions;
+import ClientRequestConstructorOptions = Electron.Main.ClientRequestConstructorOptions;
 
 export function isGIF(path: string) {
     const buffer = Buffer.alloc(4);
@@ -270,24 +271,34 @@ export function calculateFileMD5(filePath: string): Promise<string> {
     });
 }
 
-export function httpDownload(options: ClientRequestConstructorOptions | string): Promise<Buffer> {
+export interface HttpDownloadOptions {
+    url: string;
+    headers?: Record<string, string> | string;
+}
+export async function httpDownload(options: string | HttpDownloadOptions): Promise<Buffer> {
     let chunks: Buffer[] = [];
-    let netRequest = net.request(options)
-    return new Promise((resolve, reject) => {
-        netRequest.on("response", (response) => {
-            if (!(response.statusCode >= 200 && response.statusCode < 300)) {
-                return reject(new Error(`下载失败,状态码${response.statusCode}`))
+    let url: string;
+    let headers: Record<string, string> = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36"
+    };
+    if (typeof options === "string") {
+        url = options;
+    } else {
+        url = options.url;
+        if (options.headers) {
+            if (typeof options.headers === "string") {
+                headers = JSON.parse(options.headers);
+            } else {
+                headers = options.headers;
             }
-            response.on("data", (chunk) => {
-                chunks.push(chunk);
-            }).on("end", () => {
-                resolve(Buffer.concat(chunks));
-            })
-        }).on("error", (err) => {
-            reject(err);
-        })
-        netRequest.end()
-    })
+        }
+    }
+    const fetchRes = await net.fetch(url, headers);
+    if (!fetchRes.ok) throw new Error(`下载文件失败: ${fetchRes.statusText}`)
+
+    const blob = await fetchRes.blob();
+    let buffer = await blob.arrayBuffer();
+    return Buffer.from(buffer);
 }
 
 type Uri2LocalRes = {
@@ -334,19 +345,13 @@ export async function uri2local(uri: string, fileName: string = null): Promise<U
         }
     } else if (url.protocol == "http:" || url.protocol == "https:") {
         // 下载文件
-        let fetchRes: Response;
-        try {
-            fetchRes = await fetch(url)
-        } catch (e) {
-            res.errMsg = `${url}下载失败`
+        let buffer: Buffer = null;
+        try{
+            buffer = await httpDownload(uri);
+        }catch (e) {
+            res.errMsg = `${url}下载失败,` + e.toString()
             return res
         }
-        if (!fetchRes.ok) {
-            res.errMsg = `${url}下载失败,` + fetchRes.statusText
-            return res
-        }
-        let blob = await fetchRes.blob();
-        let buffer = await blob.arrayBuffer();
         try {
             const pathInfo = path.parse(decodeURIComponent(url.pathname))
             if (pathInfo.name) {
@@ -358,7 +363,7 @@ export async function uri2local(uri: string, fileName: string = null): Promise<U
             }
             res.fileName = fileName
             filePath = path.join(TEMP_DIR, uuidv4() + fileName)
-            fs.writeFileSync(filePath, Buffer.from(buffer));
+            fs.writeFileSync(filePath, buffer);
         } catch (e: any) {
             res.errMsg = `${url}下载失败,` + e.toString()
             return res
@@ -409,4 +414,27 @@ export async function uri2local(uri: string, fileName: string = null): Promise<U
     res.success = true
     res.path = filePath
     return res
+}
+
+export async function copyFolder(sourcePath: string, destPath: string) {
+    try {
+        const entries = await fsPromise.readdir(sourcePath, {withFileTypes: true});
+        await fsPromise.mkdir(destPath, {recursive: true});
+        for (let entry of entries) {
+            const srcPath = path.join(sourcePath, entry.name);
+            const dstPath = path.join(destPath, entry.name);
+            if (entry.isDirectory()) {
+                await copyFolder(srcPath, dstPath);
+            } else {
+                try {
+                    await fsPromise.copyFile(srcPath, dstPath);
+                } catch (error) {
+                    console.error(`无法复制文件 '${srcPath}' 到 '${dstPath}': ${error}`);
+                    // 这里可以决定是否要继续复制其他文件
+                }
+            }
+        }
+    } catch (error) {
+        console.error('复制文件夹时出错:', error);
+    }
 }

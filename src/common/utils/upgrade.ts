@@ -1,7 +1,7 @@
 import {version} from "../../version";
 import * as path from "node:path";
 import * as fs from "node:fs";
-import {httpDownload, log, PLUGIN_DIR, TEMP_DIR} from ".";
+import {copyFolder, httpDownload, log, PLUGIN_DIR, TEMP_DIR} from ".";
 import compressing from "compressing";
 
 
@@ -25,9 +25,7 @@ export async function upgradeLLOneBot() {
     const latestVersion = await getRemoteVersion();
     if (latestVersion && latestVersion != "") {
         const downloadUrl = "https://github.com/LLOneBot/LLOneBot/releases/download/v" + latestVersion + "/LLOneBot.zip";
-        const mirrorUrl = downloadMirrorHosts[0] + downloadUrl;
         const filePath = path.join(TEMP_DIR, "./update-" + latestVersion + ".zip");
-        const fileStream = fs.createWriteStream(filePath);
         let downloadSuccess = false;
         // 多镜像下载
         for(const mirrorGithub of downloadMirrorHosts){
@@ -44,12 +42,13 @@ export async function upgradeLLOneBot() {
             log("llonebot upgrade error", "download failed");
             return false;
         }
+        const temp_ver_dir = path.join(TEMP_DIR, "LLOneBot" + latestVersion);
         let uncompressedPromise = async function () {
             return new Promise<boolean>((resolve, reject) => {
-                compressing.zip.uncompress(filePath, PLUGIN_DIR).then(() => {
+                compressing.zip.uncompress(filePath, temp_ver_dir).then(() => {
                     resolve(true);
                 }).catch((reason: any) => {
-                    console.log(reason);
+                    log("llonebot upgrade failed, ", reason);
                     if (reason?.errno == -4082) {
                         resolve(true);
                     }
@@ -57,8 +56,11 @@ export async function upgradeLLOneBot() {
                 });
             });
         }
-        const uncompressResult = await uncompressedPromise();
-        return uncompressResult;
+        const uncompressedResult = await uncompressedPromise();
+        // 复制文件
+        await copyFolder(temp_ver_dir, PLUGIN_DIR);
+
+        return uncompressedResult;
     }
     return false;
 }
@@ -81,7 +83,7 @@ export async function getRemoteVersionByMirror(mirrorGithub: string) {
 
     try {
         releasePage = (await httpDownload(mirrorGithub + "/LLOneBot/LLOneBot/releases")).toString();
-        log("releasePage", releasePage);
+        // log("releasePage", releasePage);
         if (releasePage === "error") return "";
         return releasePage.match(new RegExp('(?<=(tag/v)).*?(?=("))'))[0];
     } catch {
