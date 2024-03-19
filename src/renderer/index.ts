@@ -1,4 +1,5 @@
 /// <reference path="../global.d.ts" />
+import { CheckVersion } from '../common/types';
 import {
     SettingButton,
     SettingItem,
@@ -25,7 +26,7 @@ async function onSettingWindowCreated(view: Element) {
             if (configKey.length === 2) config[configKey[0]][configKey[1]] = value;
             else config[key] = value;
 
-            if (!['heartInterval', 'token', 'ffmpeg'].includes(key)){
+            if (!['heartInterval', 'token', 'ffmpeg'].includes(key)) {
                 window.llonebot.setConfig(config);
             }
         }
@@ -35,6 +36,16 @@ async function onSettingWindowCreated(view: Element) {
     const doc = parser.parseFromString([
         '<div>',
         `<style>${StyleRaw}</style>`,
+        `<setting-section>
+            <setting-panel>
+                <setting-list data-direction="column" class="new">
+                    <setting-item data-direction="row">
+                        <setting-text class="llonebot-update-title">正在检查LLOneBot版本中</setting-text>
+                        <setting-button data-type="secondary" class="llonebot-update-button">重新发现</setting-button>
+                    </setting-item>
+                </setting-list>
+             </setting-panel>
+        <setting-section>`,
         SettingList([
             SettingItem('启用 HTTP 服务', null,
                 SettingSwitch('ob11.enableHttp', config.ob11.enableHttp, { 'control-display-id': 'config-ob11-httpPort' }),
@@ -180,7 +191,7 @@ async function onSettingWindowCreated(view: Element) {
         window.LiteLoader.api.openExternal('https://llonebot.github.io/')
     })
     // 生成反向地址列表
-    const buildHostListItem = (type: string, host: string, index: number, inputAttrs: any={}) => {
+    const buildHostListItem = (type: string, host: string, index: number, inputAttrs: any = {}) => {
         const dom = {
             container: document.createElement('setting-item'),
             input: document.createElement('input'),
@@ -212,23 +223,23 @@ async function onSettingWindowCreated(view: Element) {
 
         return dom.container;
     };
-    const buildHostList = (hosts: string[], type: string, inputAttr: any={}) => {
+    const buildHostList = (hosts: string[], type: string, inputAttr: any = {}) => {
         const result: HTMLElement[] = [];
-    
+
         hosts.forEach((host, index) => {
             result.push(buildHostListItem(type, host, index, inputAttr));
         });
-    
+
         return result;
     };
-    const addReverseHost = (type: string, doc: Document = document, inputAttr: any={}) => {
+    const addReverseHost = (type: string, doc: Document = document, inputAttr: any = {}) => {
         const hostContainerDom = doc.body.querySelector(`#config-ob11-${type}-list`);
         hostContainerDom.appendChild(buildHostListItem(type, '', ob11Config[type].length, inputAttr));
         ob11Config[type].push('');
     };
     const initReverseHost = (type: string, doc: Document = document) => {
         const hostContainerDom = doc.body.querySelector(`#config-ob11-${type}-list`);
-        [ ...hostContainerDom.childNodes ].forEach(dom => dom.remove());
+        [...hostContainerDom.childNodes].forEach(dom => dom.remove());
         buildHostList(ob11Config[type], type).forEach(dom => {
             hostContainerDom.appendChild(dom);
         });
@@ -236,8 +247,8 @@ async function onSettingWindowCreated(view: Element) {
     initReverseHost('httpHosts', doc);
     initReverseHost('wsHosts', doc);
 
-    doc.querySelector('#config-ob11-httpHosts-add').addEventListener('click', () => addReverseHost('httpHosts', document, {'placeholder': '如：http://127.0.0.1:5140/onebot' }));
-    doc.querySelector('#config-ob11-wsHosts-add').addEventListener('click', () => addReverseHost('wsHosts', document, {'placeholder': '如：ws://127.0.0.1:5140/onebot' }));
+    doc.querySelector('#config-ob11-httpHosts-add').addEventListener('click', () => addReverseHost('httpHosts', document, { 'placeholder': '如：http://127.0.0.1:5140/onebot' }));
+    doc.querySelector('#config-ob11-wsHosts-add').addEventListener('click', () => addReverseHost('wsHosts', document, { 'placeholder': '如：ws://127.0.0.1:5140/onebot' }));
 
     doc.querySelector('#config-ffmpeg-select').addEventListener('click', () => {
         window.llonebot.selectFile()
@@ -303,21 +314,31 @@ async function onSettingWindowCreated(view: Element) {
     doc.body.childNodes.forEach(node => {
         view.appendChild(node);
     });
+    window.llonebot.checkVersion().then((ResultVersion: CheckVersion) => {
+        if (ResultVersion.result) {
+            view.querySelector(".llonebot-update-title").innerHTML = "当前已是最新版本 V" + ResultVersion.version;
+            view.querySelector(".llonebot-update-button").innerHTML = "无需更新";
+        } else {
+            view.querySelector(".llonebot-update-title").innerHTML = "已监测到最新版本 V" + ResultVersion.version;
+            view.querySelector(".llonebot-update-button").innerHTML = "点击更新";
+        }
+    });
+
 }
 
-function init () {
-  const hash = location.hash
-  if (hash === '#/blank') {
+function init() {
+    const hash = location.hash
+    if (hash === '#/blank') {
 
-  }
+    }
 }
 
 if (location.hash === '#/blank') {
-  (window as any).navigation.addEventListener('navigatesuccess', init, { once: true })
+    (window as any).navigation.addEventListener('navigatesuccess', init, { once: true })
 } else {
-  init()
+    init()
 }
 
 export {
-  onSettingWindowCreated
+    onSettingWindowCreated
 }
