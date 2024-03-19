@@ -5,9 +5,10 @@ import util from "util";
 import {encode, getDuration, isWav} from "silk-wasm";
 import path from "node:path";
 import {v4 as uuidv4} from "uuid";
-import {DATA_DIR} from "./index";
-import {log} from "./log";
+import {DATA_DIR, log, TEMP_DIR} from "./index";
 import {getConfigUtil} from "../config";
+import {dbUtil} from "../db";
+import * as fileType from "file-type";
 
 export function isGIF(path: string) {
     const buffer = Buffer.alloc(4);
@@ -64,8 +65,11 @@ export async function file2base64(path: string) {
 
 export function checkFfmpeg(newPath: string = null): Promise<boolean> {
     return new Promise((resolve, reject) => {
+        log("开始检查ffmpeg", newPath);
         if (newPath) {
             ffmpeg.setFfmpegPath(newPath);
+        }
+        try {
             ffmpeg.getAvailableFormats((err, formats) => {
                 if (err) {
                     log('ffmpeg is not installed or not found in PATH:', err);
@@ -75,6 +79,8 @@ export function checkFfmpeg(newPath: string = null): Promise<boolean> {
                     resolve(true);
                 }
             })
+        }catch (e) {
+            resolve(false);
         }
     });
 }
@@ -260,4 +266,125 @@ export function calculateFileMD5(filePath: string): Promise<string> {
             reject(err);
         });
     });
+}
+
+type Uri2LocalRes = {
+    success: boolean,
+    errMsg: string,
+    fileName: string,
+    ext: string,
+    path: string,
+    isLocal: boolean
+}
+
+export async function uri2local(uri: string, fileName: string = null): Promise<Uri2LocalRes> {
+    let res = {
+        success: false,
+        errMsg: "",
+        fileName: "",
+        ext: "",
+        path: "",
+        isLocal: false
+    }
+    if (!fileName) {
+        fileName = uuidv4();
+    }
+    let filePath = path.join(TEMP_DIR, fileName)
+    let url = null;
+    try {
+        url = new URL(uri);
+    } catch (e) {
+        res.errMsg = `uri ${uri} 解析失败,` + e.toString() + ` 可能${uri}不存在`
+        return res
+    }
+
+    // log("uri protocol", url.protocol, uri);
+    if (url.protocol == "base64:") {
+        // base64转成文件
+        let base64Data = uri.split("base64://")[1]
+        try {
+            const buffer = Buffer.from(base64Data, 'base64');
+            fs.writeFileSync(filePath, buffer);
+
+        } catch (e: any) {
+            res.errMsg = `base64文件下载失败,` + e.toString()
+            return res
+        }
+    } else if (url.protocol == "http:" || url.protocol == "https:") {
+        // 下载文件
+        let fetchRes: Response;
+        try {
+            fetchRes = await fetch(url)
+        } catch (e) {
+            res.errMsg = `${url}下载失败`
+            return res
+        }
+        if (!fetchRes.ok) {
+            res.errMsg = `${url}下载失败,` + fetchRes.statusText
+            return res
+        }
+        let blob = await fetchRes.blob();
+        let buffer = await blob.arrayBuffer();
+        try {
+            const pathInfo = path.parse(decodeURIComponent(url.pathname))
+            if (pathInfo.name) {
+                fileName = pathInfo.name
+                if (pathInfo.ext) {
+                    fileName += pathInfo.ext
+                    // res.ext = pathInfo.ext
+                }
+            }
+            res.fileName = fileName
+            filePath = path.join(TEMP_DIR, uuidv4() + fileName)
+            fs.writeFileSync(filePath, Buffer.from(buffer));
+        } catch (e: any) {
+            res.errMsg = `${url}下载失败,` + e.toString()
+            return res
+        }
+    } else {
+        let pathname: string;
+        if (url.protocol === "file:") {
+            // await fs.copyFile(url.pathname, filePath);
+            pathname = decodeURIComponent(url.pathname)
+            if (process.platform === "win32") {
+                filePath = pathname.slice(1)
+            } else {
+                filePath = pathname
+            }
+        } else {
+            const cache = await dbUtil.getFileCache(uri);
+            if (cache) {
+                filePath = cache.filePath
+            } else {
+                filePath = uri;
+            }
+        }
+
+        res.isLocal = true
+    }
+    // else{
+    //     res.errMsg = `不支持的file协议,` + url.protocol
+    //     return res
+    // }
+    // if (isGIF(filePath) && !res.isLocal) {
+    //     await fs.rename(filePath, filePath + ".gif");
+    //     filePath += ".gif";
+    // }
+    if (!res.isLocal && !res.ext) {
+        try {
+            let ext: string = (await fileType.fileTypeFromFile(filePath)).ext
+            if (ext) {
+                log("获取文件类型", ext, filePath)
+                fs.renameSync(filePath, filePath + `.${ext}`)
+                filePath += `.${ext}`
+                res.fileName += `.${ext}`
+                res.ext = ext
+            }
+        } catch (e) {
+            // log("获取文件类型失败", filePath,e.stack)
+        }
+    }
+    res.success = true
+    res.path = filePath
+    return res
 }
