@@ -42,9 +42,9 @@ import {NTQQGroupApi} from "../ntqqapi/api/group";
 import {registerPokeHandler} from "../ntqqapi/external/ccpoke";
 import {OB11FriendPokeEvent, OB11GroupPokeEvent} from "../onebot11/event/notice/OB11PokeEvent";
 import {checkVersion, upgradeLLOneBot} from "../common/utils/upgrade";
-import {checkFfmpeg} from "../common/utils/file";
 import {log} from "../common/utils/log";
 import {getConfigUtil} from "../common/config";
+import {checkFfmpeg} from "../common/utils/video";
 
 
 let running = false;

@@ -33,6 +33,7 @@ export let ReceiveCmdS = {
     SELF_STATUS: 'nodeIKernelProfileListener/onSelfStatusChanged',
     CACHE_SCAN_FINISH: "nodeIKernelStorageCleanListener/onFinishScan",
     MEDIA_UPLOAD_COMPLETE: "nodeIKernelMsgListener/onRichMediaUploadComplete",
+    SKEY_UPDATE: "onSkeyUpdate"
 }
 
 export type ReceiveCmd = typeof ReceiveCmdS[keyof typeof ReceiveCmdS]

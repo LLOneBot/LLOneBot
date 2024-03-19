@@ -1,8 +1,9 @@
 import {ipcMain} from "electron";
-import {hookApiCallbacks, ReceiveCmd, registerReceiveHook, removeReceiveHook} from "./hook";
+import {hookApiCallbacks, ReceiveCmd, ReceiveCmdS, registerReceiveHook, removeReceiveHook} from "./hook";
 
 import {v4 as uuidv4} from "uuid"
 import {log} from "../common/utils/log";
+import {NTQQWindowApi, NTQQWindows} from "./api/window";
 
 export enum NTQQApiClass {
     NT_API = "ns-ntApi",
@@ -11,7 +12,9 @@ export enum NTQQApiClass {
     WINDOW_API = "ns-WindowApi",
     HOTUPDATE_API = "ns-HotUpdateApi",
     BUSINESS_API = "ns-BusinessApi",
-    GLOBAL_DATA = "ns-GlobalDataApi"
+    GLOBAL_DATA = "ns-GlobalDataApi",
+    SKEY_API = "ns-SkeyApi",
+    HOME_WORK = "ns-GroupHomeWork"
 }
 
 export enum NTQQApiMethod {
@@ -65,7 +68,9 @@ export enum NTQQApiMethod {
 
     OPEN_EXTRA_WINDOW = 'openExternalWindow',
 
-    SET_QQ_AVATAR = 'nodeIKernelProfileService/setHeader'
+    SET_QQ_AVATAR = 'nodeIKernelProfileService/setHeader',
+    GET_SKEY = "nodeIKernelTipOffService/getPskey",
+    UPDATE_SKEY = "updatePskey"
 }
 
 enum NTQQApiChannel {
@@ -174,6 +179,53 @@ export class NTQQApi {
             methodName: cmdName,
             args: [
                 ...args,
+            ]
+        })
+    }
+
+    static async getSkey(groupCode: string, groupName: string) {
+        await NTQQWindowApi.openWindow(NTQQWindows.GroupHomeWorkWindow, [{
+            groupName,
+            groupCode,
+            "source": "funcbar"
+        }], ReceiveCmdS.SKEY_UPDATE, 1);
+        return await callNTQQApi<GeneralCallResult>({
+            className: NTQQApiClass.HOME_WORK,
+            methodName: NTQQApiMethod.UPDATE_SKEY,
+            args: [
+                {
+                    domain: "qun.qq.com"
+                }
+            ]
+        })
+        // return await callNTQQApi<GeneralCallResult>({
+        //     methodName: NTQQApiMethod.GET_SKEY,
+        //     args: [
+        //         {
+        //             "domains": [
+        //                 "qzone.qq.com",
+        //                 "qlive.qq.com",
+        //                 "qun.qq.com",
+        //                 "gamecenter.qq.com",
+        //                 "vip.qq.com",
+        //                 "qianbao.qq.com",
+        //                 "qidian.qq.com"
+        //             ],
+        //             "isForNewPCQQ": false
+        //         },
+        //         null
+        //     ]
+        // })
+    }
+
+    static async updateSkey() {
+        return await callNTQQApi<GeneralCallResult>({
+            className: NTQQApiClass.HOME_WORK,
+            methodName: NTQQApiMethod.UPDATE_SKEY,
+            args: [
+                {
+                    domain: "qun.qq.com"
+                }
             ]
         })
     }
