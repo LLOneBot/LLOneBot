@@ -14,9 +14,6 @@ async function onSettingWindowCreated(view: Element) {
         const configKey = key.split('.');
 
         if (key.indexOf('ob11') === 0) {
-            if (configKey[1] === "messagePostFormat") {
-                value = value ? "string" : "array"
-            }
             if (configKey.length === 2) ob11Config[configKey[1]] = value;
             else ob11Config[key] = value;
         } else {
@@ -95,11 +92,10 @@ async function onSettingWindowCreated(view: Element) {
             SettingItem(
                 '启用CQ码上报格式，不启用则为消息段格式',
                 '如客户端无特殊需求推荐保持默认设置，两者的详细差异可参考 <a href="javascript:LiteLoader.api.openExternal(\'https://github.com/botuniverse/onebot-11/tree/master/message#readme\');">OneBot v11 文档</a>',
-                // SettingSelect([
-                //     {text: '消息段', value: 'array'},
-                //     {text: 'CQ码', value: 'string'},
-                // ], 'ob11.messagePostFormat', config.ob11.messagePostFormat),
-                SettingSwitch('ob11.messagePostFormat', config.ob11.messagePostFormat === "string"),
+                SettingSelect([
+                    {text: '消息段', value: 'array'},
+                    {text: 'CQ码', value: 'string'},
+                ], 'ob11.messagePostFormat', config.ob11.messagePostFormat),
             ),
             SettingItem(
                 'ffmpeg 路径，发送语音、视频需要，同时保证ffprobe和ffmpeg在一起', ` <a href="javascript:LiteLoader.api.openExternal(\'https://llonebot.github.io/zh-CN/guide/ffmpeg\');">下载地址</a> <span id="config-ffmpeg-path-text">, 路径:${!isEmpty(config.ffmpeg) ? config.ffmpeg : '未指定'}</span>`,
@@ -307,7 +303,7 @@ async function onSettingWindowCreated(view: Element) {
     });
 
     // 下拉框
-    doc.querySelectorAll('setting-select').forEach((dom: HTMLElement) => {
+    doc.querySelectorAll('ob-setting-select[data-config-key]').forEach((dom: HTMLElement) => {
         dom.addEventListener('selected', (e: CustomEvent) => {
             const configKey = dom.dataset.configKey;
             const configValue = e.detail.value;
