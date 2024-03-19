@@ -62,3 +62,11 @@ setting-item a:active,
 setting-item a:visited {
   color: var(--text-link);
 }
+
+#llonebot-error{
+  color: red;
+  height: 100px;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+}
