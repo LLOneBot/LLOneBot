@@ -37,6 +37,7 @@ import {GetConfigAction, SetConfigAction} from "./llonebot/Config";
 import GetGroupAddRequest from "./llonebot/GetGroupAddRequest";
 import SetQQAvatar from './llonebot/SetQQAvatar'
 import GoCQHTTPDownloadFile from "./go-cqhttp/DownloadFile";
+import GoCQHTTPGetGroupMsgHistory from "./go-cqhttp/GetGroupMsgHistory";
 
 export const actionHandlers = [
     new Debug(),
@@ -77,6 +78,7 @@ export const actionHandlers = [
     new GetGuildList(),
     new GoCQHTTPMarkMsgAsRead(),
     new GoCQHTTPUploadGroupFile(),
+    new GoCQHTTPGetGroupMsgHistory(),
 
 ]
 
