@@ -283,7 +283,7 @@ async function onSettingWindowCreated(view: Element) {
     });
 
     // 下拉框
-    doc.querySelectorAll('setting-select').forEach((dom: HTMLElement) => {
+    doc.querySelectorAll('ob-setting-select[data-config-key]').forEach((dom: HTMLElement) => {
         dom.addEventListener('selected', (e: CustomEvent) => {
             const configKey = dom.dataset.configKey;
             const configValue = e.detail.value;
