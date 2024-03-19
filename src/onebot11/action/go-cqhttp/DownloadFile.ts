@@ -2,7 +2,7 @@ import BaseAction from "../BaseAction";
 import {ActionName} from "../types";
 import fs from "fs";
 import {join as joinPath} from "node:path";
-import {calculateFileMD5, TEMP_DIR} from "../../../common/utils";
+import {calculateFileMD5, httpDownload, TEMP_DIR} from "../../../common/utils";
 import {v4 as uuid4} from "uuid";
 
 interface Payload {
@@ -29,12 +29,7 @@ export default class GoCQHTTPDownloadFile extends BaseAction<Payload, FileRespon
             fs.writeFileSync(filePath, payload.base64, 'base64')
         } else if (payload.url) {
             const headers = this.getHeaders(payload.headers);
-
-            const result = await fetch(payload.url, {headers})
-            if (! result.ok) throw new Error(`下载文件失败: ${result.statusText}`)
-
-            const blob = await result.blob();
-            let buffer = await blob.arrayBuffer();
+            let buffer = await httpDownload({url: payload.url, headers: headers})
             fs.writeFileSync(filePath, Buffer.from(buffer), 'binary');
         } else {
             throw new Error("不存在任何文件, 无法下载")
@@ -54,7 +49,7 @@ export default class GoCQHTTPDownloadFile extends BaseAction<Payload, FileRespon
         }
     }
 
-    getHeaders(headersIn?: string | string[]): any {
+    getHeaders(headersIn?: string | string[]): Record<string, string> {
         const headers = {};
         if (typeof headersIn == 'string') {
             headersIn = headersIn.split('[\\r\\n]');
