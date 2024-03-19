@@ -14,9 +14,6 @@ async function onSettingWindowCreated(view: Element) {
         const configKey = key.split('.');
 
         if (key.indexOf('ob11') === 0) {
-            if (configKey[1] === "messagePostFormat") {
-                value = value ? "string" : "array"
-            }
             if (configKey.length === 2) ob11Config[configKey[1]] = value;
             else ob11Config[key] = value;
         } else {
