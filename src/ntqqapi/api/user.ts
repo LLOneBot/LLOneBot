@@ -53,5 +53,4 @@ export class NTQQUserApi{
         return info
     }
 
-
 }
