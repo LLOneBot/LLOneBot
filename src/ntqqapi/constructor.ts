@@ -225,7 +225,11 @@ export class SendMsgElementConstructor {
         return {
             elementType: ElementType.ARK,
             elementId: "",
-            arkElement: data
+            arkElement: {
+                bytesData: data,
+                linkInfo: null,
+                subElementType: null
+            }
         }
     }
 }
