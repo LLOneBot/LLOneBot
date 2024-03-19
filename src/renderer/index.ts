@@ -41,7 +41,7 @@ async function onSettingWindowCreated(view: Element) {
                 <setting-list data-direction="column" class="new">
                     <setting-item data-direction="row">
                         <setting-text class="llonebot-update-title">正在检查LLOneBot版本中</setting-text>
-                        <setting-button data-type="secondary" class="llonebot-update-button">重新发现</setting-button>
+                        <setting-button data-type="secondary" class="llonebot-update-button">请稍后</setting-button>
                     </setting-item>
                 </setting-list>
              </setting-panel>
@@ -315,7 +315,8 @@ async function onSettingWindowCreated(view: Element) {
         view.appendChild(node);
     });
     // 更新逻辑
-    const checkVersionFunc = (ResultVersion: CheckVersion) => {
+    async function checkVersionFunc(ResultVersion: CheckVersion) {
+        console.log(ResultVersion);
         if (ResultVersion.version === "") {
             view.querySelector(".llonebot-update-title").innerHTML = "检查更新失败";
             view.querySelector(".llonebot-update-button").innerHTML = "点击重试";
@@ -328,7 +329,7 @@ async function onSettingWindowCreated(view: Element) {
             view.querySelector(".llonebot-update-title").innerHTML = "当前已是最新版本 V" + ResultVersion.version;
             view.querySelector(".llonebot-update-button").innerHTML = "无需更新";
         } else {
-            view.querySelector(".llonebot-update-title").innerHTML = "已监测到最新版本 V" + ResultVersion.version;
+            view.querySelector(".llonebot-update-title").innerHTML = "已检测到最新版本 V" + ResultVersion.version;
             view.querySelector(".llonebot-update-button").innerHTML = "点击更新";
             const update = async () => {
                 view.querySelector(".llonebot-update-button").innerHTML = "正在更新中...";
