@@ -8,17 +8,22 @@ import compressing from "compressing";
 const downloadMirrorHosts = ["https://mirror.ghproxy.com/"];
 const checkVersionMirrorHosts = ["https://521github.com"];
 
-export async function checkVersion() {
+export async function checkNewVersion() {
     const latestVersionText = await getRemoteVersion();
     const latestVersion = latestVersionText.split(".");
     log("llonebot last version", latestVersion);
     const currentVersion: string[] = version.split(".");
+    log("llonebot current version", currentVersion);
     for (let k of [0, 1, 2]) {
         if (parseInt(latestVersion[k]) > parseInt(currentVersion[k])) {
-            return { result: false, version: latestVersionText };
+            log("")
+            return { result: true, version: latestVersionText };
+        }
+        else if (parseInt(latestVersion[k]) < parseInt(currentVersion[k])) {
+            break;
         }
     }
-    return { result: true, version: version };
+    return { result: false, version: version };
 }
 
 export async function upgradeLLOneBot() {

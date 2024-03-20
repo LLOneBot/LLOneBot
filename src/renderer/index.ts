@@ -336,7 +336,7 @@ async function onSettingWindowCreated(view: Element) {
             });
             return;
         }
-        if (ResultVersion.result) {
+        if (!ResultVersion.result) {
             view.querySelector(".llonebot-update-title").innerHTML = "当前已是最新版本 V" + ResultVersion.version;
             view.querySelector(".llonebot-update-button").innerHTML = "无需更新";
         } else {

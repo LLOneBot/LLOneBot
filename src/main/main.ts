@@ -7,7 +7,7 @@ import {
     CHANNEL_ERROR,
     CHANNEL_GET_CONFIG,
     CHANNEL_LOG,
-    CHANNEL_CHECKVERSION,
+    CHANNEL_CHECK_VERSION,
     CHANNEL_SELECT_FILE,
     CHANNEL_SET_CONFIG,
     CHANNEL_UPDATE,
@@ -41,7 +41,7 @@ import {NTQQUserApi} from "../ntqqapi/api/user";
 import {NTQQGroupApi} from "../ntqqapi/api/group";
 import {registerPokeHandler} from "../ntqqapi/external/ccpoke";
 import {OB11FriendPokeEvent, OB11GroupPokeEvent} from "../onebot11/event/notice/OB11PokeEvent";
-import {checkVersion, upgradeLLOneBot} from "../common/utils/upgrade";
+import {checkNewVersion, upgradeLLOneBot} from "../common/utils/upgrade";
 import {log} from "../common/utils/log";
 import {getConfigUtil} from "../common/config";
 import {checkFfmpeg} from "../common/utils/video";
@@ -53,8 +53,8 @@ let running = false;
 // 加载插件时触发
 function onLoad() {
     log("llonebot main onLoad");
-    ipcMain.handle(CHANNEL_CHECKVERSION, async (event, arg) => {
-        return checkVersion();
+    ipcMain.handle(CHANNEL_CHECK_VERSION, async (event, arg) => {
+        return checkNewVersion();
     });
     ipcMain.handle(CHANNEL_UPDATE, async (event, arg) => {
         return upgradeLLOneBot();
