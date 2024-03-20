@@ -117,7 +117,7 @@ export function callNTQQApi<ReturnType>(params: NTQQApiParams) {
         }
         const apiArgs = [methodName, ...args]
         if (!cbCmd) {
-            // QQ后端会返回结果，并且可以插根据uuid识别
+            // QQ后端会返回结果，并且可以根据uuid识别
             hookApiCallbacks[uuid] = (r: ReturnType) => {
                 success = true
                 resolve(r)
