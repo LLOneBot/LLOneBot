@@ -139,7 +139,7 @@ export async function encodeSilk(filePath: string) {
             fs.writeFileSync(pttPath, silk.data);
             fs.unlink(wavPath, (err) => {
             });
-            log(`语音文件${filePath}转换成功!`, pttPath)
+            log(`语音文件${filePath}转换成功!`, pttPath, `时长:`, silk.duration)
             return {
                 converted: true,
                 path: pttPath,

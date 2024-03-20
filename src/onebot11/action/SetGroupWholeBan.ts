@@ -11,8 +11,8 @@ export default class SetGroupWholeBan extends BaseAction<Payload, null> {
     actionName = ActionName.SetGroupWholeBan
 
     protected async _handle(payload: Payload): Promise<null> {
-
-        await NTQQGroupApi.banGroup(payload.group_id.toString(), !!payload.enable)
+        const enable = payload.enable.toString() === "true"
+        await NTQQGroupApi.banGroup(payload.group_id.toString(), enable)
         return null
     }
 }

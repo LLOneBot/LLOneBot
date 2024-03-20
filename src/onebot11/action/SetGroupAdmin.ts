@@ -15,10 +15,11 @@ export default class SetGroupAdmin extends BaseAction<Payload, null> {
 
     protected async _handle(payload: Payload): Promise<null> {
         const member = await getGroupMember(payload.group_id, payload.user_id)
+        const enable = payload.enable.toString() === "true"
         if (!member) {
             throw `群成员${payload.user_id}不存在`
         }
-        await NTQQGroupApi.setMemberRole(payload.group_id.toString(), member.uid, payload.enable ? GroupMemberRole.admin : GroupMemberRole.normal)
+        await NTQQGroupApi.setMemberRole(payload.group_id.toString(), member.uid, enable ? GroupMemberRole.admin : GroupMemberRole.normal)
         return null
     }
 }
