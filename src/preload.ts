@@ -5,7 +5,7 @@ import {
     CHANNEL_ERROR,
     CHANNEL_GET_CONFIG,
     CHANNEL_LOG,
-    CHANNEL_CHECKVERSION,
+    CHANNEL_CHECK_VERSION,
     CHANNEL_SELECT_FILE,
     CHANNEL_SET_CONFIG,
     CHANNEL_UPDATE,
@@ -19,7 +19,7 @@ const llonebot = {
         ipcRenderer.send(CHANNEL_LOG, data);
     },
     checkVersion:async (): Promise<CheckVersion> => {
-        return ipcRenderer.invoke(CHANNEL_CHECKVERSION);
+        return ipcRenderer.invoke(CHANNEL_CHECK_VERSION);
     },
     updateLLOneBot:async (): Promise<boolean> => {
         return ipcRenderer.invoke(CHANNEL_UPDATE);

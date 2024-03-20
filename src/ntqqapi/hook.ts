@@ -61,7 +61,7 @@ let receiveHooks: Array<{
 export function hookNTQQApiReceive(window: BrowserWindow) {
     const originalSend = window.webContents.send;
     const patchSend = (channel: string, ...args: NTQQApiReturnData) => {
-        console.log("hookNTQQApiReceive", channel, args)
+        // console.log("hookNTQQApiReceive", channel, args)
         let isLogger = false
         try {
             isLogger = args[0]?.eventName?.startsWith("ns-LoggerApi")
@@ -122,7 +122,7 @@ export function hookNTQQApiCall(window: BrowserWindow) {
 
     const proxyIpcMsg = new Proxy(ipc_message_proxy, {
         apply(target, thisArg, args) {
-            console.log(thisArg, args);
+            // console.log(thisArg, args);
             let isLogger = false
             try {
                 isLogger = args[3][0].eventName.startsWith("ns-LoggerApi")
@@ -156,7 +156,11 @@ export function hookNTQQApiCall(window: BrowserWindow) {
                 }
             });
             let ret = target.apply(thisArg, args);
-            HOOK_LOG && log("call NTQQ invoke api return", ret)
+            try {
+                HOOK_LOG && log("call NTQQ invoke api return", ret)
+            }catch (e) {
+                
+            }
             return ret;
         }
     });
