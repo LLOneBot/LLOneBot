@@ -1,0 +1,31 @@
+import BaseAction from "../BaseAction";
+import * as ntqqApi from "../../../ntqqapi/api";
+import {ActionName} from "../types";
+import {log} from "../../../common/utils/log";
+
+interface Payload {
+    method: string,
+    args: any[],
+}
+
+export default class Debug extends BaseAction<Payload, any> {
+    actionName = ActionName.Debug
+
+    protected async _handle(payload: Payload): Promise<any> {
+        log("debug call ntqq api", payload);
+        for (const ntqqApiClass in ntqqApi) {
+            const method = ntqqApi[ntqqApiClass][payload.method]
+            if (method) {
+                const result = method(...payload.args);
+                if (method.constructor.name === "AsyncFunction") {
+                    return await result
+                }
+                return result
+            }
+        }
+        throw `${payload.method}方法 不存在`
+
+        // const info = await NTQQApi.getUserDetailInfo(friends[0].uid);
+        // return info
+    }
+}
