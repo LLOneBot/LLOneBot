@@ -3,7 +3,9 @@ import {hookApiCallbacks, ReceiveCmd, ReceiveCmdS, registerReceiveHook, removeRe
 
 import {v4 as uuidv4} from "uuid"
 import {log} from "../common/utils/log";
-import {NTQQWindowApi, NTQQWindows} from "./api/window";
+import {NTQQWindow, NTQQWindowApi, NTQQWindows} from "./api/window";
+import {WebApi} from "./api/webapi";
+import {HOOK_LOG} from "../common/config";
 
 export enum NTQQApiClass {
     NT_API = "ns-ntApi",
@@ -14,7 +16,8 @@ export enum NTQQApiClass {
     BUSINESS_API = "ns-BusinessApi",
     GLOBAL_DATA = "ns-GlobalDataApi",
     SKEY_API = "ns-SkeyApi",
-    HOME_WORK = "ns-GroupHomeWork"
+    GROUP_HOME_WORK = "ns-GroupHomeWork",
+    GROUP_ESSENCE = "ns-GroupEssence",
 }
 
 export enum NTQQApiMethod {
@@ -103,7 +106,7 @@ export function callNTQQApi<ReturnType>(params: NTQQApiParams) {
     timeout = timeout ?? 5;
     afterFirstCmd = afterFirstCmd ?? true;
     const uuid = uuidv4();
-    // log("callNTQQApi", channel, className, methodName, args, uuid)
+    HOOK_LOG && log("callNTQQApi", channel, className, methodName, args, uuid)
     return new Promise((resolve: (data: ReturnType) => void, reject) => {
         // log("callNTQQApiPromise", channel, className, methodName, args, uuid)
         const _timeout = timeout * 1000
@@ -183,21 +186,21 @@ export class NTQQApi {
         })
     }
 
-    static async getSkey(groupCode: string, groupName: string) {
-        await NTQQWindowApi.openWindow(NTQQWindows.GroupHomeWorkWindow, [{
+    static async getSkey(groupName: string, groupCode: string): Promise<{data: string}> {
+        return await NTQQWindowApi.openWindow<{data: string}>(NTQQWindows.GroupHomeWorkWindow, [{
             groupName,
             groupCode,
             "source": "funcbar"
         }], ReceiveCmdS.SKEY_UPDATE, 1);
-        return await callNTQQApi<GeneralCallResult>({
-            className: NTQQApiClass.HOME_WORK,
-            methodName: NTQQApiMethod.UPDATE_SKEY,
-            args: [
-                {
-                    domain: "qun.qq.com"
-                }
-            ]
-        })
+        // return await callNTQQApi<string>({
+        //     className: NTQQApiClass.GROUP_HOME_WORK,
+        //     methodName: NTQQApiMethod.UPDATE_SKEY,
+        //     args: [
+        //         {
+        //             domain: "qun.qq.com"
+        //         }
+        //     ]
+        // })
         // return await callNTQQApi<GeneralCallResult>({
         //     methodName: NTQQApiMethod.GET_SKEY,
         //     args: [
@@ -218,9 +221,9 @@ export class NTQQApi {
         // })
     }
 
-    static async updateSkey() {
-        return await callNTQQApi<GeneralCallResult>({
-            className: NTQQApiClass.HOME_WORK,
+    static async getPSkey() {
+        return await callNTQQApi<string>({
+            className: NTQQApiClass.GROUP_HOME_WORK,
             methodName: NTQQApiMethod.UPDATE_SKEY,
             args: [
                 {
@@ -230,4 +233,11 @@ export class NTQQApi {
         })
     }
 
+    static async addGroupDigest(groupCode: string, msgSeq: string) {
+        return await new WebApi().addGroupDigest(groupCode, msgSeq);
+    }
+
+    static async getGroupDigest(groupCode: string) {
+        return await new WebApi().getGroupDigest(groupCode);
+    }
 }

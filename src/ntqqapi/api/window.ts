@@ -2,7 +2,7 @@ import {callNTQQApi, GeneralCallResult, NTQQApiClass, NTQQApiMethod} from "../nt
 import {ReceiveCmd} from "../hook";
 import {BrowserWindow} from "electron";
 
-interface NTQQWindow{
+export interface NTQQWindow{
     windowName: string,
     windowUrlHash: string,
 }
@@ -16,13 +16,17 @@ export class NTQQWindows{
         windowName: "GroupNotifyFilterWindow",
         windowUrlHash: "#/group-notify-filter"
     }
+    static GroupEssenceWindow: NTQQWindow = {
+        windowName: "GroupEssenceWindow",
+        windowUrlHash: "#/group-essence"
+    }
 }
 
 export class NTQQWindowApi{
 
     // 打开窗口并获取对应的下发事件
-    static async openWindow(ntQQWindow: NTQQWindow, args: any[], cbCmd: ReceiveCmd=null, autoCloseSeconds: number=2){
-        const result = await callNTQQApi<GeneralCallResult>({
+    static async openWindow<R=GeneralCallResult>(ntQQWindow: NTQQWindow, args: any[], cbCmd: ReceiveCmd=null, autoCloseSeconds: number=2){
+        const result = await callNTQQApi<R>({
             className: NTQQApiClass.WINDOW_API,
             methodName: NTQQApiMethod.OPEN_EXTRA_WINDOW,
             cbCmd,
