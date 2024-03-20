@@ -25,6 +25,7 @@ export class WebApi{
     public async getGroupDigest(groupCode: string){
         const url = `https://qun.qq.com/cgi-bin/group_digest/digest_list?random=665&X-CROSS-ORIGIN=fetch&group_code=${groupCode}&page_start=0&page_limit=20`
         const res = await this.request(url)
+        log(res.headers)
         return await res.json()
     }
 
@@ -49,7 +50,9 @@ export class WebApi{
             const match = cookie.match(pskeyRegex);
             const pskeyValue = match ? match[1] : null;
             WebApi.pskey = pskeyValue;
-            cookie = cookie.replace(/skey=.*?/, `skey=${WebApi.skey}`);
+            if (cookie.indexOf("skey=;") !== -1) {
+                cookie = cookie.replace("skey=;", `skey=${WebApi.skey};`);
+            }
             WebApi.cookie = cookie;
             // for(const kv of WebApi.cookie.split(";")){
             //     const [key, value] = kv.split("=");
@@ -72,7 +75,7 @@ export class WebApi{
         let _headers: Record<string, string> = {
             ...this.defaultHeaders, ...headers,
             "Cookie": WebApi.cookie,
-            // credentials: 'include'
+            credentials: 'include'
         }
         log("request", url, _headers)
         const options = {
