@@ -5,6 +5,7 @@ import {uidMaps} from "../../common/data";
 import {BrowserWindow} from "electron";
 import {dbUtil} from "../../common/db";
 import {log} from "../../common/utils/log";
+import {NTQQWindowApi, NTQQWindows} from "./window";
 
 export class NTQQGroupApi{
     static async getGroups(forced = false) {
@@ -74,25 +75,7 @@ export class NTQQGroupApi{
     }
     static async getGroupIgnoreNotifies() {
         await NTQQGroupApi.getGroupNotifies();
-        const result = callNTQQApi<GroupNotifies>({
-            className: NTQQApiClass.WINDOW_API,
-            methodName: NTQQApiMethod.OPEN_EXTRA_WINDOW,
-            cbCmd: ReceiveCmdS.GROUP_NOTIFY,
-            afterFirstCmd: false,
-            args: [
-                "GroupNotifyFilterWindow"
-            ]
-        })
-        // 关闭窗口
-        setTimeout(() => {
-            for (const w of BrowserWindow.getAllWindows()) {
-                // log("close window", w.webContents.getURL())
-                if (w.webContents.getURL().indexOf("#/notify-filter/") != -1) {
-                    w.close();
-                }
-            }
-        }, 2000);
-        return result;
+        return await NTQQWindowApi.openWindow(NTQQWindows.GroupNotifyFilterWindow,[], ReceiveCmdS.GROUP_NOTIFY);
     }
     static async handleGroupRequest(seq: string, operateType: GroupRequestOperateTypes, reason?: string) {
         const notify: GroupNotify = await dbUtil.getGroupNotify(seq)

@@ -1,24 +1,29 @@
-import {version} from "../../version";
+import { version } from "../../version";
 import * as path from "node:path";
 import * as fs from "node:fs";
-import {copyFolder, httpDownload, log, PLUGIN_DIR, TEMP_DIR} from ".";
+import { copyFolder, httpDownload, log, PLUGIN_DIR, TEMP_DIR } from ".";
 import compressing from "compressing";
 
 
 const downloadMirrorHosts = ["https://mirror.ghproxy.com/"];
 const checkVersionMirrorHosts = ["https://521github.com"];
 
-export async function checkVersion() {
+export async function checkNewVersion() {
     const latestVersionText = await getRemoteVersion();
     const latestVersion = latestVersionText.split(".");
     log("llonebot last version", latestVersion);
-    const currentVersion = version.split(".");
-    for (let k in [0, 1, 2]) {
-        if (latestVersion[k] > currentVersion[k]) {
-            return {result: false, version: latestVersionText};
+    const currentVersion: string[] = version.split(".");
+    log("llonebot current version", currentVersion);
+    for (let k of [0, 1, 2]) {
+        if (parseInt(latestVersion[k]) > parseInt(currentVersion[k])) {
+            log("")
+            return { result: true, version: latestVersionText };
+        }
+        else if (parseInt(latestVersion[k]) < parseInt(currentVersion[k])) {
+            break;
         }
     }
-    return {result: true, version: version};
+    return { result: false, version: version };
 }
 
 export async function upgradeLLOneBot() {
@@ -28,17 +33,17 @@ export async function upgradeLLOneBot() {
         const filePath = path.join(TEMP_DIR, "./update-" + latestVersion + ".zip");
         let downloadSuccess = false;
         // 多镜像下载
-        for(const mirrorGithub of downloadMirrorHosts){
-            try{
+        for (const mirrorGithub of downloadMirrorHosts) {
+            try {
                 const buffer = await httpDownload(mirrorGithub + downloadUrl);
                 fs.writeFileSync(filePath, buffer)
                 downloadSuccess = true;
                 break;
-            }catch (e) {
+            } catch (e) {
                 log("llonebot upgrade error", e);
             }
         }
-        if (!downloadSuccess){
+        if (!downloadSuccess) {
             log("llonebot upgrade error", "download failed");
             return false;
         }

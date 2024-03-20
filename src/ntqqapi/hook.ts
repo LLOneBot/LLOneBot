@@ -33,6 +33,7 @@ export let ReceiveCmdS = {
     SELF_STATUS: 'nodeIKernelProfileListener/onSelfStatusChanged',
     CACHE_SCAN_FINISH: "nodeIKernelStorageCleanListener/onFinishScan",
     MEDIA_UPLOAD_COMPLETE: "nodeIKernelMsgListener/onRichMediaUploadComplete",
+    SKEY_UPDATE: "onSkeyUpdate"
 }
 
 export type ReceiveCmd = typeof ReceiveCmdS[keyof typeof ReceiveCmdS]
@@ -60,45 +61,56 @@ let receiveHooks: Array<{
 export function hookNTQQApiReceive(window: BrowserWindow) {
     const originalSend = window.webContents.send;
     const patchSend = (channel: string, ...args: NTQQApiReturnData) => {
+        // console.log("hookNTQQApiReceive", channel, args)
+        let isLogger = false
         try {
-            if (!args[0]?.eventName?.startsWith("ns-LoggerApi")) {
-                HOOK_LOG && log(`received ntqq api message: ${channel}`, JSON.stringify(args))
-            }
+            isLogger = args[0]?.eventName?.startsWith("ns-LoggerApi")
         } catch (e) {
 
         }
-        if (args?.[1] instanceof Array) {
-            for (let receiveData of args?.[1]) {
-                const ntQQApiMethodName = receiveData.cmdName;
-                // log(`received ntqq api message: ${channel} ${ntQQApiMethodName}`, JSON.stringify(receiveData))
-                for (let hook of receiveHooks) {
-                    if (hook.method.includes(ntQQApiMethodName)) {
-                        new Promise((resolve, reject) => {
-                            try {
-                                let _ = hook.hookFunc(receiveData.payload)
-                                if (hook.hookFunc.constructor.name === "AsyncFunction") {
-                                    (_ as Promise<void>).then()
+        if (!isLogger) {
+            try {
+                HOOK_LOG && log(`received ntqq api message: ${channel}`, args)
+            }catch (e) {
+                log("hook log error", e, args)
+            }
+        }
+        try {
+            if (args?.[1] instanceof Array) {
+                for (let receiveData of args?.[1]) {
+                    const ntQQApiMethodName = receiveData.cmdName;
+                    // log(`received ntqq api message: ${channel} ${ntQQApiMethodName}`, JSON.stringify(receiveData))
+                    for (let hook of receiveHooks) {
+                        if (hook.method.includes(ntQQApiMethodName)) {
+                            new Promise((resolve, reject) => {
+                                try {
+                                    let _ = hook.hookFunc(receiveData.payload)
+                                    if (hook.hookFunc.constructor.name === "AsyncFunction") {
+                                        (_ as Promise<void>).then()
+                                    }
+                                } catch (e) {
+                                    log("hook error", e, receiveData.payload)
                                 }
-                            } catch (e) {
-                                log("hook error", e, receiveData.payload)
-                            }
-                        }).then()
+                            }).then()
+                        }
                     }
                 }
             }
-        }
-        if (args[0]?.callbackId) {
-            // log("hookApiCallback", hookApiCallbacks, args)
-            const callbackId = args[0].callbackId;
-            if (hookApiCallbacks[callbackId]) {
-                // log("callback found")
-                new Promise((resolve, reject) => {
-                    hookApiCallbacks[callbackId](args[1]);
-                }).then()
-                delete hookApiCallbacks[callbackId];
+            if (args[0]?.callbackId) {
+                // log("hookApiCallback", hookApiCallbacks, args)
+                const callbackId = args[0].callbackId;
+                if (hookApiCallbacks[callbackId]) {
+                    // log("callback found")
+                    new Promise((resolve, reject) => {
+                        hookApiCallbacks[callbackId](args[1]);
+                    }).then()
+                    delete hookApiCallbacks[callbackId];
+                }
             }
+        }catch (e) {
+            log("hookNTQQApiReceive error", e.stack.toString(), args)
         }
-        return originalSend.call(window.webContents, channel, ...args);
+        originalSend.call(window.webContents, channel, ...args);
     }
     window.webContents.send = patchSend;
 }
@@ -110,12 +122,19 @@ export function hookNTQQApiCall(window: BrowserWindow) {
 
     const proxyIpcMsg = new Proxy(ipc_message_proxy, {
         apply(target, thisArg, args) {
+            // console.log(thisArg, args);
+            let isLogger = false
             try {
-                if (args[3][1][0] !== "info") {
-                    HOOK_LOG && log("call NTQQ api", thisArg, args);
-                }
+                isLogger = args[3][0].eventName.startsWith("ns-LoggerApi")
             } catch (e) {
 
+            }
+            if (!isLogger) {
+                try{
+                    HOOK_LOG && log("call NTQQ api", thisArg, args);
+                }catch (e) {
+                    
+                }
             }
             return target.apply(thisArg, args);
         },
@@ -137,7 +156,11 @@ export function hookNTQQApiCall(window: BrowserWindow) {
                 }
             });
             let ret = target.apply(thisArg, args);
-            HOOK_LOG && log("call NTQQ invoke api return", ret)
+            try {
+                HOOK_LOG && log("call NTQQ invoke api return", ret)
+            }catch (e) {
+                
+            }
             return ret;
         }
     });

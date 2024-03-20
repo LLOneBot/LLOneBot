@@ -14,3 +14,4 @@ if (!fs.existsSync(TEMP_DIR)) {
     fs.mkdirSync(TEMP_DIR);
 }
 export {getVideoInfo} from "./video";
+export {checkFfmpeg} from "./video";

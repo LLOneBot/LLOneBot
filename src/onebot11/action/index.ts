@@ -20,7 +20,7 @@ import SendLike from "./SendLike";
 import SetGroupAddRequest from "./SetGroupAddRequest";
 import SetGroupLeave from "./SetGroupLeave";
 import GetGuildList from "./GetGuildList";
-import Debug from "./Debug";
+import Debug from "./llonebot/Debug";
 import SetFriendAddRequest from "./SetFriendAddRequest";
 import SetGroupWholeBan from "./SetGroupWholeBan";
 import SetGroupName from "./SetGroupName";
