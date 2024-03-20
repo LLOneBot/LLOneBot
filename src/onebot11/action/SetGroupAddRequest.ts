@@ -16,8 +16,9 @@ export default class SetGroupAddRequest extends BaseAction<Payload, null> {
 
     protected async _handle(payload: Payload): Promise<null> {
         const seq = payload.flag.toString();
+        const approve = payload.approve.toString() === "true";
         await NTQQGroupApi.handleGroupRequest(seq,
-            payload.approve ? GroupRequestOperateTypes.approve : GroupRequestOperateTypes.reject,
+            approve ? GroupRequestOperateTypes.approve : GroupRequestOperateTypes.reject,
             payload.reason
         )
         return null
