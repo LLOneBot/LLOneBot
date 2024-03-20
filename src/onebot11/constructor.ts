@@ -311,14 +311,14 @@ export class OB11Constructor {
             nickname: friend.nick,
             remark: friend.remark,
             sex: OB11Constructor.sex(friend.sex),
-            qq_level: friend.qqLevel && calcQQLevel(friend.qqLevel) || 0
+            level: friend.qqLevel && calcQQLevel(friend.qqLevel) || 0
         }
     }
 
     static selfInfo(selfInfo: SelfInfo): OB11User {
         return {
             user_id: parseInt(selfInfo.uin),
-            nickname: selfInfo.nick
+            nickname: selfInfo.nick,
         }
     }
 
@@ -362,6 +362,19 @@ export class OB11Constructor {
             is_robot: member.isRobot,
             shut_up_timestamp: member.shutUpTime,
             role: OB11Constructor.groupMemberRole(member.role),
+        }
+    }
+
+    static stranger(user: User): OB11User {
+        return {
+            ...user,
+            user_id: parseInt(user.uin),
+            nickname: user.nick,
+            sex: OB11Constructor.sex(user.sex),
+            age: 0,
+            qid: user.qid,
+            login_days: 0,
+            level: user.qqLevel && calcQQLevel(user.qqLevel) || 0,
         }
     }
 

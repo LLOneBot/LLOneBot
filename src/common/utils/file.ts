@@ -6,11 +6,12 @@ import util from "util";
 import {encode, getDuration, isWav} from "silk-wasm";
 import path from "node:path";
 import {v4 as uuidv4} from "uuid";
-import {DATA_DIR, log, TEMP_DIR} from "./index";
+import {checkFfmpeg, DATA_DIR, log, TEMP_DIR} from "./index";
 import {getConfigUtil} from "../config";
 import {dbUtil} from "../db";
 import * as fileType from "file-type";
 import {net} from "electron";
+import config from "../../../electron.vite.config";
 
 
 export function isGIF(path: string) {
@@ -64,28 +65,6 @@ export async function file2base64(path: string) {
         result.err = err.toString();
     }
     return result;
-}
-
-export function checkFfmpeg(newPath: string = null): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-        log("开始检查ffmpeg", newPath);
-        if (newPath) {
-            ffmpeg.setFfmpegPath(newPath);
-        }
-        try {
-            ffmpeg.getAvailableFormats((err, formats) => {
-                if (err) {
-                    log('ffmpeg is not installed or not found in PATH:', err);
-                    resolve(false)
-                } else {
-                    log('ffmpeg is installed.');
-                    resolve(true);
-                }
-            })
-        } catch (e) {
-            resolve(false);
-        }
-    });
 }
 
 export async function encodeSilk(filePath: string) {

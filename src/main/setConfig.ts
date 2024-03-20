@@ -4,6 +4,7 @@ import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
 import {ob11ReverseWebsockets} from "../onebot11/server/ws/ReverseWebsocket";
 import {llonebotError} from "../common/data";
 import {getConfigUtil} from "../common/config";
+import {checkFfmpeg} from "../common/utils";
 
 export async function setConfig(config: Config) {
     let oldConfig = getConfigUtil().getConfig();
@@ -51,4 +52,5 @@ export async function setConfig(config: Config) {
             }
         }
     }
+    checkFfmpeg(config.ffmpeg).then()
 }
