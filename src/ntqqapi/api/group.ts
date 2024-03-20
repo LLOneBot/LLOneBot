@@ -75,7 +75,7 @@ export class NTQQGroupApi{
     }
     static async getGroupIgnoreNotifies() {
         await NTQQGroupApi.getGroupNotifies();
-        return await NTQQWindowApi.openWindow(NTQQWindows.GroupNotifyFilterWindow, ReceiveCmdS.GROUP_NOTIFY);
+        return await NTQQWindowApi.openWindow(NTQQWindows.GroupNotifyFilterWindow,[], ReceiveCmdS.GROUP_NOTIFY);
     }
     static async handleGroupRequest(seq: string, operateType: GroupRequestOperateTypes, reason?: string) {
         const notify: GroupNotify = await dbUtil.getGroupNotify(seq)
