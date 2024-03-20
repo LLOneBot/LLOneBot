@@ -61,6 +61,7 @@ let receiveHooks: Array<{
 export function hookNTQQApiReceive(window: BrowserWindow) {
     const originalSend = window.webContents.send;
     const patchSend = (channel: string, ...args: NTQQApiReturnData) => {
+        console.log("hookNTQQApiReceive", channel, args)
         let isLogger = false
         try {
             isLogger = args[0]?.eventName?.startsWith("ns-LoggerApi")
@@ -69,43 +70,47 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
         }
         if (!isLogger) {
             try {
-                HOOK_LOG && log(`received ntqq api message: ${channel}`, JSON.stringify(args))
+                HOOK_LOG && log(`received ntqq api message: ${channel}`, args)
             }catch (e) {
-                
+                log("hook log error", e, args)
             }
         }
-        if (args?.[1] instanceof Array) {
-            for (let receiveData of args?.[1]) {
-                const ntQQApiMethodName = receiveData.cmdName;
-                // log(`received ntqq api message: ${channel} ${ntQQApiMethodName}`, JSON.stringify(receiveData))
-                for (let hook of receiveHooks) {
-                    if (hook.method.includes(ntQQApiMethodName)) {
-                        new Promise((resolve, reject) => {
-                            try {
-                                let _ = hook.hookFunc(receiveData.payload)
-                                if (hook.hookFunc.constructor.name === "AsyncFunction") {
-                                    (_ as Promise<void>).then()
+        try {
+            if (args?.[1] instanceof Array) {
+                for (let receiveData of args?.[1]) {
+                    const ntQQApiMethodName = receiveData.cmdName;
+                    // log(`received ntqq api message: ${channel} ${ntQQApiMethodName}`, JSON.stringify(receiveData))
+                    for (let hook of receiveHooks) {
+                        if (hook.method.includes(ntQQApiMethodName)) {
+                            new Promise((resolve, reject) => {
+                                try {
+                                    let _ = hook.hookFunc(receiveData.payload)
+                                    if (hook.hookFunc.constructor.name === "AsyncFunction") {
+                                        (_ as Promise<void>).then()
+                                    }
+                                } catch (e) {
+                                    log("hook error", e, receiveData.payload)
                                 }
-                            } catch (e) {
-                                log("hook error", e, receiveData.payload)
-                            }
-                        }).then()
+                            }).then()
+                        }
                     }
                 }
             }
-        }
-        if (args[0]?.callbackId) {
-            // log("hookApiCallback", hookApiCallbacks, args)
-            const callbackId = args[0].callbackId;
-            if (hookApiCallbacks[callbackId]) {
-                // log("callback found")
-                new Promise((resolve, reject) => {
-                    hookApiCallbacks[callbackId](args[1]);
-                }).then()
-                delete hookApiCallbacks[callbackId];
+            if (args[0]?.callbackId) {
+                // log("hookApiCallback", hookApiCallbacks, args)
+                const callbackId = args[0].callbackId;
+                if (hookApiCallbacks[callbackId]) {
+                    // log("callback found")
+                    new Promise((resolve, reject) => {
+                        hookApiCallbacks[callbackId](args[1]);
+                    }).then()
+                    delete hookApiCallbacks[callbackId];
+                }
             }
+        }catch (e) {
+            log("hookNTQQApiReceive error", e.stack.toString(), args)
         }
-        return originalSend.call(window.webContents, channel, ...args);
+        originalSend.call(window.webContents, channel, ...args);
     }
     window.webContents.send = patchSend;
 }
@@ -117,6 +122,7 @@ export function hookNTQQApiCall(window: BrowserWindow) {
 
     const proxyIpcMsg = new Proxy(ipc_message_proxy, {
         apply(target, thisArg, args) {
+            console.log(thisArg, args);
             let isLogger = false
             try {
                 isLogger = args[3][0].eventName.startsWith("ns-LoggerApi")

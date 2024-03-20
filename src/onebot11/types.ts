@@ -6,7 +6,10 @@ export interface OB11User {
     nickname: string;
     remark?: string;
     sex?: OB11UserSex;
-    qq_level?: number;
+    level?: number;
+    age?: number;
+    qid?: string;
+    login_days?: number;
 }
 
 export enum OB11UserSex {
