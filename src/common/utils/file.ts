@@ -116,7 +116,6 @@ export async function encodeSilk(filePath: string) {
     // }
 
     try {
-        const fileName = path.basename(filePath);
         const pttPath = path.join(DATA_DIR, uuidv4());
         if (getFileHeader(filePath) !== "02232153494c4b") {
             log(`语音文件${filePath}需要转换成silk`)
@@ -151,7 +150,7 @@ export async function encodeSilk(filePath: string) {
             fs.writeFileSync(pttPath, silk.data);
             fs.unlink(wavPath, (err) => {
             });
-            const duration = verifyDuration(silk.duration, await guessDuration(filePath))
+            const duration = verifyDuration(silk.duration / 1000, await guessDuration(filePath))
             return {
                 converted: true,
                 path: pttPath,
