@@ -24,8 +24,8 @@ const llonebot = {
     updateLLOneBot:async (): Promise<boolean> => {
         return ipcRenderer.invoke(CHANNEL_UPDATE);
     },
-    setConfig: (config: Config) => {
-        ipcRenderer.send(CHANNEL_SET_CONFIG, config);
+    setConfig: (ask: boolean, config: Config) => {
+        ipcRenderer.send(CHANNEL_SET_CONFIG, ask, config);
     },
     getConfig: async (): Promise<Config> => {
         return ipcRenderer.invoke(CHANNEL_GET_CONFIG);
