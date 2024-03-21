@@ -21,7 +21,7 @@ async function onSettingWindowCreated(view: Element) {
             else config[key] = value;
 
             if (!['heartInterval', 'token', 'ffmpeg'].includes(key)) {
-                window.llonebot.setConfig(config);
+                window.llonebot.setConfig(false, config);
             }
         }
     };
@@ -324,7 +324,7 @@ async function onSettingWindowCreated(view: Element) {
     doc.querySelector('#config-ob11-save').addEventListener('click', () => {
         config.ob11 = ob11Config;
 
-        window.llonebot.setConfig(config);
+        window.llonebot.setConfig(false, config);
         // window.location.reload();
         showError().then()
         alert('保存成功');
@@ -363,8 +363,14 @@ async function onSettingWindowCreated(view: Element) {
             }
             view.querySelector(".llonebot-update-button").addEventListener("click", update);
         }
-    };
+    }
     window.llonebot.checkVersion().then(checkVersionFunc);
+    window.addEventListener('beforeunload', (event) => {
+        if (JSON.stringify(ob11Config) === JSON.stringify(config.ob11)) return;
+        config.ob11 = ob11Config;
+        window.llonebot.setConfig(true, config);
+
+    });
 
 }
 
