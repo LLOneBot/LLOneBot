@@ -155,7 +155,7 @@ export async function encodeSilk(filePath: string) {
             fs.writeFileSync(pttPath, silk.data);
             fs.unlink(wavPath, (err) => {
             });
-            const gDuration = await guessDuration(filePath)
+            const gDuration = await guessDuration(pttPath)
             log(`语音文件${filePath}转换成功!`, pttPath, `时长:`, silk.duration)
             return {
                 converted: true,
