@@ -30,6 +30,7 @@ export class ConfigUtil {
         let ob11Default: OB11Config = {
             httpPort: 3000,
             httpHosts: [],
+            httpSecret: "",
             wsPort: 3001,
             wsHosts: [],
             enableHttp: true,
