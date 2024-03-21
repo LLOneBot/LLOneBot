@@ -11,6 +11,7 @@ import {getConfigUtil} from "../config";
 import {dbUtil} from "../db";
 import * as fileType from "file-type";
 import {net} from "electron";
+import config from "../../../electron.vite.config";
 
 
 export function isGIF(path: string) {
@@ -67,6 +68,8 @@ export async function file2base64(path: string) {
 }
 
 export async function encodeSilk(filePath: string) {
+    const fsp = require("fs").promises
+
     function getFileHeader(filePath: string) {
         // 定义要读取的字节数
         const bytesToRead = 7;
@@ -129,7 +132,7 @@ export async function encodeSilk(filePath: string) {
                     if (ffmpegPath) {
                         ffmpeg.setFfmpegPath(ffmpegPath);
                     }
-                    ffmpeg(filePath).toFormat("wav").audioChannels(2).on('end', function () {
+                    ffmpeg(filePath).toFormat("wav").audioChannels(1).audioFrequency(24000).on('end', function () {
                         log('wav转换完成');
                     })
                         .on('error', function (err) {
@@ -146,21 +149,22 @@ export async function encodeSilk(filePath: string) {
             // const sampleRate = await getAudioSampleRate(filePath) || 0;
             // log("音频采样率", sampleRate)
             const pcm = fs.readFileSync(filePath);
-            let silk = await encode(pcm, 0);
+            const silk = await encode(pcm, 0);
             fs.writeFileSync(pttPath, silk.data);
             fs.unlink(wavPath, (err) => {
             });
-            const duration = verifyDuration(silk.duration / 1000, await guessDuration(filePath))
+            log(`语音文件${filePath}转换成功!`, pttPath, `时长:`, silk.duration)
             return {
                 converted: true,
                 path: pttPath,
-                duration
+                duration: silk.duration,
             };
         } else {
-            const pcm = fs.readFileSync(filePath);
+            const silk = fs.readFileSync(filePath);
             let duration = 0;
             const gDuration = await guessDuration(filePath)
             try {
+                duration = getDuration(silk);
                 duration = verifyDuration(getDuration(pcm), gDuration);
             } catch (e) {
                 log("获取语音文件时长失败, 使用文件大小推测时长", filePath, e.stack)
