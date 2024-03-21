@@ -57,6 +57,14 @@ async function onSettingWindowCreated(view: Element) {
             `<div class="config-host-list" id="config-ob11-httpHosts" ${config.ob11.enableHttpPost ? '' : 'is-hidden'}>
                 <setting-item data-direction="row">
                     <div>
+                        <setting-text>HTTP 事件上报密钥</setting-text>
+                    </div>
+                    <div class="q-input">
+                        <input id="config-ob11-httpSecret" class="q-input__inner" data-config-key="ob11.httpSecret" type="text" value="${config.ob11.httpSecret}" placeholder="未设置" />
+                    </div>
+                </setting-item>
+                <setting-item data-direction="row">
+                    <div>
                         <setting-text>HTTP 事件上报地址</setting-text>
                     </div>
                     <setting-button id="config-ob11-httpHosts-add" data-type="primary">添加</setting-button>
