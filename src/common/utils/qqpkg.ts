@@ -8,3 +8,5 @@ type QQPkgInfo = {
 }
 
 export const qqPkgInfo: QQPkgInfo = require(path.join(process.resourcesPath, "app/package.json"))
+
+export const isQQ998: boolean = qqPkgInfo.buildVersion >= "22106"

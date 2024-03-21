@@ -11,7 +11,8 @@ import {log} from "../../../common/utils";
 
 interface Payload {
     group_id: number
-    message_seq: number
+    message_seq: number,
+    count: number
 }
 
 export default class GoCQHTTPGetGroupMsgHistory extends BaseAction<Payload, OB11Message[]> {
@@ -24,7 +25,7 @@ export default class GoCQHTTPGetGroupMsgHistory extends BaseAction<Payload, OB11
         }
         const startMsgId = (await dbUtil.getMsgByShortId(payload.message_seq))?.msgId || "0"
         // log("startMsgId", startMsgId)
-        let msgList = (await NTQQMsgApi.getMsgHistory({chatType: ChatType.group, peerUid: group.groupCode}, startMsgId, 20)).msgList
+        let msgList = (await NTQQMsgApi.getMsgHistory({chatType: ChatType.group, peerUid: group.groupCode}, startMsgId, parseInt(payload.count.toString()) || 0)).msgList
         await Promise.all(msgList.map(async msg => {
             msg.msgShortId = await dbUtil.addMsg(msg)
         }))
