@@ -5,6 +5,7 @@ import {selfInfo} from "../../common/data";
 import {ReceiveCmdS, registerReceiveHook} from "../hook";
 import {log} from "../../common/utils/log";
 import {sleep} from "../../common/utils/helper";
+import {isQQ998} from "../../common/utils";
 
 export let sendMessagePool: Record<string, ((sendSuccessMsg: RawMessage) => void) | null> = {}// peerUid: callbackFunnc
 
@@ -25,7 +26,7 @@ export class NTQQMsgApi {
     }
     static async getMsgHistory(peer: Peer, msgId: string, count: number) {
         return await callNTQQApi<GeneralCallResult & {msgList: RawMessage[]}>({
-            methodName: NTQQApiMethod.HISTORY_MSG,
+            methodName: isQQ998 ? NTQQApiMethod.HISTORY_MSG_998 : NTQQApiMethod.HISTORY_MSG,
             args: [{
                 peer,
                 msgId,
