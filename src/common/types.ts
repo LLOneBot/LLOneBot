@@ -1,6 +1,7 @@
 export interface OB11Config {
   httpPort: number
   httpHosts: string[]
+  httpSecret?: string
   wsPort: number
   wsHosts: string[]
   enableHttp?: boolean
