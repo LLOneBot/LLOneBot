@@ -1,7 +1,6 @@
-import {net, session} from "electron";
-import {NTQQApi} from "../ntcall";
 import {groups} from "../../common/data";
 import {log} from "../../common/utils";
+import {NTQQUserApi} from "./user";
 
 export class WebApi{
     private static bkn: string;
@@ -43,9 +42,9 @@ export class WebApi{
     private async init(){
         if (!WebApi.bkn) {
             const group = groups[0];
-            WebApi.skey = (await NTQQApi.getSkey(group.groupName, group.groupCode)).data;
+            WebApi.skey = (await NTQQUserApi.getSkey(group.groupName, group.groupCode)).data;
             WebApi.bkn = this.genBkn(WebApi.skey);
-            let cookie = await NTQQApi.getPSkey();
+            let cookie = await NTQQUserApi.getPSkey();
             const pskeyRegex = /p_skey=([^;]+)/;
             const match = cookie.match(pskeyRegex);
             const pskeyValue = match ? match[1] : null;

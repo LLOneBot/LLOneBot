@@ -1,4 +1,4 @@
-import SendMsg from "../SendMsg";
+import SendMsg from "../msg/SendMsg";
 import {OB11PostSendMsg} from "../../types";
 import {ActionName} from "../types";
 

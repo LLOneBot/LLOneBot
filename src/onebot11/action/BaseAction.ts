@@ -1,5 +1,5 @@
 import {ActionName, BaseCheckResult} from "./types"
-import {OB11Response} from "./utils"
+import {OB11Response} from "./OB11Response"
 import {OB11Return} from "../types";
 
 import {log} from "../../common/utils/log";

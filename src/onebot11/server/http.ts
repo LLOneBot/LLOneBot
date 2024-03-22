@@ -1,5 +1,5 @@
 import {Response} from "express";
-import {OB11Response} from "../action/utils";
+import {OB11Response} from "../action/OB11Response";
 import {HttpServerBase} from "../../common/server/http";
 import {actionHandlers} from "../action";
 import {getConfigUtil} from "../../common/config";

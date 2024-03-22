@@ -1,7 +1,7 @@
 import {BrowserWindow} from 'electron';
 import {NTQQApiClass} from "./ntcall";
 import {NTQQMsgApi, sendMessagePool} from "./api/msg"
-import {ChatType, Group, RawMessage, User} from "./types";
+import {ChatType, Group, GroupMember, RawMessage, User} from "./types";
 import {friends, groups, selfInfo, tempGroupCodeMap, uidMaps} from "../common/data";
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {v4 as uuidv4} from "uuid"
@@ -12,6 +12,7 @@ import {dbUtil} from "../common/db";
 import {NTQQGroupApi} from "./api/group";
 import {log} from "../common/utils/log";
 import {sleep} from "../common/utils/helper";
+import {OB11GroupCardEvent} from "../onebot11/event/notice/OB11GroupCardEvent";
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 
@@ -25,6 +26,7 @@ export let ReceiveCmdS = {
     USER_DETAIL_INFO: "nodeIKernelProfileListener/onProfileDetailInfoChanged",
     GROUPS: "nodeIKernelGroupListener/onGroupListUpdate",
     GROUPS_UNIX: "onGroupListUpdate",
+    GROUP_MEMBER_INFO_UPDATE: "nodeIKernelGroupListener/onMemberInfoChange",
     FRIENDS: "onBuddyListChange",
     MEDIA_DOWNLOAD_COMPLETE: "nodeIKernelMsgListener/onRichMediaDownloadComplete",
     UNREAD_GROUP_NOTIFY: "nodeIKernelGroupListener/onGroupNotifiesUnreadCountUpdated",
@@ -192,7 +194,7 @@ export function removeReceiveHook(id: string) {
 let activatedGroups: string[] = [];
 async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
     for (let group of _groups) {
-        // log("update group", group)
+        log("update group", group)
         if (!activatedGroups.includes(group.groupCode)) {
             NTQQMsgApi.activateGroupChat(group.groupCode).then((r) => {
                 activatedGroups.push(group.groupCode);
@@ -221,12 +223,13 @@ async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
     }
 }
 
-async function processGroupEvent(payload) {
+async function processGroupEvent(payload: {groupList: Group[]}) {
     try {
         const newGroupList = payload.groupList;
         for (const group of newGroupList) {
             let existGroup = groups.find(g => g.groupCode == group.groupCode);
             if (existGroup) {
+
                 if (existGroup.memberCount > group.memberCount) {
                     const oldMembers = existGroup.members;
 
@@ -242,39 +245,50 @@ async function processGroupEvent(payload) {
 
                     for (const member of oldMembers) {
                         if (!newMembersSet.has(member.uin)) {
-                            postOB11Event(new OB11GroupDecreaseEvent(group.groupCode, parseInt(member.uin)));
+                            postOB11Event(new OB11GroupDecreaseEvent(parseInt(group.groupCode), parseInt(member.uin)));
                             break;
                         }
                     }
                 }
+
             }
         }
 
         updateGroups(newGroupList, false).then();
     } catch (e) {
         updateGroups(payload.groupList).then();
-        console.log(e);
+        log("更新群信息错误", e.stack.toString());
     }
 }
 
 // 群列表变动
-registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmdS.GROUPS, (payload) => {
+registerReceiveHook<{ groupList: Group[], updateType: number }>([ReceiveCmdS.GROUPS, ReceiveCmdS.GROUPS_UNIX], (payload) => {
+    log("群列表变动", payload)
     if (payload.updateType != 2) {
         updateGroups(payload.groupList).then();
     } else {
-        if (process.platform == "win32") {
-            processGroupEvent(payload).then();
-        }
+        processGroupEvent(payload).then();
     }
 })
-registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmdS.GROUPS_UNIX, (payload) => {
-    if (payload.updateType != 2) {
-        updateGroups(payload.groupList).then();
-    } else {
-        if (process.platform != "win32") {
-            processGroupEvent(payload).then();
-        }
-    }
+
+registerReceiveHook<{groupCode: string, dataSource: number, members: Set<GroupMember>}>(ReceiveCmdS.GROUP_MEMBER_INFO_UPDATE, (payload) => {
+    const groupCode = payload.groupCode;
+    const members = Array.from(payload.members.values());
+    // log("群成员变动", groupCode, payload.members.keys(), payload.members.values())
+    // const existGroup = groups.find(g => g.groupCode == groupCode);
+    // if (existGroup) {
+    //     log("对比群成员", existGroup.members, members)
+    //     for (const member of members) {
+    //         const existMember = existGroup.members.find(m => m.uin == member.uin);
+    //         if (existMember) {
+    //             log("对比群名片", existMember.cardName, member.cardName)
+    //             if (existMember.cardName != member.cardName) {
+    //                 postOB11Event(new OB11GroupCardEvent(parseInt(existGroup.groupCode), parseInt(member.uin), member.cardName, existMember.cardName));
+    //             }
+    //             Object.assign(existMember, member);
+    //         }
+    //     }
+    // }
 })
 
 // 好友列表变动
