@@ -49,11 +49,13 @@ import {checkFfmpeg} from "../common/utils/video";
 
 let running = false;
 
+let mainWindow: BrowserWindow | null = null;
 
 // 加载插件时触发
 function onLoad() {
     log("llonebot main onLoad");
     ipcMain.handle(CHANNEL_CHECK_VERSION, async (event, arg) => {
+
         return checkNewVersion();
     });
     ipcMain.handle(CHANNEL_UPDATE, async (event, arg) => {
@@ -105,8 +107,26 @@ function onLoad() {
         const config = getConfigUtil().getConfig()
         return config;
     })
-    ipcMain.on(CHANNEL_SET_CONFIG, (event, config: Config) => {
-        setConfig(config).then();
+    ipcMain.on(CHANNEL_SET_CONFIG, (event, ask:boolean, config: Config) => {
+        if (!ask){
+            setConfig(config).then();
+            return
+        }
+        dialog.showMessageBox(mainWindow, {
+            type: 'question',
+            buttons: ['确认', '取消'],
+            defaultId: 0, // 默认选中的按钮，0 代表第一个按钮，即 "确认"
+            title: '确认保存',
+            message: '是否保存？',
+            detail: 'LLOneBot配置已更改，是否保存？'
+        }).then(result => {
+            if (result.response === 0) {
+                setConfig(config).then();
+            } else {
+            }
+        }).catch(err => {
+            log("保存设置询问弹窗错误", err);
+        });
     })
 
     ipcMain.on(CHANNEL_LOG, (event, arg) => {
@@ -402,6 +422,7 @@ function onBrowserWindowCreated(window: BrowserWindow) {
     if (selfInfo.uid) {
         return
     }
+    mainWindow = window;
     log("window create", window.webContents.getURL().toString())
     try {
         hookNTQQApiCall(window);
@@ -416,6 +437,7 @@ try {
 } catch (e: any) {
     console.log(e.toString())
 }
+
 
 // 这两个函数都是可选的
 export {
