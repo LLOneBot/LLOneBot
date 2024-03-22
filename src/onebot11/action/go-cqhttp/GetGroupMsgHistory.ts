@@ -15,21 +15,25 @@ interface Payload {
     count: number
 }
 
-export default class GoCQHTTPGetGroupMsgHistory extends BaseAction<Payload, OB11Message[]> {
+interface Response{
+    messages: OB11Message[]
+}
+
+export default class GoCQHTTPGetGroupMsgHistory extends BaseAction<Payload, Response> {
     actionName = ActionName.GoCQHTTP_GetGroupMsgHistory
 
-    protected async _handle(payload: Payload): Promise<OB11Message[]> {
+    protected async _handle(payload: Payload): Promise<Response> {
         const group = groups.find(group => group.groupCode === payload.group_id.toString())
         if (!group) {
             throw `群${payload.group_id}不存在`
         }
         const startMsgId = (await dbUtil.getMsgByShortId(payload.message_seq))?.msgId || "0"
         // log("startMsgId", startMsgId)
-        let msgList = (await NTQQMsgApi.getMsgHistory({chatType: ChatType.group, peerUid: group.groupCode}, startMsgId, parseInt(payload.count.toString()) || 0)).msgList
+        let msgList = (await NTQQMsgApi.getMsgHistory({chatType: ChatType.group, peerUid: group.groupCode}, startMsgId, parseInt(payload.count?.toString()) || 20)).msgList
         await Promise.all(msgList.map(async msg => {
             msg.msgShortId = await dbUtil.addMsg(msg)
         }))
         const ob11MsgList = await Promise.all(msgList.map(msg=>OB11Constructor.message(msg)))
-        return ob11MsgList
+        return {"messages": ob11MsgList}
     }
 }
