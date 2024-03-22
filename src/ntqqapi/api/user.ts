@@ -2,6 +2,7 @@ import {callNTQQApi, GeneralCallResult, NTQQApiClass, NTQQApiMethod} from "../nt
 import {SelfInfo, User} from "../types";
 import {ReceiveCmdS} from "../hook";
 import {uidMaps} from "../../common/data";
+import {NTQQWindowApi, NTQQWindows} from "./window";
 
 
 export class NTQQUserApi{
@@ -51,6 +52,52 @@ export class NTQQUserApi{
             uidMaps[info.uid] = info.uin
         }
         return info
+    }
+
+    static async getPSkey() {
+        return await callNTQQApi<string>({
+            className: NTQQApiClass.GROUP_HOME_WORK,
+            methodName: NTQQApiMethod.UPDATE_SKEY,
+            args: [
+                {
+                    domain: "qun.qq.com"
+                }
+            ]
+        })
+    }
+    static async getSkey(groupName: string, groupCode: string): Promise<{data: string}> {
+        return await NTQQWindowApi.openWindow<{data: string}>(NTQQWindows.GroupHomeWorkWindow, [{
+            groupName,
+            groupCode,
+            "source": "funcbar"
+        }], ReceiveCmdS.SKEY_UPDATE, 1);
+        // return await callNTQQApi<string>({
+        //     className: NTQQApiClass.GROUP_HOME_WORK,
+        //     methodName: NTQQApiMethod.UPDATE_SKEY,
+        //     args: [
+        //         {
+        //             domain: "qun.qq.com"
+        //         }
+        //     ]
+        // })
+        // return await callNTQQApi<GeneralCallResult>({
+        //     methodName: NTQQApiMethod.GET_SKEY,
+        //     args: [
+        //         {
+        //             "domains": [
+        //                 "qzone.qq.com",
+        //                 "qlive.qq.com",
+        //                 "qun.qq.com",
+        //                 "gamecenter.qq.com",
+        //                 "vip.qq.com",
+        //                 "qianbao.qq.com",
+        //                 "qidian.qq.com"
+        //             ],
+        //             "isForNewPCQQ": false
+        //         },
+        //         null
+        //     ]
+        // })
     }
 
 }

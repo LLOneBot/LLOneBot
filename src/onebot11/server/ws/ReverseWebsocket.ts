@@ -1,7 +1,7 @@
 import {selfInfo} from "../../../common/data";
 import {LifeCycleSubType, OB11LifeCycleEvent} from "../../event/meta/OB11LifeCycleEvent";
 import {ActionName} from "../../action/types";
-import {OB11Response} from "../../action/utils";
+import {OB11Response} from "../../action/OB11Response";
 import BaseAction from "../../action/BaseAction";
 import {actionMap} from "../../action";
 import {postWsEvent, registerWsEventSender, unregisterWsEventSender} from "../postOB11Event";

@@ -7,7 +7,6 @@ class OB11PokeEvent extends OB11BaseNoticeEvent{
     sub_type = "poke"
     target_id = parseInt(selfInfo.uin)
     user_id: number
-
 }
 
 export class OB11FriendPokeEvent extends OB11PokeEvent{
