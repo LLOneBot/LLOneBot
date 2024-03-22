@@ -271,7 +271,7 @@ export class OB11Constructor {
                     }
                     const adminUin = (await getGroupMember(msg.peerUid, adminUid))?.uin || (await NTQQUserApi.getUserDetailInfo(adminUid))?.uin
                     if (memberUin && adminUin) {
-                        return new OB11GroupBanEvent(parseInt(msg.peerUid), parseInt(memberUin), parseInt(adminUin), duration, sub_type);
+                        return new OB11GroupBanEvent(parseInt(msg.peerUid), parseInt(memberUin), parseInt(adminUin), groupElement.shutUp.member.name, groupElement.shutUp.admin.name, groupElement.shutUp.member.card, groupElement.shutUp.admin.card, duration, sub_type);
                     }
                 }
             } else if (element.fileElement) {
