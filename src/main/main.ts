@@ -389,6 +389,8 @@ function onLoad() {
             selfInfo.nick = selfInfo.uin;
         } catch (e) {
             log("retry get self info", e);
+        }
+        if (!selfInfo.uin) {
             selfInfo.uin = globalThis.authData?.uin;
             selfInfo.uid = globalThis.authData?.uid;
             selfInfo.nick = selfInfo.uin;
