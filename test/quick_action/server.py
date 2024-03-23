@@ -16,7 +16,7 @@ async def root(request: Request):
         elif text == "撤回":
             return {"delete": True}
 #         print(data["message"])
-        return {"reply": "Hello World"}
+        return {"reply": "[CQ:at,qq=]Hello World", "auto_escape": True}
     elif data["post_type"] == "request":
         if data["request_type"] == "group":
             return {"approve": False, "reason": "不让你进群"}
