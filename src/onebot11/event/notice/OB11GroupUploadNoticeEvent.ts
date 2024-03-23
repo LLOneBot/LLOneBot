@@ -3,7 +3,8 @@ import {OB11GroupNoticeEvent} from "./OB11GroupNoticeEvent";
 export interface GroupUploadFile{
     id: string,
     name: string,
-    size: number
+    size: number,
+    busid: number,
 }
 
 export class OB11GroupUploadNoticeEvent extends OB11GroupNoticeEvent {
