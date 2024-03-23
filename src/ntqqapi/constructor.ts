@@ -14,9 +14,10 @@ import {
 import {promises as fs} from "node:fs";
 import ffmpeg from "fluent-ffmpeg"
 import {NTQQFileApi} from "./api/file";
-import {calculateFileMD5, encodeSilk, isGIF} from "../common/utils/file";
+import {calculateFileMD5, isGIF} from "../common/utils/file";
 import {log} from "../common/utils/log";
 import {defaultVideoThumb, getVideoInfo} from "../common/utils/video";
+import {encodeSilk} from "../common/utils/audio";
 
 
 export class SendMsgElementConstructor {
