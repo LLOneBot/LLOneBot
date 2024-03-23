@@ -275,7 +275,8 @@ export class OB11Constructor {
                 return new OB11GroupUploadNoticeEvent(parseInt(msg.peerUid), parseInt(msg.senderUin), {
                     id: element.fileElement.fileUuid,
                     name: element.fileElement.fileName,
-                    size: parseInt(element.fileElement.fileSize)
+                    size: parseInt(element.fileElement.fileSize),
+                    busid: element.fileElement.fileBizId || 0
                 })
             }
 

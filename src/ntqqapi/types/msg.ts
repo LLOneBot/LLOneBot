@@ -98,7 +98,8 @@ export interface FileElement {
     "fileSha3"?: "",
     "fileUuid"?: "",
     "fileSubId"?: "",
-    "thumbFileSize"?: number
+    "thumbFileSize"?: number,
+    fileBizId?: number
 }
 
 export interface SendFileElement {

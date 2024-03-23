@@ -231,6 +231,7 @@ async function processGroupEvent(payload: {groupList: Group[]}) {
             if (existGroup) {
 
                 if (existGroup.memberCount > group.memberCount) {
+                    log(`群(${group.groupCode})成员数量减少${existGroup.memberCount} -> ${group.memberCount}`);
                     const oldMembers = existGroup.members;
 
                     await sleep(200);  // 如果请求QQ API的速度过快，通常无法正确拉取到最新的群信息，因此这里人为引入一个延时
@@ -262,7 +263,7 @@ async function processGroupEvent(payload: {groupList: Group[]}) {
 }
 
 // 群列表变动
-registerReceiveHook<{ groupList: Group[], updateType: number }>([ReceiveCmdS.GROUPS, ReceiveCmdS.GROUPS_UNIX], (payload) => {
+registerReceiveHook<{ groupList: Group[], updateType: number }>(process.platform == "win32" ? ReceiveCmdS.GROUPS : ReceiveCmdS.GROUPS_UNIX, (payload) => {
     log("群列表变动", payload)
     if (payload.updateType != 2) {
         updateGroups(payload.groupList).then();
