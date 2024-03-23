@@ -108,6 +108,7 @@ export enum OB11MessageDataType {
     reply = "reply",
     json = "json",
     face = "face",
+    mface = "face", // 商城表情
     node = "node",  // 合并转发消息
 }
 

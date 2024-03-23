@@ -1,6 +1,7 @@
 /// <reference path="../global.d.ts" />
 import { CheckVersion } from '../common/types';
 import {SettingButton, SettingItem, SettingList, SettingSwitch, SettingSelect} from './components';
+// @ts-ignore
 import StyleRaw from './style.css?raw';
 
 // 打开设置界面时触发
@@ -118,7 +119,7 @@ async function onSettingWindowCreated(view: Element) {
             ),
             SettingItem(
                 '使用 Base64 编码获取文件',
-                '开启后，调用 /get_image、/get_record 时，获取不到 url 时添加一个 Base64 字段',
+                '调用 /get_image、/get_record、/get_file 时，没有 url 时添加 Base64 字段',
                 SettingSwitch('enableLocalFile2Url', config.enableLocalFile2Url),
             ),
             SettingItem(

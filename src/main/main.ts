@@ -218,7 +218,6 @@ function onLoad() {
                             parseInt(operatorId),
                             oriMessage.msgShortId
                         )
-
                         postOB11Event(groupRecallEvent);
                     }
                     // 不让入库覆盖原来消息，不然就获取不到撤回的消息内容了
