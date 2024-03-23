@@ -3,7 +3,7 @@ import {encode, getDuration, getWavFileInfo, isWav} from "silk-wasm";
 import fsPromise from "fs/promises";
 import {log} from "./log";
 import path from "node:path";
-import {DATA_DIR} from "./index";
+import {DATA_DIR, TEMP_DIR} from "./index";
 import {v4 as uuidv4} from "uuid";
 import {getConfigUtil} from "../config";
 import ffmpeg from "fluent-ffmpeg";
@@ -60,7 +60,7 @@ export async function encodeSilk(filePath: string) {
     // }
 
     try {
-        const pttPath = path.join(DATA_DIR, uuidv4());
+        const pttPath = path.join(TEMP_DIR, uuidv4());
         if (getFileHeader(filePath) !== "02232153494c4b") {
             log(`语音文件${filePath}需要转换成silk`)
             const _isWav = await isWavFile(filePath);
@@ -71,7 +71,10 @@ export async function encodeSilk(filePath: string) {
                     if (ffmpegPath) {
                         ffmpeg.setFfmpegPath(ffmpegPath);
                     }
-                    ffmpeg(filePath).toFormat("wav").audioChannels(1).audioFrequency(24000).on('end', function () {
+                    ffmpeg(filePath).toFormat("wav")
+                        .audioChannels(1)
+                        .audioFrequency(16000)
+                        .on('end', function () {
                         log('wav转换完成');
                     })
                         .on('error', function (err) {
@@ -93,6 +96,7 @@ export async function encodeSilk(filePath: string) {
                 wav = fs.readFileSync(filePath)
                 const allowSampleRate = [8000, 12000, 16000, 24000, 32000, 44100, 48000]
                 const {fmt} = getWavFileInfo(wav)
+                // log(`wav文件信息`, fmt)
                 if (!allowSampleRate.includes(fmt.sampleRate)) {
                     wav = undefined
                     await convert()
@@ -103,7 +107,7 @@ export async function encodeSilk(filePath: string) {
             fs.writeFileSync(pttPath, silk.data);
             fs.unlink(wavPath, (err) => {
             });
-            const gDuration = await guessDuration(pttPath)
+            // const gDuration = await guessDuration(pttPath)
             log(`语音文件${filePath}转换成功!`, pttPath, `时长:`, silk.duration)
             return {
                 converted: true,
@@ -113,12 +117,11 @@ export async function encodeSilk(filePath: string) {
         } else {
             const silk = fs.readFileSync(filePath);
             let duration = 0;
-            const gDuration = await guessDuration(filePath)
             try {
                 duration = getDuration(silk) / 1000
             } catch (e) {
                 log("获取语音文件时长失败, 使用文件大小推测时长", filePath, e.stack)
-                duration = gDuration;
+                duration = await guessDuration(filePath);
             }
 
             return {
