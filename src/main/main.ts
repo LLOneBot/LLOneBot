@@ -4,28 +4,36 @@ import {BrowserWindow, dialog, ipcMain} from 'electron';
 import * as fs from 'node:fs';
 import {Config} from "../common/types";
 import {
+    CHANNEL_CHECK_VERSION,
     CHANNEL_ERROR,
     CHANNEL_GET_CONFIG,
     CHANNEL_LOG,
-    CHANNEL_CHECK_VERSION,
     CHANNEL_SELECT_FILE,
     CHANNEL_SET_CONFIG,
     CHANNEL_UPDATE,
 } from "../common/channels";
 import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
-import {DATA_DIR, wrapText} from "../common/utils";
+import {DATA_DIR} from "../common/utils";
 import {
     friendRequests,
     getFriend,
     getGroup,
-    getGroupMember, groups,
+    getGroupMember,
     llonebotError,
     refreshGroupMembers,
-    selfInfo, uidMaps
+    selfInfo,
+    uidMaps
 } from "../common/data";
 import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmdS, registerReceiveHook} from "../ntqqapi/hook";
 import {OB11Constructor} from "../onebot11/constructor";
-import {ChatType, FriendRequestNotify, GroupNotifies, GroupNotifyTypes, RawMessage} from "../ntqqapi/types";
+import {
+    ChatType,
+    FriendRequestNotify,
+    GroupMemberRole,
+    GroupNotifies,
+    GroupNotifyTypes,
+    RawMessage
+} from "../ntqqapi/types";
 import {ob11HTTPServer} from "../onebot11/server/http";
 import {OB11FriendRecallNoticeEvent} from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
 import {OB11GroupRecallNoticeEvent} from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
@@ -285,6 +293,7 @@ function onLoad() {
                                 log("变动管理员获取成功")
                                 groupAdminNoticeEvent.user_id = parseInt(member1.uin);
                                 groupAdminNoticeEvent.sub_type = notify.type == GroupNotifyTypes.ADMIN_UNSET ? "unset" : "set";
+                                // member1.role = notify.type == GroupNotifyTypes.ADMIN_SET ? GroupMemberRole.admin : GroupMemberRole.normal;
                                 postOB11Event(groupAdminNoticeEvent, true);
                             } else {
                                 log("获取群通知的成员信息失败", notify, getGroup(notify.group.groupCode));

@@ -2,7 +2,7 @@ import {BrowserWindow} from 'electron';
 import {NTQQApiClass} from "./ntcall";
 import {NTQQMsgApi, sendMessagePool} from "./api/msg"
 import {ChatType, Group, GroupMember, RawMessage, User} from "./types";
-import {friends, groups, selfInfo, tempGroupCodeMap, uidMaps} from "../common/data";
+import {friends, getGroupMember, groups, selfInfo, tempGroupCodeMap, uidMaps} from "../common/data";
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {v4 as uuidv4} from "uuid"
 import {postOB11Event} from "../onebot11/server/postOB11Event";
@@ -281,10 +281,16 @@ registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmdS.GROU
     }
 })
 
-registerReceiveHook<{groupCode: string, dataSource: number, members: Set<GroupMember>}>(ReceiveCmdS.GROUP_MEMBER_INFO_UPDATE, (payload) => {
+registerReceiveHook<{groupCode: string, dataSource: number, members: Set<GroupMember>}>(ReceiveCmdS.GROUP_MEMBER_INFO_UPDATE, async (payload) => {
     const groupCode = payload.groupCode;
     const members = Array.from(payload.members.values());
-    // log("群成员变动", groupCode, payload.members.keys(), payload.members.values())
+    log("群成员信息变动", groupCode, members)
+    for(const member of members) {
+        const existMember = await getGroupMember(groupCode, member.uin);
+        if (existMember){
+            Object.assign(existMember, member);
+        }
+    }
     // const existGroup = groups.find(g => g.groupCode == groupCode);
     // if (existGroup) {
     //     log("对比群成员", existGroup.members, members)
