@@ -1,4 +1,4 @@
-import SendMsg from "../msg/SendMsg";
+import SendMsg, {convertMessage2List} from "../msg/SendMsg";
 import {OB11PostSendMsg} from "../../types";
 import {ActionName} from "../types";
 
@@ -7,7 +7,7 @@ export class GoCQHTTPSendGroupForwardMsg extends SendMsg {
 
     protected async check(payload: OB11PostSendMsg) {
         if (payload.messages){
-            payload.message = this.convertMessage2List(payload.messages);
+            payload.message = convertMessage2List(payload.messages);
         }
         return super.check(payload);
     }
