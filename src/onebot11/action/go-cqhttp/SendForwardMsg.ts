@@ -6,8 +6,6 @@ export class GoCQHTTPSendForwardMsg extends SendMsg {
     actionName = ActionName.GoCQHTTP_SendForwardMsg;
 
     protected async check(payload: OB11PostSendMsg) {
-        if (payload.user_id) this.actionName = ActionName.GoCQHTTP_SendPrivateForwardMsg;
-        if (payload.group_id) this.actionName = ActionName.GoCQHTTP_SendGroupForwardMsg;
         if (payload.messages) payload.message = convertMessage2List(payload.messages);
         return super.check(payload);
     }
