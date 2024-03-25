@@ -14,7 +14,7 @@ import GetVersionInfo from "./system/GetVersionInfo";
 import CanSendRecord from "./system/CanSendRecord";
 import CanSendImage from "./system/CanSendImage";
 import GetStatus from "./system/GetStatus";
-import {GoCQHTTPSendGroupForwardMsg, GoCQHTTPSendPrivateForwardMsg} from "./go-cqhttp/SendForwardMsg";
+import {GoCQHTTPSendForwardMsg, GoCQHTTPSendGroupForwardMsg, GoCQHTTPSendPrivateForwardMsg} from "./go-cqhttp/SendForwardMsg";
 import GoCQHTTPGetStrangerInfo from "./go-cqhttp/GetStrangerInfo";
 import SendLike from "./user/SendLike";
 import SetGroupAddRequest from "./group/SetGroupAddRequest";
@@ -73,6 +73,7 @@ export const actionHandlers = [
     new CleanCache(),
 
     //以下为go-cqhttp api
+    new GoCQHTTPSendForwardMsg(),
     new GoCQHTTPSendGroupForwardMsg(),
     new GoCQHTTPSendPrivateForwardMsg(),
     new GoCQHTTPGetStrangerInfo(),

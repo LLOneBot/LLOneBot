@@ -2,7 +2,7 @@ import {BrowserWindow} from 'electron';
 import {NTQQApiClass} from "./ntcall";
 import {NTQQMsgApi, sendMessagePool} from "./api/msg"
 import {ChatType, Group, GroupMember, RawMessage, User} from "./types";
-import {friends, groups, selfInfo, tempGroupCodeMap, uidMaps} from "../common/data";
+import {friends, getGroupMember, groups, selfInfo, tempGroupCodeMap, uidMaps} from "../common/data";
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {v4 as uuidv4} from "uuid"
 import {postOB11Event} from "../onebot11/server/postOB11Event";
@@ -25,7 +25,7 @@ export let ReceiveCmdS = {
     USER_INFO: "nodeIKernelProfileListener/onProfileSimpleChanged",
     USER_DETAIL_INFO: "nodeIKernelProfileListener/onProfileDetailInfoChanged",
     GROUPS: "nodeIKernelGroupListener/onGroupListUpdate",
-    GROUPS_UNIX: "onGroupListUpdate",
+    GROUPS_STORE: "onGroupListUpdate",
     GROUP_MEMBER_INFO_UPDATE: "nodeIKernelGroupListener/onMemberInfoChange",
     FRIENDS: "onBuddyListChange",
     MEDIA_DOWNLOAD_COMPLETE: "nodeIKernelMsgListener/onRichMediaDownloadComplete",
@@ -229,7 +229,6 @@ async function processGroupEvent(payload: {groupList: Group[]}) {
         for (const group of newGroupList) {
             let existGroup = groups.find(g => g.groupCode == group.groupCode);
             if (existGroup) {
-
                 if (existGroup.memberCount > group.memberCount) {
                     log(`群(${group.groupCode})成员数量减少${existGroup.memberCount} -> ${group.memberCount}`);
                     const oldMembers = existGroup.members;
@@ -263,19 +262,35 @@ async function processGroupEvent(payload: {groupList: Group[]}) {
 }
 
 // 群列表变动
-registerReceiveHook<{ groupList: Group[], updateType: number }>(process.platform == "win32" ? ReceiveCmdS.GROUPS : ReceiveCmdS.GROUPS_UNIX, (payload) => {
-    log("群列表变动", payload)
+registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmdS.GROUPS, (payload) => {
     if (payload.updateType != 2) {
         updateGroups(payload.groupList).then();
     } else {
-        processGroupEvent(payload).then();
+        if (process.platform == "win32") {
+            processGroupEvent(payload).then();
+        }
+    }
+})
+registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmdS.GROUPS_STORE, (payload) => {
+    if (payload.updateType != 2) {
+        updateGroups(payload.groupList).then();
+    } else {
+        if (process.platform != "win32") {
+            processGroupEvent(payload).then();
+        }
     }
 })
 
-registerReceiveHook<{groupCode: string, dataSource: number, members: Set<GroupMember>}>(ReceiveCmdS.GROUP_MEMBER_INFO_UPDATE, (payload) => {
+registerReceiveHook<{groupCode: string, dataSource: number, members: Set<GroupMember>}>(ReceiveCmdS.GROUP_MEMBER_INFO_UPDATE, async (payload) => {
     const groupCode = payload.groupCode;
     const members = Array.from(payload.members.values());
-    // log("群成员变动", groupCode, payload.members.keys(), payload.members.values())
+    // log("群成员信息变动", groupCode, members)
+    for(const member of members) {
+        const existMember = await getGroupMember(groupCode, member.uin);
+        if (existMember){
+            Object.assign(existMember, member);
+        }
+    }
     // const existGroup = groups.find(g => g.groupCode == groupCode);
     // if (existGroup) {
     //     log("对比群成员", existGroup.members, members)
