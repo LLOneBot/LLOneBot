@@ -203,6 +203,9 @@ export class OB11Constructor {
             } else if (element.faceElement) {
                 message_data["type"] = OB11MessageDataType.face;
                 message_data["data"]["id"] = element.faceElement.faceIndex.toString();
+            } else if (element.marketFaceElement) {
+                message_data["type"] = OB11MessageDataType.mface;
+                message_data["data"]["text"] = element.marketFaceElement.faceName;
             }
             if (message_data.type !== "unknown" && message_data.data) {
                 const cqCode = encodeCQCode(message_data);
@@ -224,8 +227,9 @@ export class OB11Constructor {
         if (msg.senderUin){
             let member = await getGroupMember(msg.peerUid, msg.senderUin);
             if (member && member.cardName !== msg.sendMemberName) {
+                const event = new OB11GroupCardEvent(parseInt(msg.peerUid), parseInt(msg.senderUin), msg.sendMemberName, member.cardName)
                 member.cardName = msg.sendMemberName;
-                return new OB11GroupCardEvent(parseInt(msg.peerUid), parseInt(msg.senderUin), msg.sendMemberName, member.cardName)
+                return event
             }
         }
         // log("group msg", msg);

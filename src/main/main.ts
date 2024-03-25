@@ -4,16 +4,16 @@ import {BrowserWindow, dialog, ipcMain} from 'electron';
 import * as fs from 'node:fs';
 import {Config} from "../common/types";
 import {
+    CHANNEL_CHECK_VERSION,
     CHANNEL_ERROR,
     CHANNEL_GET_CONFIG,
     CHANNEL_LOG,
-    CHANNEL_CHECK_VERSION,
     CHANNEL_SELECT_FILE,
     CHANNEL_SET_CONFIG,
     CHANNEL_UPDATE,
 } from "../common/channels";
 import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
-import {DATA_DIR, wrapText} from "../common/utils";
+import {DATA_DIR} from "../common/utils";
 import {
     friendRequests,
     getFriend,
@@ -21,11 +21,19 @@ import {
     getGroupMember,
     llonebotError,
     refreshGroupMembers,
-    selfInfo, uidMaps
+    selfInfo,
+    uidMaps
 } from "../common/data";
 import {hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmdS, registerReceiveHook} from "../ntqqapi/hook";
 import {OB11Constructor} from "../onebot11/constructor";
-import {ChatType, FriendRequestNotify, GroupNotifies, GroupNotifyTypes, RawMessage} from "../ntqqapi/types";
+import {
+    ChatType,
+    FriendRequestNotify,
+    GroupMemberRole,
+    GroupNotifies,
+    GroupNotifyTypes,
+    RawMessage
+} from "../ntqqapi/types";
 import {ob11HTTPServer} from "../onebot11/server/http";
 import {OB11FriendRecallNoticeEvent} from "../onebot11/event/notice/OB11FriendRecallNoticeEvent";
 import {OB11GroupRecallNoticeEvent} from "../onebot11/event/notice/OB11GroupRecallNoticeEvent";
@@ -107,8 +115,8 @@ function onLoad() {
         const config = getConfigUtil().getConfig()
         return config;
     })
-    ipcMain.on(CHANNEL_SET_CONFIG, (event, ask:boolean, config: Config) => {
-        if (!ask){
+    ipcMain.on(CHANNEL_SET_CONFIG, (event, ask: boolean, config: Config) => {
+        if (!ask) {
             setConfig(config).then();
             return
         }
@@ -285,6 +293,7 @@ function onLoad() {
                                 log("变动管理员获取成功")
                                 groupAdminNoticeEvent.user_id = parseInt(member1.uin);
                                 groupAdminNoticeEvent.sub_type = notify.type == GroupNotifyTypes.ADMIN_UNSET ? "unset" : "set";
+                                // member1.role = notify.type == GroupNotifyTypes.ADMIN_SET ? GroupMemberRole.admin : GroupMemberRole.normal;
                                 postOB11Event(groupAdminNoticeEvent, true);
                             } else {
                                 log("获取群通知的成员信息失败", notify, getGroup(notify.group.groupCode));
@@ -358,13 +367,19 @@ function onLoad() {
         log("llonebot pid", process.pid)
         llonebotError.otherError = "";
         startTime = Date.now();
-        dbUtil.getReceivedTempUinMap().then(m=>{
+        dbUtil.getReceivedTempUinMap().then(m => {
             for (const [key, value] of Object.entries(m)) {
                 uidMaps[value] = key;
             }
         })
         startReceiveHook().then();
-        NTQQGroupApi.getGroups(true).then()
+        // NTQQGroupApi.getGroups(true).then(_groups => {
+        //     _groups.map(group => {
+        //         if (!groups.find(g => g.groupCode == group.groupCode)) {
+        //             groups.push(group)
+        //         }
+        //     })
+        // })
         const config = getConfigUtil().getConfig()
         if (config.ob11.enableHttp) {
             ob11HTTPServer.start(config.ob11.httpPort)
@@ -397,7 +412,7 @@ function onLoad() {
         }
         log("self info", selfInfo, globalThis.authData);
         if (selfInfo.uin) {
-            async function getUserNick(){
+            async function getUserNick() {
                 try {
                     getSelfNickCount++;
                     const userInfo = (await NTQQUserApi.getUserDetailInfo(selfInfo.uid));
@@ -413,6 +428,7 @@ function onLoad() {
                     return setTimeout(getUserNick, 1000);
                 }
             }
+
             getUserNick().then()
             start().then();
         } else {
