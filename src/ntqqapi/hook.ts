@@ -264,7 +264,7 @@ async function processGroupEvent(payload: {groupList: Group[]}) {
 // 群列表变动
 registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmdS.GROUPS, (payload) => {
     // updateType 3是群列表变动，2是群成员变动
-    log("群列表变动", payload.updateType, payload.groupList)
+    // log("群列表变动", payload.updateType, payload.groupList)
     if (payload.updateType != 2) {
         updateGroups(payload.groupList).then();
     } else {
@@ -275,7 +275,7 @@ registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmdS.GROU
 })
 registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmdS.GROUPS_STORE, (payload) => {
     // updateType 3是群列表变动，2是群成员变动
-    log("群列表变动", payload.updateType, payload.groupList)
+    // log("群列表变动", payload.updateType, payload.groupList)
     if (payload.updateType != 2) {
         updateGroups(payload.groupList).then();
     } else {
