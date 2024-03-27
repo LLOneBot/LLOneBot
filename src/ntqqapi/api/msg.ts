@@ -16,6 +16,17 @@ export interface Peer {
 }
 
 export class NTQQMsgApi {
+    static async getMultiMsg(peer: Peer, rootMsgId: string, parentMsgId: string) {
+        return await callNTQQApi<GeneralCallResult & {msgList: RawMessage[]}>({
+            methodName: NTQQApiMethod.GET_MULTI_MSG,
+            args: [{
+                peer,
+                rootMsgId,
+                parentMsgId
+            }, null]
+        })
+    }
+
     static async activateGroupChat(groupCode: string) {
         // await this.fetchRecentContact();
         // await sleep(500);

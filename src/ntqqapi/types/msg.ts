@@ -279,6 +279,34 @@ export interface VideoElement {
     "sourceVideoCodecFormat"?: number
 }
 
+export interface MarkdownElement {
+    content: string,
+}
+
+export interface InlineKeyboardElementRowButton{
+    "id": "",
+    "label": string,
+    "visitedLabel": string,
+    "style": 1, // 未知
+    "type": 2, // 未知
+    "clickLimit": 0,  // 未知
+    "unsupportTips": "请升级新版手机QQ",
+    "data": string,
+    "atBotShowChannelList": false,
+    "permissionType": 2,
+    "specifyRoleIds": [],
+    "specifyTinyids": [],
+    "isReply": false,
+    "anchor": 0,
+    "enter": false,
+    "subscribeDataTemplateIds": []
+}
+export interface InlineKeyboardElement {
+    rows: [{
+        buttons: InlineKeyboardElementRowButton[]
+    }]
+}
+
 export interface TipAioOpGrayTipElement {  // 这是什么提示来着？
     operateType: number,
     peerUid: string,
@@ -329,6 +357,11 @@ export interface TipGroupElement {
     }
 }
 
+export interface MultiForwardMsgElement{
+    xmlContent: string,  // xml格式的消息内容
+    resId: string,
+    fileName: string,
+}
 
 export interface RawMessage {
     msgId: string;
@@ -367,5 +400,8 @@ export interface RawMessage {
         videoElement: VideoElement;
         fileElement: FileElement;
         marketFaceElement: MarketFaceElement;
+        inlineKeyboardElement: InlineKeyboardElement;
+        markdownElement: MarkdownElement;
+        multiForwardMsgElement: MultiForwardMsgElement;
     }[];
 }
