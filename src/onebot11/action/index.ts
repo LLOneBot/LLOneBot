@@ -39,6 +39,7 @@ import SetQQAvatar from './llonebot/SetQQAvatar'
 import GoCQHTTPDownloadFile from "./go-cqhttp/DownloadFile";
 import GoCQHTTPGetGroupMsgHistory from "./go-cqhttp/GetGroupMsgHistory";
 import GetFile from "./file/GetFile";
+import {GoCQHTTGetForwardMsgAction} from "./go-cqhttp/GetForwardMsg";
 
 export const actionHandlers = [
     new GetFile(),
@@ -82,6 +83,7 @@ export const actionHandlers = [
     new GoCQHTTPMarkMsgAsRead(),
     new GoCQHTTPUploadGroupFile(),
     new GoCQHTTPGetGroupMsgHistory(),
+    new GoCQHTTGetForwardMsgAction(),
 
 ]
 

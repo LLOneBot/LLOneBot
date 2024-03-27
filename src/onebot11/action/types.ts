@@ -60,4 +60,5 @@ export enum ActionName {
     GoCQHTTP_UploadGroupFile = "upload_group_file",
     GoCQHTTP_DownloadFile = "download_file",
     GoCQHTTP_GetGroupMsgHistory = "get_group_msg_history",
+    GoCQHTTP_GetForwardMsg = "get_forward_msg",
 }

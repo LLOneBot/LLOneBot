@@ -88,6 +88,10 @@ export interface OB11Message {
     raw?: RawMessage
 }
 
+export interface OB11ForwardMessage extends OB11Message {
+    content: OB11MessageData[] | string;
+}
+
 export interface OB11Return<DataType> {
     status: string
     retcode: number
@@ -109,7 +113,10 @@ export enum OB11MessageDataType {
     json = "json",
     face = "face",
     mface = "mface", // 商城表情
-    node = "node",  // 合并转发消息
+    markdown = "markdown",
+    node = "node",  // 合并转发消息节点
+    forward = "forward",  // 合并转发消息，用于上报
+    xml = "xml"
 }
 
 export interface OB11MessageMFace{
