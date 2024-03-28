@@ -4,8 +4,9 @@ export enum GroupNotifyTypes {
     INVITED_JOIN = 4,  // 有人接受了邀请入群
     JOIN_REQUEST = 7,
     ADMIN_SET = 8,
+    KICK_MEMBER = 9,
+    MEMBER_EXIT = 11, // 主动退出
     ADMIN_UNSET = 12,
-    MEMBER_EXIT = 11, // 主动退出?
 
 }
 

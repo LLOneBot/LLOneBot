@@ -53,6 +53,7 @@ import {checkNewVersion, upgradeLLOneBot} from "../common/utils/upgrade";
 import {log} from "../common/utils/log";
 import {getConfigUtil} from "../common/config";
 import {checkFfmpeg} from "../common/utils/video";
+import {GroupDecreaseSubType, OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 
 let running = false;
 
@@ -296,11 +297,23 @@ function onLoad() {
                             } else {
                                 log("获取群通知的成员信息失败", notify, getGroup(notify.group.groupCode));
                             }
-                        } else if (notify.type == GroupNotifyTypes.MEMBER_EXIT) {
-                            // log("有成员退出通知");
-                            // const member1 = await getGroupMember(notify.group.groupCode, null, notify.user1.uid);
-                            // let groupDecreaseEvent = new OB11GroupDecreaseEvent(parseInt(notify.group.groupCode), parseInt(member1.uin))
-                            // postEvent(groupDecreaseEvent, true);
+                        } else if (notify.type == GroupNotifyTypes.MEMBER_EXIT || notify.type == GroupNotifyTypes.KICK_MEMBER) {
+                            log("有成员退出通知", notify);
+                            try {
+                                const member1 = await NTQQUserApi.getUserDetailInfo(notify.user1.uid);
+                                let operatorId = member1.uin;
+                                let subType: GroupDecreaseSubType = "leave";
+                                if (notify.user2.uid) {
+                                    // 是被踢的
+                                    const member2 = await getGroupMember(notify.group.groupCode, notify.user2.uid);
+                                    operatorId = member2.uin;
+                                    subType = "kick";
+                                }
+                                let groupDecreaseEvent = new OB11GroupDecreaseEvent(parseInt(notify.group.groupCode), parseInt(member1.uin), parseInt(operatorId), subType)
+                                postOB11Event(groupDecreaseEvent, true);
+                            } catch (e) {
+                                log("获取群通知的成员信息失败", notify, e.stack.toString())
+                            }
                         } else if ([GroupNotifyTypes.JOIN_REQUEST].includes(notify.type)) {
                             log("有加群请求");
                             let groupRequestEvent = new OB11GroupRequestEvent();

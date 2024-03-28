@@ -21,7 +21,7 @@ class GetGroupMemberInfo extends BaseAction<PayloadType, OB11GroupMember> {
         if (member) {
             if (isNull(member.sex)){
                 log("获取群成员详细信息")
-                let info = (await NTQQUserApi.getUserDetailInfo(member.uid))
+                let info = (await NTQQUserApi.getUserDetailInfo(member.uid, true))
                 log("群成员详细信息结果", info)
                 Object.assign(member, info);
             }

@@ -15,6 +15,6 @@ export default class GoCQHTTPGetStrangerInfo extends BaseAction<{ user_id: numbe
         if (!uid) {
             throw new Error("查无此人")
         }
-        return OB11Constructor.stranger(await NTQQUserApi.getUserDetailInfo(uid))
+        return OB11Constructor.stranger(await NTQQUserApi.getUserDetailInfo(uid, true))
     }
 }

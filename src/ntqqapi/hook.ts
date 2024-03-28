@@ -1,7 +1,7 @@
 import {BrowserWindow} from 'electron';
 import {NTQQApiClass} from "./ntcall";
 import {NTQQMsgApi, sendMessagePool} from "./api/msg"
-import {ChatType, Group, GroupMember, RawMessage, User} from "./types";
+import {ChatType, Group, GroupMember, GroupMemberRole, RawMessage, User} from "./types";
 import {friends, getGroupMember, groups, selfInfo, tempGroupCodeMap, uidMaps} from "../common/data";
 import {OB11GroupDecreaseEvent} from "../onebot11/event/notice/OB11GroupDecreaseEvent";
 import {v4 as uuidv4} from "uuid"
@@ -12,7 +12,6 @@ import {dbUtil} from "../common/db";
 import {NTQQGroupApi} from "./api/group";
 import {log} from "../common/utils/log";
 import {sleep} from "../common/utils/helper";
-import {OB11GroupCardEvent} from "../onebot11/event/notice/OB11GroupCardEvent";
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 
@@ -243,6 +242,11 @@ async function processGroupEvent(payload: {groupList: Group[]}) {
                         newMembersSet.add(member.uin);
                     }
 
+                    // 判断bot是否是管理员，如果是管理员不需要从这里得知有人退群，这里的退群无法得知是主动退群还是被踢
+                    let bot = await getGroupMember(group.groupCode, selfInfo.uin)
+                    if (bot.role == GroupMemberRole.admin || bot.role == GroupMemberRole.owner) {
+                        continue
+                    }
                     for (const member of oldMembers) {
                         if (!newMembersSet.has(member.uin) && member.uin != selfInfo.uin) {
                             postOB11Event(new OB11GroupDecreaseEvent(parseInt(group.groupCode), parseInt(member.uin), parseInt(member.uin), "leave"));
