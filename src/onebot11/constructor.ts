@@ -40,6 +40,7 @@ import {OB11GroupTitleEvent} from "./event/notice/OB11GroupTitleEvent";
 import {OB11GroupCardEvent} from "./event/notice/OB11GroupCardEvent";
 import {OB11GroupDecreaseEvent} from "./event/notice/OB11GroupDecreaseEvent";
 
+let lastRKeyUpdateTime = 0;
 
 export class OB11Constructor {
     static async message(msg: RawMessage): Promise<OB11Message> {
@@ -149,7 +150,10 @@ export class OB11Constructor {
                             // log("图片url已有rkey", rkey)
                             if (rkey != currentRKey){
                                 config.imageRKey = rkey
-                                getConfigUtil().setConfig(config)
+                                if (Date.now() - lastRKeyUpdateTime > 1000 * 60) {
+                                    lastRKeyUpdateTime = Date.now()
+                                    getConfigUtil().setConfig(config)
+                                }
                             }
                             message_data["data"]["url"] = IMAGE_HTTP_HOST_NT + url
                         }
