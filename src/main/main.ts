@@ -18,7 +18,7 @@ import {
     friendRequests,
     getFriend,
     getGroup,
-    getGroupMember,
+    getGroupMember, groups,
     llonebotError,
     refreshGroupMembers,
     selfInfo,
@@ -54,7 +54,6 @@ import {log} from "../common/utils/log";
 import {getConfigUtil} from "../common/config";
 import {checkFfmpeg} from "../common/utils/video";
 
-
 let running = false;
 
 let mainWindow: BrowserWindow | null = null;
@@ -63,7 +62,6 @@ let mainWindow: BrowserWindow | null = null;
 function onLoad() {
     log("llonebot main onLoad");
     ipcMain.handle(CHANNEL_CHECK_VERSION, async (event, arg) => {
-
         return checkNewVersion();
     });
     ipcMain.handle(CHANNEL_UPDATE, async (event, arg) => {
@@ -373,13 +371,7 @@ function onLoad() {
             }
         })
         startReceiveHook().then();
-        // NTQQGroupApi.getGroups(true).then(_groups => {
-        //     _groups.map(group => {
-        //         if (!groups.find(g => g.groupCode == group.groupCode)) {
-        //             groups.push(group)
-        //         }
-        //     })
-        // })
+        NTQQGroupApi.getGroups(true).then()
         const config = getConfigUtil().getConfig()
         if (config.ob11.enableHttp) {
             ob11HTTPServer.start(config.ob11.httpPort)
