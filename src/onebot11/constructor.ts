@@ -146,7 +146,7 @@ export class OB11Constructor {
                         if (url.includes("&rkey=")) {
                             // 正则提取rkey
                             const rkey = url.match(/&rkey=([^&]+)/)[1]
-                            log("图片url已有rkey", rkey)
+                            // log("图片url已有rkey", rkey)
                             if (rkey != currentRKey){
                                 config.imageRKey = rkey
                                 getConfigUtil().setConfig(config)
