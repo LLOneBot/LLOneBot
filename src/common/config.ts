@@ -1,4 +1,5 @@
 import fs from "fs";
+import fsPromise from "fs/promises";
 import {Config, OB11Config} from './types';
 
 import {mergeNewProperties} from "./utils/helper";
@@ -76,7 +77,7 @@ export class ConfigUtil {
 
     setConfig(config: Config) {
         this.config = config;
-        fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), "utf-8")
+        fsPromise.writeFile(this.configPath, JSON.stringify(config, null, 2), "utf-8").then()
     }
 
     private checkOldConfig(currentConfig: Config | OB11Config,
