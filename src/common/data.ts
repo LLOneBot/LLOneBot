@@ -94,9 +94,9 @@ export async function refreshGroupMembers(groupQQ: string) {
 export const uidMaps: Record<string, string> = {} // 一串加密的字符串(uid) -> qq号
 
 export function getUidByUin(uin: string) {
-    for (const key in uidMaps) {
-        if (uidMaps[key] === uin) {
-            return key
+    for (const uid in uidMaps) {
+        if (uidMaps[uid] === uin) {
+            return uid
         }
     }
 }

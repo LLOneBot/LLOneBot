@@ -172,9 +172,11 @@ export interface ArkElement {
 }
 
 export const IMAGE_HTTP_HOST = "https://gchat.qpic.cn"
+export const IMAGE_HTTP_HOST_NEW = "https://multimedia.nt.qq.com.cn"
 
 export interface PicElement {
-    originImageUrl: string;  // http url, 没有host，host是https://gchat.qpic.cn/
+    originImageUrl: string;  // http url, 没有host，host是https://gchat.qpic.cn/, 带download参数的是https://multimedia.nt.qq.com.cn
+    originImageMd5?: string;
     sourcePath: string; // 图片本地路径
     thumbPath: Map<number, string>;
     picWidth: number;

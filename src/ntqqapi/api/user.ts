@@ -3,7 +3,9 @@ import {SelfInfo, User} from "../types";
 import {ReceiveCmdS} from "../hook";
 import {uidMaps} from "../../common/data";
 import {NTQQWindowApi, NTQQWindows} from "./window";
+import {isQQ998, sleep} from "../../common/utils";
 
+let userInfoCache: Record<string, User> = {};  // uid: User
 
 export class NTQQUserApi{
     static async setQQAvatar(filePath: string) {
@@ -31,27 +33,39 @@ export class NTQQUserApi{
         return result.profiles.get(uid)
     }
     static async getUserDetailInfo(uid: string) {
-        const result = await callNTQQApi<{ info: User }>({
-            methodName: NTQQApiMethod.USER_DETAIL_INFO,
-            cbCmd: ReceiveCmdS.USER_DETAIL_INFO,
-            afterFirstCmd: false,
-            cmdCB: (payload) => {
-                const success = payload.info.uid == uid
-                // log("get user detail info", success, uid, payload)
-                return success
-            },
-            args: [
-                {
-                    uid
+        // this.getUserInfo(uid);
+        let methodName = !isQQ998 ? NTQQApiMethod.USER_DETAIL_INFO : NTQQApiMethod.USER_DETAIL_INFO_WITH_BIZ_INFO
+        const fetchInfo = async ()=>{
+            const result = await callNTQQApi<{ info: User }>({
+                methodName,
+                cbCmd: ReceiveCmdS.USER_DETAIL_INFO,
+                afterFirstCmd: false,
+                cmdCB: (payload) => {
+                    const success = payload.info.uid == uid
+                    // log("get user detail info", success, uid, payload)
+                    return success
                 },
-                null
-            ]
-        })
-        const info = result.info
-        if (info?.uin) {
-            uidMaps[info.uid] = info.uin
+                args: [
+                    {
+                        uid
+                    },
+                    null
+                ]
+            })
+            const info = result.info
+            if (info?.uin) {
+                uidMaps[info.uid] = info.uin
+            }
+            return info
         }
-        return info
+        // 首次请求两次才能拿到的等级信息
+        if (!userInfoCache[uid]) {
+            await fetchInfo()
+        }
+        await sleep(1000);
+        let userInfo = await fetchInfo()
+        userInfoCache[uid] = userInfo
+        return userInfo
     }
 
     static async getPSkey() {

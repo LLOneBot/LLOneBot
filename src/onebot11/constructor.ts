@@ -14,7 +14,7 @@ import {
     GrayTipElementSubType,
     Group,
     GroupMember,
-    IMAGE_HTTP_HOST,
+    IMAGE_HTTP_HOST, IMAGE_HTTP_HOST_NEW,
     RawMessage,
     SelfInfo,
     Sex,
@@ -139,11 +139,19 @@ export class OB11Constructor {
                 message_data["data"]["file"] = element.picElement.fileName
                 // message_data["data"]["path"] = element.picElement.sourcePath
                 const url = element.picElement.originImageUrl
-                const fileMd5 = element.picElement.md5HexStr
+                const md5HexStr = element.picElement.md5HexStr
+                const originalMd5 = element.picElement.originImageMd5
                 if (url) {
-                    message_data["data"]["url"] = IMAGE_HTTP_HOST + url
-                } else if (fileMd5 && element.picElement.fileUuid.indexOf("_") === -1) { // fileuuid有下划线的是Linux发送的，这个url是另外的格式，目前尚未得知如何组装
-                    message_data["data"]["url"] = `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${fileMd5.toUpperCase()}/0`
+                    if (url.startsWith("/download") && url.includes("&rkey")){
+                        message_data["data"]["url"] = IMAGE_HTTP_HOST_NEW + url
+                    }
+                    else if (!url.startsWith("/download")){
+                        message_data["data"]["url"] = IMAGE_HTTP_HOST + url
+                    }
+                }
+
+                if (!message_data["data"]["url"]){
+                    message_data["data"]["url"] = `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${md5HexStr.toUpperCase()}/0`
                 }
                 // message_data["data"]["file_id"] = element.picElement.fileUuid
                 message_data["data"]["file_size"] = element.picElement.fileSize
@@ -414,6 +422,7 @@ export class OB11Constructor {
     }
 
     static stranger(user: User): OB11User {
+        log("construct ob11 stranger", user)
         return {
             ...user,
             user_id: parseInt(user.uin),
