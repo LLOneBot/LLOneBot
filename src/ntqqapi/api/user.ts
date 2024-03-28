@@ -32,7 +32,7 @@ export class NTQQUserApi{
         })
         return result.profiles.get(uid)
     }
-    static async getUserDetailInfo(uid: string) {
+    static async getUserDetailInfo(uid: string, getLevel=false) {
         // this.getUserInfo(uid);
         let methodName = !isQQ998 ? NTQQApiMethod.USER_DETAIL_INFO : NTQQApiMethod.USER_DETAIL_INFO_WITH_BIZ_INFO
         const fetchInfo = async ()=>{
@@ -59,10 +59,10 @@ export class NTQQUserApi{
             return info
         }
         // 首次请求两次才能拿到的等级信息
-        if (!userInfoCache[uid]) {
+        if (!userInfoCache[uid] && getLevel) {
             await fetchInfo()
+            await sleep(1000);
         }
-        await sleep(1000);
         let userInfo = await fetchInfo()
         userInfoCache[uid] = userInfo
         return userInfo

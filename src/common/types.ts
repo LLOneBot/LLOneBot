@@ -15,6 +15,7 @@ export interface CheckVersion {
   version: string
 }
 export interface Config {
+  imageRKey?: string;
   ob11: OB11Config
   token?: string
   heartInterval?: number // ms

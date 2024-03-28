@@ -14,7 +14,7 @@ import {
     GrayTipElementSubType,
     Group,
     GroupMember,
-    IMAGE_HTTP_HOST, IMAGE_HTTP_HOST_NEW,
+    IMAGE_HTTP_HOST, IMAGE_HTTP_HOST_NT,
     RawMessage,
     SelfInfo,
     Sex,
@@ -43,7 +43,7 @@ import {OB11GroupDecreaseEvent} from "./event/notice/OB11GroupDecreaseEvent";
 
 export class OB11Constructor {
     static async message(msg: RawMessage): Promise<OB11Message> {
-
+        let config = getConfigUtil().getConfig();
         const {enableLocalFile2Url, ob11: {messagePostFormat}} = getConfigUtil().getConfig()
         const message_type = msg.chatType == ChatType.group ? "group" : "private";
         const resMsg: OB11Message = {
@@ -140,24 +140,27 @@ export class OB11Constructor {
                 // message_data["data"]["path"] = element.picElement.sourcePath
                 const url = element.picElement.originImageUrl
                 const fileMd5 = element.picElement.md5HexStr
+                let currentRKey = config.imageRKey || "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
                 if (url) {
                     if (url.startsWith("/download")) {
-                        message_data["data"]["url"] = IMAGE_HTTP_HOST + url + "&rkey=CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
+                        if (url.includes("&rkey=")) {
+                            // 正则提取rkey
+                            const rkey = url.match(/&rkey=([^&]+)/)[1]
+                            log("图片url已有rkey", rkey)
+                            if (rkey != currentRKey){
+                                config.imageRKey = rkey
+                                getConfigUtil().setConfig(config)
+                            }
+                            message_data["data"]["url"] = IMAGE_HTTP_HOST_NT + url
+                        }
+                        else{
+                            message_data["data"]["url"] = IMAGE_HTTP_HOST_NT + url + "&rkey=" + currentRKey
+                        }
                     } else {
                         message_data["data"]["url"] = IMAGE_HTTP_HOST + url
                     }
-                } else if (fileMd5 && element.picElement.fileUuid.indexOf("_") === -1) { // fileuuid有下划线的是Linux发送的，这个url是另外的格式，目前尚未得知如何组装
+                } else if (fileMd5) {
                     message_data["data"]["url"] = `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${fileMd5.toUpperCase()}/0`
-                    if (url.startsWith("/download") && url.includes("&rkey")){
-                        message_data["data"]["url"] = IMAGE_HTTP_HOST_NEW + url
-                    }
-                    else if (!url.startsWith("/download")){
-                        message_data["data"]["url"] = IMAGE_HTTP_HOST + url
-                    }
-                }
-
-                if (!message_data["data"]["url"]){
-                    message_data["data"]["url"] = `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${md5HexStr.toUpperCase()}/0`
                 }
                 // message_data["data"]["file_id"] = element.picElement.fileUuid
                 message_data["data"]["file_size"] = element.picElement.fileSize
