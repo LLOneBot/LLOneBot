@@ -35,6 +35,7 @@ export enum NTQQApiMethod {
     GROUP_MEMBERS = "nodeIKernelGroupService/getNextMemberList",
     USER_INFO = "nodeIKernelProfileService/getUserSimpleInfo",
     USER_DETAIL_INFO = "nodeIKernelProfileService/getUserDetailInfo",
+    USER_DETAIL_INFO_WITH_BIZ_INFO = "nodeIKernelProfileService/getUserDetailInfoWithBizInfo",
     FILE_TYPE = "getFileType",
     FILE_MD5 = "getFileMd5",
     FILE_COPY = "copyFile",
