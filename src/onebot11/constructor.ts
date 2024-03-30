@@ -141,6 +141,7 @@ export class OB11Constructor {
                 // message_data["data"]["path"] = element.picElement.sourcePath
                 const url = element.picElement.originImageUrl
                 const fileMd5 = element.picElement.md5HexStr
+                const fileUuid = element.picElement.fileUuid
                 // let currentRKey = config.imageRKey || "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
                 let currentRKey = "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
                 if (url) {
@@ -156,10 +157,11 @@ export class OB11Constructor {
                             //         getConfigUtil().setConfig(config)
                             //     }
                             // }
-                            message_data["data"]["url"] = IMAGE_HTTP_HOST_NT + url
+                            message_data["data"]["url"] = IMAGE_HTTP_HOST + url
                         }
                         else{
-                            message_data["data"]["url"] = IMAGE_HTTP_HOST_NT + url + "&rkey=" + currentRKey
+                            // 有可能会碰到appid为1406的，这个不能使用新的NT域名，并且需要把appid改为1407才可访问
+                            message_data["data"]["url"] = `${IMAGE_HTTP_HOST}/download?appid=1407&fileid=${fileUuid}&rkey=${currentRKey}&spec=0`
                         }
                     } else {
                         message_data["data"]["url"] = IMAGE_HTTP_HOST + url
