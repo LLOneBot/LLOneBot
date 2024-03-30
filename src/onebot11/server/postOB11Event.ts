@@ -156,7 +156,7 @@ export function postOB11Event(msg: PostEventType, reportSelf = false) {
                         resJson = resJson as QuickActionFriendRequest
                         if (!isNull(resJson.approve)) {
                             // todo: set remark
-                            NTQQFriendApi.handleFriendRequest(parseInt((msg as OB11FriendRequestEvent).flag), resJson.approve).then()
+                            NTQQFriendApi.handleFriendRequest(((msg as OB11FriendRequestEvent).flag), resJson.approve).then()
                         }
                     } else if ((msg as OB11GroupRequestEvent).request_type === "group") {
                         resJson = resJson as QuickActionGroupRequest

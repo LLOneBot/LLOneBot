@@ -371,6 +371,9 @@ export class OB11Constructor {
                     const memberUin = json.items[1].param[0]
                     const title = json.items[3].txt
                     log("收到群成员新头衔消息", json)
+                    getGroupMember(msg.peerUid, memberUin).then(member => {
+                        member.memberSpecialTitle = title
+                    })
                     return new OB11GroupTitleEvent(parseInt(msg.peerUid), parseInt(memberUin), title)
                 }
             }
@@ -434,6 +437,7 @@ export class OB11Constructor {
             is_robot: member.isRobot,
             shut_up_timestamp: member.shutUpTime,
             role: OB11Constructor.groupMemberRole(member.role),
+            title: member.memberSpecialTitle || "",
         }
     }
 
