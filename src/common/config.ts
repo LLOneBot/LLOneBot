@@ -77,7 +77,7 @@ export class ConfigUtil {
 
     setConfig(config: Config) {
         this.config = config;
-        fsPromise.writeFile(this.configPath, JSON.stringify(config, null, 2), "utf-8").then()
+        fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), "utf-8")
     }
 
     private checkOldConfig(currentConfig: Config | OB11Config,

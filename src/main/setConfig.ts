@@ -4,10 +4,10 @@ import {ob11WebsocketServer} from "../onebot11/server/ws/WebsocketServer";
 import {ob11ReverseWebsockets} from "../onebot11/server/ws/ReverseWebsocket";
 import {llonebotError} from "../common/data";
 import {getConfigUtil} from "../common/config";
-import {checkFfmpeg} from "../common/utils";
+import {checkFfmpeg, log} from "../common/utils";
 
 export async function setConfig(config: Config) {
-    let oldConfig = getConfigUtil().getConfig();
+    let oldConfig = {...(getConfigUtil().getConfig())};
     getConfigUtil().setConfig(config)
     if (config.ob11.httpPort != oldConfig.ob11.httpPort && config.ob11.enableHttp) {
         ob11HTTPServer.restart(config.ob11.httpPort);
@@ -42,15 +42,19 @@ export async function setConfig(config: Config) {
     if (config.ob11.enableWsReverse) {
         // 判断反向ws地址有变化
         if (config.ob11.wsHosts.length != oldConfig.ob11.wsHosts.length) {
+            log("反向ws地址有变化, 重启反向ws服务")
             ob11ReverseWebsockets.restart();
         } else {
             for (const newHost of config.ob11.wsHosts) {
                 if (!oldConfig.ob11.wsHosts.includes(newHost)) {
+                    log("反向ws地址有变化, 重启反向ws服务")
                     ob11ReverseWebsockets.restart();
                     break;
                 }
             }
         }
     }
+    log("old config", oldConfig)
+    log("配置已更新", config)
     checkFfmpeg(config.ffmpeg).then()
 }

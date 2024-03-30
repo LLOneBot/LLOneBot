@@ -128,8 +128,13 @@ class OB11ReverseWebsockets {
 
     stop() {
         for (let rws of rwsList) {
-            rws.stop();
+            try {
+                rws.stop();
+            }catch (e) {
+                log("反向ws关闭:", e.stack)
+            }
         }
+        rwsList.length = 0;
     }
 
     restart() {

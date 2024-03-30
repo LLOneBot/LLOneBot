@@ -108,6 +108,7 @@ function onLoad() {
         let error = `${otherError}\n${httpServerError}\n${wsServerError}\n${ffmpegError}`
         error = error.replace("\n\n", "\n")
         error = error.trim();
+        log("查询llonebot错误信息", error);
         return error;
     })
     ipcMain.handle(CHANNEL_GET_CONFIG, async (event, arg) => {
@@ -116,7 +117,9 @@ function onLoad() {
     })
     ipcMain.on(CHANNEL_SET_CONFIG, (event, ask: boolean, config: Config) => {
         if (!ask) {
-            setConfig(config).then();
+            setConfig(config).then().catch(e => {
+                log("保存设置失败", e.stack)
+            });
             return
         }
         dialog.showMessageBox(mainWindow, {
@@ -128,7 +131,9 @@ function onLoad() {
             detail: 'LLOneBot配置已更改，是否保存？'
         }).then(result => {
             if (result.response === 0) {
-                setConfig(config).then();
+                setConfig(config).then().catch(e => {
+                    log("保存设置失败", e.stack)
+                });
             } else {
             }
         }).catch(err => {
