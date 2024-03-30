@@ -3,24 +3,31 @@ import { CheckVersion } from '../common/types';
 import {SettingButton, SettingItem, SettingList, SettingSwitch, SettingSelect} from './components';
 // @ts-ignore
 import StyleRaw from './style.css?raw';
+import {iconSvg} from "./icon";
 
 // 打开设置界面时触发
 
-function aprilFoolsEgg(){
+function aprilFoolsEgg(node: Element){
     let today = new Date()
     if(today.getMonth() === 1 && today.getDate() === 1){
         console.log("超时空猫猫!!!")
-        document.querySelectorAll(".nav-item.liteloader").forEach((node) => {
-            if (node.textContent.startsWith("LLOneBot")) {
-                node.querySelector(".name").innerHTML = "ChronoCat";
-            }
-        })
+        node.querySelector(".name").innerHTML = "ChronoCat";
     }
+}
+
+function initSideBar(){
+    document.querySelectorAll(".nav-item.liteloader").forEach((node) => {
+        if (node.textContent.startsWith("LLOneBot")) {
+            aprilFoolsEgg(node)
+            let iconEle = node.querySelector(".q-icon");
+            iconEle.innerHTML = iconSvg;
+        }
+    })
 }
 
 async function onSettingWindowCreated(view: Element) {
     window.llonebot.log("setting window created");
-    aprilFoolsEgg()
+    initSideBar()
     const isEmpty = (value: any) => value === undefined || value === null || value === '';
     let config = await window.llonebot.getConfig();
     let ob11Config = {...config.ob11};
