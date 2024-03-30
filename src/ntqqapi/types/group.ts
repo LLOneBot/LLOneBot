@@ -38,6 +38,7 @@ export enum GroupMemberRole {
 }
 
 export interface GroupMember {
+    memberSpecialTitle: string;
     avatarPath: string;
     cardName: string;
     cardType: number;
