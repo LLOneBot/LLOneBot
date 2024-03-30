@@ -63,7 +63,7 @@ export class SendMsgElementConstructor {
     }
 
     static async pic(picPath: string, summary: string = "", subType: 0|1=0): Promise<SendPicElement> {
-        const {md5, fileName, path, fileSize, ext} = await NTQQFileApi.uploadFile(picPath, ElementType.PIC, subType);
+        const {md5, fileName, path, fileSize} = await NTQQFileApi.uploadFile(picPath, ElementType.PIC, subType);
         if (fileSize === 0) {
             throw "文件异常，大小为0";
         }
@@ -73,7 +73,7 @@ export class SendMsgElementConstructor {
             fileSize: fileSize.toString(),
             picWidth: imageSize.width,
             picHeight: imageSize.height,
-            fileName: md5 + ext,
+            fileName: fileName,
             sourcePath: path,
             original: true,
             picType: isGIF(picPath) ? PicType.gif : PicType.jpg,
