@@ -22,8 +22,8 @@ export enum NTQQApiClass {
 
 export enum NTQQApiMethod {
     RECENT_CONTACT = "nodeIKernelRecentContactService/fetchAndSubscribeABatchOfRecentContact",
-    ADD_ACTIVE_CHAT = "nodeIKernelMsgService/getAioFirstViewLatestMsgsAndAddActiveChat",  // 激活群助手内的聊天窗口，这样才能收到消息
-    HISTORY_MSG_998 = "nodeIKernelMsgService/getMsgsIncludeSelfAndAddActiveChat",
+    ACTIVE_CHAT_PREVIEW = "nodeIKernelMsgService/getAioFirstViewLatestMsgsAndAddActiveChat",  // 激活聊天窗口，有时候必须这样才能收到消息, 并返回最新预览消息
+    ACTIVE_CHAT_HISTORY = "nodeIKernelMsgService/getMsgsIncludeSelfAndAddActiveChat", // 激活聊天窗口，有时候必须这样才能收到消息, 并返回历史消息
     HISTORY_MSG = "nodeIKernelMsgService/getMsgsIncludeSelf",
     GET_MULTI_MSG = "nodeIKernelMsgService/getMultiMsg",
 

@@ -12,10 +12,12 @@ import {dbUtil} from "../common/db";
 import {NTQQGroupApi} from "./api/group";
 import {log} from "../common/utils/log";
 import {sleep} from "../common/utils/helper";
+import {OB11Constructor} from "../onebot11/constructor";
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 
 export let ReceiveCmdS = {
+    RECENT_CONTACT: "nodeIKernelRecentContactListener/onRecentContactListChangedVer2",
     UPDATE_MSG: "nodeIKernelMsgListener/onMsgInfoListUpdate",
     UPDATE_ACTIVE_MSG: "nodeIKernelMsgListener/onActiveMsgInfoUpdate",
     NEW_MSG: `nodeIKernelMsgListener/onRecvMsg`,
@@ -72,7 +74,7 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
         if (!isLogger) {
             try {
                 HOOK_LOG && log(`received ntqq api message: ${channel}`, args)
-            }catch (e) {
+            } catch (e) {
                 log("hook log error", e, args)
             }
         }
@@ -108,7 +110,7 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
                     delete hookApiCallbacks[callbackId];
                 }
             }
-        }catch (e) {
+        } catch (e) {
             log("hookNTQQApiReceive error", e.stack.toString(), args)
         }
         originalSend.call(window.webContents, channel, ...args);
@@ -131,10 +133,10 @@ export function hookNTQQApiCall(window: BrowserWindow) {
 
             }
             if (!isLogger) {
-                try{
+                try {
                     HOOK_LOG && log("call NTQQ api", thisArg, args);
-                }catch (e) {
-                    
+                } catch (e) {
+
                 }
             }
             return target.apply(thisArg, args);
@@ -159,8 +161,8 @@ export function hookNTQQApiCall(window: BrowserWindow) {
             let ret = target.apply(thisArg, args);
             try {
                 HOOK_LOG && log("call NTQQ invoke api return", ret)
-            }catch (e) {
-                
+            } catch (e) {
+
             }
             return ret;
         }
@@ -191,19 +193,20 @@ export function removeReceiveHook(id: string) {
 }
 
 let activatedGroups: string[] = [];
+
 async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
     for (let group of _groups) {
         log("update group", group)
-        if (!activatedGroups.includes(group.groupCode)) {
-            NTQQMsgApi.activateGroupChat(group.groupCode).then((r) => {
-                activatedGroups.push(group.groupCode);
-                // log(`激活群聊天窗口${group.groupName}(${group.groupCode})`, r)
-                // if (r.result !== 0) {
-                //     setTimeout(() => NTQQMsgApi.activateGroupChat(group.groupCode).then(r => log(`再次激活群聊天窗口${group.groupName}(${group.groupCode})`, r)), 500);
-                // }else {
-                // }
-            }).catch(log)
-        }
+        // if (!activatedGroups.includes(group.groupCode)) {
+        NTQQMsgApi.activateChat({peerUid: group.groupCode, chatType: ChatType.group}).then((r) => {
+            // activatedGroups.push(group.groupCode);
+            // log(`激活群聊天窗口${group.groupName}(${group.groupCode})`, r)
+            // if (r.result !== 0) {
+            //     setTimeout(() => NTQQMsgApi.activateGroupChat(group.groupCode).then(r => log(`再次激活群聊天窗口${group.groupName}(${group.groupCode})`, r)), 500);
+            // }else {
+            // }
+        }).catch(log)
+        // }
         let existGroup = groups.find(g => g.groupCode == group.groupCode);
         if (existGroup) {
             Object.assign(existGroup, group);
@@ -222,7 +225,7 @@ async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
     }
 }
 
-async function processGroupEvent(payload: {groupList: Group[]}) {
+async function processGroupEvent(payload: { groupList: Group[] }) {
     try {
         const newGroupList = payload.groupList;
         for (const group of newGroupList) {
@@ -289,13 +292,17 @@ registerReceiveHook<{ groupList: Group[], updateType: number }>(ReceiveCmdS.GROU
     }
 })
 
-registerReceiveHook<{groupCode: string, dataSource: number, members: Set<GroupMember>}>(ReceiveCmdS.GROUP_MEMBER_INFO_UPDATE, async (payload) => {
+registerReceiveHook<{
+    groupCode: string,
+    dataSource: number,
+    members: Set<GroupMember>
+}>(ReceiveCmdS.GROUP_MEMBER_INFO_UPDATE, async (payload) => {
     const groupCode = payload.groupCode;
     const members = Array.from(payload.members.values());
     // log("群成员信息变动", groupCode, members)
-    for(const member of members) {
+    for (const member of members) {
         const existMember = await getGroupMember(groupCode, member.uin);
-        if (existMember){
+        if (existMember) {
             Object.assign(existMember, member);
         }
     }
@@ -322,6 +329,7 @@ registerReceiveHook<{
     for (const fData of payload.data) {
         const _friends = fData.buddyList;
         for (let friend of _friends) {
+            NTQQMsgApi.activateChat({peerUid: friend.uid, chatType: ChatType.friend}).then()
             let existFriend = friends.find(f => f.uin == friend.uin)
             if (!existFriend) {
                 friends.push(friend)
@@ -338,9 +346,9 @@ registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.NEW_MSG, Receiv
         const uid = message.senderUid;
         const uin = message.senderUin;
         if (uid && uin) {
-            if (message.chatType === ChatType.temp){
-                dbUtil.getReceivedTempUinMap().then(receivedTempUinMap=>{
-                    if (!receivedTempUinMap[uin]){
+            if (message.chatType === ChatType.temp) {
+                dbUtil.getReceivedTempUinMap().then(receivedTempUinMap => {
+                    if (!receivedTempUinMap[uin]) {
                         receivedTempUinMap[uin] = uid;
                         dbUtil.setReceivedTempUinMap(receivedTempUinMap)
                     }
@@ -409,4 +417,40 @@ registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmdS.SELF_SEND_MSG, ({msgR
 
 registerReceiveHook<{ info: { status: number } }>(ReceiveCmdS.SELF_STATUS, (info) => {
     selfInfo.online = info.info.status !== 20
+})
+
+
+let activatedPeerUids: string[] = []
+registerReceiveHook<{
+    changedRecentContactLists: {
+        listType: number, sortedContactList: string[],
+        changedList: {
+            id: string,  // peerUid
+            chatType: ChatType
+        }[]
+    }[]
+}>(ReceiveCmdS.RECENT_CONTACT, async (payload) => {
+    for (const recentContact of payload.changedRecentContactLists) {
+        for (const changedContact of recentContact.changedList) {
+            if (activatedPeerUids.includes(changedContact.id)) continue;
+            activatedPeerUids.push(changedContact.id)
+            const peer = {peerUid: changedContact.id, chatType: changedContact.chatType}
+            if (changedContact.chatType === ChatType.temp) {
+                log("收到临时会话消息", peer)
+                NTQQMsgApi.activateChatAndGetHistory(peer).then(
+                    () => {
+                        NTQQMsgApi.getMsgHistory(peer, "", 20).then(({msgList}) => {
+                            let lastTempMsg =  msgList.pop()
+                            log("激活窗口之前的第一条临时会话消息:", lastTempMsg)
+                            if ((Date.now() / 1000) - parseInt(lastTempMsg.msgTime) < 5) {
+                                OB11Constructor.message(lastTempMsg).then(r => postOB11Event(r))
+                            }
+                        })
+                    }
+                )
+            } else {
+                NTQQMsgApi.activateChat(peer).then()
+            }
+        }
+    }
 })
