@@ -9,7 +9,7 @@ import {iconSvg} from "./icon";
 
 function aprilFoolsEgg(node: Element){
     let today = new Date()
-    if(today.getMonth() === 1 && today.getDate() === 1){
+    if(today.getMonth() === 3 && today.getDate() === 1){
         console.log("超时空猫猫!!!")
         node.querySelector(".name").innerHTML = "ChronoCat";
     }
