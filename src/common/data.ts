@@ -28,7 +28,7 @@ export const llonebotError: LLOneBotError = {
 
 
 export async function getFriend(uinOrUid: string): Promise<Friend | undefined> {
-    let filterKey = isNumeric(uinOrUid) ? "uin" : "uid"
+    let filterKey = isNumeric(uinOrUid.toString()) ? "uin" : "uid"
     let filterValue = uinOrUid
     let friend = friends.find(friend => friend[filterKey] === filterValue.toString())
     // if (!friend) {
