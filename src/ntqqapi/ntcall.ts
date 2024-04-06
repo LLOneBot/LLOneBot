@@ -50,6 +50,7 @@ export enum NTQQApiMethod {
     GET_GROUP_NOTICE = "nodeIKernelGroupService/getSingleScreenNotifies",
     HANDLE_GROUP_REQUEST = "nodeIKernelGroupService/operateSysNotify",
     QUIT_GROUP = "nodeIKernelGroupService/quitGroup",
+    GROUP_AT_ALL_REMAIN_COUNT = "nodeIKernelGroupService/getGroupRemainAtTimes",
     // READ_FRIEND_REQUEST = "nodeIKernelBuddyListener/onDoubtBuddyReqUnreadNumChange"
     HANDLE_FRIEND_REQUEST = "nodeIKernelBuddyService/approvalFriendRequest",
     KICK_MEMBER = "nodeIKernelGroupService/kickMember",

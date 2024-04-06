@@ -186,6 +186,17 @@ export class NTQQGroupApi{
         })
     }
 
+    static async getGroupAtAllRemainCount(groupCode: string){
+        return await callNTQQApi<GeneralCallResult & {"atInfo":{"canAtAll": boolean,"RemainAtAllCountForUin": number,"RemainAtAllCountForGroup": number,"atTimesMsg": string,"canNotAtAllMsg":""}}>({
+            methodName: NTQQApiMethod.GROUP_AT_ALL_REMAIN_COUNT,
+            args: [
+                {
+                    groupCode
+                }, null
+            ]
+        })
+    }
+
     // 头衔不可用
     static async setGroupTitle(groupQQ: string, uid: string, title: string) {
         return await callNTQQApi<GeneralCallResult>({
