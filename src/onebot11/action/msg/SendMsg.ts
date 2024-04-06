@@ -31,6 +31,7 @@ import {log} from "../../../common/utils/log";
 import {sleep} from "../../../common/utils/helper";
 import {uri2local} from "../../../common/utils";
 import {crychic} from "../../../ntqqapi/external/crychic";
+import {NTQQGroupApi} from "../../../ntqqapi/api";
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
     function checkUri(uri: string): boolean {
@@ -113,9 +114,18 @@ export async function createSendElements(messageData: OB11MessageData[], target:
                     atQQ = atQQ.toString()
                     if (atQQ === "all") {
                         // todo：查询剩余的at全体次数
-                        const self = await getGroupMember((target as Group)?.groupCode, selfInfo.uin);
-                        const isAdmin = self.role === GroupMemberRole.admin || self.role === GroupMemberRole.owner;
-                        if(!isAdmin) {
+                        const groupCode = (target as Group)?.groupCode;
+                        let remainAtAllCount = 1
+                        let isAdmin: boolean = true;
+                        if (groupCode) {
+                            try {
+                                remainAtAllCount = (await NTQQGroupApi.getGroupAtAllRemainCount(groupCode)).atInfo.RemainAtAllCountForUin
+                                log(`群${groupCode}剩余at全体次数`, remainAtAllCount);
+                                const self = await getGroupMember((target as Group)?.groupCode, selfInfo.uin);
+                                isAdmin = self.role === GroupMemberRole.admin || self.role === GroupMemberRole.owner;
+                            } catch (e) {}
+                        }
+                        if(isAdmin && remainAtAllCount > 0) {
                             sendElements.push(SendMsgElementConstructor.at(atQQ, atQQ, AtType.atAll, "全体成员"))
                         }
                     } else {
