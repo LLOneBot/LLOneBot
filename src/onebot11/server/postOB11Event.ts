@@ -63,7 +63,6 @@ export function unregisterWsEventSender(ws: WebSocketClass) {
 
 export function postWsEvent(event: PostEventType) {
     for (const ws of eventWSList) {
-        log(ws)
         new Promise(() => {
             wsReply(ws, event);
         }).then()
