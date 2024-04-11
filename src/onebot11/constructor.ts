@@ -10,7 +10,7 @@ import {
 } from "./types";
 import {
     AtType,
-    ChatType,
+    ChatType, FaceIndex,
     GrayTipElementSubType,
     Group,
     GroupMember,
@@ -227,8 +227,19 @@ export class OB11Constructor {
                 message_data["type"] = OB11MessageDataType.json;
                 message_data["data"]["data"] = element.arkElement.bytesData;
             } else if (element.faceElement) {
-                message_data["type"] = OB11MessageDataType.face;
-                message_data["data"]["id"] = element.faceElement.faceIndex.toString();
+                const faceId = element.faceElement.faceIndex;
+                if (faceId === FaceIndex.dice){
+                    message_data["type"] = OB11MessageDataType.dice
+                    message_data["data"]["result"] = element.faceElement.resultId;
+                }
+                else if (faceId === FaceIndex.RPS){
+                    message_data["type"] = OB11MessageDataType.RPS
+                    message_data["data"]["result"] = element.faceElement.resultId;
+                }
+                else{
+                    message_data["type"] = OB11MessageDataType.face;
+                    message_data["data"]["id"] = element.faceElement.faceIndex.toString();
+                }
             } else if (element.marketFaceElement) {
                 message_data["type"] = OB11MessageDataType.mface;
                 message_data["data"]["text"] = element.marketFaceElement.faceName;

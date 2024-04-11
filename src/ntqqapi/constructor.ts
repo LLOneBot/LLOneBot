@@ -1,6 +1,6 @@
 import {
   AtType,
-  ElementType,
+  ElementType, FaceIndex,
   FaceType,
   PicType,
   SendArkElement,
@@ -249,12 +249,13 @@ export class SendMsgElementConstructor {
   }
 
   static face(faceId: number): SendFaceElement {
+    faceId = parseInt(faceId.toString());
     return {
       elementType: ElementType.FACE,
       elementId: "",
       faceElement: {
         faceIndex: faceId,
-        faceType: FaceType.normal
+        faceType: faceId < 222 ? FaceType.normal : FaceType.normal2,
       }
     }
   }
@@ -268,7 +269,7 @@ export class SendMsgElementConstructor {
       elementType: ElementType.FACE,
       elementId: "",
       faceElement: {
-        faceIndex: 358,
+        faceIndex: FaceIndex.dice,
         faceType: FaceType.dice,
         "faceText": "[骰子]",
         "packId": "1",
@@ -290,7 +291,7 @@ export class SendMsgElementConstructor {
       elementType: ElementType.FACE,
       elementId: "",
       faceElement: {
-        "faceIndex": 359,
+        "faceIndex": FaceIndex.RPS,
         "faceText": "[包剪锤]",
         "faceType": 3,
         "packId": "1",
