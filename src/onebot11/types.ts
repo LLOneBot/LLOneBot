@@ -251,7 +251,7 @@ export interface OB11PostSendMsg {
     group_id?: string,
     message: OB11MessageMixType;
     messages?: OB11MessageMixType;  // 兼容 go-cqhttp
-    auto_escape?: boolean
+    auto_escape?: boolean | string
 }
 
 export interface OB11Version {
