@@ -16,6 +16,17 @@ export interface Peer {
 }
 
 export class NTQQMsgApi {
+    static async setEmojiLike(peer: Peer, msgSeq: string, emojiId: string, set: boolean=true){
+        // nt_qq//global//nt_data//Emoji//emoji-resource//sysface_res/apng/ 下可以看到所有QQ表情预览
+        // nt_qq\global\nt_data\Emoji\emoji-resource\face_config.json 里面有所有表情的id, 自带表情id是QSid, 标准emoji表情id是QCid
+        // 其实以官方文档为准是最好的，https://bot.q.qq.com/wiki/develop/api-v2/openapi/emoji/model.html#EmojiType
+        return await callNTQQApi<GeneralCallResult>({
+            methodName: NTQQApiMethod.EMOJI_LIKE,
+            args: [{
+                peer, msgSeq, emojiId, emojiType: emojiId.length > 3 ? "2" : "1", setEmoji: set
+            }, null]
+        })
+    }
     static async getMultiMsg(peer: Peer, rootMsgId: string, parentMsgId: string) {
         return await callNTQQApi<GeneralCallResult & {msgList: RawMessage[]}>({
             methodName: NTQQApiMethod.GET_MULTI_MSG,
