@@ -33,6 +33,7 @@ let config = {
                 ...external.map(genCpModule),
                 {src: './manifest.json', dest: 'dist'}, {src: './icon.jpg', dest: 'dist'},
                 {src: './src/ntqqapi/external/crychic/crychic-win32-x64.node', dest: 'dist/main/'},
+                {src: './src/ntqqapi/external/moehook/MoeHook-win32-x64.node', dest: 'dist/main/', rename: 'MoeHook.node'},
             ]
         })]
     },

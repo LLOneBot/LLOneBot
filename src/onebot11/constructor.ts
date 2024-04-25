@@ -1,3 +1,4 @@
+import fastXmlParser, {XMLParser} from 'fast-xml-parser';
 import {
   OB11Group,
   OB11GroupMember,
@@ -40,6 +41,7 @@ import {OB11GroupTitleEvent} from "./event/notice/OB11GroupTitleEvent";
 import {OB11GroupCardEvent} from "./event/notice/OB11GroupCardEvent";
 import {OB11GroupDecreaseEvent} from "./event/notice/OB11GroupDecreaseEvent";
 import {NTQQGroupApi} from "../ntqqapi/api";
+import {OB11GroupMsgEmojiLikeEvent} from "./event/notice/OB11MsgEmojiLikeEvent";
 
 let lastRKeyUpdateTime = 0;
 
@@ -140,35 +142,9 @@ export class OB11Constructor {
         // message_data["data"]["file"] = element.picElement.sourcePath
         message_data["data"]["file"] = element.picElement.fileName
         // message_data["data"]["path"] = element.picElement.sourcePath
-        const url = element.picElement.originImageUrl
-        const fileMd5 = element.picElement.md5HexStr
-        const fileUuid = element.picElement.fileUuid
-        // let currentRKey = config.imageRKey || "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
-        let currentRKey = "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
-        if (url) {
-          if (url.startsWith("/download")) {
-            if (url.includes("&rkey=")) {
-              // 正则提取rkey
-              // const rkey = url.match(/&rkey=([^&]+)/)[1]
-              // // log("图片url已有rkey", rkey)
-              // if (rkey != currentRKey){
-              //     config.imageRKey = rkey
-              //     if (Date.now() - lastRKeyUpdateTime > 1000 * 60) {
-              //         lastRKeyUpdateTime = Date.now()
-              //         getConfigUtil().setConfig(config)
-              //     }
-              // }
-              message_data["data"]["url"] = IMAGE_HTTP_HOST + url
-            } else {
-              // 有可能会碰到appid为1406的，这个不能使用新的NT域名，并且需要把appid改为1407才可访问
-              message_data["data"]["url"] = `${IMAGE_HTTP_HOST}/download?appid=1407&fileid=${fileUuid}&rkey=${currentRKey}&spec=0`
-            }
-          } else {
-            message_data["data"]["url"] = IMAGE_HTTP_HOST + url
-          }
-        } else if (fileMd5) {
-          message_data["data"]["url"] = `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${fileMd5.toUpperCase()}/0`
-        }
+        // let currentRKey = "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
+
+        message_data["data"]["url"] = await NTQQFileApi.getImageUrl(msg);
         // message_data["data"]["file_id"] = element.picElement.fileUuid
         message_data["data"]["file_size"] = element.picElement.fileSize
         dbUtil.addFileCache(element.picElement.fileName, {
@@ -241,6 +217,13 @@ export class OB11Constructor {
       } else if (element.marketFaceElement) {
         message_data["type"] = OB11MessageDataType.mface;
         message_data["data"]["text"] = element.marketFaceElement.faceName;
+        const md5 = element.marketFaceElement.emojiId;
+        // 取md5的前两位
+        const dir = md5.substring(0, 2);
+        // 获取组装url
+        // const url = `https://p.qpic.cn/CDN_STATIC/0/data/imgcache/htdocs/club/item/parcel/item/${dir}/${md5}/300x300.gif?max_age=31536000`
+        const url = `https://gxh.vip.qq.com/club/item/parcel/item/${dir}/${md5}/raw300.gif`;
+        message_data["data"]["url"] = url;
       } else if (element.markdownElement) {
         message_data["type"] = OB11MessageDataType.markdown;
         message_data["data"]["data"] = element.markdownElement.content;
@@ -338,9 +321,42 @@ export class OB11Constructor {
       }
 
       if (grayTipElement) {
-        if (grayTipElement.subElementType == GrayTipElementSubType.INVITE_NEW_MEMBER) {
+        const xmlElement = grayTipElement.xmlElement
+
+        if (xmlElement?.templId === "10382") {
+          // 表情回应消息
+          // "content":
+          //  "<gtip align=\"center\">
+          //    <qq uin=\"u_snYxnEfja-Po_\" col=\"3\" jp=\"3794\"/>
+          //    <nor txt=\"回应了你的\"/>
+          //    <url jp= \"\" msgseq=\"74711\" col=\"3\" txt=\"消息:\"/>
+          //    <face type=\"1\" id=\"76\">  </face>
+          //  </gtip>",
+          const emojiLikeData = new fastXmlParser.XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: ""
+          }).parse(xmlElement.content)
+          log("收到表情回应我的消息", emojiLikeData)
+          try {
+            const senderUin = emojiLikeData.gtip.qq.jp;
+            const msgSeq = emojiLikeData.gtip.url.msgseq;
+            const emojiId = emojiLikeData.gtip.face.id;
+            const msg = await dbUtil.getMsgBySeqId(msgSeq);
+            if (!msg) {
+              return;
+            }
+            return new OB11GroupMsgEmojiLikeEvent(parseInt(msg.peerUid), parseInt(senderUin), msg.msgShortId, [{
+              emoji_id: emojiId,
+              count: 1
+            }]);
+          } catch (e) {
+            log("解析表情回应消息失败", e.stack);
+          }
+        }
+
+        if (grayTipElement.subElementType == GrayTipElementSubType.INVITE_NEW_MEMBER
+          && xmlElement?.templId == "10179") {
           log("收到新人被邀请进群消息", grayTipElement)
-          const xmlElement = grayTipElement.xmlElement
           if (xmlElement?.content) {
             const regex = /jp="(\d+)"/g;
 

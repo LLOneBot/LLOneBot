@@ -6,6 +6,7 @@ import {log, sleep, uri2local} from "../../../common/utils";
 import {NTQQFileApi} from "../../../ntqqapi/api/file";
 import {ActionName} from "../types";
 import {FileElement, RawMessage, VideoElement} from "../../../ntqqapi/types";
+import {FileCache} from "../../../common/types";
 
 export interface GetFilePayload {
     file: string // 文件名或者fileUuid
@@ -29,6 +30,25 @@ export class GetFileBase extends BaseAction<GetFilePayload, GetFileResponse> {
         }
         return {id: element.elementId, element: element.fileElement}
     }
+    private async download(cache: FileCache, file: string){
+        log("需要调用 NTQQ 下载文件api")
+        if (cache.msgId) {
+            let msg = await dbUtil.getMsgByLongId(cache.msgId)
+            if (msg){
+                log("找到了文件 msg", msg)
+                let element = this.getElement(msg);
+                log("找到了文件 element", element);
+                // 构建下载函数
+                await NTQQFileApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
+                  element.id, "", "", true)
+                await sleep(1000);
+                msg = await dbUtil.getMsgByLongId(cache.msgId)
+                log("下载完成后的msg", msg)
+                cache.filePath = this.getElement(msg).element.filePath
+                dbUtil.addFileCache(file, cache).then()
+            }
+        }
+    }
     protected async _handle(payload: GetFilePayload): Promise<GetFileResponse> {
         const cache = await dbUtil.getFileCache(payload.file)
         const {autoDeleteFile, enableLocalFile2Url, autoDeleteFileSecond} = getConfigUtil().getConfig()
@@ -41,35 +61,19 @@ export class GetFileBase extends BaseAction<GetFilePayload, GetFileResponse> {
         try {
             await fs.access(cache.filePath, fs.constants.F_OK)
         } catch (e) {
-            log("file not found", e)
+            // log("file not found", e)
             if (cache.url){
                 const downloadResult = await uri2local(cache.url)
                 if (downloadResult.success) {
                     cache.filePath = downloadResult.path
                     dbUtil.addFileCache(payload.file, cache).then()
                 } else {
-                    throw new Error("file download failed. " + downloadResult.errMsg)
+                    await this.download(cache, payload.file)
                 }
             }
             else{
                 // 没有url的可能是私聊文件或者群文件，需要自己下载
-                log("需要调用 NTQQ 下载文件api")
-                if (cache.msgId) {
-                    let msg = await dbUtil.getMsgByLongId(cache.msgId)
-                    if (msg){
-                        log("找到了文件 msg", msg)
-                        let element = this.getElement(msg);
-                        log("找到了文件 element", element);
-                        // 构建下载函数
-                        await NTQQFileApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
-                            element.id, "", "", true)
-                        await sleep(1000);
-                        msg = await dbUtil.getMsgByLongId(cache.msgId)
-                        log("下载完成后的msg", msg)
-                        cache.filePath = this.getElement(msg).element.filePath
-                        dbUtil.addFileCache(payload.file, cache).then()
-                    }
-                }
+                await this.download(cache, payload.file)
             }
 
         }
