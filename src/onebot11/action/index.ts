@@ -36,7 +36,7 @@ import GetImage from "./file/GetImage";
 import GetRecord from "./file/GetRecord";
 import GoCQHTTPMarkMsgAsRead from "./msg/MarkMsgAsRead";
 import CleanCache from "./system/CleanCache";
-import {GoCQHTTPUploadGroupFile, GoCQHTTPUploadPrivateFile} from "./go-cqhttp/UploadGroupFile";
+import {GoCQHTTPUploadGroupFile, GoCQHTTPUploadPrivateFile} from "./go-cqhttp/UploadFile";
 import {GetConfigAction, SetConfigAction} from "./llonebot/Config";
 import GetGroupAddRequest from "./llonebot/GetGroupAddRequest";
 import SetQQAvatar from './llonebot/SetQQAvatar'
