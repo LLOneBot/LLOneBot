@@ -1,5 +1,6 @@
 import {log} from "../../../common/utils";
 import {NTQQApi} from "../../ntcall";
+import {cpModule} from "../cpmodule";
 
 type PokeHandler = (id: string, isGroup: boolean) => void
 type CrychicHandler = (event: string, id: string, isGroup: boolean) => void
@@ -12,12 +13,12 @@ class Crychic{
     loadNode(){
         if (!this.crychic){
             try {
-                this.crychic = require("./crychic-win32-x64.node")
+                cpModule('crychic');
+                this.crychic = require("./crychic.node")
                 this.crychic.init()
             }catch (e) {
                 log("crychic加载失败", e)
             }
-
         }
     }
     registerPokeHandler(fn: PokeHandler){
