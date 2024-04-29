@@ -1,5 +1,7 @@
-import {log} from "../../../common/utils";
 import * as os from "os";
+import fs from "fs";
+import path from "node:path";
+import {cpModule} from "../cpmodule";
 
 interface MoeHook {
   GetRkey: () => string,  // Return '&rkey=xxx'
@@ -11,10 +13,9 @@ class HookApi {
   private readonly moeHook: MoeHook | null = null;
 
   constructor() {
+    cpModule('MoeHoo');
     try {
-      const systemPlatform = os.platform();
-      const cpuArch = os.arch();
-      this.moeHook = require(`./MoeHoo-${systemPlatform}-${cpuArch}.node`);
+      this.moeHook = require('./MoeHoo.node');
       console.log("hook rkey地址", this.moeHook!.HookRkey());
     } catch (e) {
       console.log('加载 moehoo 失败', e);
