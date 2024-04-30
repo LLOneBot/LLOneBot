@@ -305,7 +305,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
       }
     }
     const musicNum = this.getSpecialMsgNum(payload, OB11MessageDataType.music)
-    if (musicNum > 1 || fmNum != messages.length) {
+    if (musicNum && (musicNum > 1 || musicNum != messages.length)) {
       return {
         valid: false,
         message: '音乐消息不可以和其他消息混在一起发送',
