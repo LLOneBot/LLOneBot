@@ -9,10 +9,11 @@
     "build-mac": "npm run build && npm run deploy-mac",
     "deploy-mac": "cp -r dist/* ~/Library/Containers/com.tencent.qq/Data/LiteLoaderQQNT/plugins/LLOneBot/",
     "build-win": "npm run build && npm run deploy-win",
-    "deploy-win": "cmd /c \"xcopy /C /S /Y dist\\* %USERPROFILE%\\documents\\LiteLoaderQQNT\\plugins\\LLOneBot\\\""
+    "deploy-win": "cmd /c \"xcopy /C /S /Y dist\\* %USERPROFILE%\\documents\\LiteLoaderQQNT\\plugins\\LLOneBot\\\"",
+    "format": "prettier -cw ."
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "compressing": "^1.10.0",
     "cors": "^2.8.5",
@@ -37,7 +38,7 @@
     "electron-vite": "^2.0.0",
     "eslint": "^8.0.1",
     "eslint-plugin-import": "^2.25.2",
-    "eslint-plugin-n": "^15.0.0 || ^16.0.0 ",
+    "eslint-plugin-n": "^15.0.0 || ^16.0.0",
     "eslint-plugin-promise": "^6.0.0",
     "ts-node": "^10.9.2",
     "typescript": "*",
