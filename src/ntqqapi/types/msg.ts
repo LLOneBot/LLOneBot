@@ -252,6 +252,7 @@ export interface FaceElement {
 
 export interface MarketFaceElement {
   emojiPackageId: number
+  faceName: string
   emojiId: string
   key: string
 }
@@ -403,7 +404,6 @@ export interface RawMessage {
     arkElement: ArkElement
     grayTipElement: GrayTipElement
     faceElement: FaceElement
-    mfaceElement: MarketFaceElement
     videoElement: VideoElement
     fileElement: FileElement
     marketFaceElement: MarketFaceElement
