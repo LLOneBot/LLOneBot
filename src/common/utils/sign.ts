@@ -14,6 +14,8 @@ export interface CustomMusicSignPostData {
   singer?: string
 }
 
+export type MusicSignPostData = IdMusicSignPostData | CustomMusicSignPostData
+
 export class MusicSign {
   private readonly url: string
 
@@ -21,7 +23,7 @@ export class MusicSign {
     this.url = url
   }
 
-  async sign(postData: CustomMusicSignPostData | IdMusicSignPostData): Promise<any> {
+  async sign(postData: MusicSignPostData): Promise<any> {
     const resp = await fetch(this.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
