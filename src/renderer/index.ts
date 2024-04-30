@@ -165,12 +165,12 @@ async function onSettingWindowCreated(view: Element) {
           }</span>`,
           SettingButton('选择ffmpeg', 'config-ffmpeg-select'),
         ),
-        // SettingItem(
-        //   '音乐卡片签名地址',
-        //   null,
-        //   `<div class="q-input" style="width:210px;"><input class="q-input__inner" data-config-key="musicSignUrl" type="text" value="${config.musicSignUrl}" placeholder="未设置" /></div>`,
-        //   'config-musicSignUrl',
-        // ),
+        SettingItem(
+          '音乐卡片签名地址',
+          null,
+          `<div class="q-input" style="width:210px;"><input class="q-input__inner" data-config-key="musicSignUrl" type="text" value="${config.musicSignUrl}" placeholder="未设置" /></div>`,
+          'config-musicSignUrl',
+        ),
         SettingItem('', null, SettingButton('保存', 'config-ob11-save', 'primary')),
       ]),
       SettingList([

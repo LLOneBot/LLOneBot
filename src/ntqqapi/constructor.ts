@@ -23,6 +23,8 @@ import { defaultVideoThumb, getVideoInfo } from '../common/utils/video'
 import { encodeSilk } from '../common/utils/audio'
 import { isNull } from '../common/utils'
 
+export const mFaceCache = new Map<string, string>(); // emojiId -> faceName
+
 export class SendMsgElementConstructor {
   static poke(groupCode: string, uin: string) {
     return null
@@ -117,7 +119,15 @@ export class SendMsgElementConstructor {
   }
 
   static async video(filePath: string, fileName: string = '', diyThumbPath: string = ''): Promise<SendVideoElement> {
+    try{
+      await fs.stat(filePath)
+    }catch (e) {
+      throw `文件${filePath}异常，不存在`
+    }
+    log("复制视频到QQ目录", filePath)
     let { fileName: _fileName, path, fileSize, md5 } = await NTQQFileApi.uploadFile(filePath, ElementType.VIDEO)
+
+    log("复制视频到QQ目录完成", path)
     if (fileSize === 0) {
       throw '文件异常，大小为0'
     }
@@ -184,7 +194,7 @@ export class SendMsgElementConstructor {
     })
     let thumbPath = new Map()
     const _thumbPath = await createThumb
-    log('生成缩略图', _thumbPath)
+    log('生成视频缩略图', _thumbPath)
     const thumbSize = (await fs.stat(_thumbPath)).size
     // log("生成缩略图", _thumbPath)
     thumbPath.set(0, _thumbPath)
@@ -273,7 +283,7 @@ export class SendMsgElementConstructor {
         emojiPackageId,
         emojiId,
         key,
-        faceName
+        faceName: faceName || mFaceCache.get(emojiId) || '[商城表情]',
       },
     }
   }
