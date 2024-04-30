@@ -5,7 +5,8 @@ export enum GroupNotifyTypes {
   ADMIN_SET = 8,
   KICK_MEMBER = 9,
   MEMBER_EXIT = 11, // 主动退出
-  ADMIN_UNSET = 12,
+  ADMIN_UNSET = 12,  // 我被取消管理员
+  ADMIN_UNSET_OTHER = 13,  // 其他人取消管理员
 }
 
 export interface GroupNotifies {

@@ -44,6 +44,8 @@ import { OB11GroupCardEvent } from './event/notice/OB11GroupCardEvent'
 import { OB11GroupDecreaseEvent } from './event/notice/OB11GroupDecreaseEvent'
 import { NTQQGroupApi } from '../ntqqapi/api'
 import { OB11GroupMsgEmojiLikeEvent } from './event/notice/OB11MsgEmojiLikeEvent'
+import { mFaceCache } from '../ntqqapi/constructor'
+import { OB11FriendAddNoticeEvent } from './event/notice/OB11FriendAddNoticeEvent'
 
 let lastRKeyUpdateTime = 0
 
@@ -247,6 +249,7 @@ export class OB11Constructor {
         message_data['data']['emoji_id'] = element.marketFaceElement.emojiId
         message_data['data']['emoji_package_id'] = String(element.marketFaceElement.emojiPackageId)
         message_data['data']['key'] = element.marketFaceElement.key
+        mFaceCache.set(md5, element.marketFaceElement.faceName);
       } else if (element.markdownElement) {
         message_data['type'] = OB11MessageDataType.markdown
         message_data['data']['data'] = element.markdownElement.content
@@ -458,6 +461,16 @@ export class OB11Constructor {
     }
   }
 
+  static async FriendAddEvent(msg: RawMessage): Promise<OB11FriendAddNoticeEvent | undefined> {
+    if (msg.chatType !== ChatType.friend) {
+      return;
+    }
+    if (msg.msgType === 5 && msg.subMsgType === 12) {
+      const event = new OB11FriendAddNoticeEvent(parseInt(msg.peerUin));
+      return event;
+    }
+    return;
+  }
   static friend(friend: User): OB11User {
     return {
       user_id: parseInt(friend.uin),

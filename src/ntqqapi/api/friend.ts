@@ -2,6 +2,7 @@ import { Friend, FriendRequest } from '../types'
 import { ReceiveCmdS } from '../hook'
 import { callNTQQApi, GeneralCallResult, NTQQApiMethod } from '../ntcall'
 import { friendRequests } from '../../common/data'
+import { log } from '../../common/utils'
 
 export class NTQQFriendApi {
   static async getFriends(forced = false) {
@@ -16,7 +17,9 @@ export class NTQQFriendApi {
       methodName: NTQQApiMethod.FRIENDS,
       args: [{ force_update: forced }, undefined],
       cbCmd: ReceiveCmdS.FRIENDS,
+      afterFirstCmd: false,
     })
+    // log('获取好友列表', data)
     let _friends: Friend[] = []
     for (const fData of data.data) {
       _friends.push(...fData.buddyList)

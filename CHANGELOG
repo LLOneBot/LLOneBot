@@ -1,0 +1,14 @@
+# 3.24.0
+
+## 修复
+
+* 修复图片rkey导致链接失效的问题
+* 修复/get_image, /get_file 无法获取图片的问题
+* 修复上报他人管理员被取消通知
+
+## 新增
+
+* 新增表情回应发送和上报
+* 新增商城表情发送，和上报 url
+* 新增转发单条消息接口 `forward_friend_single_msg`, `forward_group_single_msg`
+* 新增新增好友事件

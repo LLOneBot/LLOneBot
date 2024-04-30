@@ -4,9 +4,11 @@ import { OB11Constructor } from '../../constructor'
 import BaseAction from '../BaseAction'
 import { ActionName } from '../types'
 import { NTQQGroupApi } from '../../../ntqqapi/api/group'
+import { log } from '../../../common/utils'
 
 export interface PayloadType {
-  group_id: number
+  group_id: number,
+  no_cache: boolean | string
 }
 
 class GetGroupMemberList extends BaseAction<PayloadType, OB11GroupMember[]> {
@@ -15,8 +17,9 @@ class GetGroupMemberList extends BaseAction<PayloadType, OB11GroupMember[]> {
   protected async _handle(payload: PayloadType) {
     const group = await getGroup(payload.group_id.toString())
     if (group) {
-      if (!group.members?.length) {
+      if (!group.members?.length || payload.no_cache === true || payload.no_cache === 'true') {
         group.members = await NTQQGroupApi.getGroupMembers(payload.group_id.toString())
+        log('强制刷新群成员列表, 数量: ', group.members.length)
       }
       return OB11Constructor.groupMembers(group)
     } else {

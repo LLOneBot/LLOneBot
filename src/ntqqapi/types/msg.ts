@@ -372,6 +372,8 @@ export interface MultiForwardMsgElement {
 
 export interface RawMessage {
   msgId: string
+  msgType: number
+  subMsgType: number
   msgShortId?: number // 自己维护的消息id
   msgTime: string // 时间戳，秒
   msgSeq: string

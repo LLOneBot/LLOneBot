@@ -157,6 +157,7 @@ function onLoad() {
     const { debug, reportSelfMessage } = getConfigUtil().getConfig()
     for (let message of msgList) {
       // 过滤启动之前的消息
+      // log('收到新消息', message);
       if (parseInt(message.msgTime) < startTime / 1000) {
         continue
       }
@@ -191,6 +192,12 @@ function onLoad() {
           postOB11Event(groupEvent)
         }
       })
+      OB11Constructor.FriendAddEvent(message).then((friendAddEvent) => {
+        if (friendAddEvent) {
+          // log("post friend add event", friendAddEvent);
+          postOB11Event(friendAddEvent)
+        }
+      })
     }
   }
 
@@ -219,7 +226,7 @@ function onLoad() {
     })
     registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.UPDATE_MSG], async (payload) => {
       for (const message of payload.msgList) {
-        // log("message update", message.sendStatus, message.msgId, message.msgSeq)
+        // log("message update", message)
         if (message.recallTime != '0') {
           //todo: 这个判断方法不太好，应该使用灰色消息元素来判断
           // 撤回消息上报
@@ -304,7 +311,7 @@ function onLoad() {
             // if (notify.user2.uid) {
             //     member2 = await getGroupMember(notify.group.groupCode, null, notify.user2.uid);
             // }
-            if ([GroupNotifyTypes.ADMIN_SET, GroupNotifyTypes.ADMIN_UNSET].includes(notify.type)) {
+            if ([GroupNotifyTypes.ADMIN_SET, GroupNotifyTypes.ADMIN_UNSET, GroupNotifyTypes.ADMIN_UNSET_OTHER].includes(notify.type)) {
               const member1 = await getGroupMember(notify.group.groupCode, notify.user1.uid)
               log('有管理员变动通知')
               refreshGroupMembers(notify.group.groupCode).then()
@@ -314,7 +321,7 @@ function onLoad() {
               if (member1) {
                 log('变动管理员获取成功')
                 groupAdminNoticeEvent.user_id = parseInt(member1.uin)
-                groupAdminNoticeEvent.sub_type = notify.type == GroupNotifyTypes.ADMIN_UNSET ? 'unset' : 'set'
+                groupAdminNoticeEvent.sub_type = [GroupNotifyTypes.ADMIN_UNSET, GroupNotifyTypes.ADMIN_UNSET_OTHER].includes(notify.type) ? 'unset' : 'set'
                 // member1.role = notify.type == GroupNotifyTypes.ADMIN_SET ? GroupMemberRole.admin : GroupMemberRole.normal;
                 postOB11Event(groupAdminNoticeEvent, true)
               } else {
