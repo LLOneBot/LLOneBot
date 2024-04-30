@@ -126,9 +126,10 @@ export enum OB11MessageDataType {
 export interface OB11MessageMFace {
   type: OB11MessageDataType.mface
   data: {
-    emojiPackageId: number
-    emojiId: string
+    emoji_package_id: number
+    emoji_id: string
     key: string
+    text?: string // 仅收
   }
 }
 
