@@ -23,14 +23,14 @@ export class MusicSign {
     this.url = url
   }
 
-  async sign(postData: MusicSignPostData): Promise<any> {
+  async sign(postData: MusicSignPostData): Promise<string> {
     const resp = await fetch(this.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(postData),
     })
     if (!resp.ok) throw new Error(resp.statusText)
-    const data = await resp.json()
+    const data = await resp.text()
     log('音乐消息生成成功', data)
     return data
   }

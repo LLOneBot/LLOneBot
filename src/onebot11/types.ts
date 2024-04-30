@@ -234,7 +234,7 @@ export type OB11MessageMusic = OB11MessageIdMusic | OB11MessageCustomMusic
 
 export interface OB11MessageJson {
   type: OB11MessageDataType.json
-  data: { config: { token: string } } & any
+  data: { data: string /* , config: { token: string } */ }
 }
 
 export type OB11MessageData =
