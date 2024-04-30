@@ -12,11 +12,10 @@ export interface OB11Config {
   enableHttpHeart?: boolean
 }
 export interface CheckVersion {
-  result: boolean
+  result: boolean,
   version: string
 }
 export interface Config {
-  imageRKey?: string
   ob11: OB11Config
   token?: string
   heartInterval?: number // ms
@@ -29,6 +28,7 @@ export interface Config {
   ffmpeg?: string // ffmpeg路径
   enablePoke?: boolean
   musicSignUrl?: string
+  ignoreBeforeLoginMsg?: boolean
 }
 
 export interface LLOneBotError {
