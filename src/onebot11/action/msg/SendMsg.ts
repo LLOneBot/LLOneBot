@@ -16,6 +16,7 @@ import {
   OB11MessageData,
   OB11MessageDataType,
   OB11MessageMixType,
+  OB11MessageMusic,
   OB11MessageNode,
   OB11PostSendMsg,
 } from '../../types'
@@ -26,12 +27,13 @@ import { ActionName, BaseCheckResult } from '../types'
 import * as fs from 'node:fs'
 import { decodeCQCode } from '../../cqcode'
 import { dbUtil } from '../../../common/db'
-import { ALLOW_SEND_TEMP_MSG } from '../../../common/config'
+import { ALLOW_SEND_TEMP_MSG, getConfigUtil } from '../../../common/config'
 import { log } from '../../../common/utils/log'
 import { sleep } from '../../../common/utils/helper'
 import { uri2local } from '../../../common/utils'
 import { crychic } from '../../../ntqqapi/external/crychic'
 import { NTQQGroupApi } from '../../../ntqqapi/api'
+import { MusicSign } from '../../../common/utils/sign'
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
   function checkUri(uri: string): boolean {
@@ -376,16 +378,26 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
       }
     } else {
       if (this.getSpecialMsgNum(payload, OB11MessageDataType.music)) {
-        const music: OB11MessageCustomMusic = messages[0] as OB11MessageCustomMusic
+        const music = messages[0] as OB11MessageMusic
         if (music) {
-          const { url, audio, title, content, image } = music.data
-          const selfPeer: Peer = { peerUid: selfInfo.uid, chatType: ChatType.friend }
-          // 搞不定！
-          // const musicMsg = await this.send(selfPeer, [this.genMusicElement(url, audio, title, content, image)], [], false)
-          // 转发
-          // const res = await NTQQApi.forwardMsg(selfPeer, peer, [musicMsg.msgId])
-          // log("转发音乐消息成功", res);
-          // return {message_id: musicMsg.msgShortId}
+          const { musicSignUrl } = getConfigUtil().getConfig()
+          if (!musicSignUrl) {
+            throw '音乐签名地址未配置'
+          }
+          const { type } = music.data
+          if (!['qq', '163', 'custom'].includes(type)) {
+            throw `不支持的音乐类型 ${type}`
+          }
+          let jsonContent: string
+          try {
+            jsonContent = await new MusicSign(musicSignUrl).sign(music.data)
+          } catch (e) {
+            throw `签名音乐消息失败：${e}`
+          }
+          messages[0] = {
+            type: OB11MessageDataType.json,
+            data: { data: jsonContent },
+          }
         }
       }
     }
