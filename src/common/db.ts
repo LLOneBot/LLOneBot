@@ -49,7 +49,7 @@ class DBUtil {
           setTimeout(initDB, 300)
         }
       }
-      initDB()
+      setTimeout(initDB)
     }).then()
 
     const expiredMilliSecond = 1000 * 60 * 60
