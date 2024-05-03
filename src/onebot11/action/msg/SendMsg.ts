@@ -181,7 +181,7 @@ export async function createSendElements(
         sendElements.push(
           SendMsgElementConstructor.mface(sendMsg.data.emoji_package_id, sendMsg.data.emoji_id, sendMsg.data.key, sendMsg.data.summary),
         )
-      }
+      }break;
       case OB11MessageDataType.image:
       case OB11MessageDataType.file:
       case OB11MessageDataType.video:
