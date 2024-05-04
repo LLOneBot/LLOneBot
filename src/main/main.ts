@@ -198,6 +198,7 @@ function onLoad() {
           postOB11Event(friendAddEvent)
         }
       })
+
     }
   }
 
@@ -224,39 +225,28 @@ function onLoad() {
         log('report message error: ', e.stack.toString())
       }
     })
+    const recallMsgIds: string[] = []; // 避免重复上报
     registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.UPDATE_MSG], async (payload) => {
       for (const message of payload.msgList) {
-        // log("message update", message)
+        log("message update", message.msgId, message)
         if (message.recallTime != '0') {
-          //todo: 这个判断方法不太好，应该使用灰色消息元素来判断
-          // 撤回消息上报
+          if (recallMsgIds.includes(message.msgId)) {
+            continue
+          }
+          recallMsgIds.push(message.msgId);
           const oriMessage = await dbUtil.getMsgByLongId(message.msgId)
           if (!oriMessage) {
             continue
           }
           oriMessage.recallTime = message.recallTime
           dbUtil.updateMsg(oriMessage).then()
-          if (message.chatType == ChatType.friend) {
-            const friendRecallEvent = new OB11FriendRecallNoticeEvent(
-              parseInt(message.senderUin),
-              oriMessage.msgShortId,
-            )
-            postOB11Event(friendRecallEvent)
-          } else if (message.chatType == ChatType.group) {
-            let operatorId = message.senderUin
-            for (const element of message.elements) {
-              const operatorUid = element.grayTipElement?.revokeElement.operatorUid
-              const operator = await getGroupMember(message.peerUin, operatorUid)
-              operatorId = operator.uin
+          message.msgShortId = oriMessage.msgShortId;
+          OB11Constructor.RecallEvent(message).then((recallEvent) => {
+            if (recallEvent) {
+              log("post recall event", recallEvent);
+              postOB11Event(recallEvent)
             }
-            const groupRecallEvent = new OB11GroupRecallNoticeEvent(
-              parseInt(message.peerUin),
-              parseInt(message.senderUin),
-              parseInt(operatorId),
-              oriMessage.msgShortId,
-            )
-            postOB11Event(groupRecallEvent)
-          }
+          })
           // 不让入库覆盖原来消息，不然就获取不到撤回的消息内容了
           continue
         }

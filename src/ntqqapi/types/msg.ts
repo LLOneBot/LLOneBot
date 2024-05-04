@@ -201,6 +201,7 @@ export interface PicElement {
 }
 
 export enum GrayTipElementSubType {
+  RECALL = 1,
   INVITE_NEW_MEMBER = 12,
   MEMBER_NEW_TITLE = 17,
 }
@@ -213,6 +214,8 @@ export interface GrayTipElement {
     operatorNick: string
     operatorRemark: string
     operatorMemRemark?: string
+    origMsgSenderUid?: string
+    isSelfOperate?: boolean
     wording: string // 自定义的撤回提示语
   }
   aioOpGrayTipElement: TipAioOpGrayTipElement
