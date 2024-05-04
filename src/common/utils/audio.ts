@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { encode, getDuration, getWavFileInfo, isWav } from 'silk-wasm'
+import { getDuration, getWavFileInfo, isWav, isSilk } from 'silk-wasm'
 import fsPromise from 'fs/promises'
 import { log } from './log'
 import path from 'node:path'
@@ -7,6 +7,7 @@ import { DATA_DIR, TEMP_DIR } from './index'
 import { v4 as uuidv4 } from 'uuid'
 import { getConfigUtil } from '../config'
 import { spawn } from 'node:child_process'
+import { silkEncode } from './silk_worker'
 
 export async function encodeSilk(filePath: string) {
   function getFileHeader(filePath: string) {
@@ -18,7 +19,7 @@ export async function encodeSilk(filePath: string) {
         flag: 'r',
       })
 
-      const fileHeader = buffer.toString('hex', 0, bytesToRead)
+      const fileHeader = buffer.subarray(0, bytesToRead)
       return fileHeader
     } catch (err) {
       console.error('读取文件错误:', err)
@@ -61,7 +62,7 @@ export async function encodeSilk(filePath: string) {
 
   try {
     const pttPath = path.join(TEMP_DIR, uuidv4())
-    if (getFileHeader(filePath) !== '02232153494c4b') {
+    if (!isSilk(getFileHeader(filePath))) {
       log(`语音文件${filePath}需要转换成silk`)
       const _isWav = await isWavFile(filePath)
       const pcmPath = pttPath + '.pcm'
@@ -79,7 +80,7 @@ export async function encodeSilk(filePath: string) {
             if (code == null || EXIT_CODES.includes(code)) {
               sampleRate = 24000
               const data = fs.readFileSync(pcmPath)
-              fs.unlink(pcmPath, (err) => {})
+              fs.unlink(pcmPath, (err) => { })
               return resolve(data)
             }
             log(`FFmpeg exit: code=${code ?? 'unknown'} sig=${signal ?? 'unknown'}`)
@@ -99,9 +100,10 @@ export async function encodeSilk(filePath: string) {
           input = await convert()
         }
       }
-      const silk = await encode(input, sampleRate)
+      const silk = await silkEncode(input, sampleRate)
       fs.writeFileSync(pttPath, silk.data)
       log(`语音文件${filePath}转换成功!`, pttPath, `时长:`, silk.duration)
+
       return {
         converted: true,
         path: pttPath,
