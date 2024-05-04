@@ -225,7 +225,8 @@ export class NTQQFileApi {
         // 老的图片url，不需要rkey
         return IMAGE_HTTP_HOST + url
       }
-    } else if (fileMd5 || md5HexStr) {
+    }
+    else if (fileMd5 || md5HexStr) {
       // 没有url，需要自己拼接
       return `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${(fileMd5 || md5HexStr)!.toUpperCase()}/0`
     }

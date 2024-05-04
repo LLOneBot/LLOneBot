@@ -154,12 +154,12 @@ class DBUtil {
       this.updateMsg(msg).then()
       return existMsg.msgShortId
     }
-    this.addCache(msg)
 
     const shortMsgId = await this.genMsgShortId()
     const shortIdKey = this.DB_KEY_PREFIX_MSG_SHORT_ID + shortMsgId
     const seqIdKey = this.DB_KEY_PREFIX_MSG_SEQ_ID + msg.msgSeq
     msg.msgShortId = shortMsgId
+    this.addCache(msg)
     // log("新增消息记录", msg.msgId)
     this.db.put(shortIdKey, msg.msgId).then().catch()
     this.db.put(longIdKey, JSON.stringify(msg)).then().catch()
