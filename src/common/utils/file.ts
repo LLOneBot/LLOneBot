@@ -176,6 +176,7 @@ export async function uri2local(uri: string, fileName: string = null): Promise<U
           // res.ext = pathInfo.ext
         }
       }
+      fileName = fileName.replace(/[/\\:*?"<>|]/g, '_')
       res.fileName = fileName
       filePath = path.join(TEMP_DIR, uuidv4() + fileName)
       fs.writeFileSync(filePath, buffer)
