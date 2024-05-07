@@ -442,7 +442,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         try {
           jsonContent = await new MusicSign(musicSignUrl).sign(postData)
           if (!jsonContent){
-            throw '音乐消息生成失败，可能是签名服务器问题, 请检查提交内容'
+            throw '音乐消息生成失败，提交内容有误或者签名服务器签名失败'
           }
         } catch (e) {
           throw `签名音乐消息失败：${e}`
