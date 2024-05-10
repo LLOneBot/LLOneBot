@@ -27,13 +27,13 @@ export async function getFriend(uinOrUid: string): Promise<Friend | undefined> {
   let friend = friends.find((friend) => friend[filterKey] === filterValue.toString())
   if (!friend) {
     try {
-      const _friends = (await NTQQFriendApi.getFriends(true))
-      friend = _friends.find(friend => friend[filterKey] === filterValue.toString())
-      if (friend){
+      const _friends = await NTQQFriendApi.getFriends(true)
+      friend = _friends.find((friend) => friend[filterKey] === filterValue.toString())
+      if (friend) {
         friends.push(friend)
       }
     } catch (e) {
-      log("刷新好友列表失败", e.stack.toString())
+      log('刷新好友列表失败', e.stack.toString())
     }
   }
   return friend
@@ -48,8 +48,7 @@ export async function getGroup(qq: string): Promise<Group | undefined> {
       if (group) {
         groups.push(group)
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
   return group
 }

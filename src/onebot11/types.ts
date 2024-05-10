@@ -75,7 +75,7 @@ export interface OB11Message {
   self_id?: number
   time: number
   message_id: number
-  message_seq: number  // go-cqhttp字段，实际上是message_id
+  message_seq: number // go-cqhttp字段，实际上是message_id
   real_id: number
   user_id: number
   group_id?: number
