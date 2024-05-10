@@ -20,7 +20,7 @@ export class NTQQMsgApi {
     // nt_qq//global//nt_data//Emoji//emoji-resource//sysface_res/apng/ 下可以看到所有QQ表情预览
     // nt_qq\global\nt_data\Emoji\emoji-resource\face_config.json 里面有所有表情的id, 自带表情id是QSid, 标准emoji表情id是QCid
     // 其实以官方文档为准是最好的，https://bot.q.qq.com/wiki/develop/api-v2/openapi/emoji/model.html#EmojiType
-    emojiId = emojiId.toString();
+    emojiId = emojiId.toString()
     return await callNTQQApi<GeneralCallResult>({
       methodName: NTQQApiMethod.EMOJI_LIKE,
       args: [

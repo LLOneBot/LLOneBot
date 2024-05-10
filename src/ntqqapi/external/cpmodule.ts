@@ -1,6 +1,6 @@
-import * as os from "os";
-import path from "node:path";
-import fs from "fs";
+import * as os from 'os'
+import path from 'node:path'
+import fs from 'fs'
 
 export function getModuleWithArchName(moduleName: string) {
   const systemPlatform = os.platform()
@@ -9,11 +9,9 @@ export function getModuleWithArchName(moduleName: string) {
 }
 
 export function cpModule(moduleName: string) {
-  const currentDir = path.resolve(__dirname);
+  const currentDir = path.resolve(__dirname)
   const fileName = `./${getModuleWithArchName(moduleName)}`
   try {
-    fs.copyFileSync(path.join(currentDir, fileName), path.join(currentDir, `${moduleName}.node`));
-  } catch (e) {
-
-  }
+    fs.copyFileSync(path.join(currentDir, fileName), path.join(currentDir, `${moduleName}.node`))
+  } catch (e) {}
 }

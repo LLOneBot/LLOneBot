@@ -6,7 +6,7 @@ import { ActionName } from '../types'
 import { NTQQFriendApi } from '../../../ntqqapi/api'
 import { log } from '../../../common/utils'
 
-interface Payload{
+interface Payload {
   no_cache: boolean | string
 }
 
