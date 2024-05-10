@@ -82,9 +82,12 @@ export class ConfigUtil {
     fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), 'utf-8')
   }
 
-  private checkOldConfig(currentConfig: Config | OB11Config,
-                         oldConfig: Config | OB11Config,
-                         currentKey: string, oldKey: string) {
+  private checkOldConfig(
+    currentConfig: Config | OB11Config,
+    oldConfig: Config | OB11Config,
+    currentKey: string,
+    oldKey: string,
+  ) {
     // 迁移旧的配置到新配置，避免用户重新填写配置
     const oldValue = oldConfig[oldKey]
     if (oldValue) {

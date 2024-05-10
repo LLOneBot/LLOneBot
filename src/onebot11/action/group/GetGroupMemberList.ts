@@ -7,7 +7,7 @@ import { NTQQGroupApi } from '../../../ntqqapi/api/group'
 import { log } from '../../../common/utils'
 
 export interface PayloadType {
-  group_id: number,
+  group_id: number
   no_cache: boolean | string
 }
 

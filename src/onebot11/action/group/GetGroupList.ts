@@ -14,13 +14,10 @@ class GetGroupList extends BaseAction<Payload, OB11Group[]> {
   actionName = ActionName.GetGroupList
 
   protected async _handle(payload: Payload) {
-    if (
-      groups.length === 0
-      || payload?.no_cache === true || payload?.no_cache === 'true'
-    ) {
+    if (groups.length === 0 || payload?.no_cache === true || payload?.no_cache === 'true') {
       try {
         const groups = await NTQQGroupApi.getGroups(true)
-        log("强制刷新群列表, 数量:", groups.length)
+        log('强制刷新群列表, 数量:', groups.length)
         return OB11Constructor.groups(groups)
       } catch (e) {}
     }

@@ -12,7 +12,7 @@ export interface OB11Config {
   enableHttpHeart?: boolean
 }
 export interface CheckVersion {
-  result: boolean,
+  result: boolean
   version: string
 }
 export interface Config {
