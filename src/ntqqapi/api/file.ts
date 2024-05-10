@@ -12,10 +12,10 @@ import {
 import path from 'path'
 import fs from 'fs'
 import { ReceiveCmdS } from '../hook'
-import { log } from '../../common/utils'
+import { log } from '@/common/utils'
 import https from 'https'
-import { sleep } from '../../common/utils'
-import { hookApi } from '../external/moehook/hook'
+import { sleep } from '@/common/utils'
+import { hookApi } from '../native/moehook/hook'
 
 let privateImageRKey = ''
 let groupImageRKey = ''

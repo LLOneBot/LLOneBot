@@ -7,9 +7,27 @@
     "esModuleInterop": true,
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
     //    "sourceMap": true
+    "paths": {
+      "@/common/*": [
+        "./src/common/*"
+      ],
+      "@/onebot11/*": [
+        "./src/onebot11"
+      ],
+      "@/ntqqapi/*": [
+        "./src/ntqqapi/*"
+      ]
+    }
   },
-  "include": ["src/*", "src/**/*", "scripts/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/*",
+    "src/**/*",
+    "scripts/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+
 }
