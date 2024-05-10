@@ -32,7 +32,7 @@ import { ALLOW_SEND_TEMP_MSG, getConfigUtil } from '../../../common/config'
 import { log } from '../../../common/utils/log'
 import { sleep } from '../../../common/utils/helper'
 import { uri2local } from '../../../common/utils'
-import { crychic } from '../../../ntqqapi/external/crychic'
+import { crychic } from '../../../ntqqapi/native/crychic'
 import { NTQQGroupApi } from '../../../ntqqapi/api'
 import { CustomMusicSignPostData, IdMusicSignPostData, MusicSign, MusicSignPostData } from '../../../common/utils/sign'
 

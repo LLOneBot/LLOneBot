@@ -1,5 +1,6 @@
 import cp from 'vite-plugin-cp'
 import './scripts/gen-version'
+import path from 'node:path'
 
 const external = [
   'silk-wasm',
@@ -34,6 +35,7 @@ let config = {
     },
     resolve: {
       alias: {
+        '@': path.resolve(__dirname, './src'),
         './lib-cov/fluent-ffmpeg': './lib/fluent-ffmpeg',
       },
     },
@@ -43,9 +45,9 @@ let config = {
           ...external.map(genCpModule),
           { src: './manifest.json', dest: 'dist' },
           { src: './icon.jpg', dest: 'dist' },
-          { src: './src/ntqqapi/external/crychic/crychic-win32-x64.node', dest: 'dist/main/' },
-          { src: './src/ntqqapi/external/moehook/MoeHoo-win32-x64.node', dest: 'dist/main/' },
-          { src: './src/ntqqapi/external/moehook/MoeHoo-linux-x64.node', dest: 'dist/main/' },
+          { src: './src/ntqqapi/native/crychic/crychic-win32-x64.node', dest: 'dist/main/' },
+          { src: './src/ntqqapi/native/moehook/MoeHoo-win32-x64.node', dest: 'dist/main/' },
+          { src: './src/ntqqapi/native/moehook/MoeHoo-linux-x64.node', dest: 'dist/main/' },
         ],
       }),
     ],
