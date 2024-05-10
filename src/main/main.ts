@@ -198,7 +198,6 @@ function onLoad() {
           postOB11Event(friendAddEvent)
         }
       })
-
     }
   }
 
@@ -225,25 +224,25 @@ function onLoad() {
         log('report message error: ', e.stack.toString())
       }
     })
-    const recallMsgIds: string[] = []; // 避免重复上报
+    const recallMsgIds: string[] = [] // 避免重复上报
     registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.UPDATE_MSG], async (payload) => {
       for (const message of payload.msgList) {
-        log("message update", message.msgId, message)
+        log('message update', message.msgId, message)
         if (message.recallTime != '0') {
           if (recallMsgIds.includes(message.msgId)) {
             continue
           }
-          recallMsgIds.push(message.msgId);
+          recallMsgIds.push(message.msgId)
           const oriMessage = await dbUtil.getMsgByLongId(message.msgId)
           if (!oriMessage) {
             continue
           }
           oriMessage.recallTime = message.recallTime
           dbUtil.updateMsg(oriMessage).then()
-          message.msgShortId = oriMessage.msgShortId;
+          message.msgShortId = oriMessage.msgShortId
           OB11Constructor.RecallEvent(message).then((recallEvent) => {
             if (recallEvent) {
-              log("post recall event", recallEvent);
+              log('post recall event', recallEvent)
               postOB11Event(recallEvent)
             }
           })
@@ -301,7 +300,11 @@ function onLoad() {
             // if (notify.user2.uid) {
             //     member2 = await getGroupMember(notify.group.groupCode, null, notify.user2.uid);
             // }
-            if ([GroupNotifyTypes.ADMIN_SET, GroupNotifyTypes.ADMIN_UNSET, GroupNotifyTypes.ADMIN_UNSET_OTHER].includes(notify.type)) {
+            if (
+              [GroupNotifyTypes.ADMIN_SET, GroupNotifyTypes.ADMIN_UNSET, GroupNotifyTypes.ADMIN_UNSET_OTHER].includes(
+                notify.type,
+              )
+            ) {
               const member1 = await getGroupMember(notify.group.groupCode, notify.user1.uid)
               log('有管理员变动通知')
               refreshGroupMembers(notify.group.groupCode).then()
@@ -311,7 +314,12 @@ function onLoad() {
               if (member1) {
                 log('变动管理员获取成功')
                 groupAdminNoticeEvent.user_id = parseInt(member1.uin)
-                groupAdminNoticeEvent.sub_type = [GroupNotifyTypes.ADMIN_UNSET, GroupNotifyTypes.ADMIN_UNSET_OTHER].includes(notify.type) ? 'unset' : 'set'
+                groupAdminNoticeEvent.sub_type = [
+                  GroupNotifyTypes.ADMIN_UNSET,
+                  GroupNotifyTypes.ADMIN_UNSET_OTHER,
+                ].includes(notify.type)
+                  ? 'unset'
+                  : 'set'
                 // member1.role = notify.type == GroupNotifyTypes.ADMIN_SET ? GroupMemberRole.admin : GroupMemberRole.normal;
                 postOB11Event(groupAdminNoticeEvent, true)
               } else {

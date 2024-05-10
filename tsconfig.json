@@ -8,7 +8,6 @@
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
-    //    "sourceMap": true
     "paths": {
       "@/common/*": [
         "./src/common/*"
@@ -19,15 +18,9 @@
       "@/ntqqapi/*": [
         "./src/ntqqapi/*"
       ]
-    }
+    },
+    "noEmit": true
   },
-  "include": [
-    "src/*",
-    "src/**/*",
-    "scripts/*"
-  ],
-  "exclude": [
-    "node_modules"
-  ],
-
+  "include": ["src/*", "src/**/*", "scripts/*"],
+  "exclude": ["node_modules"]
 }
