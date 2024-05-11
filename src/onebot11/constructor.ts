@@ -87,13 +87,15 @@ export class OB11Constructor {
         resMsg.sender.role = OB11Constructor.groupMemberRole(member.role)
         resMsg.sender.nickname = member.nick
       }
-    } else if (msg.chatType == ChatType.friend) {
+    }
+    else if (msg.chatType == ChatType.friend) {
       resMsg.sub_type = 'friend'
       const friend = await getFriend(msg.senderUin)
       if (friend) {
         resMsg.sender.nickname = friend.nick
       }
-    } else if (msg.chatType == ChatType.temp) {
+    }
+    else if (msg.chatType == ChatType.temp) {
       resMsg.sub_type = 'group'
       const tempGroupCode = tempGroupCodeMap[msg.peerUin]
       if (tempGroupCode) {
@@ -111,7 +113,8 @@ export class OB11Constructor {
         if (element.textElement.atType == AtType.atAll) {
           // message_data["data"]["mention"] = "all"
           message_data['data']['qq'] = 'all'
-        } else {
+        }
+        else {
           let atUid = element.textElement.atNtUid
           let atQQ = element.textElement.atUid
           if (!atQQ || atQQ === '0') {
@@ -125,14 +128,16 @@ export class OB11Constructor {
             message_data['data']['qq'] = atQQ
           }
         }
-      } else if (element.textElement) {
+      }
+      else if (element.textElement) {
         message_data['type'] = 'text'
         let text = element.textElement.content
         if (!text.trim()) {
           continue
         }
         message_data['data']['text'] = text
-      } else if (element.replyElement) {
+      }
+      else if (element.replyElement) {
         message_data['type'] = 'reply'
         // log("收到回复消息", element.replyElement.replayMsgSeq)
         try {
@@ -140,20 +145,22 @@ export class OB11Constructor {
           // log("找到回复消息", replyMsg.msgShortId, replyMsg.msgId)
           if (replyMsg) {
             message_data['data']['id'] = replyMsg.msgShortId.toString()
-          } else {
+          }
+          else {
             continue
           }
         } catch (e) {
           log('获取不到引用的消息', e.stack, element.replyElement.replayMsgSeq)
         }
-      } else if (element.picElement) {
+      }
+      else if (element.picElement) {
         message_data['type'] = 'image'
         // message_data["data"]["file"] = element.picElement.sourcePath
         message_data['data']['file'] = element.picElement.fileName
         // message_data["data"]["path"] = element.picElement.sourcePath
         // let currentRKey = "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
 
-        message_data['data']['url'] = await NTQQFileApi.getImageUrl(msg)
+        message_data['data']['url'] = await NTQQFileApi.getImageUrl(element.picElement, msg.chatType);
         // message_data["data"]["file_id"] = element.picElement.fileUuid
         message_data['data']['file_size'] = element.picElement.fileSize
         dbUtil
@@ -175,7 +182,8 @@ export class OB11Constructor {
           })
           .then()
         // 不在自动下载图片
-      } else if (element.videoElement || element.fileElement) {
+      }
+      else if (element.videoElement || element.fileElement) {
         const videoOrFileElement = element.videoElement || element.fileElement
         const ob11MessageDataType = element.videoElement ? OB11MessageDataType.video : OB11MessageDataType.file
         message_data['type'] = ob11MessageDataType
@@ -204,7 +212,8 @@ export class OB11Constructor {
           })
           .then()
         // 怎么拿到url呢
-      } else if (element.pttElement) {
+      }
+      else if (element.pttElement) {
         message_data['type'] = OB11MessageDataType.voice
         message_data['data']['file'] = element.pttElement.fileName
         message_data['data']['path'] = element.pttElement.filePath
@@ -224,22 +233,27 @@ export class OB11Constructor {
         // }).catch(err => {
         //     console.log("语音转文字失败", err);
         // })
-      } else if (element.arkElement) {
+      }
+      else if (element.arkElement) {
         message_data['type'] = OB11MessageDataType.json
         message_data['data']['data'] = element.arkElement.bytesData
-      } else if (element.faceElement) {
+      }
+      else if (element.faceElement) {
         const faceId = element.faceElement.faceIndex
         if (faceId === FaceIndex.dice) {
           message_data['type'] = OB11MessageDataType.dice
           message_data['data']['result'] = element.faceElement.resultId
-        } else if (faceId === FaceIndex.RPS) {
+        }
+        else if (faceId === FaceIndex.RPS) {
           message_data['type'] = OB11MessageDataType.RPS
           message_data['data']['result'] = element.faceElement.resultId
-        } else {
+        }
+        else {
           message_data['type'] = OB11MessageDataType.face
           message_data['data']['id'] = element.faceElement.faceIndex.toString()
         }
-      } else if (element.marketFaceElement) {
+      }
+      else if (element.marketFaceElement) {
         message_data['type'] = OB11MessageDataType.mface
         message_data['data']['summary'] = element.marketFaceElement.faceName
         const md5 = element.marketFaceElement.emojiId
@@ -253,10 +267,12 @@ export class OB11Constructor {
         message_data['data']['emoji_package_id'] = String(element.marketFaceElement.emojiPackageId)
         message_data['data']['key'] = element.marketFaceElement.key
         mFaceCache.set(md5, element.marketFaceElement.faceName)
-      } else if (element.markdownElement) {
+      }
+      else if (element.markdownElement) {
         message_data['type'] = OB11MessageDataType.markdown
         message_data['data']['data'] = element.markdownElement.content
-      } else if (element.multiForwardMsgElement) {
+      }
+      else if (element.multiForwardMsgElement) {
         message_data['type'] = OB11MessageDataType.forward
         message_data['data']['id'] = msg.msgId
       }
@@ -264,7 +280,8 @@ export class OB11Constructor {
         const cqCode = encodeCQCode(message_data)
         if (messagePostFormat === 'string') {
           ;(resMsg.message as string) += cqCode
-        } else (resMsg.message as OB11MessageData[]).push(message_data)
+        }
+        else (resMsg.message as OB11MessageData[]).push(message_data)
 
         resMsg.raw_message += cqCode
       }
@@ -313,7 +330,8 @@ export class OB11Constructor {
             // log("构造群增加事件", event)
             return event
           }
-        } else if (groupElement.type === TipGroupElementType.ban) {
+        }
+        else if (groupElement.type === TipGroupElementType.ban) {
           log('收到群群员禁言提示', groupElement)
           const memberUid = groupElement.shutUp.member.uid
           const adminUid = groupElement.shutUp.admin.uid
@@ -324,7 +342,8 @@ export class OB11Constructor {
             memberUin =
               (await getGroupMember(msg.peerUid, memberUid))?.uin ||
               (await NTQQUserApi.getUserDetailInfo(memberUid))?.uin
-          } else {
+          }
+          else {
             memberUin = '0' // 0表示全员禁言
             if (duration > 0) {
               duration = -1
@@ -341,7 +360,8 @@ export class OB11Constructor {
               sub_type,
             )
           }
-        } else if (groupElement.type == TipGroupElementType.kicked) {
+        }
+        else if (groupElement.type == TipGroupElementType.kicked) {
           log(`收到我被踢出或退群提示, 群${msg.peerUid}`, groupElement)
           deleteGroup(msg.peerUid)
           NTQQGroupApi.quitGroup(msg.peerUid).then()
@@ -361,7 +381,8 @@ export class OB11Constructor {
             return new OB11GroupDecreaseEvent(parseInt(msg.peerUid), parseInt(selfInfo.uin), 0, 'leave')
           }
         }
-      } else if (element.fileElement) {
+      }
+      else if (element.fileElement) {
         return new OB11GroupUploadNoticeEvent(parseInt(msg.peerUid), parseInt(msg.senderUin), {
           id: element.fileElement.fileUuid,
           name: element.fileElement.fileName,
@@ -426,7 +447,8 @@ export class OB11Constructor {
               return new OB11GroupIncreaseEvent(parseInt(msg.peerUid), parseInt(invitee), parseInt(inviter), 'invite')
             }
           }
-        } else if (grayTipElement.subElementType == GrayTipElementSubType.MEMBER_NEW_TITLE) {
+        }
+        else if (grayTipElement.subElementType == GrayTipElementSubType.MEMBER_NEW_TITLE) {
           const json = JSON.parse(grayTipElement.jsonGrayTipElement.jsonStr)
           /*
           {
@@ -495,7 +517,8 @@ export class OB11Constructor {
         parseInt(operator.uin),
         msg.msgShortId,
       )
-    } else {
+    }
+    else {
       return new OB11FriendRecallNoticeEvent(parseInt(msg.senderUin), msg.msgShortId)
     }
   }
