@@ -3,10 +3,15 @@ import { NTQQUserApi } from '../../../ntqqapi/api'
 import { groups } from '../../../common/data'
 import { ActionName } from '../types'
 
-export class GetCookies extends BaseAction<null, { cookies: string; bkn: string }> {
+interface Payload {
+  domain: string
+}
+
+export class GetCookies extends BaseAction<Payload, { cookies: string; bkn: string }> {
   actionName = ActionName.GetCookies
 
-  protected async _handle() {
-    return NTQQUserApi.getCookie(groups[0])
+  protected async _handle(payload: Payload) {
+    const domain = payload.domain || 'qun.qq.com'
+    return NTQQUserApi.getCookies(domain);
   }
 }

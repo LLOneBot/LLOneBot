@@ -1,12 +1,12 @@
 import BaseAction from '../BaseAction'
 import fs from 'fs/promises'
-import { dbUtil } from '../../../common/db'
-import { getConfigUtil } from '../../../common/config'
-import { log, sleep, uri2local } from '../../../common/utils'
-import { NTQQFileApi } from '../../../ntqqapi/api/file'
+import { dbUtil } from '@/common/db'
+import { getConfigUtil } from '@/common/config'
+import { log, sleep, uri2local } from '@/common/utils'
+import { NTQQFileApi } from '@/ntqqapi/api'
 import { ActionName } from '../types'
-import { FileElement, RawMessage, VideoElement } from '../../../ntqqapi/types'
-import { FileCache } from '../../../common/types'
+import { FileElement, RawMessage, VideoElement } from '@/ntqqapi/types'
+import { FileCache } from '@/common/types'
 
 export interface GetFilePayload {
   file: string // 文件名或者fileUuid

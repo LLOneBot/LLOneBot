@@ -21,6 +21,7 @@ export enum NTQQApiClass {
 }
 
 export enum NTQQApiMethod {
+  TEST = 'NodeIKernelTipOffService/getPskey',
   RECENT_CONTACT = 'nodeIKernelRecentContactService/fetchAndSubscribeABatchOfRecentContact',
   ACTIVE_CHAT_PREVIEW = 'nodeIKernelMsgService/getAioFirstViewLatestMsgsAndAddActiveChat', // 激活聊天窗口，有时候必须这样才能收到消息, 并返回最新预览消息
   ACTIVE_CHAT_HISTORY = 'nodeIKernelMsgService/getMsgsIncludeSelfAndAddActiveChat', // 激活聊天窗口，有时候必须这样才能收到消息, 并返回历史消息
@@ -81,7 +82,7 @@ export enum NTQQApiMethod {
   OPEN_EXTRA_WINDOW = 'openExternalWindow',
 
   SET_QQ_AVATAR = 'nodeIKernelProfileService/setHeader',
-  GET_SKEY = 'nodeIKernelTipOffService/getPskey',
+  GET_PSKEY = 'nodeIKernelTipOffService/getPskey',
   UPDATE_SKEY = 'updatePskey',
 
   FETCH_UNITED_COMMEND_CONFIG = 'nodeIKernelUnitedConfigService/fetchUnitedCommendConfig', // 发包需要调用的

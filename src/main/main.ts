@@ -55,6 +55,7 @@ import { log } from '../common/utils/log'
 import { getConfigUtil } from '../common/config'
 import { checkFfmpeg } from '../common/utils/video'
 import { GroupDecreaseSubType, OB11GroupDecreaseEvent } from '../onebot11/event/notice/OB11GroupDecreaseEvent'
+import '../ntqqapi/native/wrapper'
 
 let running = false
 
@@ -481,9 +482,9 @@ function onLoad() {
 
 // 创建窗口时触发
 function onBrowserWindowCreated(window: BrowserWindow) {
-  if (selfInfo.uid) {
-    return
-  }
+  // if (selfInfo.uid) {
+  //   return
+  // }
   mainWindow = window
   log('window create', window.webContents.getURL().toString())
   try {

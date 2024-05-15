@@ -1,14 +1,14 @@
 import { Response } from 'express'
 import { OB11Response } from '../action/OB11Response'
-import { HttpServerBase } from '../../common/server/http'
+import { HttpServerBase } from '@/common/server/http'
 import { actionHandlers, actionMap } from '../action'
-import { getConfigUtil } from '../../common/config'
+import { getConfigUtil } from '@/common/config'
 import { postOB11Event } from './postOB11Event'
 import { OB11HeartbeatEvent } from '../event/meta/OB11HeartbeatEvent'
-import { selfInfo } from '../../common/data'
+import { selfInfo } from '@/common/data'
 
 class OB11HTTPServer extends HttpServerBase {
-  name = 'OneBot V11 server'
+  name = 'LLOneBot server'
 
   handleFailed(res: Response, payload: any, e: any) {
     res.send(OB11Response.error(e.stack.toString(), 200))

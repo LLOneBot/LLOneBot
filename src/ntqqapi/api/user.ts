@@ -3,9 +3,18 @@ import { Group, SelfInfo, User } from '../types'
 import { ReceiveCmdS } from '../hook'
 import { selfInfo, uidMaps } from '../../common/data'
 import { NTQQWindowApi, NTQQWindows } from './window'
-import { isQQ998, log, sleep } from '../../common/utils'
+import { cacheFunc, isQQ998, log, sleep } from '../../common/utils'
+import { wrapperApi } from '@/ntqqapi/native/wrapper'
+import * as https from 'https'
 
 let userInfoCache: Record<string, User> = {} // uid: User
+
+export interface ClientKeyData extends GeneralCallResult {
+  url: string;
+  keyIndex: string;
+  clientKey: string;
+  expireTime: string;
+}
 
 export class NTQQUserApi {
   static async setQQAvatar(filePath: string) {
@@ -28,6 +37,7 @@ export class NTQQUserApi {
       timeoutSecond: 2,
     })
   }
+
   static async getUserInfo(uid: string) {
     const result = await callNTQQApi<{ profiles: Map<string, User> }>({
       methodName: NTQQApiMethod.USER_INFO,
@@ -36,6 +46,7 @@ export class NTQQUserApi {
     })
     return result.profiles.get(uid)
   }
+
   static async getUserDetailInfo(uid: string, getLevel = false) {
     // this.getUserInfo(uid);
     let methodName = !isQQ998 ? NTQQApiMethod.USER_DETAIL_INFO : NTQQApiMethod.USER_DETAIL_INFO_WITH_BIZ_INFO
@@ -84,64 +95,46 @@ export class NTQQUserApi {
       ],
     })
   }
-  static async getSkey(groupName: string, groupCode: string): Promise<{ data: string }> {
-    return await NTQQWindowApi.openWindow<{ data: string }>(
-      NTQQWindows.GroupHomeWorkWindow,
-      [
-        {
-          groupName,
-          groupCode,
-          source: 'funcbar',
-        },
-      ],
-      ReceiveCmdS.SKEY_UPDATE,
-      1,
-    )
-    // return await callNTQQApi<string>({
-    //     className: NTQQApiClass.GROUP_HOME_WORK,
-    //     methodName: NTQQApiMethod.UPDATE_SKEY,
-    //     args: [
-    //         {
-    //             domain: "qun.qq.com"
-    //         }
-    //     ]
-    // })
-    // return await callNTQQApi<GeneralCallResult>({
-    //     methodName: NTQQApiMethod.GET_SKEY,
-    //     args: [
-    //         {
-    //             "domains": [
-    //                 "qzone.qq.com",
-    //                 "qlive.qq.com",
-    //                 "qun.qq.com",
-    //                 "gamecenter.qq.com",
-    //                 "vip.qq.com",
-    //                 "qianbao.qq.com",
-    //                 "qidian.qq.com"
-    //             ],
-    //             "isForNewPCQQ": false
-    //         },
-    //         null
-    //     ]
-    // })
+
+  static async getSkey(): Promise<string> {
+    const clientKeyData = await this.getClientKey()
+    if (clientKeyData.result !== 0) {
+      throw new Error('获取clientKey失败')
+    }
+    const url = 'https://ssl.ptlogin2.qq.com/jump?ptlang=1033&clientuin=' + selfInfo.uin
+      + '&clientkey=' + clientKeyData.clientKey
+      + '&u1=https%3A%2F%2Fh5.qzone.qq.com%2Fqqnt%2Fqzoneinpcqq%2Ffriend%3Frefresh%3D0%26clientuin%3D0%26darkMode%3D0&keyindex=' + clientKeyData.keyIndex
+
+    return new Promise((resolve, reject) => {
+      const req = https.get(url, (res) => {
+        const rawCookies = res.headers['set-cookie']
+        const cookies = {}
+        rawCookies.forEach(cookie => {
+          // 使用正则表达式匹配 cookie 名称和值
+          const regex = /([^=;]+)=([^;]*)/
+          const match = regex.exec(cookie)
+          if (match) {
+            cookies[match[1].trim()] = match[2].trim()
+          }
+        })
+        resolve(cookies['skey'])
+      })
+      req.on('error', e => {
+        reject(e)
+      });
+      req.end();
+    });
   }
 
-  static async getCookie(group: Group) {
-    let cookies = await this.getCookieWithoutSkey()
-    let skey = ''
-    for (let i = 0; i < 2; i++) {
-      skey = (await this.getSkey(group.groupName, group.groupCode)).data
-      skey = skey.trim()
-      if (skey) {
-        break
-      }
-      await sleep(1000)
-    }
-    if (!skey) {
-      throw new Error('获取skey失败')
+  @cacheFunc(60 * 30 * 1000)
+  static async getCookies(domain: string) {
+    const skey = await this.getSkey();
+    const pskey= (await this.getPSkey([domain])).get(domain);
+    if (!pskey || !skey) {
+      throw new Error('获取Cookies失败')
     }
     const bkn = NTQQUserApi.genBkn(skey)
-    cookies = cookies.replace('skey=;', `skey=${skey};`)
+    const cookies = `p_skey=${pskey}; skey=${skey}; p_uin=o${selfInfo.uin}`;
     return { cookies, bkn }
   }
 
@@ -156,4 +149,17 @@ export class NTQQUserApi {
 
     return (hash & 0x7fffffff).toString()
   }
+
+  static async getPSkey(domains: string[]): Promise<Map<string, string>> {
+    const res = await wrapperApi.NodeIQQNTWrapperSession.getTipOffService().getPskey(domains, true)
+    if (res.result !== 0) {
+      throw new Error(`获取Pskey失败: ${res.errMsg}`)
+    }
+    return res.domainPskeyMap
+  }
+
+  static async getClientKey(): Promise<ClientKeyData> {
+    return await wrapperApi.NodeIQQNTWrapperSession.getTicketService().forceFetchClientKey('')
+  }
+
 }
