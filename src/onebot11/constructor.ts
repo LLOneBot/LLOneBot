@@ -1,4 +1,4 @@
-import fastXmlParser, { XMLParser } from 'fast-xml-parser'
+import fastXmlParser from 'fast-xml-parser'
 import {
   OB11Group,
   OB11GroupMember,
@@ -16,8 +16,7 @@ import {
   GrayTipElementSubType,
   Group,
   GroupMember,
-  IMAGE_HTTP_HOST,
-  IMAGE_HTTP_HOST_NT,
+  PicType,
   RawMessage,
   SelfInfo,
   Sex,
@@ -25,7 +24,7 @@ import {
   User,
   VideoElement,
 } from '../ntqqapi/types'
-import { deleteGroup, getFriend, getGroupMember, groups, selfInfo, tempGroupCodeMap } from '../common/data'
+import { deleteGroup, getFriend, getGroupMember, selfInfo, tempGroupCodeMap } from '../common/data'
 import { EventType } from './event/OB11BaseEvent'
 import { encodeCQCode } from './cqcode'
 import { dbUtil } from '../common/db'
@@ -156,7 +155,12 @@ export class OB11Constructor {
       else if (element.picElement) {
         message_data['type'] = 'image'
         // message_data["data"]["file"] = element.picElement.sourcePath
-        message_data['data']['file'] = element.picElement.fileName
+        let fileName = element.picElement.fileName;
+        const sourcePath = element.picElement.sourcePath;
+        if (element.picElement.picType === PicType.gif && !fileName.endsWith('.gif')){
+          fileName += ".gif";
+        }
+        message_data['data']['file'] = fileName
         // message_data["data"]["path"] = element.picElement.sourcePath
         // let currentRKey = "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
 
@@ -164,9 +168,9 @@ export class OB11Constructor {
         // message_data["data"]["file_id"] = element.picElement.fileUuid
         message_data['data']['file_size'] = element.picElement.fileSize
         dbUtil
-          .addFileCache(element.picElement.fileName, {
-            fileName: element.picElement.fileName,
-            filePath: element.picElement.sourcePath,
+          .addFileCache(fileName, {
+            fileName,
+            filePath: sourcePath,
             fileSize: element.picElement.fileSize.toString(),
             url: message_data['data']['url'],
             downloadFunc: async () => {
