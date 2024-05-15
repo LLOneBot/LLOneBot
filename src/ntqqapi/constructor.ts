@@ -2,7 +2,6 @@ import {
   AtType,
   ElementType,
   FaceIndex,
-  FaceType,
   PicType,
   SendArkElement,
   SendFaceElement,
@@ -22,6 +21,7 @@ import { log } from '../common/utils/log'
 import { defaultVideoThumb, getVideoInfo } from '../common/utils/video'
 import { encodeSilk } from '../common/utils/audio'
 import { isNull } from '../common/utils'
+import faceConfig from './face_config.json';
 
 export const mFaceCache = new Map<string, string>() // emojiId -> faceName
 
@@ -265,13 +265,30 @@ export class SendMsgElementConstructor {
   }
 
   static face(faceId: number): SendFaceElement {
+    // 从face_config.json中获取表情名称
+    const sysFaces = faceConfig.sysface
+    const emojiFaces = faceConfig.emoji
+    const face = sysFaces.find((face) => face.QSid === faceId.toString())
     faceId = parseInt(faceId.toString())
+    // let faceType = parseInt(faceId.toString().substring(0, 1));
+    let faceType = 1
+    if (faceId >= 222){
+      faceType = 2
+    }
+    if (face.AniStickerType){
+      faceType = 3;
+    }
     return {
       elementType: ElementType.FACE,
       elementId: '',
       faceElement: {
         faceIndex: faceId,
-        faceType: faceId < 222 ? FaceType.normal : FaceType.normal2,
+        faceType,
+        faceText: face.QDes,
+        stickerId: face.AniStickerId,
+        stickerType: face.AniStickerType,
+        packId: face.AniStickerPackId,
+        sourceType: 1,
       },
     }
   }
@@ -298,7 +315,7 @@ export class SendMsgElementConstructor {
       elementId: '',
       faceElement: {
         faceIndex: FaceIndex.dice,
-        faceType: FaceType.dice,
+        faceType: 3,
         faceText: '[骰子]',
         packId: '1',
         stickerId: '33',
