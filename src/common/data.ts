@@ -4,6 +4,7 @@ import { NTQQGroupApi } from '../ntqqapi/api/group'
 import { log } from './utils/log'
 import { isNumeric } from './utils/helper'
 import { NTQQFriendApi } from '../ntqqapi/api'
+import { WebApiGroupMember } from '@/ntqqapi/api/webapi'
 
 export const selfInfo: SelfInfo = {
   uid: '',
@@ -11,6 +12,10 @@ export const selfInfo: SelfInfo = {
   nick: '',
   online: true,
 }
+export const WebGroupData = {
+  GroupData: new Map<string, Array<WebApiGroupMember>>(),
+  GroupTime: new Map<string, number>()
+};
 export let groups: Group[] = []
 export let friends: Friend[] = []
 export let friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>()

@@ -4,7 +4,6 @@ import { hookApiCallbacks, ReceiveCmd, ReceiveCmdS, registerReceiveHook, removeR
 import { v4 as uuidv4 } from 'uuid'
 import { log } from '../common/utils/log'
 import { NTQQWindow, NTQQWindowApi, NTQQWindows } from './api/window'
-import { WebApi } from './api/webapi'
 import { HOOK_LOG } from '../common/config'
 
 export enum NTQQApiClass {
