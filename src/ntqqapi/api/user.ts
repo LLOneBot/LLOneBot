@@ -134,7 +134,7 @@ export class NTQQUserApi {
       throw new Error('获取Cookies失败')
     }
     const bkn = NTQQUserApi.genBkn(skey)
-    const cookies = `p_skey=${pskey}; skey=${skey}; p_uin=o${selfInfo.uin}`;
+    const cookies = `p_skey=${pskey}; skey=${skey}; p_uin=o${selfInfo.uin}; uin=o${selfInfo.uin}`;
     return { cookies, bkn }
   }
 
