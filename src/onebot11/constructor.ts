@@ -270,6 +270,7 @@ export class OB11Constructor {
         message_data['data']['emoji_id'] = element.marketFaceElement.emojiId
         message_data['data']['emoji_package_id'] = String(element.marketFaceElement.emojiPackageId)
         message_data['data']['key'] = element.marketFaceElement.key
+        message_data['data']['name'] = element.marketFaceElement.faceName
         mFaceCache.set(md5, element.marketFaceElement.faceName)
       }
       else if (element.markdownElement) {
