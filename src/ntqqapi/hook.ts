@@ -1,26 +1,26 @@
 import { BrowserWindow } from 'electron'
 import { NTQQApiClass, NTQQApiMethod } from './ntcall'
 import { NTQQMsgApi, sendMessagePool } from './api/msg'
-import { ChatType, Group, GroupMember, GroupMemberRole, RawMessage, User } from './types'
+import { CategoryFriend, ChatType, Group, GroupMember, GroupMemberRole, RawMessage, User } from './types'
 import {
   deleteGroup,
   friends,
   getFriend,
   getGroupMember,
-  groups,
+  groups, rawFriends,
   selfInfo,
   tempGroupCodeMap,
   uidMaps,
-} from '../common/data'
+} from '@/common/data'
 import { OB11GroupDecreaseEvent } from '../onebot11/event/notice/OB11GroupDecreaseEvent'
 import { v4 as uuidv4 } from 'uuid'
 import { postOb11Event } from '../onebot11/server/post-ob11-event'
-import { getConfigUtil, HOOK_LOG } from '../common/config'
+import { getConfigUtil, HOOK_LOG } from '@/common/config'
 import fs from 'fs'
-import { dbUtil } from '../common/db'
+import { dbUtil } from '@/common/db'
 import { NTQQGroupApi } from './api/group'
-import { log } from '../common/utils/log'
-import { isNumeric, sleep } from '../common/utils/helper'
+import { log } from '@/common/utils'
+import { isNumeric, sleep } from '@/common/utils'
 import { OB11Constructor } from '../onebot11/constructor'
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
@@ -380,8 +380,10 @@ registerReceiveHook<{
 
 // 好友列表变动
 registerReceiveHook<{
-  data: { categoryId: number; categroyName: string; categroyMbCount: number; buddyList: User[] }[]
+  data:CategoryFriend[]
 }>(ReceiveCmdS.FRIENDS, (payload) => {
+  rawFriends.length = 0;
+  rawFriends.push(...payload.data);
   for (const fData of payload.data) {
     const _friends = fData.buddyList
     for (let friend of _friends) {
