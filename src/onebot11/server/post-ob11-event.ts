@@ -35,7 +35,7 @@ export function postWsEvent(event: PostEventType) {
   for (const ws of eventWSList) {
     new Promise(() => {
       wsReply(ws, event)
-    }).then()
+    }).then().catch(log)
   }
 }
 
@@ -79,7 +79,7 @@ export function postOb11Event(msg: PostEventType, reportSelf = false, postWs = t
         (err: any) => {
           log(`新消息事件HTTP上报失败: ${host} `, err, msg)
         },
-      )
+      ).catch(log)
     }
   }
   if (postWs) {
