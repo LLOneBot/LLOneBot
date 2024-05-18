@@ -1,16 +1,16 @@
 import { OB11User } from '../../types'
 import { OB11Constructor } from '../../constructor'
-import { friends } from '../../../common/data'
+import { friends, rawFriends } from '@/common/data'
 import BaseAction from '../BaseAction'
 import { ActionName } from '../types'
-import { NTQQFriendApi } from '../../../ntqqapi/api'
-import { log } from '../../../common/utils'
+import { NTQQFriendApi } from '@/ntqqapi/api'
+import { CategoryFriend } from '@/ntqqapi/types'
 
 interface Payload {
   no_cache: boolean | string
 }
 
-class GetFriendList extends BaseAction<Payload, OB11User[]> {
+export class GetFriendList extends BaseAction<Payload, OB11User[]> {
   actionName = ActionName.GetFriendList
 
   protected async _handle(payload: Payload) {
@@ -26,4 +26,11 @@ class GetFriendList extends BaseAction<Payload, OB11User[]> {
   }
 }
 
-export default GetFriendList
+
+export class GetFriendWithCategory extends BaseAction<void, Array<CategoryFriend>> {
+  actionName = ActionName.GetFriendsWithCategory;
+
+  protected async _handle(payload: void) {
+    return rawFriends;
+  }
+}
