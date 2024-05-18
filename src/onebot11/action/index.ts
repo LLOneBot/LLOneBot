@@ -1,6 +1,6 @@
 import GetMsg from './msg/GetMsg'
 import GetLoginInfo from './system/GetLoginInfo'
-import GetFriendList from './user/GetFriendList'
+import { GetFriendList, GetFriendWithCategory} from './user/GetFriendList'
 import GetGroupList from './group/GetGroupList'
 import GetGroupInfo from './group/GetGroupInfo'
 import GetGroupMemberList from './group/GetGroupMemberList'
@@ -58,6 +58,7 @@ export const actionHandlers = [
   new SetConfigAction(),
   new GetGroupAddRequest(),
   new SetQQAvatar(),
+  new GetFriendWithCategory(),
   // onebot11
   new SendLike(),
   new GetMsg(),

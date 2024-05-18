@@ -10,6 +10,7 @@ export interface QQLevel {
   moonNum: number
   starNum: number
 }
+
 export interface User {
   uid: string // 加密的字符串
   uin: string // QQ号
@@ -72,4 +73,12 @@ export interface SelfInfo extends User {
   online?: boolean
 }
 
-export interface Friend extends User {}
+export interface Friend extends User {
+}
+
+export interface CategoryFriend {
+  categoryId: number;
+  categroyName: string;
+  categroyMbCount: number;
+  buddyList: User[]
+}
