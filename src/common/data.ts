@@ -1,4 +1,12 @@
-import { type Friend, type FriendRequest, type Group, type GroupMember, type SelfInfo } from '../ntqqapi/types'
+import {
+  CategoryFriend,
+  type Friend,
+  type FriendRequest,
+  type Group,
+  type GroupMember,
+  type SelfInfo,
+  User,
+} from '../ntqqapi/types'
 import { type FileCache, type LLOneBotError } from './types'
 import { NTQQGroupApi } from '../ntqqapi/api/group'
 import { log } from './utils/log'
@@ -14,8 +22,8 @@ export const selfInfo: SelfInfo = {
 }
 export const WebGroupData = {
   GroupData: new Map<string, Array<WebApiGroupMember>>(),
-  GroupTime: new Map<string, number>()
-};
+  GroupTime: new Map<string, number>(),
+}
 export let groups: Group[] = []
 export let friends: Friend[] = []
 export let friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>()
@@ -53,7 +61,8 @@ export async function getGroup(qq: string): Promise<Group | undefined> {
       if (group) {
         groups.push(group)
       }
-    } catch (e) {}
+    } catch (e) {
+    }
   }
   return group
 }
@@ -111,3 +120,5 @@ export function getUidByUin(uin: string) {
 }
 
 export let tempGroupCodeMap: Record<string, string> = {} // peerUid => 群号
+
+export let rawFriends: CategoryFriend[] = []

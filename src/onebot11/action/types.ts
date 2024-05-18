@@ -21,6 +21,7 @@ export enum ActionName {
   SetConfig = 'set_config',
   Debug = 'llonebot_debug',
   GetFile = 'get_file',
+  GetFriendsWithCategory = 'get_friends_with_category',
   // onebot 11
   SendLike = 'send_like',
   GetLoginInfo = 'get_login_info',
