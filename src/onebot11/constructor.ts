@@ -55,10 +55,11 @@ export class OB11Constructor {
     let config = getConfigUtil().getConfig()
     const {
       enableLocalFile2Url,
+      debug,
       ob11: { messagePostFormat },
     } = config
     const message_type = msg.chatType == ChatType.group ? 'group' : 'private'
-    const resMsg: OB11Message = {
+    let resMsg: OB11Message = {
       self_id: parseInt(selfInfo.uin),
       user_id: parseInt(msg.senderUin),
       time: parseInt(msg.msgTime) || Date.now(),
@@ -78,8 +79,11 @@ export class OB11Constructor {
       message_format: messagePostFormat === 'string' ? 'string' : 'array',
       post_type: selfInfo.uin == msg.senderUin ? EventType.MESSAGE_SENT : EventType.MESSAGE,
     }
+    if (debug){
+      resMsg.raw = msg
+    }
     if (msg.chatType == ChatType.group) {
-      resMsg.sub_type = 'normal' // 这里go-cqhttp是group，而onebot11标准是normal, 蛋疼
+      resMsg.sub_type = 'normal'
       resMsg.group_id = parseInt(msg.peerUin)
       const member = await getGroupMember(msg.peerUin, msg.senderUin)
       if (member) {
