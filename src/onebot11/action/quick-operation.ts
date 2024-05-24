@@ -10,6 +10,7 @@ import { ChatType, Group, GroupRequestOperateTypes } from '@/ntqqapi/types'
 import { getGroup, getUidByUin } from '@/common/data'
 import { convertMessage2List, createSendElements, sendMsg } from './msg/SendMsg'
 import { isNull, log } from '@/common/utils'
+import { getConfigUtil } from '@/common/config'
 
 
 interface QuickOperationPrivateMessage {
@@ -49,8 +50,8 @@ export async function handleQuickOperation(context: QuickOperationEvent, quickAc
     handleMsg(context as OB11Message, quickAction).then().catch(log)
   }
   if (context.post_type === 'request') {
-    const friendRequest = context as OB11FriendRequestEvent;
-    const groupRequest = context as OB11GroupRequestEvent;
+    const friendRequest = context as OB11FriendRequestEvent
+    const groupRequest = context as OB11GroupRequestEvent
     if ((friendRequest).request_type === 'friend') {
       handleFriendRequest(friendRequest, quickAction).then().catch(log)
     }
@@ -64,6 +65,7 @@ async function handleMsg(msg: OB11Message, quickAction: QuickOperationPrivateMes
   msg = msg as OB11Message
   const rawMessage = await dbUtil.getMsgByShortId(msg.message_id)
   const reply = quickAction.reply
+  const ob11Config = getConfigUtil().getConfig().ob11
   let peer: Peer = {
     chatType: ChatType.friend,
     peerUid: msg.user_id.toString(),
@@ -80,14 +82,15 @@ async function handleMsg(msg: OB11Message, quickAction: QuickOperationPrivateMes
   }
   if (reply) {
     let group: Group = null
-    let replyMessage: OB11MessageData[] = [
-      {
+    let replyMessage: OB11MessageData[] = []
+    if (ob11Config.enableQOAutoQuote) {
+      replyMessage.push({
         type: OB11MessageDataType.reply,
         data: {
           id: msg.message_id.toString(),
         },
-      }
-    ]
+      })
+    }
 
     if (msg.message_type == 'group') {
       group = await getGroup(msg.group_id.toString())

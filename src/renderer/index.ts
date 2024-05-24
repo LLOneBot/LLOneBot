@@ -171,6 +171,11 @@ async function onSettingWindowCreated(view: Element) {
           `<div class="q-input" style="width:210px;"><input class="q-input__inner" data-config-key="musicSignUrl" type="text" value="${config.musicSignUrl}" placeholder="未设置" /></div>`,
           'config-musicSignUrl',
         ),
+        SettingItem(
+          '快速操作回复自动引用原消息',
+          null,
+          SettingSwitch('ob11.enableQOAutoQuote', config.ob11.enableQOAutoQuote, { 'control-display-id': 'config-ob11-enableQOAutoQuote' }),
+        ),
         SettingItem('', null, SettingButton('保存', 'config-ob11-save', 'primary')),
       ]),
       SettingList([
