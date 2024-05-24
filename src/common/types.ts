@@ -10,6 +10,7 @@ export interface OB11Config {
   enableWsReverse?: boolean
   messagePostFormat?: 'array' | 'string'
   enableHttpHeart?: boolean
+  enableQOAutoQuote: boolean  // 快速操作回复自动引用原消息
 }
 export interface CheckVersion {
   result: boolean

@@ -40,6 +40,7 @@ export class ConfigUtil {
       enableWsReverse: false,
       messagePostFormat: 'array',
       enableHttpHeart: false,
+      enableQOAutoQuote: false
     }
     let defaultConfig: Config = {
       ob11: ob11Default,
