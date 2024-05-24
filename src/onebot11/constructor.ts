@@ -59,7 +59,7 @@ export class OB11Constructor {
       ob11: { messagePostFormat },
     } = config
     const message_type = msg.chatType == ChatType.group ? 'group' : 'private'
-    let resMsg: OB11Message = {
+    const resMsg: OB11Message = {
       self_id: parseInt(selfInfo.uin),
       user_id: parseInt(msg.senderUin),
       time: parseInt(msg.msgTime) || Date.now(),
@@ -79,7 +79,7 @@ export class OB11Constructor {
       message_format: messagePostFormat === 'string' ? 'string' : 'array',
       post_type: selfInfo.uin == msg.senderUin ? EventType.MESSAGE_SENT : EventType.MESSAGE,
     }
-    if (debug){
+    if (debug) {
       resMsg.raw = msg
     }
     if (msg.chatType == ChatType.group) {
@@ -159,16 +159,16 @@ export class OB11Constructor {
       else if (element.picElement) {
         message_data['type'] = 'image'
         // message_data["data"]["file"] = element.picElement.sourcePath
-        let fileName = element.picElement.fileName;
-        const sourcePath = element.picElement.sourcePath;
-        if (element.picElement.picType === PicType.gif && !fileName.endsWith('.gif')){
-          fileName += ".gif";
+        let fileName = element.picElement.fileName
+        const sourcePath = element.picElement.sourcePath
+        if (element.picElement.picType === PicType.gif && !fileName.endsWith('.gif')) {
+          fileName += '.gif'
         }
         message_data['data']['file'] = fileName
         // message_data["data"]["path"] = element.picElement.sourcePath
         // let currentRKey = "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
 
-        message_data['data']['url'] = await NTQQFileApi.getImageUrl(element.picElement, msg.chatType);
+        message_data['data']['url'] = await NTQQFileApi.getImageUrl(element.picElement, msg.chatType)
         // message_data["data"]["file_id"] = element.picElement.fileUuid
         message_data['data']['file_size'] = element.picElement.fileSize
         dbUtil
