@@ -421,7 +421,13 @@ function onLoad() {
       }
     })
     startReceiveHook().then()
-    NTQQGroupApi.getGroups(true).then()
+    NTQQGroupApi.getGroups(true).then(groups=> {
+        for (let group of groups) {
+        }
+      }
+    ).catch(log)
+    NTQQGroupApi.activateMemberInfoChange().then().catch(log)
+    NTQQGroupApi.activateMemberListChange().then().catch(log)
     const config = getConfigUtil().getConfig()
     if (config.ob11.enableHttp) {
       ob11HTTPServer.start(config.ob11.httpPort)
