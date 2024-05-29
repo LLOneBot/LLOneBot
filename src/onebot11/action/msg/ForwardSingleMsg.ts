@@ -43,6 +43,6 @@ export class ForwardFriendSingleMsg extends ForwardSingleMsg {
   actionName = ActionName.ForwardFriendSingleMsg
 }
 
-export class ForwardSingleGroupMsg extends ForwardSingleMsg {
+export class ForwardGroupSingleMsg extends ForwardSingleMsg {
   actionName = ActionName.ForwardGroupSingleMsg
 }
