@@ -6,6 +6,7 @@ import { NTQQWindowApi, NTQQWindows } from './window'
 import { cacheFunc, isQQ998, log, sleep } from '../../common/utils'
 import { wrapperApi } from '@/ntqqapi/native/wrapper'
 import * as https from 'https'
+import { RequestUtil } from '@/common/utils/request'
 
 let userInfoCache: Record<string, User> = {} // uid: User
 
@@ -98,7 +99,16 @@ export class NTQQUserApi {
       ],
     })
   }
-
+  static async getQzoneCookies() {
+    const requestUrl = 'https://ssl.ptlogin2.qq.com/jump?ptlang=1033&clientuin=' + selfInfo.uin + '&clientkey=' + this.getClientKey() + '&u1=https%3A%2F%2Fuser.qzone.qq.com%2F' + selfInfo.uin + '%2Finfocenter&keyindex=19%27'
+    let cookies: { [key: string]: string; } = {};
+    try {
+      cookies = await RequestUtil.HttpsGetCookies(requestUrl);
+    } catch (e: any) {
+      cookies = {}
+    }
+    return cookies;
+  }
   static async getSkey(): Promise<string> {
     const clientKeyData = await this.getClientKey()
     if (clientKeyData.result !== 0) {
@@ -106,33 +116,19 @@ export class NTQQUserApi {
     }
     const url = 'https://ssl.ptlogin2.qq.com/jump?ptlang=1033&clientuin=' + selfInfo.uin
       + '&clientkey=' + clientKeyData.clientKey
-      + '&u1=https%3A%2F%2Fh5.qzone.qq.com%2Fqqnt%2Fqzoneinpcqq%2Ffriend%3Frefresh%3D0%26clientuin%3D0%26darkMode%3D0&keyindex=' + clientKeyData.keyIndex
-
-    return new Promise((resolve, reject) => {
-      const req = https.get(url, (res) => {
-        const rawCookies = res.headers['set-cookie']
-        const cookies = {}
-        rawCookies.forEach(cookie => {
-          // 使用正则表达式匹配 cookie 名称和值
-          const regex = /([^=;]+)=([^;]*)/
-          const match = regex.exec(cookie)
-          if (match) {
-            cookies[match[1].trim()] = match[2].trim()
-          }
-        })
-        resolve(cookies['skey'])
-      })
-      req.on('error', e => {
-        reject(e)
-      });
-      req.end();
-    });
+      + '&u1=https%3A%2F%2Fh5.qzone.qq.com%2Fqqnt%2Fqzoneinpcqq%2Ffriend%3Frefresh%3D0%26clientuin%3D0%26darkMode%3D0&keyindex=' + clientKeyData.keyIndex;
+    return (await RequestUtil.HttpsGetCookies(url))?.skey;
   }
 
   @cacheFunc(60 * 30 * 1000)
   static async getCookies(domain: string) {
+    if (domain.endsWith("qzone.qq.com")) {
+      let data = (await NTQQUserApi.getQzoneCookies());
+      const CookieValue = 'p_skey=' + data.p_skey + '; skey=' + data.skey + '; p_uin=o' + selfInfo.uin + '; uin=o' + selfInfo.uin;
+      return { bkn: NTQQUserApi.genBkn(data.p_skey), cookies: CookieValue };
+    }
     const skey = await this.getSkey();
-    const pskey= (await this.getPSkey([domain])).get(domain);
+    const pskey = (await this.getPSkey([domain])).get(domain);
     if (!pskey || !skey) {
       throw new Error('获取Cookies失败')
     }
