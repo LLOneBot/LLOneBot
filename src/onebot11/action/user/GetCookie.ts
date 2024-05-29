@@ -1,6 +1,6 @@
 import BaseAction from '../BaseAction'
-import { NTQQUserApi } from '../../../ntqqapi/api'
-import { groups } from '../../../common/data'
+import { NTQQUserApi, WebApi } from '../../../ntqqapi/api'
+import { groups, selfInfo } from '../../../common/data'
 import { ActionName } from '../types'
 
 interface Payload {
