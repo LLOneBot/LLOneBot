@@ -122,6 +122,11 @@ export class NTQQUserApi {
 
   @cacheFunc(60 * 30 * 1000)
   static async getCookies(domain: string) {
+    if (domain.endsWith("qzone.qq.com")) {
+      let data = (await NTQQUserApi.getQzoneCookies());
+      const CookieValue = 'p_skey=' + data.p_skey + '; skey=' + data.skey + '; p_uin=o' + selfInfo.uin + '; uin=o' + selfInfo.uin;
+      return { bkn: NTQQUserApi.genBkn(data.p_skey), cookies: CookieValue };
+    }
     const skey = await this.getSkey();
     const pskey = (await this.getPSkey([domain])).get(domain);
     if (!pskey || !skey) {
