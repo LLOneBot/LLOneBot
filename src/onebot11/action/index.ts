@@ -46,7 +46,7 @@ import GetFile from './file/GetFile'
 import { GoCQHTTGetForwardMsgAction } from './go-cqhttp/GetForwardMsg'
 import { GetCookies } from './user/GetCookie'
 import { SetMsgEmojiLike } from './msg/SetMsgEmojiLike'
-import { ForwardFriendSingleMsg, ForwardSingleGroupMsg } from './msg/ForwardSingleMsg'
+import { ForwardFriendSingleMsg, ForwardGroupSingleMsg } from './msg/ForwardSingleMsg'
 import { GetGroupEssence } from './group/GetGroupEssence'
 import { GetGroupHonorInfo } from './group/GetGroupHonorInfo'
 import { GoCQHTTHandleQuickOperation } from './go-cqhttp/QuickOperation'
@@ -91,7 +91,7 @@ export const actionHandlers = [
   new GetCookies(),
   new SetMsgEmojiLike(),
   new ForwardFriendSingleMsg(),
-  new ForwardSingleGroupMsg(),
+  new ForwardGroupSingleMsg(),
   //以下为go-cqhttp api
   new GetGroupEssence(),
   new GetGroupHonorInfo(),
