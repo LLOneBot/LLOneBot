@@ -85,6 +85,7 @@ export class ReverseWebsocket {
         'X-Self-ID': selfInfo.uin,
         Authorization: `Bearer ${token}`,
         'x-client-role': 'Universal', // koishi-adapter-onebot 需要这个字段
+        'User-Agent': 'LLOneBot',
       },
     })
     registerWsEventSender(this.websocket)
