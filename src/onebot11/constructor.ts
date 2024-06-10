@@ -200,6 +200,13 @@ export class OB11Constructor {
         message_data['data']['path'] = videoOrFileElement.filePath
         message_data['data']['file_id'] = videoOrFileElement.fileUuid
         message_data['data']['file_size'] = videoOrFileElement.fileSize
+        if (element.videoElement) {
+          message_data['data']['url'] = await NTQQFileApi.getVideoUrl({
+              chatType: msg.chatType,
+              peerUid: msg.peerUid,
+            }, msg.msgId, element.elementId,
+          )
+        }
         dbUtil
           .addFileCache(videoOrFileElement.fileUuid, {
             msgId: msg.msgId,
