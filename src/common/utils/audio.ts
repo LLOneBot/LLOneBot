@@ -134,7 +134,7 @@ export async function encodeSilk(filePath: string) {
 export async function decodeSilk(inputFilePath: string, outFormat: 'mp3' | 'amr' | 'wma' | 'm4a' | 'spx' | 'ogg' | 'wav' | 'flac' = 'mp3') {
   const silkArrayBuffer = await fsAsync.readFile(inputFilePath)
   const data = (await decode(silkArrayBuffer, 24000)).data
-  const fileName = path.join(TEMP_DIR, uuidv4())
+  const fileName = path.join(TEMP_DIR, path.basename(inputFilePath))
   const outPCMPath = fileName + '.pcm'
   const outFilePath = fileName + '.' + outFormat
   await fsAsync.writeFile(outPCMPath, data)
