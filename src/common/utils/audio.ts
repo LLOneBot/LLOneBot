@@ -1,9 +1,10 @@
 import fs from 'fs'
-import { encode, getDuration, getWavFileInfo, isWav } from 'silk-wasm'
+import fsAsync from 'fs/promises'
 import fsPromise from 'fs/promises'
+import { decode, encode, getDuration, getWavFileInfo, isWav } from 'silk-wasm'
 import { log } from './log'
 import path from 'node:path'
-import { DATA_DIR, TEMP_DIR } from './index'
+import { TEMP_DIR } from './index'
 import { v4 as uuidv4 } from 'uuid'
 import { getConfigUtil } from '../config'
 import { spawn } from 'node:child_process'
@@ -79,7 +80,8 @@ export async function encodeSilk(filePath: string) {
             if (code == null || EXIT_CODES.includes(code)) {
               sampleRate = 24000
               const data = fs.readFileSync(pcmPath)
-              fs.unlink(pcmPath, (err) => {})
+              fs.unlink(pcmPath, (err) => {
+              })
               return resolve(data)
             }
             log(`FFmpeg exit: code=${code ?? 'unknown'} sig=${signal ?? 'unknown'}`)
@@ -127,4 +129,42 @@ export async function encodeSilk(filePath: string) {
     log('convert silk failed', error.stack)
     return {}
   }
+}
+
+export async function decodeSilk(inputFilePath: string, outFormat: 'mp3' | 'amr' | 'wma' | 'm4a' | 'spx' | 'ogg' | 'wav' | 'flac' = 'mp3') {
+  const silkArrayBuffer = await fsAsync.readFile(inputFilePath)
+  const data = (await decode(silkArrayBuffer, 24000)).data
+  const fileName = path.join(TEMP_DIR, uuidv4())
+  const outPCMPath = fileName + '.pcm'
+  const outFilePath = fileName + '.' + outFormat
+  await fsAsync.writeFile(outPCMPath, data)
+  const convert = () => {
+    return new Promise<string>((resolve, reject) => {
+      const ffmpegPath = getConfigUtil().getConfig().ffmpeg || process.env.FFMPEG_PATH || 'ffmpeg'
+      const cp = spawn(ffmpegPath, [
+        '-y',
+        '-f', 's16le',  // PCM format
+        '-ar', '24000', // Sample rate
+        '-ac', '1',     // Number of audio channels
+        '-i', outPCMPath,
+        outFilePath,
+      ])
+      cp.on('error', (err) => {
+        log(`FFmpeg处理转换出错: `, err.message)
+        return reject(err)
+      })
+      cp.on('exit', (code, signal) => {
+        const EXIT_CODES = [0, 255]
+        if (code == null || EXIT_CODES.includes(code)) {
+          fs.unlink(outPCMPath, (err) => {
+          })
+          return resolve(outFilePath)
+        }
+        const exitErr = `FFmpeg exit: code=${code ?? 'unknown'} sig=${signal ?? 'unknown'}`
+        log(exitErr)
+        reject(Error(`FFmpeg处理转换失败,${exitErr}`))
+      })
+    })
+  }
+  return convert()
 }
