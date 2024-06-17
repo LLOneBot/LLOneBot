@@ -171,7 +171,7 @@ export class OB11Constructor {
         message_data['data']['url'] = await NTQQFileApi.getImageUrl(element.picElement, msg.chatType)
         // message_data["data"]["file_id"] = element.picElement.fileUuid
         message_data['data']['file_size'] = element.picElement.fileSize
-        dbUtil
+        await dbUtil
           .addFileCache(fileName, {
             fileName,
             elementId: element.elementId,
@@ -189,7 +189,6 @@ export class OB11Constructor {
               )
             },
           })
-          .then()
         // 不在自动下载图片
       }
       else if (element.videoElement || element.fileElement) {
