@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { encode, getDuration, getWavFileInfo, isWav } from 'silk-wasm'
+import { encode, getDuration, getWavFileInfo, isWav, isSilk } from 'silk-wasm'
 import fsPromise from 'fs/promises'
 import { log } from './log'
 import path from 'node:path'
@@ -60,10 +60,11 @@ export async function encodeSilk(filePath: string) {
   // }
 
   try {
+    const file = await fsPromise.readFile(filePath)
     const pttPath = path.join(TEMP_DIR, uuidv4())
-    if (getFileHeader(filePath) !== '02232153494c4b') {
+    if (!isSilk(file)) {
       log(`语音文件${filePath}需要转换成silk`)
-      const _isWav = await isWavFile(filePath)
+      const _isWav = isWav(file)
       const pcmPath = pttPath + '.pcm'
       let sampleRate = 0
       const convert = () => {
@@ -91,7 +92,7 @@ export async function encodeSilk(filePath: string) {
       if (!_isWav) {
         input = await convert()
       } else {
-        input = fs.readFileSync(filePath)
+        input = file
         const allowSampleRate = [8000, 12000, 16000, 24000, 32000, 44100, 48000]
         const { fmt } = getWavFileInfo(input)
         // log(`wav文件信息`, fmt)
@@ -108,7 +109,7 @@ export async function encodeSilk(filePath: string) {
         duration: silk.duration / 1000,
       }
     } else {
-      const silk = fs.readFileSync(filePath)
+      const silk = file
       let duration = 0
       try {
         duration = getDuration(silk) / 1000
