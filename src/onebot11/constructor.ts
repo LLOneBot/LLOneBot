@@ -188,9 +188,7 @@ export class OB11Constructor {
                 element.picElement.sourcePath,
               )
             },
-          })
-          .then()
-        // 不在自动下载图片
+          }).then()
       }
       else if (element.videoElement || element.fileElement) {
         const videoOrFileElement = element.videoElement || element.fileElement
