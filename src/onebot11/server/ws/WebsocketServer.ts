@@ -27,6 +27,7 @@ class OB11WebsocketServer extends WebsocketServerBase {
     }
     try {
       let handleResult = await action.websocketHandle(params, echo)
+      handleResult.echo = echo
       wsReply(wsClient, handleResult)
     } catch (e) {
       wsReply(wsClient, OB11Response.error(`api处理出错:${e.stack}`, 1200, echo))
