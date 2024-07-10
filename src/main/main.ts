@@ -13,7 +13,7 @@ import {
   CHANNEL_UPDATE,
 } from '../common/channels'
 import { ob11WebsocketServer } from '../onebot11/server/ws/WebsocketServer'
-import { DATA_DIR } from '../common/utils'
+import { DATA_DIR, qqPkgInfo } from '../common/utils'
 import {
   friendRequests,
   getFriend,
@@ -202,7 +202,7 @@ function onLoad() {
 
   async function startReceiveHook() {
     startHook().then()
-    if (getConfigUtil().getConfig().enablePoke) {
+    if (getConfigUtil().getConfig().enablePoke && qqPkgInfo.buildVersion <= '23873') {
       crychic.loadNode()
       crychic.registerPokeHandler((id, isGroup) => {
         log(`收到戳一戳消息了！是否群聊：${isGroup}，id:${id}`)
