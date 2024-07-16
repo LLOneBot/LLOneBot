@@ -47,7 +47,8 @@ import { mFaceCache } from '../ntqqapi/constructor'
 import { OB11FriendAddNoticeEvent } from './event/notice/OB11FriendAddNoticeEvent'
 import { OB11FriendRecallNoticeEvent } from './event/notice/OB11FriendRecallNoticeEvent'
 import { OB11GroupRecallNoticeEvent } from './event/notice/OB11GroupRecallNoticeEvent'
-import { OB11GroupPokeEvent } from './event/notice/OB11PokeEvent'
+import { OB11FriendPokeEvent, OB11GroupPokeEvent } from './event/notice/OB11PokeEvent'
+import { OB11BaseNoticeEvent } from './event/notice/OB11BaseNoticeEvent';
 
 let lastRKeyUpdateTime = 0
 
@@ -307,6 +308,35 @@ export class OB11Constructor {
     return resMsg
   }
 
+  static async PrivateEvent(msg: RawMessage): Promise<OB11BaseNoticeEvent> {
+    if (msg.chatType !== ChatType.friend) {
+      return;
+    }
+    for (const element of msg.elements) {
+      if (element.grayTipElement) {
+        if (element.grayTipElement.subElementType == GrayTipElementSubType.MEMBER_NEW_TITLE) {
+          const json = JSON.parse(element.grayTipElement.jsonGrayTipElement.jsonStr);
+          if (element.grayTipElement.jsonGrayTipElement.busiId == 1061) {
+            //判断业务类型
+            //Poke事件
+            let pokedetail: any[] = json.items;
+            //筛选item带有uid的元素
+            pokedetail = pokedetail.filter(item => item.uid);
+            if (pokedetail.length == 2) {
+              return new OB11FriendPokeEvent(parseInt((uidMaps[pokedetail[0].uid])!), parseInt((uidMaps[pokedetail[1].uid])));
+            }
+          }
+          //下面得改 上面也是错的grayTipElement.subElementType == GrayTipElementSubType.MEMBER_NEW_TITLE
+        }
+      }
+    }
+    // 好友增加事件
+    if (msg.msgType === 5 && msg.subMsgType === 12) {
+      const event = new OB11FriendAddNoticeEvent(parseInt(msg.peerUin))
+      return event
+    }
+  }
+
   static async GroupEvent(msg: RawMessage): Promise<OB11GroupNoticeEvent> {
     if (msg.chatType !== ChatType.group) {
       return
@@ -511,17 +541,6 @@ export class OB11Constructor {
         }
       }
     }
-  }
-
-  static async FriendAddEvent(msg: RawMessage): Promise<OB11FriendAddNoticeEvent | undefined> {
-    if (msg.chatType !== ChatType.friend) {
-      return
-    }
-    if (msg.msgType === 5 && msg.subMsgType === 12) {
-      const event = new OB11FriendAddNoticeEvent(parseInt(msg.peerUin))
-      return event
-    }
-    return
   }
 
   static async RecallEvent(
