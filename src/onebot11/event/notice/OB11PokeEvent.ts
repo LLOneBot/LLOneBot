@@ -10,11 +10,10 @@ class OB11PokeEvent extends OB11BaseNoticeEvent {
 }
 
 export class OB11FriendPokeEvent extends OB11PokeEvent {
-  sender_id: number
-  constructor(user_id: number) {
-    super()
-    this.user_id = user_id
-    this.sender_id = user_id
+  constructor(user_id: number, target_id: number) {
+    super();
+    this.target_id = target_id;
+    this.user_id = user_id;
   }
 }
 

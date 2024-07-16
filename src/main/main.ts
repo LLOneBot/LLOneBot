@@ -191,12 +191,20 @@ function onLoad() {
           postOb11Event(groupEvent)
         }
       })
-      OB11Constructor.FriendAddEvent(message).then((friendAddEvent) => {
-        if (friendAddEvent) {
-          // log("post friend add event", friendAddEvent);
-          postOb11Event(friendAddEvent)
+      OB11Constructor.PrivateEvent(message).then((privateEvent) => {
+        log(message)
+        if (privateEvent) {
+          // log("post private event", privateEvent);
+          postOb11Event(privateEvent)
         }
       })
+      // OB11Constructor.FriendAddEvent(message).then((friendAddEvent) => {
+      //   log(message)
+      //   if (friendAddEvent) {
+      //     // log("post friend add event", friendAddEvent);
+      //     postOb11Event(friendAddEvent)
+      //   }
+      // })
     }
   }
 
@@ -215,7 +223,7 @@ function onLoad() {
             pokeEvent = new OB11GroupPokeEvent(parseInt(id))
           }
           else {
-            pokeEvent = new OB11FriendPokeEvent(parseInt(id))
+            pokeEvent = new OB11FriendPokeEvent(parseInt(selfInfo.uin), parseInt(id))
           }
           postOb11Event(pokeEvent)
         })
