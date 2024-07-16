@@ -191,10 +191,11 @@ function onLoad() {
           postOb11Event(groupEvent)
         }
       })
-      OB11Constructor.FriendAddEvent(message).then((friendAddEvent) => {
-        if (friendAddEvent) {
-          // log("post friend add event", friendAddEvent);
-          postOb11Event(friendAddEvent)
+      OB11Constructor.PrivateEvent(message).then((privateEvent) => {
+        log(message)
+        if (privateEvent) {
+          // log("post private event", privateEvent);
+          postOb11Event(privateEvent)
         }
       })
     }
