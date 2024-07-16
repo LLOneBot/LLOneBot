@@ -309,6 +309,7 @@ export class OB11Constructor {
     resMsg.raw_message = resMsg.raw_message.trim()
     return resMsg
   }
+
   static async PrivateEvent(msg: RawMessage): Promise<OB11BaseNoticeEvent> {
     if (msg.chatType !== ChatType.friend) {
       return;
@@ -331,11 +332,13 @@ export class OB11Constructor {
         }
       }
     }
+    // 好友增加事件
     if (msg.msgType === 5 && msg.subMsgType === 12) {
       const event = new OB11FriendAddNoticeEvent(parseInt(msg.peerUin))
       return event
     }
   }
+
   static async GroupEvent(msg: RawMessage): Promise<OB11GroupNoticeEvent> {
     if (msg.chatType !== ChatType.group) {
       return
@@ -541,17 +544,6 @@ export class OB11Constructor {
       }
     }
   }
-
-  // static async FriendAddEvent(msg: RawMessage): Promise<OB11FriendAddNoticeEvent | undefined> {
-  //   if (msg.chatType !== ChatType.friend) {
-  //     return
-  //   }
-  //   if (msg.msgType === 5 && msg.subMsgType === 12) {
-  //     const event = new OB11FriendAddNoticeEvent(parseInt(msg.peerUin))
-  //     return event
-  //   }
-  //   return
-  // }
 
   static async RecallEvent(
     msg: RawMessage,
