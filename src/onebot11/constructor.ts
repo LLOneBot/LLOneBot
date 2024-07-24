@@ -321,11 +321,11 @@ export class OB11Constructor {
           if (element.grayTipElement.jsonGrayTipElement.busiId == 1061) {
             //判断业务类型
             //Poke事件
-            let pokedetail: any[] = json.items;
+            const pokedetail: any[] = json.items;
             //筛选item带有uid的元素
-            pokedetail = pokedetail.filter(item => item.uid);
-            if (pokedetail.length == 2) {
-              return new OB11FriendPokeEvent(parseInt((uidMaps[pokedetail[0].uid])!), parseInt((uidMaps[pokedetail[1].uid])));
+            const poke_uid = pokedetail.filter(item => item.uid);
+            if (poke_uid.length == 2) {
+              return new OB11FriendPokeEvent(parseInt((uidMaps[poke_uid[0].uid])!), parseInt((uidMaps[poke_uid[1].uid])), pokedetail);
             }
           }
           //下面得改 上面也是错的grayTipElement.subElementType == GrayTipElementSubType.MEMBER_NEW_TITLE
@@ -526,11 +526,11 @@ export class OB11Constructor {
           if (grayTipElement.jsonGrayTipElement.busiId == 1061) {
             //判断业务类型
             //Poke事件
-            let pokedetail: any[] = json.items;
+            const pokedetail: any[] = json.items;
             //筛选item带有uid的元素
-            pokedetail = pokedetail.filter(item => item.uid);
-            if (pokedetail.length == 2) {
-              return new OB11GroupPokeEvent(parseInt(msg.peerUid), parseInt((uidMaps[pokedetail[0].uid])!), parseInt((uidMaps[pokedetail[1].uid])));
+            const poke_uid = pokedetail.filter(item => item.uid);
+            if (poke_uid.length == 2) {
+              return new OB11GroupPokeEvent(parseInt(msg.peerUid), parseInt((uidMaps[poke_uid[0].uid])!), parseInt((uidMaps[poke_uid[1].uid])), pokedetail);
             }
           }
           const memberUin = json.items[1].param[0]
