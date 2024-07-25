@@ -318,34 +318,36 @@ function onLoad() {
             // if (notify.user2.uid) {
             //     member2 = await getGroupMember(notify.group.groupCode, null, notify.user2.uid);
             // }
-            if (
-              [GroupNotifyTypes.ADMIN_SET, GroupNotifyTypes.ADMIN_UNSET, GroupNotifyTypes.ADMIN_UNSET_OTHER].includes(
-                notify.type,
-              )
-            ) {
-              const member1 = await getGroupMember(notify.group.groupCode, notify.user1.uid)
-              log('有管理员变动通知')
-              refreshGroupMembers(notify.group.groupCode).then()
-              let groupAdminNoticeEvent = new OB11GroupAdminNoticeEvent()
-              groupAdminNoticeEvent.group_id = parseInt(notify.group.groupCode)
-              log('开始获取变动的管理员')
-              if (member1) {
-                log('变动管理员获取成功')
-                groupAdminNoticeEvent.user_id = parseInt(member1.uin)
-                groupAdminNoticeEvent.sub_type = [
-                  GroupNotifyTypes.ADMIN_UNSET,
-                  GroupNotifyTypes.ADMIN_UNSET_OTHER,
-                ].includes(notify.type)
-                  ? 'unset'
-                  : 'set'
-                // member1.role = notify.type == GroupNotifyTypes.ADMIN_SET ? GroupMemberRole.admin : GroupMemberRole.normal;
-                postOb11Event(groupAdminNoticeEvent, true)
-              }
-              else {
-                log('获取群通知的成员信息失败', notify, getGroup(notify.group.groupCode))
-              }
-            }
-            else if (notify.type == GroupNotifyTypes.MEMBER_EXIT || notify.type == GroupNotifyTypes.KICK_MEMBER) {
+            // 原本的群管变更通知事件处理
+            // if (
+            //   [GroupNotifyTypes.ADMIN_SET, GroupNotifyTypes.ADMIN_UNSET, GroupNotifyTypes.ADMIN_UNSET_OTHER].includes(
+            //     notify.type,
+            //   )
+            // ) {
+            //   const member1 = await getGroupMember(notify.group.groupCode, notify.user1.uid)
+            //   log('有管理员变动通知')
+            //   refreshGroupMembers(notify.group.groupCode).then()
+            //   let groupAdminNoticeEvent = new OB11GroupAdminNoticeEvent()
+            //   groupAdminNoticeEvent.group_id = parseInt(notify.group.groupCode)
+            //   log('开始获取变动的管理员')
+            //   if (member1) {
+            //     log('变动管理员获取成功')
+            //     groupAdminNoticeEvent.user_id = parseInt(member1.uin)
+            //     groupAdminNoticeEvent.sub_type = [
+            //       GroupNotifyTypes.ADMIN_UNSET,
+            //       GroupNotifyTypes.ADMIN_UNSET_OTHER,
+            //     ].includes(notify.type)
+            //       ? 'unset'
+            //       : 'set'
+            //     // member1.role = notify.type == GroupNotifyTypes.ADMIN_SET ? GroupMemberRole.admin : GroupMemberRole.normal;
+            //     postOb11Event(groupAdminNoticeEvent, true)
+            //   }
+            //   else {
+            //     log('获取群通知的成员信息失败', notify, getGroup(notify.group.groupCode))
+            //   }
+            // }
+            // else 
+            if (notify.type == GroupNotifyTypes.MEMBER_EXIT || notify.type == GroupNotifyTypes.KICK_MEMBER) {
               log('有成员退出通知', notify)
               try {
                 const member1 = await NTQQUserApi.getUserDetailInfo(notify.user1.uid)
