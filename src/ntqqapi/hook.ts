@@ -23,6 +23,7 @@ import { log } from '@/common/utils'
 import { isNumeric, sleep } from '@/common/utils'
 import { OB11Constructor } from '../onebot11/constructor'
 import { OB11GroupCardEvent } from '../onebot11/event/notice/OB11GroupCardEvent'
+import { OB11GroupAdminNoticeEvent } from '../onebot11/event/notice/OB11GroupAdminNoticeEvent'
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 
@@ -369,6 +370,13 @@ export async function startHook() {
           postOb11Event(
             new OB11GroupCardEvent(parseInt(groupCode), parseInt(member.uin), member.cardName, existMember.cardName),
           )
+        } else if (member.role != existMember.role) {
+          log('有管理员变动通知')
+          let groupAdminNoticeEvent = new OB11GroupAdminNoticeEvent()
+          groupAdminNoticeEvent.group_id = parseInt(groupCode)
+          groupAdminNoticeEvent.user_id = parseInt(member.uin)
+          groupAdminNoticeEvent.sub_type = member.role == GroupMemberRole.admin ? 'set' : 'unset'
+          postOb11Event(groupAdminNoticeEvent, true)
         }
         Object.assign(existMember, member)
       }
