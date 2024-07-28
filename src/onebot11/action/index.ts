@@ -52,6 +52,8 @@ import { GetGroupHonorInfo } from './group/GetGroupHonorInfo'
 import { GoCQHTTHandleQuickOperation } from './go-cqhttp/QuickOperation'
 import GoCQHTTPSetEssenceMsg from './go-cqhttp/SetEssenceMsg'
 import GoCQHTTPDelEssenceMsg from './go-cqhttp/DelEssenceMsg'
+import GetEvent from './llonebot/GetEvent'
+
 
 export const actionHandlers = [
   new GetFile(),
@@ -61,6 +63,7 @@ export const actionHandlers = [
   new GetGroupAddRequest(),
   new SetQQAvatar(),
   new GetFriendWithCategory(),
+  new GetEvent(),
   // onebot11
   new SendLike(),
   new GetMsg(),
