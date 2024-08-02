@@ -112,33 +112,40 @@ export class OB11Constructor {
     }
 
     for (let element of msg.elements) {
-      let message_data: OB11MessageData | any = {
-        data: {},
-        type: 'unknown',
+      let message_data: OB11MessageData = {
+        data: {} as any,
+        type: 'unknown' as any,
       }
       if (element.textElement && element.textElement?.atType !== AtType.notAt) {
-        message_data['type'] = OB11MessageDataType.at
+        let qq: string
+        let name: string | undefined
         if (element.textElement.atType == AtType.atAll) {
-          // message_data["data"]["mention"] = "all"
-          message_data['data']['qq'] = 'all'
+          qq = 'all'
         }
         else {
-          let atUid = element.textElement.atNtUid
+          const { atNtUid, content } = element.textElement
           let atQQ = element.textElement.atUid
           if (!atQQ || atQQ === '0') {
-            const atMember = await getGroupMember(msg.peerUin, atUid)
+            const atMember = await getGroupMember(msg.peerUin, atNtUid)
             if (atMember) {
               atQQ = atMember.uin
             }
           }
           if (atQQ) {
-            // message_data["data"]["mention"] = atQQ
-            message_data['data']['qq'] = atQQ
+            qq = atQQ
+            name = content.replace('@', '')
+          }
+        }
+        message_data = {
+          type: OB11MessageDataType.at,
+          data: {
+            qq,
+            name
           }
         }
       }
       else if (element.textElement) {
-        message_data['type'] = 'text'
+        message_data['type'] = OB11MessageDataType.text
         let text = element.textElement.content
         if (!text.trim()) {
           continue
@@ -146,7 +153,7 @@ export class OB11Constructor {
         message_data['data']['text'] = text
       }
       else if (element.replyElement) {
-        message_data['type'] = 'reply'
+        message_data['type'] = OB11MessageDataType.reply
         // log("收到回复消息", element.replyElement.replayMsgSeq)
         try {
           const replyMsg = await dbUtil.getMsgBySeqId(element.replyElement.replayMsgSeq)
@@ -162,7 +169,7 @@ export class OB11Constructor {
         }
       }
       else if (element.picElement) {
-        message_data['type'] = 'image'
+        message_data['type'] = OB11MessageDataType.image
         // message_data["data"]["file"] = element.picElement.sourcePath
         let fileName = element.picElement.fileName
         const sourcePath = element.picElement.sourcePath
@@ -207,9 +214,9 @@ export class OB11Constructor {
         message_data['data']['file_size'] = videoOrFileElement.fileSize
         if (element.videoElement) {
           message_data['data']['url'] = await NTQQFileApi.getVideoUrl({
-              chatType: msg.chatType,
-              peerUid: msg.peerUid,
-            }, msg.msgId, element.elementId,
+            chatType: msg.chatType,
+            peerUid: msg.peerUid,
+          }, msg.msgId, element.elementId,
           )
         }
         dbUtil
@@ -299,7 +306,7 @@ export class OB11Constructor {
         message_data['type'] = OB11MessageDataType.forward
         message_data['data']['id'] = msg.msgId
       }
-      if (message_data.type !== 'unknown' && message_data.data) {
+      if ((message_data.type as string) !== 'unknown' && message_data.data) {
         const cqCode = encodeCQCode(message_data)
         if (messagePostFormat === 'string') {
           (resMsg.message as string) += cqCode
