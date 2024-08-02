@@ -547,12 +547,14 @@ export class OB11Constructor {
               chatType: ChatType.group,
               peerUid: Group!
             };
-            const msgList = (await NTQQMsgApi.getMsgsBySeqAndCount(Peer, msgSeq.toString(), 1, true, true)).msgList;
-            // （待解决） getMsgByLongId 拿到的 ShortId 经常跟实际 Msg 对不上（但msgId是一致的）。
-            // 不过引用消息拿到的 ShortId 是对的。
-            //console.log("原始消息: ", msgList);
-            //console.log("本地缓存: ", await dbUtil.getMsgByLongId(msgList[0].msgId));
-            return new OB11GroupEssenceEvent(parseInt(msg.peerUid), Number(((await dbUtil.getMsgByLongId(msgList[0].msgId)).msgShortId)!), parseInt(msgList[0].senderUin));
+            let msgList = (await NTQQMsgApi.getMsgsBySeqAndCount(Peer, msgSeq.toString(), 1, true, true)).msgList;
+            const origMsg = await dbUtil.getMsgByLongId(msgList[0].msgId);
+            const postMsg = await dbUtil.getMsgBySeqId(origMsg.msgSeq) ?? origMsg;
+            // 如果 senderUin 为 0，可能是 历史消息 或 自身消息
+            if (msgList[0].senderUin === '0') {
+                msgList[0].senderUin = postMsg?.senderUin ?? selfInfo.uin;
+            }
+            return new OB11GroupEssenceEvent(parseInt(msg.peerUid), postMsg.msgShortId, parseInt(msgList[0].senderUin));
             // 获取MsgSeq+Peer可获取具体消息
           }
           if (grayTipElement.jsonGrayTipElement.busiId == 2407) {
