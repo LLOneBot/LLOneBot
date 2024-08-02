@@ -68,7 +68,6 @@ export function encodeCQCode(data: OB11MessageData) {
       result += `,${name}=${CQCodeEscape(value)}`
     } catch (error) {
       // If it can't be converted, skip this name-value pair
-      continue
     }
   }
   result += ']'
