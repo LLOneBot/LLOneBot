@@ -117,7 +117,6 @@ export class OB11Constructor {
         let qq: string
         let name: string | undefined
         if (element.textElement.atType == AtType.atAll) {
-          // message_data["data"]["mention"] = "all"
           qq = 'all'
         }
         else {
@@ -130,7 +129,6 @@ export class OB11Constructor {
             }
           }
           if (atQQ) {
-            // message_data["data"]["mention"] = atQQ
             qq = atQQ
             name = content.replace('@', '')
           }
