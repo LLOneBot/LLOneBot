@@ -1,6 +1,6 @@
 # LLOneBot
 
-LiteLoaderQQNT插件，使你的NTQQ支持OneBot11协议进行QQ机器人开发
+LiteLoaderQQNT 插件，实现 OneBot 11 协议进行 QQ 机器人开发
 
 > [!CAUTION]\
 > **请不要在 QQ 官方群聊和任何影响力较大的简中互联网平台（包括但不限于:B站，微博，知乎，抖音等）发布和讨论*任何*与本插件存在相关性的信息**
@@ -19,7 +19,7 @@ TG群：<https://t.me/+nLZEnpne-pQ1OWFl>
 
 <img src="./doc/image/example.jpg" width="500px" alt="HTTP调用示例"/>
 
-## 支持的 api 和功能详情
+## 支持的 API
 
 见 <https://llonebot.github.io/zh-CN/develop/api>
 
@@ -36,10 +36,6 @@ TG群：<https://t.me/+nLZEnpne-pQ1OWFl>
 - [x] 优化加群成功事件上报
 - [x] 清理缓存api
 - [ ] 框架对接文档
-
-## onebot11文档
-
-<https://11.onebot.dev/>
 
 ## Stargazers over time
 
