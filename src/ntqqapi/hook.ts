@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron'
+import type { BrowserWindow } from 'electron'
 import { NTQQApiClass, NTQQApiMethod } from './ntcall'
 import { NTQQMsgApi, sendMessagePool } from './api/msg'
 import { CategoryFriend, ChatType, Group, GroupMember, GroupMemberRole, RawMessage, User } from './types'
