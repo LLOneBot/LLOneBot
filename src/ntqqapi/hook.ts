@@ -13,7 +13,6 @@ import {
   uidMaps,
 } from '@/common/data'
 import { OB11GroupDecreaseEvent } from '../onebot11/event/notice/OB11GroupDecreaseEvent'
-import { v4 as uuidv4 } from 'uuid'
 import { postOb11Event } from '../onebot11/server/post-ob11-event'
 import { getConfigUtil, HOOK_LOG } from '@/common/config'
 import fs from 'fs'
@@ -24,6 +23,7 @@ import { isNumeric, sleep } from '@/common/utils'
 import { OB11Constructor } from '../onebot11/constructor'
 import { OB11GroupCardEvent } from '../onebot11/event/notice/OB11GroupCardEvent'
 import { OB11GroupAdminNoticeEvent } from '../onebot11/event/notice/OB11GroupAdminNoticeEvent'
+import { randomUUID } from 'node:crypto'
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 
@@ -204,7 +204,7 @@ export function registerReceiveHook<PayloadType>(
   method: ReceiveCmd | ReceiveCmd[],
   hookFunc: (payload: PayloadType) => void,
 ): string {
-  const id = uuidv4()
+  const id = randomUUID()
   if (!Array.isArray(method)) {
     method = [method]
   }
