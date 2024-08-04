@@ -1,6 +1,6 @@
 import cp from 'vite-plugin-cp'
-import './scripts/gen-version'
 import path from 'node:path'
+import './scripts/gen-manifest'
 
 const external = [
   'silk-wasm',
@@ -32,6 +32,7 @@ let config = {
         external,
         input: 'src/main/main.ts',
       },
+      minify: true,
     },
     resolve: {
       alias: {
