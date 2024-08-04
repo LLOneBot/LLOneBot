@@ -33,7 +33,6 @@
     "@types/ws": "^8.5.12",
     "electron": "^29.0.1",
     "electron-vite": "^2.3.0",
-    "ts-node": "^10.9.2",
     "typescript": "^5.5.4",
     "vite": "^5.3.5",
     "vite-plugin-cp": "^4.0.8"

@@ -4,6 +4,7 @@ import { SettingButton, SettingItem, SettingList, SettingSwitch, SettingSelect }
 // @ts-ignore
 import StyleRaw from './style.css?raw'
 import { iconSvg } from './icon'
+import { version } from '../version'
 
 // 打开设置界面时触发
 
@@ -53,8 +54,8 @@ async function onSettingWindowCreated(view: Element) {
       '<div>',
       `<style>${StyleRaw}</style>`,
       `<setting-section id="llonebot-error">
-            <setting-panel><pre><code></code></pre></setting-panel>
-        </setting-section>`,
+        <setting-panel><pre><code></code></pre></setting-panel>
+      </setting-section>`,
       SettingList([
         SettingItem(
           '<span id="llonebot-update-title">正在检查 LLOneBot 更新</span>',
@@ -399,7 +400,7 @@ async function onSettingWindowCreated(view: Element) {
     const buttonDom = view.querySelector<HTMLButtonElement>('#llonebot-update-button')!
 
     if (ResultVersion.version === '') {
-      titleDom.innerHTML = '检查更新失败'
+      titleDom.innerHTML = `当前版本为 v${version}，检查更新失败`
       buttonDom.innerHTML = '点击重试'
 
       buttonDom.addEventListener('click', async () => {
@@ -412,7 +413,7 @@ async function onSettingWindowCreated(view: Element) {
       titleDom.innerHTML = '当前已是最新版本 v' + ResultVersion.version
       buttonDom.innerHTML = '无需更新'
     } else {
-      titleDom.innerHTML = '已检测到最新版本 v' + ResultVersion.version
+      titleDom.innerHTML = `当前版本为 v${version}，最新版本为 v${ResultVersion.version}`
       buttonDom.innerHTML = '点击更新'
       buttonDom.dataset.type = 'primary'
 
