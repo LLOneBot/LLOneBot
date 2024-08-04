@@ -195,6 +195,7 @@ export interface OB11MessageAt {
   type: OB11MessageDataType.at
   data: {
     qq: string | 'all'
+    name?: string
   }
 }
 
@@ -241,6 +242,20 @@ export interface OB11MessageJson {
   data: { data: string /* , config: { token: string } */ }
 }
 
+export interface OB11MessageMarkdown {
+  type: OB11MessageDataType.markdown
+  data: {
+    data: string
+  }
+}
+
+export interface OB11MessageForward {
+  type: OB11MessageDataType.forward
+  data: {
+    id: string
+  }
+}
+
 export type OB11MessageData =
   | OB11MessageText
   | OB11MessageFace
@@ -258,6 +273,8 @@ export type OB11MessageData =
   | OB11MessagePoke
   | OB11MessageDice
   | OB11MessageRPS
+  | OB11MessageMarkdown
+  | OB11MessageForward
 
 export interface OB11PostSendMsg {
   message_type?: 'private' | 'group'

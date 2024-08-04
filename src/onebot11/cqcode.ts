@@ -50,7 +50,6 @@ export function encodeCQCode(data: OB11MessageData) {
   }
 
   const CQCodeEscape = (text: string) => {
-    text = text.toString()
     return text.replace(/\&/g, '&amp;').replace(/\[/g, '&#91;').replace(/\]/g, '&#93;').replace(/,/g, '&#44;')
   }
 
@@ -61,15 +60,15 @@ export function encodeCQCode(data: OB11MessageData) {
   let result = '[CQ:' + data.type
   for (const name in data.data) {
     const value = data.data[name]
+    if (value === undefined) {
+      continue
+    }
     try {
-      // Check if the value can be converted to a string
-      value.toString();
+      const text = value.toString()
+      result += `,${name}=${CQCodeEscape(text)}`
     } catch (error) {
       // If it can't be converted, skip this name-value pair
-      // console.warn(`Skipping problematic name-value pair. Name: ${name}, Value: ${value}`);
-      continue;
     }
-    result += `,${name}=${CQCodeEscape(value)}`
   }
   result += ']'
   return result

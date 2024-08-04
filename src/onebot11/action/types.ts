@@ -22,6 +22,7 @@ export enum ActionName {
   Debug = 'llonebot_debug',
   GetFile = 'get_file',
   GetFriendsWithCategory = 'get_friends_with_category',
+  GetEvent = 'get_event',
   // onebot 11
   SendLike = 'send_like',
   GetLoginInfo = 'get_login_info',
@@ -70,4 +71,6 @@ export enum ActionName {
   GoCQHTTP_GetEssenceMsg = "get_essence_msg_list",
   GoCQHTTP_HandleQuickOperation = ".handle_quick_operation",
   GetGroupHonorInfo = "get_group_honor_info",
+  GoCQHTTP_SetEssenceMsg = 'set_essence_msg',
+  GoCQHTTP_DelEssenceMsg = 'delete_essence_msg',
 }
