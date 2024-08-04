@@ -44,7 +44,7 @@ let config = {
         targets: [
           ...external.map(genCpModule),
           { src: './manifest.json', dest: 'dist' },
-          { src: './icon.jpg', dest: 'dist' },
+          { src: './icon.webp', dest: 'dist' },
           // { src: './src/ntqqapi/native/crychic/crychic-win32-x64.node', dest: 'dist/main/' },
           // { src: './src/ntqqapi/native/moehook/MoeHoo-win32-x64.node', dest: 'dist/main/' },
           // { src: './src/ntqqapi/native/moehook/MoeHoo-linux-x64.node', dest: 'dist/main/' },
