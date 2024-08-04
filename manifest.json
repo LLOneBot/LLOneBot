@@ -5,7 +5,7 @@
   "slug": "LLOneBot",
   "description": "使你的NTQQ支持OneBot11协议进行QQ机器人开发",
   "version": "3.27.4",
-  "icon": "./icon.jpg",
+  "icon": "./icon.webp",
   "authors": [
     {
       "name": "linyuchen",
