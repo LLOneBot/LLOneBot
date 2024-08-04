@@ -39,8 +39,9 @@
     "eslint-plugin-n": "^15.0.0 || ^16.0.0",
     "eslint-plugin-promise": "^6.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "*",
+    "typescript": "^5.5.4",
     "vite": "^5.1.4",
     "vite-plugin-cp": "^4.0.8"
-  }
+  },
+  "packageManager": "yarn@4.4.0"
 }
