@@ -5,7 +5,7 @@ import { deleteGroup, uidMaps } from '../../common/data'
 import { dbUtil } from '../../common/db'
 import { log } from '../../common/utils/log'
 import { NTQQWindowApi, NTQQWindows } from './window'
-import { wrapperApi } from '../native/wrapper'
+import { wrapperApi } from '../wrapper'
 
 export class NTQQGroupApi {
 
