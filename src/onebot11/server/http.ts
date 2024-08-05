@@ -40,7 +40,7 @@ class HTTPHeart {
     }
     this.intervalId = setInterval(() => {
       // ws的心跳是ws自己维护的
-      postOb11Event(new OB11HeartbeatEvent(selfInfo.online, true, heartInterval), false, false)
+      postOb11Event(new OB11HeartbeatEvent(selfInfo.online!, true, heartInterval!), false, false)
     }, heartInterval)
   }
 

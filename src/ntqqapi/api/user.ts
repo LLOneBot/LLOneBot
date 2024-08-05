@@ -196,7 +196,7 @@ export class NTQQUserApi {
 
   static async getPSkey(domains: string[]): Promise<Map<string, string>> {
     const session = wrapperApi.NodeIQQNTWrapperSession
-    const res = await session.getTipOffService().getPskey(domains, true)
+    const res = await session?.getTipOffService().getPskey(domains, true)
     if (res.result !== 0) {
       throw new Error(`获取Pskey失败: ${res.errMsg}`)
     }
@@ -205,6 +205,6 @@ export class NTQQUserApi {
 
   static async getClientKey(): Promise<ClientKeyData> {
     const session = wrapperApi.NodeIQQNTWrapperSession
-    return await session.getTicketService().forceFetchClientKey('')
+    return await session?.getTicketService().forceFetchClientKey('')
   }
 }

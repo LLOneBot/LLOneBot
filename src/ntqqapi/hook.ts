@@ -83,7 +83,7 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
     let isLogger = false
     try {
       isLogger = args[0]?.eventName?.startsWith('ns-LoggerApi')
-    } catch (e) {}
+    } catch (e) { }
     if (!isLogger) {
       try {
         HOOK_LOG && log(`received ntqq api message: ${channel}`, args)
@@ -102,7 +102,7 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
                 try {
                   let _ = hook.hookFunc(receiveData.payload)
                   if (hook.hookFunc.constructor.name === 'AsyncFunction') {
-                    ;(_ as Promise<void>).then()
+                    ; (_ as Promise<void>).then()
                   }
                 } catch (e) {
                   log('hook error', e, receiveData.payload)
@@ -123,7 +123,7 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
           delete hookApiCallbacks[callbackId]
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       log('hookNTQQApiReceive error', e.stack.toString(), args)
     }
     originalSend.call(window.webContents, channel, ...args)
@@ -142,11 +142,11 @@ export function hookNTQQApiCall(window: BrowserWindow) {
       let isLogger = false
       try {
         isLogger = args[3][0].eventName.startsWith('ns-LoggerApi')
-      } catch (e) {}
+      } catch (e) { }
       if (!isLogger) {
         try {
           HOOK_LOG && log('call NTQQ api', thisArg, args)
-        } catch (e) {}
+        } catch (e) { }
         try {
           const _args: unknown[] = args[3][1]
           const cmdName: NTQQApiMethod = _args[0] as NTQQApiMethod
@@ -157,7 +157,7 @@ export function hookNTQQApiCall(window: BrowserWindow) {
                 try {
                   let _ = hook.hookFunc(callParams)
                   if (hook.hookFunc.constructor.name === 'AsyncFunction') {
-                    ;(_ as Promise<void>).then()
+                    (_ as Promise<void>).then()
                   }
                 } catch (e) {
                   log('hook call error', e, _args)
@@ -165,7 +165,7 @@ export function hookNTQQApiCall(window: BrowserWindow) {
               }).then()
             }
           })
-        } catch (e) {}
+        } catch (e) { }
       }
       return target.apply(thisArg, args)
     },
@@ -189,7 +189,7 @@ export function hookNTQQApiCall(window: BrowserWindow) {
       let ret = target.apply(thisArg, args)
       try {
         HOOK_LOG && log('call NTQQ invoke api return', ret)
-      } catch (e) {}
+      } catch (e) { }
       return ret
     },
   })
@@ -296,7 +296,7 @@ async function processGroupEvent(payload: { groupList: Group[] }) {
 
           // 判断bot是否是管理员，如果是管理员不需要从这里得知有人退群，这里的退群无法得知是主动退群还是被踢
           let bot = await getGroupMember(group.groupCode, selfInfo.uin)
-          if (bot.role == GroupMemberRole.admin || bot.role == GroupMemberRole.owner) {
+          if (bot?.role == GroupMemberRole.admin || bot?.role == GroupMemberRole.owner) {
             continue
           }
           for (const member of oldMembers) {
@@ -320,7 +320,7 @@ async function processGroupEvent(payload: { groupList: Group[] }) {
     }
 
     updateGroups(newGroupList, false).then()
-  } catch (e) {
+  } catch (e: any) {
     updateGroups(payload.groupList).then()
     log('更新群信息错误', e.stack.toString())
   }
@@ -328,7 +328,7 @@ async function processGroupEvent(payload: { groupList: Group[] }) {
 
 export async function startHook() {
 
-// 群列表变动
+  // 群列表变动
   registerReceiveHook<{ groupList: Group[]; updateType: number }>(ReceiveCmdS.GROUPS, (payload) => {
     // updateType 3是群列表变动，2是群成员变动
     // log("群列表变动", payload.updateType, payload.groupList)
@@ -372,10 +372,11 @@ export async function startHook() {
           )
         } else if (member.role != existMember.role) {
           log('有管理员变动通知')
-          let groupAdminNoticeEvent = new OB11GroupAdminNoticeEvent()
-          groupAdminNoticeEvent.group_id = parseInt(groupCode)
-          groupAdminNoticeEvent.user_id = parseInt(member.uin)
-          groupAdminNoticeEvent.sub_type = member.role == GroupMemberRole.admin ? 'set' : 'unset'
+          const groupAdminNoticeEvent = new OB11GroupAdminNoticeEvent(
+            member.role == GroupMemberRole.admin ? 'set' : 'unset',
+            parseInt(groupCode),
+            parseInt(member.uin)
+          )
           postOb11Event(groupAdminNoticeEvent, true)
         }
         Object.assign(existMember, member)
@@ -397,7 +398,7 @@ export async function startHook() {
     // }
   })
 
-// 好友列表变动
+  // 好友列表变动
   registerReceiveHook<{
     data: CategoryFriend[]
   }>(ReceiveCmdS.FRIENDS, (payload) => {
@@ -453,7 +454,7 @@ export async function startHook() {
           const pttPath = msgElement.pttElement?.filePath
           const filePath = msgElement.fileElement?.filePath
           const videoPath = msgElement.videoElement?.filePath
-          const videoThumbPath: string[] = [...msgElement.videoElement?.thumbPath.values()]
+          const videoThumbPath: string[] = [...msgElement.videoElement.thumbPath?.values()!]
           const pathList = [picPath, ...picThumbPath, pttPath, filePath, videoPath, ...videoThumbPath]
           if (msgElement.picElement) {
             pathList.push(...Object.values(msgElement.picElement.thumbPath))
@@ -471,7 +472,7 @@ export async function startHook() {
               })
             }
           }
-        }, getConfigUtil().getConfig().autoDeleteFileSecond * 1000)
+        }, getConfigUtil().getConfig().autoDeleteFileSecond! * 1000)
       }
     }
   })
@@ -486,7 +487,7 @@ export async function startHook() {
     if (sendCallback) {
       try {
         sendCallback(message)
-      } catch (e) {
+      } catch (e: any) {
         log('receive self msg error', e.stack)
       }
     }
@@ -518,8 +519,8 @@ export async function startHook() {
             NTQQMsgApi.getMsgHistory(peer, '', 20).then(({ msgList }) => {
               let lastTempMsg = msgList.pop()
               log('激活窗口之前的第一条临时会话消息:', lastTempMsg)
-              if (Date.now() / 1000 - parseInt(lastTempMsg.msgTime) < 5) {
-                OB11Constructor.message(lastTempMsg).then((r) => postOb11Event(r))
+              if (Date.now() / 1000 - parseInt(lastTempMsg?.msgTime!) < 5) {
+                OB11Constructor.message(lastTempMsg!).then((r) => postOb11Event(r))
               }
             })
           })
@@ -550,5 +551,4 @@ export async function startHook() {
       log('重新激活聊天窗口', peer, { result: r.result, errMsg: r.errMsg })
     })
   })
-
 }

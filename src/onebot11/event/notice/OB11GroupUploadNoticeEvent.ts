@@ -10,6 +10,8 @@ export interface GroupUploadFile {
 export class OB11GroupUploadNoticeEvent extends OB11GroupNoticeEvent {
   notice_type = 'group_upload'
   file: GroupUploadFile
+  group_id: number
+  user_id: number
 
   constructor(groupId: number, userId: number, file: GroupUploadFile) {
     super()

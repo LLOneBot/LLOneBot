@@ -135,7 +135,7 @@ export class NTQQGroupApi {
   }
 
   static async handleGroupRequest(seq: string, operateType: GroupRequestOperateTypes, reason?: string) {
-    const notify: GroupNotify = await dbUtil.getGroupNotify(seq)
+    const notify = await dbUtil.getGroupNotify(seq)
     if (!notify) {
       throw `${seq}对应的加群通知不存在`
     }
@@ -303,27 +303,27 @@ export class NTQQGroupApi {
     const session = wrapperApi.NodeIQQNTWrapperSession
     // 代码没测过
     // 需要 ob11msgid->msgId + (peer) -> msgSeq + msgRandom
-    let MsgData = await session.getMsgService().getMsgsIncludeSelf({ chatType: 2, guildId: '', peerUid: GroupCode }, msgId, 1, false)
+    let MsgData = await session?.getMsgService().getMsgsIncludeSelf({ chatType: 2, guildId: '', peerUid: GroupCode }, msgId, 1, false)
     let param = {
       groupCode: GroupCode,
       msgRandom: parseInt(MsgData.msgList[0].msgRandom),
       msgSeq: parseInt(MsgData.msgList[0].msgSeq)
     }
     // GetMsgByShoretID(ShoretID) -> MsgService.getMsgs(Peer,MsgId,1,false) -> 组出参数
-    return session.getGroupService().removeGroupEssence(param)
+    return session?.getGroupService().removeGroupEssence(param)
   }
 
   static async addGroupEssence(GroupCode: string, msgId: string) {
     const session = wrapperApi.NodeIQQNTWrapperSession
     // 代码没测过
     // 需要 ob11msgid->msgId + (peer) -> msgSeq + msgRandom
-    let MsgData = await session.getMsgService().getMsgsIncludeSelf({ chatType: 2, guildId: '', peerUid: GroupCode }, msgId, 1, false)
+    let MsgData = await session?.getMsgService().getMsgsIncludeSelf({ chatType: 2, guildId: '', peerUid: GroupCode }, msgId, 1, false)
     let param = {
       groupCode: GroupCode,
       msgRandom: parseInt(MsgData.msgList[0].msgRandom),
       msgSeq: parseInt(MsgData.msgList[0].msgSeq)
     }
     // GetMsgByShoretID(ShoretID) -> MsgService.getMsgs(Peer,MsgId,1,false) -> 组出参数
-    return session.getGroupService().addGroupEssence(param)
+    return session?.getGroupService().addGroupEssence(param)
   }
 }

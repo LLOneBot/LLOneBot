@@ -123,7 +123,7 @@ function onLoad() {
       return
     }
     dialog
-      .showMessageBox(mainWindow, {
+      .showMessageBox(mainWindow!, {
         type: 'question',
         buttons: ['确认', '取消'],
         defaultId: 0, // 默认选中的按钮，0 代表第一个按钮，即 "确认"
@@ -210,7 +210,7 @@ function onLoad() {
     }>([ReceiveCmdS.NEW_MSG, ReceiveCmdS.NEW_ACTIVE_MSG], async (payload) => {
       try {
         await postReceiveMsg(payload.msgList)
-      } catch (e) {
+      } catch (e: any) {
         log('report message error: ', e.stack.toString())
       }
     })
@@ -254,7 +254,7 @@ function onLoad() {
       // log("reportSelfMessage", payload)
       try {
         await postReceiveMsg([payload.msgRecord])
-      } catch (e) {
+      } catch (e: any) {
         log('report self message error: ', e.stack.toString())
       }
     })
@@ -332,7 +332,7 @@ function onLoad() {
                 if (notify.user2.uid) {
                   // 是被踢的
                   const member2 = await getGroupMember(notify.group.groupCode, notify.user2.uid)
-                  operatorId = member2.uin
+                  operatorId = member2?.uin!
                   subType = 'kick'
                 }
                 let groupDecreaseEvent = new OB11GroupDecreaseEvent(
@@ -342,14 +342,12 @@ function onLoad() {
                   subType,
                 )
                 postOb11Event(groupDecreaseEvent, true)
-              } catch (e) {
+              } catch (e: any) {
                 log('获取群通知的成员信息失败', notify, e.stack.toString())
               }
             }
             else if ([GroupNotifyTypes.JOIN_REQUEST, GroupNotifyTypes.JOIN_REQUEST_BY_INVITED].includes(notify.type)) {
               log('有加群请求')
-              let groupRequestEvent = new OB11GroupRequestEvent()
-              groupRequestEvent.group_id = parseInt(notify.group.groupCode)
               let requestQQ = uidMaps[notify.user1.uid]
               if (!requestQQ) {
                 try {
@@ -358,40 +356,47 @@ function onLoad() {
                   log('获取加群人QQ号失败', e)
                 }
               }
-              groupRequestEvent.user_id = parseInt(requestQQ) || 0
-              groupRequestEvent.sub_type = 'add'
-              groupRequestEvent.comment = notify.postscript
-              groupRequestEvent.flag = notify.seq
+              let invitorId: number
               if (notify.type == GroupNotifyTypes.JOIN_REQUEST_BY_INVITED) {
                 // groupRequestEvent.sub_type = 'invite'
                 let invitorQQ = uidMaps[notify.user2.uid]
                 if (!invitorQQ) {
                   try {
                     let invitor = (await NTQQUserApi.getUserDetailInfo(notify.user2.uid))
-                    groupRequestEvent.invitor_id = parseInt(invitor.uin)
+                    invitorId = parseInt(invitor.uin)
                   } catch (e) {
-                    groupRequestEvent.invitor_id = 0
+                    invitorId = 0
                     log('获取邀请人QQ号失败', e)
                   }
                 }
               }
+              const groupRequestEvent = new OB11GroupRequestEvent(
+                parseInt(notify.group.groupCode),
+                parseInt(requestQQ) || 0,
+                notify.seq,
+                notify.postscript,
+                invitorId!,
+                'add'
+              )
               postOb11Event(groupRequestEvent)
             }
             else if (notify.type == GroupNotifyTypes.INVITE_ME) {
               log('收到邀请我加群通知')
-              let groupInviteEvent = new OB11GroupRequestEvent()
-              groupInviteEvent.group_id = parseInt(notify.group.groupCode)
-              let user_id = uidMaps[notify.user2.uid]
-              if (!user_id) {
-                user_id = (await NTQQUserApi.getUserDetailInfo(notify.user2.uid))?.uin
+              let userId = uidMaps[notify.user2.uid]
+              if (!userId) {
+                userId = (await NTQQUserApi.getUserDetailInfo(notify.user2.uid))?.uin
               }
-              groupInviteEvent.user_id = parseInt(user_id)
-              groupInviteEvent.sub_type = 'invite'
-              // groupInviteEvent.invitor_id = parseInt(user_id)
-              groupInviteEvent.flag = notify.seq
+              const groupInviteEvent = new OB11GroupRequestEvent(
+                parseInt(notify.group.groupCode),
+                parseInt(userId),
+                notify.seq,
+                undefined,
+                undefined,
+                'invite'
+              )
               postOb11Event(groupInviteEvent)
             }
-          } catch (e) {
+          } catch (e: any) {
             log('解析群通知失败', e.stack.toString())
           }
         }
@@ -403,19 +408,18 @@ function onLoad() {
 
     registerReceiveHook<FriendRequestNotify>(ReceiveCmdS.FRIEND_REQUEST, async (payload) => {
       for (const req of payload.data.buddyReqs) {
-        let flag = req.friendUid + req.reqTime
+        const flag = req.friendUid + req.reqTime
         if (req.isUnread && parseInt(req.reqTime) > startTime / 1000) {
           friendRequests[flag] = req
           log('有新的好友请求', req)
-          let friendRequestEvent = new OB11FriendRequestEvent()
+          let userId: number
           try {
-            let requester = await NTQQUserApi.getUserDetailInfo(req.friendUid)
-            friendRequestEvent.user_id = parseInt(requester.uin)
+            const requester = await NTQQUserApi.getUserDetailInfo(req.friendUid)
+            userId = parseInt(requester.uin)
           } catch (e) {
             log('获取加好友者QQ号失败', e)
           }
-          friendRequestEvent.flag = flag
-          friendRequestEvent.comment = req.extWords
+          const friendRequestEvent = new OB11FriendRequestEvent(userId!, req.extWords, flag)
           postOb11Event(friendRequestEvent)
         }
       }
@@ -438,7 +442,7 @@ function onLoad() {
         uidMaps[value] = key
       }
     })
-    NTEventDispatch.init({ ListenerMap: wrapperConstructor, WrapperSession: wrapperApi.NodeIQQNTWrapperSession })
+    NTEventDispatch.init({ ListenerMap: wrapperConstructor, WrapperSession: wrapperApi.NodeIQQNTWrapperSession! })
     try {
       log('start get groups')
       const _groups = await NTQQGroupApi.getGroups()
@@ -509,7 +513,7 @@ function onLoad() {
             selfInfo.nick = userInfo.nick
             return
           }
-        } catch (e) {
+        } catch (e: any) {
           log('get self nickname failed', e.stack)
         }
         if (getSelfNickCount < 10) {
@@ -537,7 +541,7 @@ function onBrowserWindowCreated(window: BrowserWindow) {
   try {
     hookNTQQApiCall(window)
     hookNTQQApiReceive(window)
-  } catch (e) {
+  } catch (e: any) {
     log('LLOneBot hook error: ', e.toString())
   }
 }
