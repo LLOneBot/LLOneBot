@@ -3,7 +3,8 @@
     "target": "ESNext",
     "module": "commonjs",
     "outDir": "./dist",
-    "strict": false,
+    "strict": true,
+    "noImplicitAny": false,
     "esModuleInterop": true,
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
@@ -23,6 +24,12 @@
     },
     "noEmit": true
   },
-  "include": ["src/*", "src/**/*", "scripts/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/*",
+    "src/**/*",
+    "scripts/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

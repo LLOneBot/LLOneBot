@@ -1,9 +1,8 @@
 import BaseAction from '../BaseAction'
 import { ActionName } from '../types'
-import fs from 'fs'
-import Path from 'path'
+import fs from 'node:fs'
+import Path from 'node:path'
 import { ChatType, ChatCacheListItemBasic, CacheFileType } from '../../../ntqqapi/types'
-import { dbUtil } from '../../../common/db'
 import { NTQQFileApi, NTQQFileCacheApi } from '../../../ntqqapi/api/file'
 
 export default class CleanCache extends BaseAction<void, void> {
@@ -12,14 +11,16 @@ export default class CleanCache extends BaseAction<void, void> {
   protected _handle(): Promise<void> {
     return new Promise<void>(async (res, rej) => {
       try {
-        // dbUtil.clearCache();
+        // dbUtil.clearCache()
         const cacheFilePaths: string[] = []
 
         await NTQQFileCacheApi.setCacheSilentScan(false)
 
         cacheFilePaths.push(await NTQQFileCacheApi.getHotUpdateCachePath())
         cacheFilePaths.push(await NTQQFileCacheApi.getDesktopTmpPath())
-        ;(await NTQQFileCacheApi.getCacheSessionPathList()).forEach((e) => cacheFilePaths.push(e.value))
+
+        const list = await NTQQFileCacheApi.getCacheSessionPathList()
+        list.forEach((e) => cacheFilePaths.push(e.value))
 
         // await NTQQApi.addCacheScannedPaths(); // XXX: 调用就崩溃，原因目前还未知
         const cacheScanResult = await NTQQFileCacheApi.scanCache()

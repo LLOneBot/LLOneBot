@@ -1,13 +1,10 @@
-import fs from 'fs'
-import fsPromise from 'fs/promises'
-import crypto from 'crypto'
-import util from 'util'
+import fs from 'node:fs'
+import fsPromise from 'node:fs/promises'
 import path from 'node:path'
-import { v4 as uuidv4 } from 'uuid'
 import { log, TEMP_DIR } from './index'
 import { dbUtil } from '../db'
 import * as fileType from 'file-type'
-import { net } from 'electron'
+import { randomUUID, createHash } from 'node:crypto'
 
 export function isGIF(path: string) {
   const buffer = Buffer.alloc(4)
@@ -37,7 +34,6 @@ export function checkFileReceived(path: string, timeout: number = 3000): Promise
 }
 
 export async function file2base64(path: string) {
-  const readFile = util.promisify(fs.readFile)
   let result = {
     err: '',
     data: '',
@@ -53,10 +49,10 @@ export async function file2base64(path: string) {
       result.err = e.toString()
       return result
     }
-    const data = await readFile(path)
+    const data = await fsPromise.readFile(path)
     // 转换为Base64编码
     result.data = data.toString('base64')
-  } catch (err) {
+  } catch (err: any) {
     result.err = err.toString()
   }
   return result
@@ -66,7 +62,7 @@ export function calculateFileMD5(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
     // 创建一个流式读取器
     const stream = fs.createReadStream(filePath)
-    const hash = crypto.createHash('md5')
+    const hash = createHash('md5')
 
     stream.on('data', (data: Buffer) => {
       // 当读取到数据时，更新哈希对象的状态
@@ -91,7 +87,6 @@ export interface HttpDownloadOptions {
   headers?: Record<string, string> | string
 }
 export async function httpDownload(options: string | HttpDownloadOptions): Promise<Buffer> {
-  let chunks: Buffer[] = []
   let url: string
   let headers: Record<string, string> = {
     'User-Agent':
@@ -109,12 +104,10 @@ export async function httpDownload(options: string | HttpDownloadOptions): Promi
       }
     }
   }
-  const fetchRes = await net.fetch(url, {headers})
+  const fetchRes = await fetch(url, { headers })
   if (!fetchRes.ok) throw new Error(`下载文件失败: ${fetchRes.statusText}`)
 
-  const blob = await fetchRes.blob()
-  let buffer = await blob.arrayBuffer()
-  return Buffer.from(buffer)
+  return Buffer.from(await fetchRes.arrayBuffer())
 }
 
 type Uri2LocalRes = {
@@ -126,7 +119,7 @@ type Uri2LocalRes = {
   isLocal: boolean
 }
 
-export async function uri2local(uri: string, fileName: string = null): Promise<Uri2LocalRes> {
+export async function uri2local(uri: string, fileName: string | null = null): Promise<Uri2LocalRes> {
   let res = {
     success: false,
     errMsg: '',
@@ -136,13 +129,13 @@ export async function uri2local(uri: string, fileName: string = null): Promise<U
     isLocal: false,
   }
   if (!fileName) {
-    fileName = uuidv4()
+    fileName = randomUUID()
   }
   let filePath = path.join(TEMP_DIR, fileName)
-  let url = null
+  let url: URL | null = null
   try {
     url = new URL(uri)
-  } catch (e) {
+  } catch (e: any) {
     res.errMsg = `uri ${uri} 解析失败,` + e.toString() + ` 可能${uri}不存在`
     return res
   }
@@ -153,17 +146,17 @@ export async function uri2local(uri: string, fileName: string = null): Promise<U
     let base64Data = uri.split('base64://')[1]
     try {
       const buffer = Buffer.from(base64Data, 'base64')
-      fs.writeFileSync(filePath, buffer)
+      await fsPromise.writeFile(filePath, buffer)
     } catch (e: any) {
       res.errMsg = `base64文件下载失败,` + e.toString()
       return res
     }
   } else if (url.protocol == 'http:' || url.protocol == 'https:') {
     // 下载文件
-    let buffer: Buffer = null
+    let buffer: Buffer | null = null
     try {
       buffer = await httpDownload(uri)
-    } catch (e) {
+    } catch (e: any) {
       res.errMsg = `${url}下载失败,` + e.toString()
       return res
     }
@@ -178,8 +171,8 @@ export async function uri2local(uri: string, fileName: string = null): Promise<U
       }
       fileName = fileName.replace(/[/\\:*?"<>|]/g, '_')
       res.fileName = fileName
-      filePath = path.join(TEMP_DIR, uuidv4() + fileName)
-      fs.writeFileSync(filePath, buffer)
+      filePath = path.join(TEMP_DIR, randomUUID() + fileName)
+      await fsPromise.writeFile(filePath, buffer)
     } catch (e: any) {
       res.errMsg = `${url}下载失败,` + e.toString()
       return res
@@ -215,10 +208,10 @@ export async function uri2local(uri: string, fileName: string = null): Promise<U
   // }
   if (!res.isLocal && !res.ext) {
     try {
-      let ext: string = (await fileType.fileTypeFromFile(filePath)).ext
+      const ext = (await fileType.fileTypeFromFile(filePath))?.ext
       if (ext) {
         log('获取文件类型', ext, filePath)
-        fs.renameSync(filePath, filePath + `.${ext}`)
+        await fsPromise.rename(filePath, filePath + `.${ext}`)
         filePath += `.${ext}`
         res.fileName += `.${ext}`
         res.ext = ext

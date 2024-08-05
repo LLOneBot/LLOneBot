@@ -15,7 +15,7 @@ import { version } from '../../../version'
 export let rwsList: ReverseWebsocket[] = []
 
 export class ReverseWebsocket {
-  public websocket: WebSocketClass
+  public websocket?: WebSocketClass
   public url: string
   private running: boolean = false
 
@@ -27,38 +27,38 @@ export class ReverseWebsocket {
 
   public stop() {
     this.running = false
-    this.websocket.close()
+    this.websocket?.close()
   }
 
   public onopen() {
-    wsReply(this.websocket, new OB11LifeCycleEvent(LifeCycleSubType.CONNECT))
+    wsReply(this.websocket!, new OB11LifeCycleEvent(LifeCycleSubType.CONNECT))
   }
 
   public async onmessage(msg: string) {
-    let receiveData: { action: ActionName; params: any; echo?: any } = { action: null, params: {} }
+    let receiveData: { action: ActionName | null; params: any; echo?: any } = { action: null, params: {} }
     let echo = null
     try {
       receiveData = JSON.parse(msg.toString())
       echo = receiveData.echo
       log('收到反向Websocket消息', receiveData)
     } catch (e) {
-      return wsReply(this.websocket, OB11Response.error('json解析失败，请检查数据格式', 1400, echo))
+      return wsReply(this.websocket!, OB11Response.error('json解析失败，请检查数据格式', 1400, echo))
     }
-    const action: BaseAction<any, any> = actionMap.get(receiveData.action)
+    const action: BaseAction<any, any> = actionMap.get(receiveData.action!)!
     if (!action) {
-      return wsReply(this.websocket, OB11Response.error('不支持的api ' + receiveData.action, 1404, echo))
+      return wsReply(this.websocket!, OB11Response.error('不支持的api ' + receiveData.action, 1404, echo))
     }
     try {
       let handleResult = await action.websocketHandle(receiveData.params, echo)
-      wsReply(this.websocket, handleResult)
+      wsReply(this.websocket!, handleResult)
     } catch (e) {
-      wsReply(this.websocket, OB11Response.error(`api处理出错:${e}`, 1200, echo))
+      wsReply(this.websocket!, OB11Response.error(`api处理出错:${e}`, 1200, echo))
     }
   }
 
-  public onclose = function () {
+  public onclose = () => {
     log('反向ws断开', this.url)
-    unregisterWsEventSender(this.websocket)
+    unregisterWsEventSender(this.websocket!)
     if (this.running) {
       this.reconnect()
     }
@@ -104,7 +104,7 @@ export class ReverseWebsocket {
     this.websocket.on('error', log)
 
     const wsClientInterval = setInterval(() => {
-      postWsEvent(new OB11HeartbeatEvent(selfInfo.online, true, heartInterval))
+      postWsEvent(new OB11HeartbeatEvent(selfInfo.online!, true, heartInterval!))
     }, heartInterval) // 心跳包
     this.websocket.on('close', () => {
       clearInterval(wsClientInterval)
@@ -121,7 +121,7 @@ class OB11ReverseWebsockets {
       new Promise(() => {
         try {
           rwsList.push(new ReverseWebsocket(url))
-        } catch (e) {
+        } catch (e: any) {
           log(e.stack)
         }
       }).then()
@@ -132,7 +132,7 @@ class OB11ReverseWebsockets {
     for (let rws of rwsList) {
       try {
         rws.stop()
-      } catch (e) {
+      } catch (e: any) {
         log('反向ws关闭:', e.stack)
       }
     }

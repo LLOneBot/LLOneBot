@@ -4,6 +4,8 @@ export class OB11GroupRecallNoticeEvent extends OB11GroupNoticeEvent {
   notice_type = 'group_recall'
   operator_id: number
   message_id: number
+  group_id: number
+  user_id: number
 
   constructor(groupId: number, userId: number, operatorId: number, messageId: number) {
     super()

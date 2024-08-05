@@ -6,6 +6,8 @@ export class OB11GroupDecreaseEvent extends OB11GroupNoticeEvent {
   notice_type = 'group_decrease'
   sub_type: GroupDecreaseSubType = 'leave' // TODO: 实现其他几种子类型的识别 ("leave" | "kick" | "kick_me")
   operator_id: number
+  group_id: number
+  user_id: number
 
   constructor(groupId: number, userId: number, operatorId: number, subType: GroupDecreaseSubType = 'leave') {
     super()
