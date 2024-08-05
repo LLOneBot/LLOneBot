@@ -52,6 +52,8 @@ import { checkFfmpeg } from '../common/utils/video'
 import { GroupDecreaseSubType, OB11GroupDecreaseEvent } from '../onebot11/event/notice/OB11GroupDecreaseEvent'
 import '../ntqqapi/wrapper'
 import { sentMessages } from '@/ntqqapi/api'
+import { NTEventDispatch } from '../common/utils/EventTask'
+import { wrapperApi, wrapperConstructor } from '../ntqqapi/wrapper'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -436,6 +438,7 @@ function onLoad() {
         uidMaps[value] = key
       }
     })
+    NTEventDispatch.init({ ListenerMap: wrapperConstructor, WrapperSession: wrapperApi.NodeIQQNTWrapperSession })
     try {
       log('start get groups')
       const _groups = await NTQQGroupApi.getGroups()
