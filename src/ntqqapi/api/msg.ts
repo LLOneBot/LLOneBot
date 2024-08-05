@@ -289,6 +289,7 @@ export class NTQQMsgApi {
     })
   }
   static async getMsgsBySeqAndCount(peer: Peer, seq: string, count: number, desc: boolean, z: boolean) {
-    return await wrapperApi.NodeIQQNTWrapperSession.getMsgService().getMsgsBySeqAndCount(peer, seq, count, desc, z);
+    const session = wrapperApi.NodeIQQNTWrapperSession
+    return await session.getMsgService().getMsgsBySeqAndCount(peer, seq, count, desc, z);
   }
 }
