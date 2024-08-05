@@ -41,7 +41,7 @@ export function mergeNewProperties(newObj: any, oldObj: any) {
   })
 }
 
-export function isNull(value: any) {
+export function isNull(value: any): value is null | undefined | void {
   return value === undefined || value === null
 }
 
@@ -73,14 +73,14 @@ export function wrapText(str: string, maxLength: number): string {
  * @param customKey 自定义缓存键前缀，可为空，防止方法名参数名一致时导致缓存键冲突
  * @returns 处理后缓存或调用原方法的结果
  */
-export function cacheFunc(ttl: number, customKey: string='') {
+export function cacheFunc(ttl: number, customKey: string = '') {
   const cache = new Map<string, { expiry: number; value: any }>();
 
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor {
     const originalMethod = descriptor.value;
     const className = target.constructor.name;  // 获取类名
     const methodName = propertyKey;             // 获取方法名
-    descriptor.value = async function (...args: any[]){
+    descriptor.value = async function (...args: any[]) {
       const cacheKey = `${customKey}${className}.${methodName}:${JSON.stringify(args)}`;
       const cached = cache.get(cacheKey);
       if (cached && cached.expiry > Date.now()) {

@@ -1,16 +1,15 @@
 import { OB11BaseNoticeEvent } from './OB11BaseNoticeEvent'
-import { selfInfo } from '../../../common/data'
-import { OB11BaseEvent } from '../OB11BaseEvent'
 
-class OB11PokeEvent extends OB11BaseNoticeEvent {
+abstract class OB11PokeEvent extends OB11BaseNoticeEvent {
   notice_type = 'notify'
   sub_type = 'poke'
   target_id = 0
-  user_id: number
+  abstract user_id: number
   raw_message: any
 }
 
 export class OB11FriendPokeEvent extends OB11PokeEvent {
+  user_id: number
 
   constructor(user_id: number, target_id: number, raw_message: any) {
     super();
@@ -21,6 +20,7 @@ export class OB11FriendPokeEvent extends OB11PokeEvent {
 }
 
 export class OB11GroupPokeEvent extends OB11PokeEvent {
+  user_id: number
   group_id: number
   constructor(group_id: number, user_id: number = 0, target_id: number = 0, raw_message: any) {
     super()

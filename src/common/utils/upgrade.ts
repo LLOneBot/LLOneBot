@@ -91,7 +91,7 @@ export async function getRemoteVersionByMirror(mirrorGithub: string) {
     releasePage = (await httpDownload(mirrorGithub + '/LLOneBot/LLOneBot/releases')).toString()
     // log("releasePage", releasePage);
     if (releasePage === 'error') return ''
-    return releasePage.match(new RegExp('(?<=(tag/v)).*?(?=("))'))[0]
+    return releasePage.match(new RegExp('(?<=(tag/v)).*?(?=("))'))?.[0]
   } catch {}
   return ''
 }

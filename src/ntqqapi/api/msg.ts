@@ -33,7 +33,7 @@ async function sendWaiter(peer: Peer, waitComplete = true, timeout: number = 100
   }
   await waitLastSend()
 
-  let sentMessage: RawMessage = null
+  let sentMessage: RawMessage | null = null
   sendMessagePool[peerUid] = async (rawMessage: RawMessage) => {
     delete sendMessagePool[peerUid]
     sentMessage = rawMessage
@@ -290,6 +290,6 @@ export class NTQQMsgApi {
   }
   static async getMsgsBySeqAndCount(peer: Peer, seq: string, count: number, desc: boolean, z: boolean) {
     const session = wrapperApi.NodeIQQNTWrapperSession
-    return await session.getMsgService().getMsgsBySeqAndCount(peer, seq, count, desc, z);
+    return await session?.getMsgService().getMsgsBySeqAndCount(peer, seq, count, desc, z);
   }
 }

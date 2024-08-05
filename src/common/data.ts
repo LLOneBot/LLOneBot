@@ -45,7 +45,7 @@ export async function getFriend(uinOrUid: string): Promise<Friend | undefined> {
       if (friend) {
         friends.push(friend)
       }
-    } catch (e) {
+    } catch (e: any) {
       log('刷新好友列表失败', e.stack.toString())
     }
   }

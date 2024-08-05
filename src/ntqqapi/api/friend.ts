@@ -70,9 +70,9 @@ export class NTQQFriendApi {
   static async getBuddyV2(refresh = false): Promise<FriendV2[]> {
     const uids: string[] = []
     const session = wrapperApi.NodeIQQNTWrapperSession
-    const buddyService = session.getBuddyService()
-    const buddyListV2 = refresh ? await buddyService.getBuddyListV2('0', BuddyListReqType.KNOMAL) : await buddyService.getBuddyListV2('0', BuddyListReqType.KNOMAL)
-    uids.push(...buddyListV2.data.flatMap(item => item.buddyUids))
+    const buddyService = session?.getBuddyService()
+    const buddyListV2 = refresh ? await buddyService?.getBuddyListV2('0', BuddyListReqType.KNOMAL) : await buddyService?.getBuddyListV2('0', BuddyListReqType.KNOMAL)
+    uids.push(...buddyListV2?.data.flatMap(item => item.buddyUids)!)
     const data = await NTEventDispatch.CallNoListenerEvent<NodeIKernelProfileService['getCoreAndBaseInfo']>(
       'NodeIKernelProfileService/getCoreAndBaseInfo', 5000, 'nodeStore', uids
     )

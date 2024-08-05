@@ -31,10 +31,10 @@ export async function getVideoInfo(filePath: string) {
           console.log('未找到视频流信息。')
         }
         resolve({
-          width: videoStream.width,
-          height: videoStream.height,
-          time: parseInt(videoStream.duration),
-          format: metadata.format.format_name,
+          width: videoStream?.width!,
+          height: videoStream?.height!,
+          time: parseInt(videoStream?.duration!),
+          format: metadata.format.format_name!,
           size,
           filePath,
         })
@@ -67,7 +67,7 @@ export async function encodeMp4(filePath: string) {
   return videoInfo
 }
 
-export function checkFfmpeg(newPath: string = null): Promise<boolean> {
+export function checkFfmpeg(newPath: string | null = null): Promise<boolean> {
   return new Promise((resolve, reject) => {
     log('开始检查ffmpeg', newPath)
     if (newPath) {

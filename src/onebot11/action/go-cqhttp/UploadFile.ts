@@ -1,11 +1,12 @@
 import BaseAction from '../BaseAction'
-import { getGroup, getUidByUin } from '../../../common/data'
+import { getGroup, getUidByUin } from '@/common/data'
 import { ActionName } from '../types'
-import { SendMsgElementConstructor } from '../../../ntqqapi/constructor'
-import { ChatType, SendFileElement } from '../../../ntqqapi/types'
+import { SendMsgElementConstructor } from '@/ntqqapi/constructor'
+import { ChatType, SendFileElement } from '@/ntqqapi/types'
 import fs from 'fs'
-import { NTQQMsgApi, Peer } from '../../../ntqqapi/api/msg'
-import { uri2local } from '../../../common/utils'
+import { NTQQMsgApi } from '@/ntqqapi/api/msg'
+import { uri2local } from '@/common/utils'
+import { Peer } from '@/ntqqapi/types'
 
 interface Payload {
   user_id: number
@@ -20,9 +21,9 @@ class GoCQHTTPUploadFileBase extends BaseAction<Payload, null> {
 
   getPeer(payload: Payload): Peer {
     if (payload.user_id) {
-      return { chatType: ChatType.friend, peerUid: getUidByUin(payload.user_id.toString()) }
+      return { chatType: ChatType.friend, peerUid: getUidByUin(payload.user_id.toString())! }
     }
-    return { chatType: ChatType.group, peerUid: payload.group_id.toString() }
+    return { chatType: ChatType.group, peerUid: payload.group_id?.toString()! }
   }
 
   protected async _handle(payload: Payload): Promise<null> {

@@ -114,7 +114,7 @@ export async function encodeSilk(filePath: string) {
       let duration = 0
       try {
         duration = getDuration(silk) / 1000
-      } catch (e) {
+      } catch (e: any) {
         log('获取语音文件时长失败, 使用文件大小推测时长', filePath, e.stack)
         duration = await guessDuration(filePath)
       }
@@ -125,7 +125,7 @@ export async function encodeSilk(filePath: string) {
         duration,
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     log('convert silk failed', error.stack)
     return {}
   }
