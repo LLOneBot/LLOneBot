@@ -283,7 +283,7 @@ export class SendMsgElementConstructor {
     if (faceId >= 222){
       faceType = 2
     }
-    if (face.AniStickerType){
+    if (face?.AniStickerType){
       faceType = 3;
     }
     return {
@@ -292,10 +292,10 @@ export class SendMsgElementConstructor {
       faceElement: {
         faceIndex: faceId,
         faceType,
-        faceText: face.QDes,
-        stickerId: face.AniStickerId,
-        stickerType: face.AniStickerType,
-        packId: face.AniStickerPackId,
+        faceText: face?.QDes,
+        stickerId: face?.AniStickerId,
+        stickerType: face?.AniStickerType,
+        packId: face?.AniStickerPackId,
         sourceType: 1,
       },
     }
@@ -329,7 +329,7 @@ export class SendMsgElementConstructor {
         stickerId: '33',
         sourceType: 1,
         stickerType: 2,
-        resultId: resultId.toString(),
+        resultId: resultId?.toString(),
         surpriseId: '',
         // "randomType": 1,
       },
@@ -351,7 +351,7 @@ export class SendMsgElementConstructor {
         stickerId: '34',
         sourceType: 1,
         stickerType: 2,
-        resultId: resultId.toString(),
+        resultId: resultId?.toString(),
         surpriseId: '',
         // "randomType": 1,
       },

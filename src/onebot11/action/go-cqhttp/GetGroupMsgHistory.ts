@@ -6,7 +6,6 @@ import { ChatType } from '../../../ntqqapi/types'
 import { dbUtil } from '../../../common/db'
 import { NTQQMsgApi } from '../../../ntqqapi/api/msg'
 import { OB11Constructor } from '../../constructor'
-import { log } from '../../../common/utils'
 
 interface Payload {
   group_id: number

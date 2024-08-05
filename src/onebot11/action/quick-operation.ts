@@ -5,8 +5,8 @@ import { OB11Message, OB11MessageAt, OB11MessageData, OB11MessageDataType } from
 import { OB11FriendRequestEvent } from '../event/request/OB11FriendRequest'
 import { OB11GroupRequestEvent } from '../event/request/OB11GroupRequest'
 import { dbUtil } from '@/common/db'
-import { NTQQFriendApi, NTQQGroupApi, NTQQMsgApi, Peer } from '@/ntqqapi/api'
-import { ChatType, Group, GroupRequestOperateTypes } from '@/ntqqapi/types'
+import { NTQQFriendApi, NTQQGroupApi, NTQQMsgApi } from '@/ntqqapi/api'
+import { ChatType, Group, GroupRequestOperateTypes, Peer } from '@/ntqqapi/types'
 import { getGroup, getUidByUin } from '@/common/data'
 import { convertMessage2List, createSendElements, sendMsg } from './msg/SendMsg'
 import { isNull, log } from '@/common/utils'
@@ -71,17 +71,17 @@ async function handleMsg(msg: OB11Message, quickAction: QuickOperationPrivateMes
     peerUid: msg.user_id.toString(),
   }
   if (msg.message_type == 'private') {
-    peer.peerUid = getUidByUin(msg.user_id.toString())
+    peer.peerUid = getUidByUin(msg.user_id.toString())!
     if (msg.sub_type === 'group') {
       peer.chatType = ChatType.temp
     }
   }
   else {
     peer.chatType = ChatType.group
-    peer.peerUid = msg.group_id.toString()
+    peer.peerUid = msg.group_id?.toString()!
   }
   if (reply) {
-    let group: Group = null
+    let group: Group | null = null
     let replyMessage: OB11MessageData[] = []
     if (ob11Config.enableQOAutoQuote) {
       replyMessage.push({
@@ -93,7 +93,7 @@ async function handleMsg(msg: OB11Message, quickAction: QuickOperationPrivateMes
     }
 
     if (msg.message_type == 'group') {
-      group = await getGroup(msg.group_id.toString())
+      group = (await getGroup(msg.group_id?.toString()!))!
       if ((quickAction as QuickOperationGroupMessage).at_sender) {
         replyMessage.push({
           type: 'at',
@@ -104,7 +104,7 @@ async function handleMsg(msg: OB11Message, quickAction: QuickOperationPrivateMes
       }
     }
     replyMessage = replyMessage.concat(convertMessage2List(reply, quickAction.auto_escape))
-    const { sendElements, deleteAfterSentFiles } = await createSendElements(replyMessage, group)
+    const { sendElements, deleteAfterSentFiles } = await createSendElements(replyMessage, group!)
     log(`发送消息给`, peer, sendElements)
     sendMsg(peer, sendElements, deleteAfterSentFiles, false).then().catch(log)
   }
@@ -112,15 +112,15 @@ async function handleMsg(msg: OB11Message, quickAction: QuickOperationPrivateMes
     const groupMsgQuickAction = quickAction as QuickOperationGroupMessage
     // handle group msg
     if (groupMsgQuickAction.delete) {
-      NTQQMsgApi.recallMsg(peer, [rawMessage.msgId]).then().catch(log)
+      NTQQMsgApi.recallMsg(peer, [rawMessage?.msgId!]).then().catch(log)
     }
     if (groupMsgQuickAction.kick) {
-      NTQQGroupApi.kickMember(peer.peerUid, [rawMessage.senderUid]).then().catch(log)
+      NTQQGroupApi.kickMember(peer.peerUid, [rawMessage?.senderUid!]).then().catch(log)
     }
     if (groupMsgQuickAction.ban) {
       NTQQGroupApi.banMember(peer.peerUid, [
         {
-          uid: rawMessage.senderUid,
+          uid: rawMessage?.senderUid!,
           timeStamp: groupMsgQuickAction.ban_duration || 60 * 30,
         },
       ]).then().catch(log)
@@ -129,7 +129,7 @@ async function handleMsg(msg: OB11Message, quickAction: QuickOperationPrivateMes
 }
 
 async function handleFriendRequest(request: OB11FriendRequestEvent,
-                                   quickAction: QuickOperationFriendRequest) {
+  quickAction: QuickOperationFriendRequest) {
   if (!isNull(quickAction.approve)) {
     // todo: set remark
     NTQQFriendApi.handleFriendRequest(request.flag, quickAction.approve).then().catch(log)
@@ -138,7 +138,7 @@ async function handleFriendRequest(request: OB11FriendRequestEvent,
 
 
 async function handleGroupRequest(request: OB11GroupRequestEvent,
-                                  quickAction: QuickOperationGroupRequest) {
+  quickAction: QuickOperationGroupRequest) {
   if (!isNull(quickAction.approve)) {
     NTQQGroupApi.handleGroupRequest(
       request.flag,

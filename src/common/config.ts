@@ -1,7 +1,5 @@
-import fs from 'fs'
-import fsPromise from 'fs/promises'
+import fs from 'node:fs'
 import { Config, OB11Config } from './types'
-
 import { mergeNewProperties } from './utils/helper'
 import path from 'node:path'
 import { selfInfo } from './data'
@@ -53,7 +51,6 @@ export class ConfigUtil {
       reportSelfMessage: false,
       autoDeleteFile: false,
       autoDeleteFileSecond: 60,
-      enablePoke: false,
       musicSignUrl: '',
     }
 

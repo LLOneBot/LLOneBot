@@ -24,6 +24,7 @@ import {
   TipGroupElementType,
   User,
   VideoElement,
+  FriendV2
 } from '../ntqqapi/types'
 import { deleteGroup, getFriend, getGroupMember, selfInfo, tempGroupCodeMap, uidMaps } from '../common/data'
 import { EventType } from './event/OB11BaseEvent'
@@ -38,7 +39,7 @@ import { NTQQFileApi } from '../ntqqapi/api/file'
 import { NTQQMsgApi } from '../ntqqapi/api/msg'
 import { calcQQLevel } from '../common/utils/qqlevel'
 import { log } from '../common/utils/log'
-import { sleep } from '../common/utils/helper'
+import { isNull, sleep } from '../common/utils/helper'
 import { getConfigUtil } from '../common/config'
 import { OB11GroupTitleEvent } from './event/notice/OB11GroupTitleEvent'
 import { OB11GroupCardEvent } from './event/notice/OB11GroupCardEvent'
@@ -50,8 +51,8 @@ import { OB11FriendAddNoticeEvent } from './event/notice/OB11FriendAddNoticeEven
 import { OB11FriendRecallNoticeEvent } from './event/notice/OB11FriendRecallNoticeEvent'
 import { OB11GroupRecallNoticeEvent } from './event/notice/OB11GroupRecallNoticeEvent'
 import { OB11FriendPokeEvent, OB11GroupPokeEvent } from './event/notice/OB11PokeEvent'
-import { OB11BaseNoticeEvent } from './event/notice/OB11BaseNoticeEvent';
-import { OB11GroupEssenceEvent } from './event/notice/OB11GroupEssenceEvent';
+import { OB11BaseNoticeEvent } from './event/notice/OB11BaseNoticeEvent'
+import { OB11GroupEssenceEvent } from './event/notice/OB11GroupEssenceEvent'
 
 let lastRKeyUpdateTime = 0
 
@@ -66,14 +67,14 @@ export class OB11Constructor {
     const message_type = msg.chatType == ChatType.group ? 'group' : 'private'
     const resMsg: OB11Message = {
       self_id: parseInt(selfInfo.uin),
-      user_id: parseInt(msg.senderUin),
+      user_id: parseInt(msg.senderUin!),
       time: parseInt(msg.msgTime) || Date.now(),
-      message_id: msg.msgShortId,
-      real_id: msg.msgShortId,
-      message_seq: msg.msgShortId,
+      message_id: msg.msgShortId!,
+      real_id: msg.msgShortId!,
+      message_seq: msg.msgShortId!,
       message_type: msg.chatType == ChatType.group ? 'group' : 'private',
       sender: {
-        user_id: parseInt(msg.senderUin),
+        user_id: parseInt(msg.senderUin!),
         nickname: msg.sendNickName,
         card: msg.sendMemberName || '',
       },
@@ -90,7 +91,7 @@ export class OB11Constructor {
     if (msg.chatType == ChatType.group) {
       resMsg.sub_type = 'normal'
       resMsg.group_id = parseInt(msg.peerUin)
-      const member = await getGroupMember(msg.peerUin, msg.senderUin)
+      const member = await getGroupMember(msg.peerUin, msg.senderUin!)
       if (member) {
         resMsg.sender.role = OB11Constructor.groupMemberRole(member.role)
         resMsg.sender.nickname = member.nick
@@ -98,7 +99,7 @@ export class OB11Constructor {
     }
     else if (msg.chatType == ChatType.friend) {
       resMsg.sub_type = 'friend'
-      const friend = await getFriend(msg.senderUin)
+      const friend = await getFriend(msg.senderUin!)
       if (friend) {
         resMsg.sender.nickname = friend.nick
       }
@@ -139,7 +140,7 @@ export class OB11Constructor {
         message_data = {
           type: OB11MessageDataType.at,
           data: {
-            qq,
+            qq: qq!,
             name
           }
         }
@@ -159,12 +160,12 @@ export class OB11Constructor {
           const replyMsg = await dbUtil.getMsgBySeqId(element.replyElement.replayMsgSeq)
           // log("找到回复消息", replyMsg.msgShortId, replyMsg.msgId)
           if (replyMsg) {
-            message_data['data']['id'] = replyMsg.msgShortId.toString()
+            message_data['data']['id'] = replyMsg.msgShortId?.toString()
           }
           else {
             continue
           }
-        } catch (e) {
+        } catch (e: any) {
           log('获取不到引用的消息', e.stack, element.replyElement.replayMsgSeq)
         }
       }
@@ -220,12 +221,12 @@ export class OB11Constructor {
           )
         }
         dbUtil
-          .addFileCache(videoOrFileElement.fileUuid, {
+          .addFileCache(videoOrFileElement.fileUuid!, {
             msgId: msg.msgId,
             elementId: element.elementId,
             fileName: videoOrFileElement.fileName,
             filePath: videoOrFileElement.filePath,
-            fileSize: videoOrFileElement.fileSize,
+            fileSize: videoOrFileElement.fileSize!,
             downloadFunc: async () => {
               await NTQQFileApi.downloadMedia(
                 msg.msgId,
@@ -233,7 +234,7 @@ export class OB11Constructor {
                 msg.peerUid,
                 element.elementId,
                 ob11MessageDataType == OB11MessageDataType.video
-                  ? (videoOrFileElement as VideoElement).thumbPath.get(0)
+                  ? (videoOrFileElement as VideoElement).thumbPath?.get(0)
                   : null,
                 videoOrFileElement.filePath,
               )
@@ -259,9 +260,9 @@ export class OB11Constructor {
 
         // log("收到语音消息", msg)
         // window.LLAPI.Ptt2Text(message.raw.msgId, message.peer, messages).then(text => {
-        //     console.log("语音转文字结果", text);
+        //     console.log("语音转文字结果", text)
         // }).catch(err => {
-        //     console.log("语音转文字失败", err);
+        //     console.log("语音转文字失败", err)
         // })
       }
       else if (element.arkElement) {
@@ -296,7 +297,7 @@ export class OB11Constructor {
         message_data['data']['emoji_id'] = element.marketFaceElement.emojiId
         message_data['data']['emoji_package_id'] = String(element.marketFaceElement.emojiPackageId)
         message_data['data']['key'] = element.marketFaceElement.key
-        mFaceCache.set(md5, element.marketFaceElement.faceName)
+        mFaceCache.set(md5, element.marketFaceElement.faceName!)
       }
       else if (element.markdownElement) {
         message_data['type'] = OB11MessageDataType.markdown
@@ -320,22 +321,22 @@ export class OB11Constructor {
     return resMsg
   }
 
-  static async PrivateEvent(msg: RawMessage): Promise<OB11BaseNoticeEvent> {
+  static async PrivateEvent(msg: RawMessage): Promise<OB11BaseNoticeEvent | void> {
     if (msg.chatType !== ChatType.friend) {
-      return;
+      return
     }
     for (const element of msg.elements) {
       if (element.grayTipElement) {
         if (element.grayTipElement.subElementType == GrayTipElementSubType.MEMBER_NEW_TITLE) {
-          const json = JSON.parse(element.grayTipElement.jsonGrayTipElement.jsonStr);
+          const json = JSON.parse(element.grayTipElement.jsonGrayTipElement.jsonStr)
           if (element.grayTipElement.jsonGrayTipElement.busiId == 1061) {
             //判断业务类型
             //Poke事件
-            const pokedetail: any[] = json.items;
+            const pokedetail: any[] = json.items
             //筛选item带有uid的元素
-            const poke_uid = pokedetail.filter(item => item.uid);
+            const poke_uid = pokedetail.filter(item => item.uid)
             if (poke_uid.length == 2) {
-              return new OB11FriendPokeEvent(parseInt((uidMaps[poke_uid[0].uid])!), parseInt((uidMaps[poke_uid[1].uid])), pokedetail);
+              return new OB11FriendPokeEvent(parseInt((uidMaps[poke_uid[0].uid])!), parseInt((uidMaps[poke_uid[1].uid])), pokedetail)
             }
           }
           //下面得改 上面也是错的grayTipElement.subElementType == GrayTipElementSubType.MEMBER_NEW_TITLE
@@ -349,7 +350,7 @@ export class OB11Constructor {
     }
   }
 
-  static async GroupEvent(msg: RawMessage): Promise<OB11GroupNoticeEvent> {
+  static async GroupEvent(msg: RawMessage): Promise<OB11GroupNoticeEvent | void> {
     if (msg.chatType !== ChatType.group) {
       return
     }
@@ -359,14 +360,14 @@ export class OB11Constructor {
         const event = new OB11GroupCardEvent(
           parseInt(msg.peerUid),
           parseInt(msg.senderUin),
-          msg.sendMemberName,
+          msg.sendMemberName!,
           member.cardName,
         )
-        member.cardName = msg.sendMemberName
+        member.cardName = msg.sendMemberName!
         return event
       }
     }
-    // log("group msg", msg);
+    // log("group msg", msg)
     for (let element of msg.elements) {
       const grayTipElement = element.grayTipElement
       const groupElement = grayTipElement?.groupElement
@@ -392,10 +393,10 @@ export class OB11Constructor {
         }
         else if (groupElement.type === TipGroupElementType.ban) {
           log('收到群群员禁言提示', groupElement)
-          const memberUid = groupElement.shutUp.member.uid
-          const adminUid = groupElement.shutUp.admin.uid
+          const memberUid = groupElement.shutUp?.member.uid
+          const adminUid = groupElement.shutUp?.admin.uid
           let memberUin: string = ''
-          let duration = parseInt(groupElement.shutUp.duration)
+          let duration = parseInt(groupElement.shutUp?.duration!)
           let sub_type: 'ban' | 'lift_ban' = duration > 0 ? 'ban' : 'lift_ban'
           if (memberUid) {
             memberUin =
@@ -409,7 +410,7 @@ export class OB11Constructor {
             }
           }
           const adminUin =
-            (await getGroupMember(msg.peerUid, adminUid))?.uin || (await NTQQUserApi.getUserDetailInfo(adminUid))?.uin
+            (await getGroupMember(msg.peerUid, adminUid!))?.uin || (await NTQQUserApi.getUserDetailInfo(adminUid!))?.uin
           if (memberUin && adminUin) {
             return new OB11GroupBanEvent(
               parseInt(msg.peerUid),
@@ -442,8 +443,8 @@ export class OB11Constructor {
         }
       }
       else if (element.fileElement) {
-        return new OB11GroupUploadNoticeEvent(parseInt(msg.peerUid), parseInt(msg.senderUin), {
-          id: element.fileElement.fileUuid,
+        return new OB11GroupUploadNoticeEvent(parseInt(msg.peerUid), parseInt(msg.senderUin!), {
+          id: element.fileElement.fileUuid!,
           name: element.fileElement.fileName,
           size: parseInt(element.fileElement.fileSize),
           busid: element.fileElement.fileBizId || 0,
@@ -475,13 +476,13 @@ export class OB11Constructor {
             if (!msg) {
               return
             }
-            return new OB11GroupMsgEmojiLikeEvent(parseInt(msg.peerUid), parseInt(senderUin), msg.msgShortId, [
+            return new OB11GroupMsgEmojiLikeEvent(parseInt(msg.peerUid), parseInt(senderUin), msg.msgShortId!, [
               {
                 emoji_id: emojiId,
                 count: 1,
               },
             ])
-          } catch (e) {
+          } catch (e: any) {
             log('解析表情回应消息失败', e.stack)
           }
         }
@@ -494,8 +495,8 @@ export class OB11Constructor {
           if (xmlElement?.content) {
             const regex = /jp="(\d+)"/g
 
-            let matches = []
-            let match = null
+            const matches: string[] = []
+            let match: RegExpExecArray | null = null
 
             while ((match = regex.exec(xmlElement.content)) !== null) {
               matches.push(match[1])
@@ -536,40 +537,42 @@ export class OB11Constructor {
           if (grayTipElement.jsonGrayTipElement.busiId == 1061) {
             //判断业务类型
             //Poke事件
-            const pokedetail: any[] = json.items;
+            const pokedetail: any[] = json.items
             //筛选item带有uid的元素
-            const poke_uid = pokedetail.filter(item => item.uid);
+            const poke_uid = pokedetail.filter(item => item.uid)
             if (poke_uid.length == 2) {
-              return new OB11GroupPokeEvent(parseInt(msg.peerUid), parseInt((uidMaps[poke_uid[0].uid])!), parseInt((uidMaps[poke_uid[1].uid])), pokedetail);
+              return new OB11GroupPokeEvent(parseInt(msg.peerUid), parseInt((uidMaps[poke_uid[0].uid])!), parseInt((uidMaps[poke_uid[1].uid])), pokedetail)
             }
           }
           if (grayTipElement.jsonGrayTipElement.busiId == 2401) {
             log('收到群精华消息', json)
-            const searchParams = new URL(json.items[0].jp).searchParams;
-            const msgSeq = searchParams.get('msgSeq')!;
-            const Group = searchParams.get('groupCode');
-            const Businessid = searchParams.get('businessid');
+            const searchParams = new URL(json.items[0].jp).searchParams
+            const msgSeq = searchParams.get('msgSeq')!
+            const Group = searchParams.get('groupCode')
+            const Businessid = searchParams.get('businessid')
             const Peer: Peer = {
               guildId: '',
               chatType: ChatType.group,
               peerUid: Group!
-            };
-            let msgList = (await NTQQMsgApi.getMsgsBySeqAndCount(Peer, msgSeq.toString(), 1, true, true)).msgList;
-            const origMsg = await dbUtil.getMsgByLongId(msgList[0].msgId);
-            const postMsg = await dbUtil.getMsgBySeqId(origMsg.msgSeq) ?? origMsg;
+            }
+            let msgList = (await NTQQMsgApi.getMsgsBySeqAndCount(Peer, msgSeq.toString(), 1, true, true)).msgList
+            const origMsg = await dbUtil.getMsgByLongId(msgList[0].msgId)
+            const postMsg = await dbUtil.getMsgBySeqId(origMsg?.msgSeq!) ?? origMsg
             // 如果 senderUin 为 0，可能是 历史消息 或 自身消息
             if (msgList[0].senderUin === '0') {
-                msgList[0].senderUin = postMsg?.senderUin ?? selfInfo.uin;
+              msgList[0].senderUin = postMsg?.senderUin ?? selfInfo.uin
             }
-            return new OB11GroupEssenceEvent(parseInt(msg.peerUid), postMsg.msgShortId, parseInt(msgList[0].senderUin));
+            return new OB11GroupEssenceEvent(parseInt(msg.peerUid), postMsg?.msgShortId!, parseInt(msgList[0].senderUin))
             // 获取MsgSeq+Peer可获取具体消息
           }
           if (grayTipElement.jsonGrayTipElement.busiId == 2407) {
             const memberUin = json.items[1].param[0]
             const title = json.items[3].txt
             log('收到群成员新头衔消息', json)
-            getGroupMember(msg.peerUid, memberUin).then((member) => {
-              member.memberSpecialTitle = title
+            getGroupMember(msg.peerUid, memberUin).then(member => {
+              if (!isNull(member)) {
+                member.memberSpecialTitle = title
+              }
             })
             return new OB11GroupTitleEvent(parseInt(msg.peerUid), parseInt(memberUin), title)
           }
@@ -591,16 +594,16 @@ export class OB11Constructor {
     const revokeElement = msgElement.grayTipElement.revokeElement
     if (isGroup) {
       const operator = await getGroupMember(msg.peerUid, revokeElement.operatorUid)
-      const sender = await getGroupMember(msg.peerUid, revokeElement.origMsgSenderUid)
+      const sender = await getGroupMember(msg.peerUid, revokeElement.origMsgSenderUid!)
       return new OB11GroupRecallNoticeEvent(
         parseInt(msg.peerUid),
-        parseInt(sender.uin),
-        parseInt(operator.uin),
-        msg.msgShortId,
+        parseInt(sender?.uin!),
+        parseInt(operator?.uin!),
+        msg.msgShortId!,
       )
     }
     else {
-      return new OB11FriendRecallNoticeEvent(parseInt(msg.senderUin), msg.msgShortId)
+      return new OB11FriendRecallNoticeEvent(parseInt(msg.senderUin!), msg.msgShortId!)
     }
   }
 
@@ -609,7 +612,7 @@ export class OB11Constructor {
       user_id: parseInt(friend.uin),
       nickname: friend.nick,
       remark: friend.remark,
-      sex: OB11Constructor.sex(friend.sex),
+      sex: OB11Constructor.sex(friend.sex!),
       level: (friend.qqLevel && calcQQLevel(friend.qqLevel)) || 0,
     }
   }
@@ -623,6 +626,25 @@ export class OB11Constructor {
 
   static friends(friends: User[]): OB11User[] {
     return friends.map(OB11Constructor.friend)
+  }
+
+  static friendsV2(friends: FriendV2[]): OB11User[] {
+    const data: OB11User[] = []
+    for (const friend of friends) {
+      const sexValue = this.sex(friend.baseInfo.sex!)
+      data.push({
+        ...friend.baseInfo,
+        ...friend.coreInfo,
+        user_id: parseInt(friend.coreInfo.uin),
+        nickname: friend.coreInfo.nick,
+        remark: friend.coreInfo.nick,
+        sex: sexValue,
+        level: 0,
+        categroyName: friend.categroyName,
+        categoryId: friend.categoryId
+      })
+    }
+    return data
   }
 
   static groupMemberRole(role: number): OB11GroupMemberRole | undefined {
@@ -648,7 +670,7 @@ export class OB11Constructor {
       user_id: parseInt(member.uin),
       nickname: member.nick,
       card: member.cardName,
-      sex: OB11Constructor.sex(member.sex),
+      sex: OB11Constructor.sex(member.sex!),
       age: 0,
       area: '',
       level: 0,
@@ -670,7 +692,7 @@ export class OB11Constructor {
       ...user,
       user_id: parseInt(user.uin),
       nickname: user.nick,
-      sex: OB11Constructor.sex(user.sex),
+      sex: OB11Constructor.sex(user.sex!),
       age: 0,
       qid: user.qid,
       login_days: 0,

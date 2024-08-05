@@ -23,7 +23,7 @@ import {
   OB11MessageVideo,
   OB11PostSendMsg,
 } from '../../types'
-import { NTQQMsgApi, Peer } from '../../../ntqqapi/api/msg'
+import { NTQQMsgApi } from '../../../ntqqapi/api/msg'
 import { SendMsgElementConstructor } from '../../../ntqqapi/constructor'
 import BaseAction from '../BaseAction'
 import { ActionName, BaseCheckResult } from '../types'
@@ -37,6 +37,7 @@ import { uri2local } from '../../../common/utils'
 import { crychic } from '../../../ntqqapi/native/crychic'
 import { NTQQGroupApi } from '../../../ntqqapi/api'
 import { CustomMusicSignPostData, IdMusicSignPostData, MusicSign, MusicSignPostData } from '../../../common/utils/sign'
+import { Peer } from '../../../ntqqapi/types/msg'
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
   function checkUri(uri: string): boolean {
@@ -141,7 +142,7 @@ export async function createSendElements(
                   .RemainAtAllCountForUin
                 log(`群${groupCode}剩余at全体次数`, remainAtAllCount)
                 const self = await getGroupMember((target as Group)?.groupCode, selfInfo.uin)
-                isAdmin = self.role === GroupMemberRole.admin || self.role === GroupMemberRole.owner
+                isAdmin = self?.role === GroupMemberRole.admin || self?.role === GroupMemberRole.owner
               } catch (e) {
               }
             }
@@ -170,8 +171,8 @@ export async function createSendElements(
               SendMsgElementConstructor.reply(
                 replyMsg.msgSeq,
                 replyMsg.msgId,
-                replyMsg.senderUin,
-                replyMsg.senderUin,
+                replyMsg.senderUin!,
+                replyMsg.senderUin!,
               ),
             )
           }
@@ -250,7 +251,7 @@ export async function createSendElements(
                 await SendMsgElementConstructor.pic(
                   path,
                   sendMsg.data.summary || '',
-                  <PicSubType>parseInt(sendMsg.data?.subType?.toString()) || 0,
+                  <PicSubType>parseInt(sendMsg.data?.subType?.toString()!) || 0,
                 ),
               )
             }
@@ -265,16 +266,16 @@ export async function createSendElements(
       case OB11MessageDataType.poke: {
         let qq = sendMsg.data?.qq || sendMsg.data?.id
         if (qq) {
-          if ('groupCode' in target) {
+          if ('groupCode' in target!) {
             crychic.sendGroupPoke(target.groupCode, qq.toString())
           }
           else {
             if (!qq) {
-              qq = parseInt(target.uin)
+              qq = parseInt(target?.uin!)
             }
             crychic.sendFriendPoke(qq.toString())
           }
-          sendElements.push(SendMsgElementConstructor.poke('', ''))
+          sendElements.push(SendMsgElementConstructor.poke('', '')!)
         }
       }
         break
@@ -386,10 +387,10 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     let group: Group | undefined = undefined
     let friend: Friend | undefined = undefined
     const genGroupPeer = async () => {
-      group = await getGroup(payload.group_id.toString())
+      group = await getGroup(payload.group_id?.toString()!)
       peer.chatType = ChatType.group
       // peer.name = group.name
-      peer.peerUid = group.groupCode
+      peer.peerUid = group?.groupCode!
     }
 
     const genFriendPeer = () => {
@@ -428,8 +429,8 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     if (this.getSpecialMsgNum(messages, OB11MessageDataType.node)) {
       try {
         const returnMsg = await this.handleForwardNode(peer, messages as OB11MessageNode[], group)
-        return { message_id: returnMsg.msgShortId }
-      } catch (e) {
+        return { message_id: returnMsg?.msgShortId! }
+      } catch (e: any) {
         throw '发送转发消息失败 ' + e.toString()
       }
     }
@@ -446,8 +447,9 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         }
         const postData: MusicSignPostData = { ...music.data }
         if (type === 'custom' && music.data.content) {
-          ;(postData as CustomMusicSignPostData).singer = music.data.content
-          delete (postData as OB11MessageCustomMusic['data']).content
+          const data = postData as CustomMusicSignPostData
+          data.singer = music.data.content
+          delete (data as OB11MessageCustomMusic['data']).content
         }
         if (type === 'custom') {
           const customMusicData = music.data as CustomMusicSignPostData
@@ -492,7 +494,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     const returnMsg = await sendMsg(peer, sendElements, deleteAfterSentFiles)
     deleteAfterSentFiles.map((f) => fs.unlink(f, () => {
     }))
-    return { message_id: returnMsg.msgShortId }
+    return { message_id: returnMsg.msgShortId! }
   }
 
   private getSpecialMsgNum(message: OB11MessageData[], msgType: OB11MessageDataType): number {
@@ -502,7 +504,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     return 0
   }
 
-  private async cloneMsg(msg: RawMessage): Promise<RawMessage> {
+  private async cloneMsg(msg: RawMessage): Promise<RawMessage | undefined> {
     log('克隆的目标消息', msg)
     let sendElements: SendMessageElement[] = []
     for (const ele of msg.elements) {
@@ -548,11 +550,11 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
       if (nodeId) {
         let nodeMsg = await dbUtil.getMsgByShortId(parseInt(nodeId))
         if (!needClone) {
-          nodeMsgIds.push(nodeMsg.msgId)
+          nodeMsgIds.push(nodeMsg?.msgId!)
         }
         else {
-          if (nodeMsg.peerUid !== selfInfo.uid) {
-            const cloneMsg = await this.cloneMsg(nodeMsg)
+          if (nodeMsg?.peerUid !== selfInfo.uid) {
+            const cloneMsg = await this.cloneMsg(nodeMsg!)
             if (cloneMsg) {
               nodeMsgIds.push(cloneMsg.msgId)
             }
@@ -604,7 +606,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
 
     // 检查srcPeer是否一致，不一致则需要克隆成自己的消息, 让所有srcPeer都变成自己的，使其保持一致才能够转发
     let nodeMsgArray: Array<RawMessage> = []
-    let srcPeer: Peer = null
+    let srcPeer: Peer | null = null
     let needSendSelf = false
     for (const [index, msgId] of nodeMsgIds.entries()) {
       const nodeMsg = await dbUtil.getMsgByLongId(msgId)
@@ -647,7 +649,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     }
     try {
       log('开发转发', nodeMsgIds)
-      return await NTQQMsgApi.multiForwardMsg(srcPeer, destPeer, nodeMsgIds)
+      return await NTQQMsgApi.multiForwardMsg(srcPeer!, destPeer, nodeMsgIds)
     } catch (e) {
       log('forward failed', e)
       return null

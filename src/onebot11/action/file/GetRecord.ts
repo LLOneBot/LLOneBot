@@ -14,7 +14,7 @@ export default class GetRecord extends GetFileBase {
 
   protected async _handle(payload: Payload): Promise<GetFileResponse> {
     let res = await super._handle(payload)
-    res.file = await decodeSilk(res.file, payload.out_format)
+    res.file = await decodeSilk(res.file!, payload.out_format)
     res.file_name = path.basename(res.file)
     res.file_size = fs.statSync(res.file).size.toString()
     if (getConfigUtil().getConfig().enableLocalFile2Url){

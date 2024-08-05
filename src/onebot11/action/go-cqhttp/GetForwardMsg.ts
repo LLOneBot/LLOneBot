@@ -1,6 +1,6 @@
 import BaseAction from '../BaseAction'
 import { OB11ForwardMessage, OB11Message, OB11MessageData } from '../../types'
-import { NTQQMsgApi, Peer } from '../../../ntqqapi/api'
+import { NTQQMsgApi } from '@/ntqqapi/api'
 import { dbUtil } from '../../../common/db'
 import { OB11Constructor } from '../../constructor'
 import { ActionName } from '../types'
@@ -37,12 +37,13 @@ export class GoCQHTTGetForwardMsgAction extends BaseAction<Payload, any> {
     let messages = await Promise.all(
       msgList.map(async (msg) => {
         let resMsg = await OB11Constructor.message(msg)
-        resMsg.message_id = await dbUtil.addMsg(msg)
+        resMsg.message_id = (await dbUtil.addMsg(msg))!
         return resMsg
       }),
     )
-    messages.map((msg) => {
-      ;(<OB11ForwardMessage>msg).content = msg.message
+    messages.map(v => {
+      const msg = v as Partial<OB11ForwardMessage>
+      msg.content = msg.message
       delete msg.message
     })
     return { messages }

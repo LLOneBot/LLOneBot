@@ -4,6 +4,8 @@ export class OB11GroupTitleEvent extends OB11GroupNoticeEvent {
   notice_type = 'notify'
   sub_type = 'title'
   title: string
+  group_id: number
+  user_id: number
 
   constructor(groupId: number, userId: number, title: string) {
     super()
