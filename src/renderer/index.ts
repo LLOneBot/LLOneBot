@@ -4,6 +4,7 @@ import { SettingButton, SettingItem, SettingList, SettingSwitch, SettingSelect }
 // @ts-ignore
 import StyleRaw from './style.css?raw'
 import { iconSvg } from './icon'
+import { version } from '../version'
 
 // 打开设置界面时触发
 
@@ -53,8 +54,8 @@ async function onSettingWindowCreated(view: Element) {
       '<div>',
       `<style>${StyleRaw}</style>`,
       `<setting-section id="llonebot-error">
-            <setting-panel><pre><code></code></pre></setting-panel>
-        </setting-section>`,
+        <setting-panel><pre><code></code></pre></setting-panel>
+      </setting-section>`,
       SettingList([
         SettingItem(
           '<span id="llonebot-update-title">正在检查 LLOneBot 更新</span>',
@@ -186,11 +187,6 @@ async function onSettingWindowCreated(view: Element) {
         SettingItem('', null, SettingButton('保存', 'config-ob11-save', 'primary')),
       ]),
       SettingList([
-        SettingItem(
-          '戳一戳消息, 暂时只支持Windows版的LLOneBot',
-          `重启QQ后生效，如果导致QQ崩溃请勿开启此项, 群戳一戳只能收到群号`,
-          SettingSwitch('enablePoke', config.enablePoke),
-        ),
         SettingItem(
           '使用 Base64 编码获取文件',
           '调用 /get_image、/get_record、/get_file 时，没有 url 时添加 Base64 字段',
@@ -404,7 +400,7 @@ async function onSettingWindowCreated(view: Element) {
     const buttonDom = view.querySelector<HTMLButtonElement>('#llonebot-update-button')!
 
     if (ResultVersion.version === '') {
-      titleDom.innerHTML = '检查更新失败'
+      titleDom.innerHTML = `当前版本为 v${version}，检查更新失败`
       buttonDom.innerHTML = '点击重试'
 
       buttonDom.addEventListener('click', async () => {
@@ -414,10 +410,10 @@ async function onSettingWindowCreated(view: Element) {
       return
     }
     if (!ResultVersion.result) {
-      titleDom.innerHTML = '当前已是最新版本 v' + ResultVersion.version
+      titleDom.innerHTML = '当前已是最新版本 v' + version
       buttonDom.innerHTML = '无需更新'
     } else {
-      titleDom.innerHTML = '已检测到最新版本 v' + ResultVersion.version
+      titleDom.innerHTML = `当前版本为 v${version}，最新版本为 v${ResultVersion.version}`
       buttonDom.innerHTML = '点击更新'
       buttonDom.dataset.type = 'primary'
 

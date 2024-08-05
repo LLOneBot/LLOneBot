@@ -1,6 +1,6 @@
 import cp from 'vite-plugin-cp'
-import './scripts/gen-version'
 import path from 'node:path'
+import './scripts/gen-manifest'
 
 const external = [
   'silk-wasm',
@@ -32,6 +32,7 @@ let config = {
         external,
         input: 'src/main/main.ts',
       },
+      minify: true,
     },
     resolve: {
       alias: {
@@ -44,8 +45,8 @@ let config = {
         targets: [
           ...external.map(genCpModule),
           { src: './manifest.json', dest: 'dist' },
-          { src: './icon.jpg', dest: 'dist' },
-          { src: './src/ntqqapi/native/crychic/crychic-win32-x64.node', dest: 'dist/main/' },
+          { src: './icon.webp', dest: 'dist' },
+          // { src: './src/ntqqapi/native/crychic/crychic-win32-x64.node', dest: 'dist/main/' },
           // { src: './src/ntqqapi/native/moehook/MoeHoo-win32-x64.node', dest: 'dist/main/' },
           // { src: './src/ntqqapi/native/moehook/MoeHoo-linux-x64.node', dest: 'dist/main/' },
         ],
