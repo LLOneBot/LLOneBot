@@ -34,7 +34,6 @@ import { ALLOW_SEND_TEMP_MSG, getConfigUtil } from '../../../common/config'
 import { log } from '../../../common/utils/log'
 import { sleep } from '../../../common/utils/helper'
 import { uri2local } from '../../../common/utils'
-import { crychic } from '../../../ntqqapi/native/crychic'
 import { NTQQGroupApi } from '../../../ntqqapi/api'
 import { CustomMusicSignPostData, IdMusicSignPostData, MusicSign, MusicSignPostData } from '../../../common/utils/sign'
 import { Peer } from '../../../ntqqapi/types/msg'
@@ -265,18 +264,6 @@ export async function createSendElements(
         break
       case OB11MessageDataType.poke: {
         let qq = sendMsg.data?.qq || sendMsg.data?.id
-        if (qq) {
-          if ('groupCode' in target!) {
-            crychic.sendGroupPoke(target.groupCode, qq.toString())
-          }
-          else {
-            if (!qq) {
-              qq = parseInt(target?.uin!)
-            }
-            crychic.sendFriendPoke(qq.toString())
-          }
-          sendElements.push(SendMsgElementConstructor.poke('', '')!)
-        }
       }
         break
       case OB11MessageDataType.dice: {
