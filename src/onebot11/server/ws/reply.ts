@@ -12,7 +12,7 @@ export function wsReply(wsClient: WebSocketClass, data: OB11Response | PostEvent
     }
     wsClient.send(JSON.stringify(packet))
     log('ws 消息上报', wsClient.url || '', data)
-  } catch (e) {
+  } catch (e: any) {
     log('websocket 回复失败', e.stack, data)
   }
 }

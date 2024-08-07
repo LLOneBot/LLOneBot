@@ -20,7 +20,7 @@ export interface GetFileResponse {
   base64?: string
 }
 
-export class GetFileBase extends BaseAction<GetFilePayload, GetFileResponse> {
+export abstract class GetFileBase extends BaseAction<GetFilePayload, GetFileResponse> {
   private getElement(msg: RawMessage, elementId: string): VideoElement | FileElement {
     let element = msg.elements.find((e) => e.elementId === elementId)
     if (!element) {
@@ -41,7 +41,7 @@ export class GetFileBase extends BaseAction<GetFilePayload, GetFileResponse> {
         // 等待文件下载完成
         msg = await dbUtil.getMsgByLongId(cache.msgId)
         log('下载完成后的msg', msg)
-        cache.filePath = this.getElement(msg, cache.elementId).filePath
+        cache.filePath = this.getElement(msg!, cache.elementId).filePath
         await checkFileReceived(cache.filePath, 10 * 1000)
         dbUtil.addFileCache(file, cache).then()
       }

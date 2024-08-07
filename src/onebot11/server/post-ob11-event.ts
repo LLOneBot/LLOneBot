@@ -43,7 +43,7 @@ export function postOb11Event(msg: PostEventType, reportSelf = false, postWs = t
   }
   if (config.ob11.enableHttpPost) {
     const msgStr = JSON.stringify(msg)
-    const hmac = crypto.createHmac('sha1', config.ob11.httpSecret)
+    const hmac = crypto.createHmac('sha1', config.ob11.httpSecret!)
     hmac.update(msgStr)
     const sig = hmac.digest('hex')
     let headers = {
@@ -79,9 +79,8 @@ export function postOb11Event(msg: PostEventType, reportSelf = false, postWs = t
   if (postWs) {
     postWsEvent(msg)
   }
-  if(!(msg.post_type == 'meta_event' && (msg as OB11BaseMetaEvent).meta_event_type == 'heartbeat')) {
+  if (!(msg.post_type == 'meta_event' && (msg as OB11BaseMetaEvent).meta_event_type == 'heartbeat')) {
     // 不上报心跳
     postHttpEvent(msg)
   }
-  
 }

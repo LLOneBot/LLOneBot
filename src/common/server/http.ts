@@ -1,5 +1,5 @@
 import express, { Express, Request, Response } from 'express'
-import http from 'http'
+import http from 'node:http'
 import cors from 'cors'
 import { log } from '../utils/log'
 import { getConfigUtil } from '../config'
@@ -10,7 +10,7 @@ type RegisterHandler = (res: Response, payload: any) => Promise<any>
 export abstract class HttpServerBase {
   name: string = 'LLOneBot'
   private readonly expressAPP: Express
-  private server: http.Server = null
+  private server: http.Server | null = null
 
   constructor() {
     this.expressAPP = express()
@@ -38,7 +38,7 @@ export abstract class HttpServerBase {
     let clientToken = ''
     const authHeader = req.get('authorization')
     if (authHeader) {
-      clientToken = authHeader.split('Bearer ').pop()
+      clientToken = authHeader.split('Bearer ').pop()!
       log('receive http header token', clientToken)
     } else if (req.query.access_token) {
       if (Array.isArray(req.query.access_token)) {
@@ -62,7 +62,7 @@ export abstract class HttpServerBase {
       })
       this.listen(port)
       llonebotError.httpServerError = ''
-    } catch (e) {
+    } catch (e: any) {
       log('HTTP服务启动失败', e.toString())
       llonebotError.httpServerError = 'HTTP服务启动失败, ' + e.toString()
     }
@@ -103,7 +103,7 @@ export abstract class HttpServerBase {
       log('收到http请求', url, payload)
       try {
         res.send(await handler(res, payload))
-      } catch (e) {
+      } catch (e: any) {
         this.handleFailed(res, payload, e.stack.toString())
       }
     })

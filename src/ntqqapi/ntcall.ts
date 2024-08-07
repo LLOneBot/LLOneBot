@@ -1,7 +1,6 @@
 import { ipcMain } from 'electron'
 import { hookApiCallbacks, ReceiveCmd, ReceiveCmdS, registerReceiveHook, removeReceiveHook } from './hook'
 import { log } from '../common/utils/log'
-import { NTQQWindow, NTQQWindowApi, NTQQWindows } from './api/window'
 import { HOOK_LOG } from '../common/config'
 import { randomUUID } from 'node:crypto'
 

@@ -12,16 +12,16 @@ function aprilFoolsEgg(node: Element) {
   let today = new Date()
   if (today.getDate() === 1) {
     console.log('超时空猫猫!!!')
-    node.querySelector('.name').innerHTML = 'ChronoCat'
+    node.querySelector('.name')!.innerHTML = 'ChronoCat'
   }
 }
 
 function initSideBar() {
   document.querySelectorAll('.nav-item.liteloader').forEach((node) => {
-    if (node.textContent.startsWith('LLOneBot')) {
+    if (node.textContent?.startsWith('LLOneBot')) {
       aprilFoolsEgg(node)
       let iconEle = node.querySelector('.q-icon')
-      iconEle.innerHTML = iconSvg
+      iconEle!.innerHTML = iconSvg
     }
   })
 }
@@ -64,11 +64,11 @@ async function onSettingWindowCreated(view: Element) {
         ),
       ]),
       SettingList([
-          SettingItem(
-            '是否启用 LLOneBot, 重启QQ后生效',
-            null,
-            SettingSwitch('enableLLOB', config.enableLLOB, { 'control-display-id': 'config-enableLLOB' }),
-          )]
+        SettingItem(
+          '是否启用 LLOneBot, 重启QQ后生效',
+          null,
+          SettingSwitch('enableLLOB', config.enableLLOB, { 'control-display-id': 'config-enableLLOB' }),
+        )]
       ),
       SettingList([
         SettingItem(
@@ -234,29 +234,29 @@ async function onSettingWindowCreated(view: Element) {
     await new Promise((res) => setTimeout(() => res(true), 1000))
 
     const errDom = document.querySelector('#llonebot-error') || doc.querySelector('#llonebot-error')
-    const errCodeDom = errDom.querySelector('code')
+    const errCodeDom = errDom?.querySelector('code')
     const errMsg = await window.llonebot.getError()
 
     if (!errMsg) {
-      errDom.classList.remove('show')
+      errDom?.classList.remove('show')
     } else {
-      errDom.classList.add('show')
+      errDom?.classList.add('show')
     }
-    errCodeDom.innerHTML = errMsg
+    errCodeDom!.innerHTML = errMsg
   }
   showError().then()
 
   // 外链按钮
-  doc.querySelector('#open-github').addEventListener('click', () => {
+  doc.querySelector('#open-github')?.addEventListener('click', () => {
     window.LiteLoader.api.openExternal('https://github.com/LLOneBot/LLOneBot')
   })
-  doc.querySelector('#open-telegram').addEventListener('click', () => {
+  doc.querySelector('#open-telegram')?.addEventListener('click', () => {
     window.LiteLoader.api.openExternal('https://t.me/+nLZEnpne-pQ1OWFl')
   })
-  doc.querySelector('#open-qq-group').addEventListener('click', () => {
+  doc.querySelector('#open-qq-group')?.addEventListener('click', () => {
     window.LiteLoader.api.openExternal('https://qm.qq.com/q/bDnHRG38aI')
   })
-  doc.querySelector('#open-docs').addEventListener('click', () => {
+  doc.querySelector('#open-docs')?.addEventListener('click', () => {
     window.LiteLoader.api.openExternal('https://llonebot.github.io/')
   })
   // 生成反向地址列表
@@ -303,14 +303,14 @@ async function onSettingWindowCreated(view: Element) {
   }
   const addReverseHost = (type: string, doc: Document = document, inputAttr: any = {}) => {
     const hostContainerDom = doc.body.querySelector(`#config-ob11-${type}-list`)
-    hostContainerDom.appendChild(buildHostListItem(type, '', ob11Config[type].length, inputAttr))
+    hostContainerDom?.appendChild(buildHostListItem(type, '', ob11Config[type].length, inputAttr))
     ob11Config[type].push('')
   }
   const initReverseHost = (type: string, doc: Document = document) => {
     const hostContainerDom = doc.body.querySelector(`#config-ob11-${type}-list`)
-    ;[...hostContainerDom.childNodes].forEach((dom) => dom.remove())
+      ;[...hostContainerDom?.childNodes!].forEach((dom) => dom.remove())
     buildHostList(ob11Config[type], type).forEach((dom) => {
-      hostContainerDom.appendChild(dom)
+      hostContainerDom?.appendChild(dom)
     })
   }
   initReverseHost('httpHosts', doc)
@@ -318,42 +318,43 @@ async function onSettingWindowCreated(view: Element) {
 
   doc
     .querySelector('#config-ob11-httpHosts-add')
-    .addEventListener('click', () =>
+    ?.addEventListener('click', () =>
       addReverseHost('httpHosts', document, { placeholder: '如：http://127.0.0.1:5140/onebot' }),
     )
   doc
     .querySelector('#config-ob11-wsHosts-add')
-    .addEventListener('click', () =>
+    ?.addEventListener('click', () =>
       addReverseHost('wsHosts', document, { placeholder: '如：ws://127.0.0.1:5140/onebot' }),
     )
 
-  doc.querySelector('#config-ffmpeg-select').addEventListener('click', () => {
+  doc.querySelector('#config-ffmpeg-select')?.addEventListener('click', () => {
     window.llonebot.selectFile().then((path) => {
       if (!isEmpty(path)) {
         setConfig('ffmpeg', path)
-        document.querySelector('#config-ffmpeg-path-text').innerHTML = path
+        document.querySelector('#config-ffmpeg-path-text')!.innerHTML = path
       }
     })
   })
 
-  doc.querySelector('#config-open-log-path').addEventListener('click', () => {
+  doc.querySelector('#config-open-log-path')?.addEventListener('click', () => {
     window.LiteLoader.api.openPath(window.LiteLoader.plugins['LLOneBot'].path.data)
   })
 
   // 开关
-  doc.querySelectorAll('setting-switch[data-config-key]').forEach((dom: HTMLElement) => {
+  doc.querySelectorAll('setting-switch[data-config-key]').forEach(element => {
+    const dom = element as HTMLElement
     dom.addEventListener('click', () => {
       const active = dom.getAttribute('is-active') === null
 
-      setConfig(dom.dataset.configKey, active)
+      setConfig(dom.dataset.configKey!, active)
 
       if (active) dom.setAttribute('is-active', '')
       else dom.removeAttribute('is-active')
 
       if (!isEmpty(dom.dataset.controlDisplayId)) {
         const displayDom = document.querySelector(`#${dom.dataset.controlDisplayId}`)
-        if (active) displayDom.removeAttribute('is-hidden')
-        else displayDom.setAttribute('is-hidden', '')
+        if (active) displayDom?.removeAttribute('is-hidden')
+        else displayDom?.setAttribute('is-hidden', '')
       }
     })
   })
@@ -361,28 +362,31 @@ async function onSettingWindowCreated(view: Element) {
   // 输入框
   doc
     .querySelectorAll('setting-item .q-input input.q-input__inner[data-config-key]')
-    .forEach((dom: HTMLInputElement) => {
+    .forEach(element => {
+      const dom = element as HTMLInputElement
       dom.addEventListener('input', () => {
         const Type = dom.getAttribute('type')
         const configKey = dom.dataset.configKey
         const configValue = Type === 'number' ? (parseInt(dom.value) >= 1 ? parseInt(dom.value) : 1) : dom.value
 
-        setConfig(configKey, configValue)
+        setConfig(configKey!, configValue)
       })
     })
 
   // 下拉框
-  doc.querySelectorAll('ob-setting-select[data-config-key]').forEach((dom: HTMLElement) => {
-    dom.addEventListener('selected', (e: CustomEvent) => {
+  doc?.querySelectorAll('ob-setting-select[data-config-key]').forEach(element => {
+    const dom = element as HTMLElement
+    dom?.addEventListener('selected', e => {
+      const { detail } = e as CustomEvent
       const configKey = dom.dataset.configKey
-      const configValue = e.detail.value
+      const configValue = detail.value
 
-      setConfig(configKey, configValue)
+      setConfig(configKey!, configValue)
     })
   })
 
   // 保存按钮
-  doc.querySelector('#config-ob11-save').addEventListener('click', () => {
+  doc.querySelector('#config-ob11-save')?.addEventListener('click', () => {
     config.ob11 = ob11Config
 
     window.llonebot.setConfig(false, config)
@@ -446,7 +450,7 @@ function init() {
 }
 
 if (location.hash === '#/blank') {
-  ;(window as any).navigation.addEventListener('navigatesuccess', init, { once: true })
+  globalThis.navigation.addEventListener('navigatesuccess', init, { once: true })
 } else {
   init()
 }

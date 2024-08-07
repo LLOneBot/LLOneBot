@@ -52,7 +52,7 @@ export async function file2base64(path: string) {
     const data = await fsPromise.readFile(path)
     // 转换为Base64编码
     result.data = data.toString('base64')
-  } catch (err) {
+  } catch (err: any) {
     result.err = err.toString()
   }
   return result
@@ -119,7 +119,7 @@ type Uri2LocalRes = {
   isLocal: boolean
 }
 
-export async function uri2local(uri: string, fileName: string = null): Promise<Uri2LocalRes> {
+export async function uri2local(uri: string, fileName: string | null = null): Promise<Uri2LocalRes> {
   let res = {
     success: false,
     errMsg: '',
@@ -132,10 +132,10 @@ export async function uri2local(uri: string, fileName: string = null): Promise<U
     fileName = randomUUID()
   }
   let filePath = path.join(TEMP_DIR, fileName)
-  let url = null
+  let url: URL | null = null
   try {
     url = new URL(uri)
-  } catch (e) {
+  } catch (e: any) {
     res.errMsg = `uri ${uri} 解析失败,` + e.toString() + ` 可能${uri}不存在`
     return res
   }
@@ -153,10 +153,10 @@ export async function uri2local(uri: string, fileName: string = null): Promise<U
     }
   } else if (url.protocol == 'http:' || url.protocol == 'https:') {
     // 下载文件
-    let buffer: Buffer = null
+    let buffer: Buffer | null = null
     try {
       buffer = await httpDownload(uri)
-    } catch (e) {
+    } catch (e: any) {
       res.errMsg = `${url}下载失败,` + e.toString()
       return res
     }
@@ -208,7 +208,7 @@ export async function uri2local(uri: string, fileName: string = null): Promise<U
   // }
   if (!res.isLocal && !res.ext) {
     try {
-      let ext: string = (await fileType.fileTypeFromFile(filePath)).ext
+      const ext = (await fileType.fileTypeFromFile(filePath))?.ext
       if (ext) {
         log('获取文件类型', ext, filePath)
         await fsPromise.rename(filePath, filePath + `.${ext}`)

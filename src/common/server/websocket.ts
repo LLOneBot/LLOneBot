@@ -6,9 +6,9 @@ import { getConfigUtil } from '../config'
 import { llonebotError } from '../data'
 
 class WebsocketClientBase {
-  private wsClient: WebSocket
+  private wsClient: WebSocket | undefined
 
-  constructor() {}
+  constructor() { }
 
   send(msg: string) {
     if (this.wsClient && this.wsClient.readyState == WebSocket.OPEN) {
@@ -16,11 +16,11 @@ class WebsocketClientBase {
     }
   }
 
-  onMessage(msg: string) {}
+  onMessage(msg: string) { }
 }
 
 export class WebsocketServerBase {
-  private ws: WebSocketServer = null
+  private ws: WebSocketServer | null = null
 
   constructor() {
     console.log(`llonebot websocket service started`)
@@ -30,22 +30,22 @@ export class WebsocketServerBase {
     try {
       this.ws = new WebSocketServer({ port, maxPayload: 1024 * 1024 * 1024 })
       llonebotError.wsServerError = ''
-    } catch (e) {
+    } catch (e: any) {
       llonebotError.wsServerError = '正向ws服务启动失败, ' + e.toString()
     }
-    this.ws.on('connection', (wsClient, req) => {
-      const url = req.url.split('?').shift()
+    this.ws?.on('connection', (wsClient, req) => {
+      const url = req.url?.split('?').shift()
       this.authorize(wsClient, req)
-      this.onConnect(wsClient, url, req)
+      this.onConnect(wsClient, url!, req)
       wsClient.on('message', async (msg) => {
-        this.onMessage(wsClient, url, msg.toString())
+        this.onMessage(wsClient, url!, msg.toString())
       })
     })
   }
 
   stop() {
     llonebotError.wsServerError = ''
-    this.ws.close((err) => {
+    this.ws?.close((err) => {
       log('ws server close failed!', err)
     })
     this.ws = null
@@ -83,11 +83,11 @@ export class WebsocketServerBase {
     }
   }
 
-  authorizeFailed(wsClient: WebSocket) {}
+  authorizeFailed(wsClient: WebSocket) { }
 
-  onConnect(wsClient: WebSocket, url: string, req: IncomingMessage) {}
+  onConnect(wsClient: WebSocket, url: string, req: IncomingMessage) { }
 
-  onMessage(wsClient: WebSocket, url: string, msg: string) {}
+  onMessage(wsClient: WebSocket, url: string, msg: string) { }
 
-  sendHeart() {}
+  sendHeart() { }
 }
