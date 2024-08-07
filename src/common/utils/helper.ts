@@ -41,7 +41,7 @@ export function mergeNewProperties(newObj: any, oldObj: any) {
   })
 }
 
-export function isNull(value: any): value is null | undefined | void {
+export function isNull(value: unknown) {
   return value === undefined || value === null
 }
 
