@@ -4,6 +4,8 @@ export class OB11GroupCardEvent extends OB11GroupNoticeEvent {
   notice_type = 'group_card'
   card_new: string
   card_old: string
+  group_id: number
+  user_id: number
 
   constructor(groupId: number, userId: number, cardNew: string, cardOld: string) {
     super()

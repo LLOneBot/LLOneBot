@@ -27,7 +27,7 @@ export class NTQQWindowApi {
   static async openWindow<R = GeneralCallResult>(
     ntQQWindow: NTQQWindow,
     args: any[],
-    cbCmd: ReceiveCmd = null,
+    cbCmd: ReceiveCmd | null = null,
     autoCloseSeconds: number = 2,
   ) {
     const result = await callNTQQApi<R>({

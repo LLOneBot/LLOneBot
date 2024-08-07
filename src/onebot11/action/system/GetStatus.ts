@@ -8,7 +8,7 @@ export default class GetStatus extends BaseAction<any, OB11Status> {
 
   protected async _handle(payload: any): Promise<OB11Status> {
     return {
-      online: selfInfo.online,
+      online: selfInfo.online!,
       good: true,
     }
   }

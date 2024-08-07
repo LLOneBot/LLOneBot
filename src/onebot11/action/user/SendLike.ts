@@ -19,7 +19,7 @@ export default class SendLike extends BaseAction<Payload, null> {
       const friend = await getFriend(qq)
       let uid: string
       if (!friend) {
-        uid = getUidByUin(qq)
+        uid = getUidByUin(qq)!
       } else {
         uid = friend.uid
       }

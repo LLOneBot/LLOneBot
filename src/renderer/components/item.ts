@@ -1,6 +1,6 @@
 export const SettingItem = (
   title: string,
-  subtitle?: string,
+  subtitle?: string | null,
   action?: string,
   id?: string,
   visible: boolean = true,
