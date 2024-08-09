@@ -52,7 +52,7 @@ import { GroupDecreaseSubType, OB11GroupDecreaseEvent } from '../onebot11/event/
 import '../ntqqapi/wrapper'
 import { sentMessages } from '@/ntqqapi/api'
 import { NTEventDispatch } from '../common/utils/EventTask'
-import { wrapperApi, wrapperConstructor } from '../ntqqapi/wrapper'
+import { wrapperConstructor, getSession } from '../ntqqapi/wrapper'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -441,7 +441,7 @@ function onLoad() {
         uidMaps[value] = key
       }
     })
-    NTEventDispatch.init({ ListenerMap: wrapperConstructor, WrapperSession: wrapperApi.NodeIQQNTWrapperSession! })
+    NTEventDispatch.init({ ListenerMap: wrapperConstructor, WrapperSession: getSession()! })
     log('start activate group member info')
     NTQQGroupApi.activateMemberInfoChange().then().catch(log)
     NTQQGroupApi.activateMemberListChange().then().catch(log)
