@@ -19,15 +19,14 @@ jobs:
       - name: install dependenies
         run: |
           export ELECTRON_SKIP_BINARY_DOWNLOAD=1
-          npm install
+          yarn install
 
       - name: build
-        run: npm run build
+        run: yarn build
 
       - name: zip
         run: |
           sudo apt install zip -y
-          cp manifest.json ./dist/manifest.json
           cd ./dist/
           zip -r ../LLOneBot.zip ./*
 
