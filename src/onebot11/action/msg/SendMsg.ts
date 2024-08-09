@@ -7,10 +7,9 @@ import {
   GroupMemberRole,
   PicSubType,
   RawMessage,
-  SendArkElement,
   SendMessageElement,
 } from '../../../ntqqapi/types'
-import { friends, getFriend, getGroup, getGroupMember, getUidByUin, selfInfo } from '../../../common/data'
+import { friends, getGroup, getGroupMember, getUidByUin, selfInfo } from '../../../common/data'
 import {
   OB11MessageCustomMusic,
   OB11MessageData,
@@ -20,63 +19,21 @@ import {
   OB11MessageMixType,
   OB11MessageMusic,
   OB11MessageNode,
-  OB11MessageVideo,
   OB11PostSendMsg,
 } from '../../types'
-import { NTQQMsgApi } from '../../../ntqqapi/api/msg'
 import { SendMsgElementConstructor } from '../../../ntqqapi/constructor'
 import BaseAction from '../BaseAction'
 import { ActionName, BaseCheckResult } from '../types'
-import * as fs from 'node:fs'
+import fs from 'node:fs'
 import { decodeCQCode } from '../../cqcode'
 import { dbUtil } from '../../../common/db'
 import { ALLOW_SEND_TEMP_MSG, getConfigUtil } from '../../../common/config'
 import { log } from '../../../common/utils/log'
 import { sleep } from '../../../common/utils/helper'
 import { uri2local } from '../../../common/utils'
-import { NTQQGroupApi } from '../../../ntqqapi/api'
-import { CustomMusicSignPostData, IdMusicSignPostData, MusicSign, MusicSignPostData } from '../../../common/utils/sign'
-import { Peer } from '../../../ntqqapi/types/msg'
-
-function checkSendMessage(sendMsgList: OB11MessageData[]) {
-  function checkUri(uri: string): boolean {
-    const pattern = /^(file:\/\/|http:\/\/|https:\/\/|base64:\/\/)/
-    return pattern.test(uri)
-  }
-
-  for (let msg of sendMsgList) {
-    if (msg['type'] && msg['data']) {
-      let type = msg['type']
-      let data = msg['data']
-      if (type === 'text' && !data['text']) {
-        return 400
-      }
-      else if (['image', 'voice', 'record'].includes(type)) {
-        if (!data['file']) {
-          return 400
-        }
-        else {
-          if (checkUri(data['file'])) {
-            return 200
-          }
-          else {
-            return 400
-          }
-        }
-      }
-      else if (type === 'at' && !data['qq']) {
-        return 400
-      }
-      else if (type === 'reply' && !data['id']) {
-        return 400
-      }
-    }
-    else {
-      return 400
-    }
-  }
-  return 200
-}
+import { NTQQGroupApi, NTQQMsgApi, NTQQUserApi, NTQQFriendApi } from '@/ntqqapi/api'
+import { CustomMusicSignPostData, IdMusicSignPostData, MusicSign, MusicSignPostData } from '@/common/utils/sign'
+import { Peer } from '@/ntqqapi/types/msg'
 
 export interface ReturnDataType {
   message_id: number
@@ -351,13 +308,11 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
       }
     }
     if (payload.user_id && payload.message_type !== 'group') {
-      if (!(await getFriend(payload.user_id))) {
-        if (!ALLOW_SEND_TEMP_MSG && !(await dbUtil.getReceivedTempUinMap())[payload.user_id.toString()]) {
-          return {
-            valid: false,
-            message: `不能发送临时消息`,
-          }
-        }
+      const uid = await NTQQUserApi.getUidByUin(payload.user_id.toString())
+      const isBuddy = await NTQQFriendApi.isBuddy(uid!)
+      // 此处有问题
+      if (!isBuddy) {
+        //return { valid: false, message: '异常消息' }
       }
     }
     return {

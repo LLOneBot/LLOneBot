@@ -21,7 +21,6 @@ import {
   getGroupMember,
   groups,
   llonebotError,
-  refreshGroupMembers,
   selfInfo,
   uidMaps,
 } from '../common/data'
@@ -443,32 +442,10 @@ function onLoad() {
       }
     })
     NTEventDispatch.init({ ListenerMap: wrapperConstructor, WrapperSession: wrapperApi.NodeIQQNTWrapperSession! })
-    try {
-      log('start get groups')
-      const _groups = await NTQQGroupApi.getGroups()
-      log('_groups', _groups)
-      await Promise.all(
-        _groups.map(async (group) => {
-          try {
-            const members = await NTQQGroupApi.getGroupMembers(group.groupCode)
-            group.members = members
-            groups.push(group)
-          } catch (e) {
-            log('获取群成员失败', e)
-          }
-        })
-      )
-    }
-    catch (e) {
-      log('获取群列表失败', e)
-    }
-    finally {
-      log('start activate group member info')
-      NTQQGroupApi.activateMemberInfoChange().then().catch(log)
-      NTQQGroupApi.activateMemberListChange().then().catch(log)
-      startReceiveHook().then()
-    }
-
+    log('start activate group member info')
+    NTQQGroupApi.activateMemberInfoChange().then().catch(log)
+    NTQQGroupApi.activateMemberListChange().then().catch(log)
+    startReceiveHook().then()
 
     if (config.ob11.enableHttp) {
       ob11HTTPServer.start(config.ob11.httpPort)

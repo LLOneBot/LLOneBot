@@ -1,10 +1,18 @@
-import { NodeIKernelBuddyService } from './services/NodeIKernelBuddyService'
+import {
+  NodeIKernelBuddyService,
+  NodeIKernelGroupService,
+  NodeIKernelProfileService,
+  NodeIKernelProfileLikeService
+} from './services'
 import os from 'node:os'
 const Process = require('node:process')
 
 export interface NodeIQQNTWrapperSession {
   [key: string]: any
   getBuddyService(): NodeIKernelBuddyService
+  getGroupService(): NodeIKernelGroupService
+  getProfileService(): NodeIKernelProfileService
+  getProfileLikeService(): NodeIKernelProfileLikeService
 }
 
 export interface WrapperApi {
@@ -65,4 +73,8 @@ Process.dlopen = function (module, filename, flags = os.constants.dlopen.RTLD_LA
     }
   }
   return dlopenRet
+}
+
+export function getSession() {
+  return wrapperApi.NodeIQQNTWrapperSession
 }
