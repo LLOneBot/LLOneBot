@@ -23,20 +23,6 @@ TG群：<https://t.me/+nLZEnpne-pQ1OWFl>
 
 见 <https://llonebot.github.io/zh-CN/develop/api>
 
-## TODO
-
-- [x] 重构摆脱LLAPI，目前调用LLAPI只能在renderer进程调用，需重构成在main进程调用
-- [x] 支持正、反向websocket（感谢@disymayufei的PR）
-- [x] 转发消息记录
-- [x] 好友点赞api
-- [x] 群管理功能，禁言、踢人，改群名片等
-- [x] 视频消息
-- [x] 文件消息
-- [x] 群禁言事件上报
-- [x] 优化加群成功事件上报
-- [x] 清理缓存api
-- [ ] 框架对接文档
-
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/LLOneBot/LLOneBot.svg?variant=adaptive)](https://starchart.cc/LLOneBot/LLOneBot)
@@ -44,8 +30,7 @@ TG群：<https://t.me/+nLZEnpne-pQ1OWFl>
 ## 鸣谢
 
 - [LiteLoaderQQNT](https://liteloaderqqnt.github.io/guide/install.html)
-- [LLAPI](https://github.com/Night-stars-1/LiteLoaderQQNT-Plugin-LLAPI)
-- [chronocat](https://github.com/chrononeko/chronocat/)
+- [chronocat](https://github.com/chrononeko/chronocat)
 - [koishi-plugin-adapter-onebot](https://github.com/koishijs/koishi-plugin-adapter-onebot)
 - [silk-wasm](https://github.com/idranme/silk-wasm)
 
