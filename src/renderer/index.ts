@@ -411,10 +411,7 @@ async function onSettingWindowCreated(view: Element) {
       buttonDom.addEventListener('click', async () => {
         window.llonebot.checkVersion().then(checkVersionFunc)
       })
-
-      return
-    }
-    if (!ResultVersion.result) {
+    } else if (!ResultVersion.result) {
       titleDom.innerHTML = '当前已是最新版本 v' + version
       buttonDom.innerHTML = '无需更新'
     } else {
