@@ -6,7 +6,7 @@ import { ReceiveCmdS, registerReceiveHook } from '../hook'
 import { log } from '../../common/utils/log'
 import { sleep } from '../../common/utils/helper'
 import { isQQ998 } from '../../common/utils'
-import { wrapperApi } from '@/ntqqapi/wrapper'
+import { getSession } from '@/ntqqapi/wrapper'
 
 export let sendMessagePool: Record<string, ((sendSuccessMsg: RawMessage) => void) | null> = {} // peerUid: callbackFunc
 
@@ -289,7 +289,7 @@ export class NTQQMsgApi {
     })
   }
   static async getMsgsBySeqAndCount(peer: Peer, seq: string, count: number, desc: boolean, z: boolean) {
-    const session = wrapperApi.NodeIQQNTWrapperSession
+    const session = getSession()
     return await session?.getMsgService().getMsgsBySeqAndCount(peer, seq, count, desc, z);
   }
 }

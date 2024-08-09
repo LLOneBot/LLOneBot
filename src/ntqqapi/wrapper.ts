@@ -36,7 +36,7 @@ export interface WrapperConstructor {
   NodeIKernelProfileListener?: any
 }
 
-export const wrapperApi: WrapperApi = {}
+const wrapperApi: WrapperApi = {}
 
 export const wrapperConstructor: WrapperConstructor = {}
 
@@ -76,5 +76,5 @@ Process.dlopen = function (module, filename, flags = os.constants.dlopen.RTLD_LA
 }
 
 export function getSession() {
-  return wrapperApi.NodeIQQNTWrapperSession
+  return wrapperApi['NodeIQQNTWrapperSession']
 }
