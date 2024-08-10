@@ -77,7 +77,7 @@ export class SendMsgElementConstructor {
       throw '文件异常，大小为0'
     }
     const maxMB = 30;
-    if (fileSize > 1024 * 1024 * 30){
+    if (fileSize > 1024 * 1024 * 30) {
       throw `图片过大，最大支持${maxMB}MB，当前文件大小${fileSize}B`
     }
     const imageSize = await NTQQFileApi.getImageSize(picPath)
@@ -104,21 +104,21 @@ export class SendMsgElementConstructor {
     }
   }
 
-  static async file(filePath: string, fileName: string = ''): Promise<SendFileElement> {
-    const { md5, fileName: _fileName, path, fileSize } = await NTQQFileApi.uploadFile(filePath, ElementType.FILE)
+  static async file(filePath: string, fileName: string = '', folderId: string = ''): Promise<SendFileElement> {
+    const { fileName: _fileName, path, fileSize } = await NTQQFileApi.uploadFile(filePath, ElementType.FILE)
     if (fileSize === 0) {
-      throw '文件异常，大小为0'
+      throw '文件异常，大小为 0'
     }
-    let element: SendFileElement = {
+    const element: SendFileElement = {
       elementType: ElementType.FILE,
       elementId: '',
       fileElement: {
         fileName: fileName || _fileName,
-        filePath: path,
+        folderId: folderId,
+        filePath: path!,
         fileSize: fileSize.toString(),
       },
     }
-
     return element
   }
 
@@ -175,7 +175,7 @@ export class SendMsgElementConstructor {
 
       setTimeout(useDefaultThumb, 5000)
       ffmpeg(filePath)
-        .on('end', () => {})
+        .on('end', () => { })
         .on('error', (err) => {
           if (diyThumbPath) {
             fs.copyFile(diyThumbPath, thumbPath)
@@ -280,10 +280,10 @@ export class SendMsgElementConstructor {
     faceId = parseInt(faceId.toString())
     // let faceType = parseInt(faceId.toString().substring(0, 1));
     let faceType = 1
-    if (faceId >= 222){
+    if (faceId >= 222) {
       faceType = 2
     }
-    if (face?.AniStickerType){
+    if (face?.AniStickerType) {
       faceType = 3;
     }
     return {

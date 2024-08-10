@@ -1,18 +1,14 @@
 import {
-  CategoryFriend,
   type Friend,
-  type FriendRequest,
   type Group,
   type GroupMember,
   type SelfInfo,
-  User,
 } from '../ntqqapi/types'
-import { type FileCache, type LLOneBotError } from './types'
+import { type LLOneBotError } from './types'
 import { NTQQGroupApi } from '../ntqqapi/api/group'
 import { log } from './utils/log'
 import { isNumeric } from './utils/helper'
 import { NTQQFriendApi } from '../ntqqapi/api'
-import { WebApiGroupMember } from '@/ntqqapi/api/webapi'
 
 export const selfInfo: SelfInfo = {
   uid: '',
@@ -20,13 +16,8 @@ export const selfInfo: SelfInfo = {
   nick: '',
   online: true,
 }
-export const WebGroupData = {
-  GroupData: new Map<string, Array<WebApiGroupMember>>(),
-  GroupTime: new Map<string, number>(),
-}
 export let groups: Group[] = []
 export let friends: Friend[] = []
-export let friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>()
 export const llonebotError: LLOneBotError = {
   ffmpegError: '',
   httpServerError: '',
@@ -108,17 +99,3 @@ export async function getGroupMember(groupQQ: string | number, memberUinOrUid: s
   }
   return member
 }
-
-export const uidMaps: Record<string, string> = {} // 一串加密的字符串(uid) -> qq号
-
-export function getUidByUin(uin: string) {
-  for (const uid in uidMaps) {
-    if (uidMaps[uid] === uin) {
-      return uid
-    }
-  }
-}
-
-export let tempGroupCodeMap: Record<string, string> = {} // peerUid => 群号
-
-export let rawFriends: CategoryFriend[] = []

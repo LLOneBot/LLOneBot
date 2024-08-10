@@ -1,6 +1,15 @@
 import { GroupMemberRole } from './group'
 
+export interface GetFileListParam {
+  sortType: number
+  fileCount: number
+  startIndex: number
+  sortOrder: number
+  showOnlinedocFolder: number
+}
+
 export enum ElementType {
+  UNKNOWN = 0,
   TEXT = 1,
   PIC = 2,
   FILE = 3,
@@ -8,8 +17,30 @@ export enum ElementType {
   VIDEO = 5,
   FACE = 6,
   REPLY = 7,
+  WALLET = 9,
+  GreyTip = 8, //Poke别叫戳一搓了 官方名字拍一拍 戳一戳是另一个名字
   ARK = 10,
   MFACE = 11,
+  LIVEGIFT = 12,
+  STRUCTLONGMSG = 13,
+  MARKDOWN = 14,
+  GIPHY = 15,
+  MULTIFORWARD = 16,
+  INLINEKEYBOARD = 17,
+  INTEXTGIFT = 18,
+  CALENDAR = 19,
+  YOLOGAMERESULT = 20,
+  AVRECORD = 21,
+  FEED = 22,
+  TOFURECORD = 23,
+  ACEBUBBLE = 24,
+  ACTIVITY = 25,
+  TOFU = 26,
+  FACEBUBBLE = 27,
+  SHARELOCATION = 28,
+  TASKTOPMSG = 29,
+  RECOMMENDEDMSG = 43,
+  ACTIONBAR = 44
 }
 
 export interface SendTextElement {
@@ -101,18 +132,19 @@ export interface ReplyElement {
 }
 
 export interface FileElement {
-  fileMd5?: ''
+  fileMd5?: string
   fileName: string
   filePath: string
   fileSize: string
   picHeight?: number
   picWidth?: number
-  picThumbPath?: {}
-  file10MMd5?: ''
-  fileSha?: ''
-  fileSha3?: ''
-  fileUuid?: ''
-  fileSubId?: ''
+  folderId?: string
+  picThumbPath?: Map<number, string>
+  file10MMd5?: string
+  fileSha?: string
+  fileSha3?: string
+  fileUuid?: string
+  fileSubId?: string
   thumbFileSize?: number
   fileBizId?: number
 }
@@ -156,6 +188,50 @@ export enum ChatType {
   friend = 1,
   group = 2,
   temp = 100,
+}
+
+// 来自Android分析
+export enum ChatType2 {
+  KCHATTYPEADELIE = 42,
+  KCHATTYPEBUDDYNOTIFY = 5,
+  KCHATTYPEC2C = 1,
+  KCHATTYPECIRCLE = 113,
+  KCHATTYPEDATALINE = 8,
+  KCHATTYPEDATALINEMQQ = 134,
+  KCHATTYPEDISC = 3,
+  KCHATTYPEFAV = 41,
+  KCHATTYPEGAMEMESSAGE = 105,
+  KCHATTYPEGAMEMESSAGEFOLDER = 116,
+  KCHATTYPEGROUP = 2,
+  KCHATTYPEGROUPBLESS = 133,
+  KCHATTYPEGROUPGUILD = 9,
+  KCHATTYPEGROUPHELPER = 7,
+  KCHATTYPEGROUPNOTIFY = 6,
+  KCHATTYPEGUILD = 4,
+  KCHATTYPEGUILDMETA = 16,
+  KCHATTYPEMATCHFRIEND = 104,
+  KCHATTYPEMATCHFRIENDFOLDER = 109,
+  KCHATTYPENEARBY = 106,
+  KCHATTYPENEARBYASSISTANT = 107,
+  KCHATTYPENEARBYFOLDER = 110,
+  KCHATTYPENEARBYHELLOFOLDER = 112,
+  KCHATTYPENEARBYINTERACT = 108,
+  KCHATTYPEQQNOTIFY = 132,
+  KCHATTYPERELATEACCOUNT = 131,
+  KCHATTYPESERVICEASSISTANT = 118,
+  KCHATTYPESERVICEASSISTANTSUB = 201,
+  KCHATTYPESQUAREPUBLIC = 115,
+  KCHATTYPESUBSCRIBEFOLDER = 30,
+  KCHATTYPETEMPADDRESSBOOK = 111,
+  KCHATTYPETEMPBUSSINESSCRM = 102,
+  KCHATTYPETEMPC2CFROMGROUP = 100,
+  KCHATTYPETEMPC2CFROMUNKNOWN = 99,
+  KCHATTYPETEMPFRIENDVERIFY = 101,
+  KCHATTYPETEMPNEARBYPRO = 119,
+  KCHATTYPETEMPPUBLICACCOUNT = 103,
+  KCHATTYPETEMPWPA = 117,
+  KCHATTYPEUNKNOWN = 0,
+  KCHATTYPEWEIYUN = 40,
 }
 
 export interface PttElement {
@@ -391,10 +467,12 @@ export interface RawMessage {
   chatType: ChatType
   sendStatus?: number // 消息状态，别人发的2是已撤回，自己发的2是已发送
   recallTime: string // 撤回时间, "0"是没有撤回
+  records: RawMessage[]
   elements: {
     elementId: string
     elementType: ElementType
     replyElement: {
+      sourceMsgIdInRecords: string
       senderUid: string // 原消息发送者QQ号
       sourceMsgIsIncPic: boolean // 原消息是否有图片
       sourceMsgText: string
