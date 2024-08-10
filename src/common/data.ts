@@ -99,13 +99,3 @@ export async function getGroupMember(groupQQ: string | number, memberUinOrUid: s
   }
   return member
 }
-
-export const uidMaps: Record<string, string> = {} // 一串加密的字符串(uid) -> qq号
-
-export function getUidByUin(uin: string) {
-  for (const uid in uidMaps) {
-    if (uidMaps[uid] === uin) {
-      return uid
-    }
-  }
-}

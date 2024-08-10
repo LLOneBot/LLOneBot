@@ -2,14 +2,12 @@ import {
   AtType,
   ChatType,
   ElementType,
-  Friend,
-  Group,
   GroupMemberRole,
   PicSubType,
   RawMessage,
   SendMessageElement,
 } from '../../../ntqqapi/types'
-import { friends, getGroup, getGroupMember, getUidByUin, selfInfo } from '../../../common/data'
+import { getGroup, getGroupMember, selfInfo } from '../../../common/data'
 import {
   OB11MessageCustomMusic,
   OB11MessageData,
@@ -27,7 +25,7 @@ import { ActionName, BaseCheckResult } from '../types'
 import fs from 'node:fs'
 import { decodeCQCode } from '../../cqcode'
 import { dbUtil } from '../../../common/db'
-import { ALLOW_SEND_TEMP_MSG, getConfigUtil } from '../../../common/config'
+import { getConfigUtil } from '../../../common/config'
 import { log } from '../../../common/utils/log'
 import { sleep } from '../../../common/utils/helper'
 import { uri2local } from '../../../common/utils'
