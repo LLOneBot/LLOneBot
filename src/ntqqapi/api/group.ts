@@ -1,11 +1,13 @@
 import { ReceiveCmdS } from '../hook'
-import { Group, GroupMember, GroupMemberRole, GroupNotifies, GroupNotify, GroupRequestOperateTypes } from '../types'
-import { callNTQQApi, GeneralCallResult, NTQQApiClass, NTQQApiMethod } from '../ntcall'
-import { deleteGroup, uidMaps } from '../../common/data'
+import { Group, GroupMember, GroupMemberRole, GroupNotifies, GroupRequestOperateTypes } from '../types'
+import { callNTQQApi, GeneralCallResult, NTQQApiMethod } from '../ntcall'
+import { deleteGroup } from '../../common/data'
 import { dbUtil } from '../../common/db'
 import { log } from '../../common/utils/log'
 import { NTQQWindowApi, NTQQWindows } from './window'
 import { getSession } from '../wrapper'
+import { NTEventDispatch } from '@/common/utils/EventTask'
+import { NodeIKernelGroupListener } from '../listeners'
 
 export class NTQQGroupApi {
   static async activateMemberListChange() {
@@ -37,22 +39,19 @@ export class NTQQGroupApi {
     })
   }
 
-  static async getGroups(forced = false) {
-    // let cbCmd = ReceiveCmdS.GROUPS
-    // if (process.platform != 'win32') {
-    //   cbCmd = ReceiveCmdS.GROUPS_STORE
-    // }
-    const result = await callNTQQApi<{
-      updateType: number
-      groupList: Group[]
-    }>({
-      methodName: NTQQApiMethod.GROUPS,
-      args: [{ force_update: forced }, undefined],
-      cbCmd: [ReceiveCmdS.GROUPS, ReceiveCmdS.GROUPS_STORE],
-      afterFirstCmd: false,
-    })
-    log('get groups result', result)
-    return result.groupList
+  static async getGroups(forced = false): Promise<Group[]> {
+    type ListenerType = NodeIKernelGroupListener['onGroupListUpdate']
+    const [, , groupList] = await NTEventDispatch.CallNormalEvent
+      <(force: boolean) => Promise<any>, ListenerType>
+      (
+        'NodeIKernelGroupService/getGroupList',
+        'NodeIKernelGroupListener/onGroupListUpdate',
+        1,
+        5000,
+        (updateType) => true,
+        forced
+      )
+    return groupList
   }
 
   static async getGroupMembers(groupQQ: string, num = 3000): Promise<Map<string, GroupMember>> {

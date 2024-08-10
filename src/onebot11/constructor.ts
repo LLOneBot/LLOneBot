@@ -59,7 +59,6 @@ export class OB11Constructor {
       debug,
       ob11: { messagePostFormat },
     } = config
-    const message_type = msg.chatType == ChatType.group ? 'group' : 'private'
     const resMsg: OB11Message = {
       self_id: parseInt(selfInfo.uin),
       user_id: parseInt(msg.senderUin!),
@@ -67,7 +66,7 @@ export class OB11Constructor {
       message_id: msg.msgShortId!,
       real_id: msg.msgShortId!,
       message_seq: msg.msgShortId!,
-      message_type: msg.chatType == ChatType.group ? 'group' : 'private',
+      message_type: msg.chatType === ChatType.group ? 'group' : 'private',
       sender: {
         user_id: parseInt(msg.senderUin!),
         nickname: msg.sendNickName,
