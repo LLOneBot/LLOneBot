@@ -26,7 +26,7 @@ export class NTQQFileApi {
       msgId,
       elementId,
       0,
-      { downSourceType: 1, triggerType: 1 })).urlResult?.domainUrl[0]?.url;
+      { downSourceType: 1, triggerType: 1 }))?.urlResult?.domainUrl[0]?.url!
   }
 
   static async getFileType(filePath: string) {

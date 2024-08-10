@@ -1,7 +1,6 @@
-import { Friend, FriendRequest, FriendV2 } from '../types'
+import { Friend, FriendV2 } from '../types'
 import { ReceiveCmdS } from '../hook'
 import { callNTQQApi, GeneralCallResult, NTQQApiMethod } from '../ntcall'
-import { friendRequests } from '@/common/data'
 import { getSession } from '@/ntqqapi/wrapper'
 import { BuddyListReqType, NodeIKernelProfileService } from '../services'
 import { NTEventDispatch } from '@/common/utils/EventTask'
@@ -49,24 +48,18 @@ export class NTQQFriendApi {
   }
 
   static async handleFriendRequest(flag: string, accept: boolean) {
-    const request: FriendRequest = friendRequests[flag]
-    if (!request) {
-      throw `flat: ${flag}, 对应的好友请求不存在`
+    const data = flag.split('|')
+    if (data.length < 2) {
+      return
     }
-    const result = await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.HANDLE_FRIEND_REQUEST,
-      args: [
-        {
-          approvalInfo: {
-            friendUid: request.friendUid,
-            reqTime: request.reqTime,
-            accept,
-          },
-        },
-      ],
+    const friendUid = data[0]
+    const reqTime = data[1]
+    const session = getSession()
+    return session?.getBuddyService().approvalFriendRequest({
+      friendUid,
+      reqTime,
+      accept
     })
-    delete friendRequests[flag]
-    return result
   }
 
   static async getBuddyV2(refresh = false): Promise<FriendV2[]> {
@@ -101,6 +94,28 @@ export class NTQQFriendApi {
     })
     //console.log('getBuddyIdMap', retMap.getValue)
     return retMap
+  }
+
+  static async getBuddyV2ExWithCate(refresh = false) {
+    const uids: string[] = []
+    const categoryMap: Map<string, any> = new Map()
+    const session = getSession()
+    const buddyService = session?.getBuddyService()
+    const buddyListV2 = refresh ? (await buddyService?.getBuddyListV2('0', BuddyListReqType.KNOMAL))?.data : (await buddyService?.getBuddyListV2('0', BuddyListReqType.KNOMAL))?.data
+    uids.push(
+      ...buddyListV2?.flatMap(item => {
+        item.buddyUids.forEach(uid => {
+          categoryMap.set(uid, { categoryId: item.categoryId, categroyName: item.categroyName })
+        })
+        return item.buddyUids
+      })!)
+    const data = await NTEventDispatch.CallNoListenerEvent<NodeIKernelProfileService['getCoreAndBaseInfo']>(
+      'NodeIKernelProfileService/getCoreAndBaseInfo', 5000, 'nodeStore', uids
+    )
+    return Array.from(data).map(([key, value]) => {
+      const category = categoryMap.get(key)
+      return category ? { ...value, categoryId: category.categoryId, categroyName: category.categroyName } : value
+    })
   }
 
   static async isBuddy(uid: string): Promise<boolean> {

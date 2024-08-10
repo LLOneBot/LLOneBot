@@ -24,9 +24,10 @@ import {
   TipGroupElementType,
   User,
   VideoElement,
-  FriendV2
+  FriendV2,
+  ChatType2
 } from '../ntqqapi/types'
-import { deleteGroup, getGroupMember, selfInfo, tempGroupCodeMap, uidMaps } from '../common/data'
+import { deleteGroup, getGroupMember, selfInfo } from '../common/data'
 import { EventType } from './event/OB11BaseEvent'
 import { encodeCQCode } from './cqcode'
 import { dbUtil } from '../common/db'
@@ -59,7 +60,6 @@ export class OB11Constructor {
       debug,
       ob11: { messagePostFormat },
     } = config
-    const message_type = msg.chatType == ChatType.group ? 'group' : 'private'
     const resMsg: OB11Message = {
       self_id: parseInt(selfInfo.uin),
       user_id: parseInt(msg.senderUin!),
@@ -67,7 +67,7 @@ export class OB11Constructor {
       message_id: msg.msgShortId!,
       real_id: msg.msgShortId!,
       message_seq: msg.msgShortId!,
-      message_type: msg.chatType == ChatType.group ? 'group' : 'private',
+      message_type: msg.chatType === ChatType.group ? 'group' : 'private',
       sender: {
         user_id: parseInt(msg.senderUin!),
         nickname: msg.sendNickName,
@@ -96,11 +96,15 @@ export class OB11Constructor {
       resMsg.sub_type = 'friend'
       resMsg.sender.nickname = (await NTQQUserApi.getUserDetailInfo(msg.senderUid)).nick
     }
-    else if (msg.chatType == ChatType.temp) {
+    else if (msg.chatType as unknown as ChatType2 == ChatType2.KCHATTYPETEMPC2CFROMGROUP) {
       resMsg.sub_type = 'group'
-      const tempGroupCode = tempGroupCodeMap[msg.peerUin]
-      if (tempGroupCode) {
-        resMsg.group_id = parseInt(tempGroupCode)
+      const ret = await NTQQMsgApi.getTempChatInfo(ChatType2.KCHATTYPETEMPC2CFROMGROUP, msg.senderUid)
+      if (ret.result === 0) {
+        resMsg.group_id = parseInt(ret.tmpChatInfo!.groupCode)
+        resMsg.sender.nickname = ret.tmpChatInfo!.fromNick
+      } else {
+        resMsg.group_id = 284840486 //兜底数据
+        resMsg.sender.nickname = '临时会话'
       }
     }
 
@@ -328,7 +332,11 @@ export class OB11Constructor {
             //筛选item带有uid的元素
             const poke_uid = pokedetail.filter(item => item.uid)
             if (poke_uid.length == 2) {
-              return new OB11FriendPokeEvent(parseInt((uidMaps[poke_uid[0].uid])!), parseInt((uidMaps[poke_uid[1].uid])), pokedetail)
+              return new OB11FriendPokeEvent(
+                parseInt(await NTQQUserApi.getUinByUid(poke_uid[0].uid)),
+                parseInt(await NTQQUserApi.getUinByUid(poke_uid[1].uid)),
+                pokedetail
+              )
             }
           }
           //下面得改 上面也是错的grayTipElement.subElementType == GrayTipElementSubType.MEMBER_NEW_TITLE
@@ -533,7 +541,12 @@ export class OB11Constructor {
             //筛选item带有uid的元素
             const poke_uid = pokedetail.filter(item => item.uid)
             if (poke_uid.length == 2) {
-              return new OB11GroupPokeEvent(parseInt(msg.peerUid), parseInt((uidMaps[poke_uid[0].uid])!), parseInt((uidMaps[poke_uid[1].uid])), pokedetail)
+              return new OB11GroupPokeEvent(
+                parseInt(msg.peerUid),
+                parseInt(await NTQQUserApi.getUinByUid(poke_uid[0].uid)),
+                parseInt(await NTQQUserApi.getUinByUid(poke_uid[1].uid)),
+                pokedetail
+              )
             }
           }
           if (grayTipElement.jsonGrayTipElement.busiId == 2401) {

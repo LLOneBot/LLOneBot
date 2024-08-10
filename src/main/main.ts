@@ -1,7 +1,7 @@
 // 运行在 Electron 主进程 下的插件入口
 
 import { BrowserWindow, dialog, ipcMain } from 'electron'
-import * as fs from 'node:fs'
+import fs from 'node:fs'
 import { Config } from '../common/types'
 import {
   CHANNEL_CHECK_VERSION,
@@ -15,11 +15,9 @@ import {
 import { ob11WebsocketServer } from '../onebot11/server/ws/WebsocketServer'
 import { DATA_DIR } from '../common/utils'
 import {
-  friendRequests,
   getGroupMember,
   llonebotError,
   selfInfo,
-  uidMaps,
 } from '../common/data'
 import { hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmdS, registerReceiveHook, startHook } from '../ntqqapi/hook'
 import { OB11Constructor } from '../onebot11/constructor'
@@ -28,24 +26,23 @@ import {
   GroupNotifies,
   GroupNotifyTypes,
   RawMessage,
+  BuddyReqType,
 } from '../ntqqapi/types'
 import { httpHeart, ob11HTTPServer } from '../onebot11/server/http'
 import { postOb11Event } from '../onebot11/server/post-ob11-event'
 import { ob11ReverseWebsockets } from '../onebot11/server/ws/ReverseWebsocket'
 import { OB11GroupRequestEvent } from '../onebot11/event/request/OB11GroupRequest'
 import { OB11FriendRequestEvent } from '../onebot11/event/request/OB11FriendRequest'
-import * as path from 'node:path'
+import path from 'node:path'
 import { dbUtil } from '../common/db'
 import { setConfig } from './setConfig'
-import { NTQQUserApi } from '../ntqqapi/api/user'
-import { NTQQGroupApi } from '../ntqqapi/api/group'
+import { NTQQUserApi, NTQQGroupApi, sentMessages } from '../ntqqapi/api'
 import { checkNewVersion, upgradeLLOneBot } from '../common/utils/upgrade'
 import { log } from '../common/utils/log'
 import { getConfigUtil } from '../common/config'
 import { checkFfmpeg } from '../common/utils/video'
 import { GroupDecreaseSubType, OB11GroupDecreaseEvent } from '../onebot11/event/notice/OB11GroupDecreaseEvent'
 import '../ntqqapi/wrapper'
-import { sentMessages } from '@/ntqqapi/api'
 import { NTEventDispatch } from '../common/utils/EventTask'
 import { wrapperConstructor, getSession } from '../ntqqapi/wrapper'
 
@@ -284,6 +281,7 @@ function onLoad() {
             }
             log('收到群通知', notify)
             await dbUtil.addGroupNotify(notify)
+            const flag = notify.group.groupCode + '|' + notify.seq + '|' + notify.type
             // let member2: GroupMember;
             // if (notify.user2.uid) {
             //     member2 = await getGroupMember(notify.group.groupCode, null, notify.user2.uid);
@@ -342,48 +340,47 @@ function onLoad() {
             }
             else if ([GroupNotifyTypes.JOIN_REQUEST, GroupNotifyTypes.JOIN_REQUEST_BY_INVITED].includes(notify.type)) {
               log('有加群请求')
-              let requestQQ = uidMaps[notify.user1.uid]
-              if (!requestQQ) {
-                try {
+              let requestQQ = ''
+              try {
+                // uid-->uin
+                requestQQ = (await NTQQUserApi.getUinByUid(notify.user1.uid))
+                if (isNaN(parseInt(requestQQ))) {
                   requestQQ = (await NTQQUserApi.getUserDetailInfo(notify.user1.uid)).uin
-                } catch (e) {
-                  log('获取加群人QQ号失败', e)
                 }
+              } catch (e) {
+                log('获取加群人QQ号失败 Uid:', notify.user1.uid, e)
               }
-              let invitorId: number
+              let invitorId: string
               if (notify.type == GroupNotifyTypes.JOIN_REQUEST_BY_INVITED) {
                 // groupRequestEvent.sub_type = 'invite'
-                let invitorQQ = uidMaps[notify.user2.uid]
-                if (!invitorQQ) {
-                  try {
-                    let invitor = (await NTQQUserApi.getUserDetailInfo(notify.user2.uid))
-                    invitorId = parseInt(invitor.uin)
-                  } catch (e) {
-                    invitorId = 0
-                    log('获取邀请人QQ号失败', e)
+                try {
+                  // uid-->uin
+                  invitorId = (await NTQQUserApi.getUinByUid(notify.user2.uid))
+                  if (isNaN(parseInt(invitorId))) {
+                    invitorId = (await NTQQUserApi.getUserDetailInfo(notify.user2.uid)).uin
                   }
+                } catch (e) {
+                  invitorId = ''
+                  log('获取邀请人QQ号失败 Uid:', notify.user2.uid, e)
                 }
               }
               const groupRequestEvent = new OB11GroupRequestEvent(
                 parseInt(notify.group.groupCode),
                 parseInt(requestQQ) || 0,
-                notify.seq,
+                flag,
                 notify.postscript,
-                invitorId!,
+                invitorId! === undefined ? undefined : +invitorId,
                 'add'
               )
               postOb11Event(groupRequestEvent)
             }
             else if (notify.type == GroupNotifyTypes.INVITE_ME) {
               log('收到邀请我加群通知')
-              let userId = uidMaps[notify.user2.uid]
-              if (!userId) {
-                userId = (await NTQQUserApi.getUserDetailInfo(notify.user2.uid))?.uin
-              }
+              const userId = (await NTQQUserApi.getUinByUid(notify.user2.uid)) || ''
               const groupInviteEvent = new OB11GroupRequestEvent(
                 parseInt(notify.group.groupCode),
                 parseInt(userId),
-                notify.seq,
+                flag,
                 undefined,
                 undefined,
                 'invite'
@@ -402,20 +399,24 @@ function onLoad() {
 
     registerReceiveHook<FriendRequestNotify>(ReceiveCmdS.FRIEND_REQUEST, async (payload) => {
       for (const req of payload.data.buddyReqs) {
-        const flag = req.friendUid + req.reqTime
-        if (req.isUnread && parseInt(req.reqTime) > startTime / 1000) {
-          friendRequests[flag] = req
-          log('有新的好友请求', req)
-          let userId: number
-          try {
-            const requester = await NTQQUserApi.getUserDetailInfo(req.friendUid)
-            userId = parseInt(requester.uin)
-          } catch (e) {
-            log('获取加好友者QQ号失败', e)
-          }
-          const friendRequestEvent = new OB11FriendRequestEvent(userId!, req.extWords, flag)
-          postOb11Event(friendRequestEvent)
+        if (!!req.isInitiator || (req.isDecide && req.reqType !== BuddyReqType.KMEINITIATORWAITPEERCONFIRM)) {
+          continue
         }
+        let userId = 0
+        try {
+          const requesterUin = await NTQQUserApi.getUinByUid(req.friendUid)
+          userId = parseInt(requesterUin!)
+        } catch (e) {
+          log('获取加好友者QQ号失败', e)
+        }
+        const flag = req.friendUid + '|' + req.reqTime
+        const comment = req.extWords
+        const friendRequestEvent = new OB11FriendRequestEvent(
+          userId,
+          comment,
+          flag
+        )
+        postOb11Event(friendRequestEvent)
       }
     })
   }
@@ -431,11 +432,6 @@ function onLoad() {
     }
     llonebotError.otherError = ''
     startTime = Date.now()
-    dbUtil.getReceivedTempUinMap().then((m) => {
-      for (const [key, value] of Object.entries(m)) {
-        uidMaps[value] = key
-      }
-    })
     NTEventDispatch.init({ ListenerMap: wrapperConstructor, WrapperSession: getSession()! })
     log('start activate group member info')
     NTQQGroupApi.activateMemberInfoChange().then().catch(log)

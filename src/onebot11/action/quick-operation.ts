@@ -5,9 +5,8 @@ import { OB11Message, OB11MessageAt, OB11MessageData, OB11MessageDataType } from
 import { OB11FriendRequestEvent } from '../event/request/OB11FriendRequest'
 import { OB11GroupRequestEvent } from '../event/request/OB11GroupRequest'
 import { dbUtil } from '@/common/db'
-import { NTQQFriendApi, NTQQGroupApi, NTQQMsgApi } from '@/ntqqapi/api'
-import { ChatType, Group, GroupRequestOperateTypes, Peer } from '@/ntqqapi/types'
-import { getGroup, getUidByUin } from '@/common/data'
+import { NTQQFriendApi, NTQQGroupApi, NTQQMsgApi, NTQQUserApi } from '@/ntqqapi/api'
+import { ChatType, GroupRequestOperateTypes, Peer } from '@/ntqqapi/types'
 import { convertMessage2List, createSendElements, sendMsg } from './msg/SendMsg'
 import { isNull, log } from '@/common/utils'
 import { getConfigUtil } from '@/common/config'
@@ -62,16 +61,15 @@ export async function handleQuickOperation(context: QuickOperationEvent, quickAc
 }
 
 async function handleMsg(msg: OB11Message, quickAction: QuickOperationPrivateMessage | QuickOperationGroupMessage) {
-  msg = msg as OB11Message
   const rawMessage = await dbUtil.getMsgByShortId(msg.message_id)
   const reply = quickAction.reply
   const ob11Config = getConfigUtil().getConfig().ob11
-  let peer: Peer = {
+  const peer: Peer = {
     chatType: ChatType.friend,
     peerUid: msg.user_id.toString(),
   }
   if (msg.message_type == 'private') {
-    peer.peerUid = getUidByUin(msg.user_id.toString())!
+    peer.peerUid = (await NTQQUserApi.getUidByUin(msg.user_id.toString()))!
     if (msg.sub_type === 'group') {
       peer.chatType = ChatType.temp
     }
@@ -81,7 +79,6 @@ async function handleMsg(msg: OB11Message, quickAction: QuickOperationPrivateMes
     peer.peerUid = msg.group_id?.toString()!
   }
   if (reply) {
-    let group: Group | null = null
     let replyMessage: OB11MessageData[] = []
     if (ob11Config.enableQOAutoQuote) {
       replyMessage.push({
@@ -93,7 +90,6 @@ async function handleMsg(msg: OB11Message, quickAction: QuickOperationPrivateMes
     }
 
     if (msg.message_type == 'group') {
-      group = (await getGroup(msg.group_id?.toString()!))!
       if ((quickAction as QuickOperationGroupMessage).at_sender) {
         replyMessage.push({
           type: 'at',
@@ -104,8 +100,7 @@ async function handleMsg(msg: OB11Message, quickAction: QuickOperationPrivateMes
       }
     }
     replyMessage = replyMessage.concat(convertMessage2List(reply, quickAction.auto_escape))
-    const { sendElements, deleteAfterSentFiles } = await createSendElements(replyMessage, group!)
-    log(`发送消息给`, peer, sendElements)
+    const { sendElements, deleteAfterSentFiles } = await createSendElements(replyMessage, peer)
     sendMsg(peer, sendElements, deleteAfterSentFiles, false).then().catch(log)
   }
   if (msg.message_type === 'group') {
