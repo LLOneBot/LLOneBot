@@ -5,9 +5,8 @@ import {
   type Group,
   type GroupMember,
   type SelfInfo,
-  User,
 } from '../ntqqapi/types'
-import { type FileCache, type LLOneBotError } from './types'
+import { type LLOneBotError } from './types'
 import { NTQQGroupApi } from '../ntqqapi/api/group'
 import { log } from './utils/log'
 import { isNumeric } from './utils/helper'
@@ -26,7 +25,6 @@ export const WebGroupData = {
 }
 export let groups: Group[] = []
 export let friends: Friend[] = []
-export let friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>()
 export const llonebotError: LLOneBotError = {
   ffmpegError: '',
   httpServerError: '',

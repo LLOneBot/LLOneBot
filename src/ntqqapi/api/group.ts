@@ -1,9 +1,6 @@
 import { ReceiveCmdS } from '../hook'
 import { Group, GroupMember, GroupMemberRole, GroupNotifies, GroupRequestOperateTypes } from '../types'
 import { callNTQQApi, GeneralCallResult, NTQQApiMethod } from '../ntcall'
-import { deleteGroup } from '../../common/data'
-import { dbUtil } from '../../common/db'
-import { log } from '../../common/utils/log'
 import { NTQQWindowApi, NTQQWindows } from './window'
 import { getSession } from '../wrapper'
 import { NTEventDispatch } from '@/common/utils/EventTask'
@@ -103,130 +100,64 @@ export class NTQQGroupApi {
     )
   }
 
-  static async handleGroupRequest(seq: string, operateType: GroupRequestOperateTypes, reason?: string) {
-    const notify = await dbUtil.getGroupNotify(seq)
-    if (!notify) {
-      throw `${seq}对应的加群通知不存在`
-    }
-    // delete groupNotifies[seq]
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.HANDLE_GROUP_REQUEST,
-      args: [
-        {
-          doubt: false,
-          operateMsg: {
-            operateType: operateType, // 2 拒绝
-            targetMsg: {
-              seq: seq, // 通知序列号
-              type: notify.type,
-              groupCode: notify.group.groupCode,
-              postscript: reason,
-            },
-          },
-        },
-        null,
-      ],
-    })
+  static async handleGroupRequest(flag: string, operateType: GroupRequestOperateTypes, reason?: string) {
+    const flagitem = flag.split('|')
+    const groupCode = flagitem[0]
+    const seq = flagitem[1]
+    const type = parseInt(flagitem[2])
+    const session = getSession()
+    return session?.getGroupService().operateSysNotify(
+      false,
+      {
+        'operateType': operateType, // 2 拒绝
+        'targetMsg': {
+          'seq': seq,  // 通知序列号
+          'type': type,
+          'groupCode': groupCode,
+          'postscript': reason || ' ' // 仅传空值可能导致处理失败，故默认给个空格
+        }
+      })
   }
 
   static async quitGroup(groupQQ: string) {
-    const result = await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.QUIT_GROUP,
-      args: [{ groupCode: groupQQ }, null],
-    })
-    if (result.result === 0) {
-      deleteGroup(groupQQ)
-    }
-    return result
+    const session = getSession()
+    return session?.getGroupService().quitGroup(groupQQ)
   }
 
   static async kickMember(
     groupQQ: string,
     kickUids: string[],
-    refuseForever: boolean = false,
-    kickReason: string = '',
+    refuseForever = false,
+    kickReason = '',
   ) {
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.KICK_MEMBER,
-      args: [
-        {
-          groupCode: groupQQ,
-          kickUids,
-          refuseForever,
-          kickReason,
-        },
-      ],
-    })
+    const session = getSession()
+    return session?.getGroupService().kickMember(groupQQ, kickUids, refuseForever, kickReason)
   }
 
   static async banMember(groupQQ: string, memList: Array<{ uid: string, timeStamp: number }>) {
     // timeStamp为秒数, 0为解除禁言
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.MUTE_MEMBER,
-      args: [
-        {
-          groupCode: groupQQ,
-          memList,
-        },
-      ],
-    })
+    const session = getSession()
+    return session?.getGroupService().setMemberShutUp(groupQQ, memList)
   }
 
   static async banGroup(groupQQ: string, shutUp: boolean) {
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.MUTE_GROUP,
-      args: [
-        {
-          groupCode: groupQQ,
-          shutUp,
-        },
-        null,
-      ],
-    })
+    const session = getSession()
+    return session?.getGroupService().setGroupShutUp(groupQQ, shutUp)
   }
 
   static async setMemberCard(groupQQ: string, memberUid: string, cardName: string) {
-    NTQQGroupApi.activateMemberListChange().then().catch(log)
-    const res = await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.SET_MEMBER_CARD,
-      args: [
-        {
-          groupCode: groupQQ,
-          uid: memberUid,
-          cardName,
-        },
-        null,
-      ],
-    })
-    NTQQGroupApi.getGroupMembersInfo(groupQQ, [memberUid], true).then().catch(log)
-    return res
+    const session = getSession()
+    return session?.getGroupService().modifyMemberCardName(groupQQ, memberUid, cardName)
   }
 
   static async setMemberRole(groupQQ: string, memberUid: string, role: GroupMemberRole) {
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.SET_MEMBER_ROLE,
-      args: [
-        {
-          groupCode: groupQQ,
-          uid: memberUid,
-          role,
-        },
-        null,
-      ],
-    })
+    const session = getSession()
+    return session?.getGroupService().modifyMemberRole(groupQQ, memberUid, role)
   }
 
   static async setGroupName(groupQQ: string, groupName: string) {
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.SET_GROUP_NAME,
-      args: [
-        {
-          groupCode: groupQQ,
-          groupName,
-        },
-        null,
-      ],
-    })
+    const session = getSession()
+    return session?.getGroupService().modifyGroupName(groupQQ, groupName, false)
   }
 
   static async getGroupAtAllRemainCount(groupCode: string) {
@@ -251,19 +182,13 @@ export class NTQQGroupApi {
     })
   }
 
+  static async getGroupRemainAtTimes(GroupCode: string) {
+    const session = getSession()
+    return session?.getGroupService().getGroupRemainAtTimes(GroupCode)!
+  }
+
   // 头衔不可用
   static async setGroupTitle(groupQQ: string, uid: string, title: string) {
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.SET_GROUP_TITLE,
-      args: [
-        {
-          groupCode: groupQQ,
-          uid,
-          title,
-        },
-        null,
-      ],
-    })
   }
 
   static publishGroupBulletin(groupQQ: string, title: string, content: string) { }

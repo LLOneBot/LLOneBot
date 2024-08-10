@@ -48,8 +48,28 @@ export enum GroupRequestOperateTypes {
   reject = 2,
 }
 
+export enum BuddyReqType {
+  KMEINITIATOR,
+  KPEERINITIATOR,
+  KMEAGREED,
+  KMEAGREEDANDADDED,
+  KPEERAGREED,
+  KPEERAGREEDANDADDED,
+  KPEERREFUSED,
+  KMEREFUSED,
+  KMEIGNORED,
+  KMEAGREEANYONE,
+  KMESETQUESTION,
+  KMEAGREEANDADDFAILED,
+  KMSGINFO,
+  KMEINITIATORWAITPEERCONFIRM
+}
+
 export interface FriendRequest {
+  isInitiator?: boolean
+  isDecide: boolean
   friendUid: string
+  reqType: BuddyReqType
   reqTime: string // 时间戳,秒
   extWords: string // 申请人填写的验证消息
   isUnread: boolean

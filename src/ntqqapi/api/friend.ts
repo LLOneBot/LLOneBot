@@ -1,7 +1,6 @@
-import { Friend, FriendRequest, FriendV2 } from '../types'
+import { Friend, FriendV2 } from '../types'
 import { ReceiveCmdS } from '../hook'
 import { callNTQQApi, GeneralCallResult, NTQQApiMethod } from '../ntcall'
-import { friendRequests } from '@/common/data'
 import { getSession } from '@/ntqqapi/wrapper'
 import { BuddyListReqType, NodeIKernelProfileService } from '../services'
 import { NTEventDispatch } from '@/common/utils/EventTask'
@@ -49,24 +48,18 @@ export class NTQQFriendApi {
   }
 
   static async handleFriendRequest(flag: string, accept: boolean) {
-    const request: FriendRequest = friendRequests[flag]
-    if (!request) {
-      throw `flat: ${flag}, 对应的好友请求不存在`
+    const data = flag.split('|')
+    if (data.length < 2) {
+      return
     }
-    const result = await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.HANDLE_FRIEND_REQUEST,
-      args: [
-        {
-          approvalInfo: {
-            friendUid: request.friendUid,
-            reqTime: request.reqTime,
-            accept,
-          },
-        },
-      ],
+    const friendUid = data[0]
+    const reqTime = data[1]
+    const session = getSession()
+    return session?.getBuddyService().approvalFriendRequest({
+      friendUid,
+      reqTime,
+      accept
     })
-    delete friendRequests[flag]
-    return result
   }
 
   static async getBuddyV2(refresh = false): Promise<FriendV2[]> {
