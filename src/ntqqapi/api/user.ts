@@ -291,4 +291,49 @@ export class NTQQUserApi {
         Uin
       )
   }
+
+  static async getUinByUidV1(Uid: string) {
+    const ret = await NTEventDispatch.CallNoListenerEvent
+      <(Uin: string[]) => Promise<{ uinInfo: Map<string, string> }>>(
+        'NodeIKernelUixConvertService/getUin',
+        5000,
+        [Uid]
+      )
+    let uin = ret.uinInfo.get(Uid)
+    if (!uin) {
+      //从Buddy缓存获取Uin
+      friends.forEach((t) => {
+        if (t.uid == Uid) {
+          uin = t.uin
+        }
+      })
+    }
+    if (!uin) {
+      uin = (await NTQQUserApi.getUserDetailInfo(Uid)).uin //从QQ Native 转换
+    }
+    return uin
+  }
+
+  static async getUinByUidV2(Uid: string) {
+    const session = getSession()
+    let uin = (await session?.getProfileService().getUinByUid('FriendsServiceImpl', [Uid]))?.get(Uid)
+    if (uin) return uin
+    uin = (await session?.getGroupService().getUinByUids([Uid]))?.uins.get(Uid)
+    if (uin) return uin
+    uin = (await session?.getUixConvertService().getUin([Uid]))?.uinInfo.get(Uid)
+    if (uin) return uin
+    uin = (await NTQQFriendApi.getBuddyIdMapCache(true)).getKey(Uid) //从Buddy缓存获取Uin
+    if (uin) return uin
+    uin = (await NTQQFriendApi.getBuddyIdMap(true)).getKey(Uid)
+    if (uin) return uin
+    uin = (await NTQQUserApi.getUserDetailInfo(Uid)).uin //从QQ Native 转换
+    return uin
+  }
+
+  static async getUinByUid(Uid: string) {
+    if (getBuildVersion() >= 26702) {
+      return await NTQQUserApi.getUinByUidV2(Uid)
+    }
+    return await NTQQUserApi.getUinByUidV1(Uid)
+  }
 }
