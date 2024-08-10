@@ -5,7 +5,7 @@ import { selfInfo } from '../../common/data'
 import { ReceiveCmdS, registerReceiveHook } from '../hook'
 import { log } from '../../common/utils/log'
 import { sleep } from '../../common/utils/helper'
-import { isQQ998, getBuildVersion } from '../../common/utils'
+import { getBuildVersion } from '../../common/utils'
 import { getSession } from '@/ntqqapi/wrapper'
 import { NTEventDispatch } from '@/common/utils/EventTask'
 
@@ -70,25 +70,6 @@ export class NTQQMsgApi {
   static async getTempChatInfo(chatType: ChatType2, peerUid: string) {
     const session = getSession()
     return session?.getMsgService().getTempChatInfo(chatType, peerUid)!
-  }
-
-  static enterOrExitAIO(peer: Peer, enter: boolean) {
-    return callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.ENTER_OR_EXIT_AIO,
-      args: [
-        {
-          "info_list": [
-            {
-              peer,
-              "option": enter ? 1 : 2
-            }
-          ]
-        },
-        {
-          "send": true
-        },
-      ],
-    })
   }
 
   static async setEmojiLike(peer: Peer, msgSeq: string, emojiId: string, set: boolean = true) {
@@ -158,20 +139,18 @@ export class NTQQMsgApi {
     })
   }
 
-  static async getMsgHistory(peer: Peer, msgId: string, count: number) {
+  static async getMsgsByMsgId(peer: Peer | undefined, msgIds: string[] | undefined) {
+    if (!peer) throw new Error('peer is not allowed')
+    if (!msgIds) throw new Error('msgIds is not allowed')
+    const session = getSession()
+    //Mlikiowa： 参数不合规会导致NC异常崩溃 原因是TX未对进入参数判断 对应Android标记@NotNull AndroidJADX分析可得
+    return await session?.getMsgService().getMsgsByMsgId(peer, msgIds)!
+  }
+
+  static async getMsgHistory(peer: Peer, msgId: string, count: number, isReverseOrder: boolean = false) {
+    const session = getSession()
     // 消息时间从旧到新
-    return await callNTQQApi<GeneralCallResult & { msgList: RawMessage[] }>({
-      methodName: isQQ998 ? NTQQApiMethod.ACTIVE_CHAT_HISTORY : NTQQApiMethod.HISTORY_MSG,
-      args: [
-        {
-          peer,
-          msgId,
-          cnt: count,
-          queryOrder: true,
-        },
-        null,
-      ],
-    })
+    return session?.getMsgService().getMsgsIncludeSelf(peer, msgId, count, isReverseOrder)!
   }
 
   static async fetchRecentContact() {
@@ -196,16 +175,11 @@ export class NTQQMsgApi {
   }
 
   static async recallMsg(peer: Peer, msgIds: string[]) {
-    return await callNTQQApi({
-      methodName: NTQQApiMethod.RECALL_MSG,
-      args: [
-        {
-          peer,
-          msgIds,
-        },
-        null,
-      ],
-    })
+    const session = getSession()
+    return await session?.getMsgService().recallMsg({
+      chatType: peer.chatType,
+      peerUid: peer.peerUid
+    }, msgIds)
   }
 
   static async sendMsg(peer: Peer, msgElements: SendMessageElement[], waitComplete = true, timeout = 10000) {
