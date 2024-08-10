@@ -1,6 +1,15 @@
 import { GroupMemberRole } from './group'
 
+export interface GetFileListParam {
+  sortType: number
+  fileCount: number
+  startIndex: number
+  sortOrder: number
+  showOnlinedocFolder: number
+}
+
 export enum ElementType {
+  UNKNOWN = 0,
   TEXT = 1,
   PIC = 2,
   FILE = 3,
@@ -8,8 +17,30 @@ export enum ElementType {
   VIDEO = 5,
   FACE = 6,
   REPLY = 7,
+  WALLET = 9,
+  GreyTip = 8, //Poke别叫戳一搓了 官方名字拍一拍 戳一戳是另一个名字
   ARK = 10,
   MFACE = 11,
+  LIVEGIFT = 12,
+  STRUCTLONGMSG = 13,
+  MARKDOWN = 14,
+  GIPHY = 15,
+  MULTIFORWARD = 16,
+  INLINEKEYBOARD = 17,
+  INTEXTGIFT = 18,
+  CALENDAR = 19,
+  YOLOGAMERESULT = 20,
+  AVRECORD = 21,
+  FEED = 22,
+  TOFURECORD = 23,
+  ACEBUBBLE = 24,
+  ACTIVITY = 25,
+  TOFU = 26,
+  FACEBUBBLE = 27,
+  SHARELOCATION = 28,
+  TASKTOPMSG = 29,
+  RECOMMENDEDMSG = 43,
+  ACTIONBAR = 44
 }
 
 export interface SendTextElement {
@@ -101,18 +132,19 @@ export interface ReplyElement {
 }
 
 export interface FileElement {
-  fileMd5?: ''
+  fileMd5?: string
   fileName: string
   filePath: string
   fileSize: string
   picHeight?: number
   picWidth?: number
-  picThumbPath?: {}
-  file10MMd5?: ''
-  fileSha?: ''
-  fileSha3?: ''
-  fileUuid?: ''
-  fileSubId?: ''
+  folderId?: string
+  picThumbPath?: Map<number, string>
+  file10MMd5?: string
+  fileSha?: string
+  fileSha3?: string
+  fileUuid?: string
+  fileSubId?: string
   thumbFileSize?: number
   fileBizId?: number
 }
