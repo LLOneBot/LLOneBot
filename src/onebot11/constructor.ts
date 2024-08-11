@@ -27,7 +27,7 @@ import {
   FriendV2,
   ChatType2
 } from '../ntqqapi/types'
-import { deleteGroup, getGroupMember, selfInfo } from '../common/data'
+import { deleteGroup, getGroupMember, getSelfUin } from '../common/data'
 import { EventType } from './event/OB11BaseEvent'
 import { encodeCQCode } from './cqcode'
 import { dbUtil } from '../common/db'
@@ -60,8 +60,9 @@ export class OB11Constructor {
       debug,
       ob11: { messagePostFormat },
     } = config
+    const selfUin = getSelfUin()
     const resMsg: OB11Message = {
-      self_id: parseInt(selfInfo.uin),
+      self_id: parseInt(selfUin),
       user_id: parseInt(msg.senderUin!),
       time: parseInt(msg.msgTime) || Date.now(),
       message_id: msg.msgShortId!,
@@ -78,7 +79,7 @@ export class OB11Constructor {
       sub_type: 'friend',
       message: messagePostFormat === 'string' ? '' : [],
       message_format: messagePostFormat === 'string' ? 'string' : 'array',
-      post_type: selfInfo.uin == msg.senderUin ? EventType.MESSAGE_SENT : EventType.MESSAGE,
+      post_type: selfUin == msg.senderUin ? EventType.MESSAGE_SENT : EventType.MESSAGE,
     }
     if (debug) {
       resMsg.raw = msg
@@ -425,6 +426,7 @@ export class OB11Constructor {
           log(`收到我被踢出或退群提示, 群${msg.peerUid}`, groupElement)
           deleteGroup(msg.peerUid)
           NTQQGroupApi.quitGroup(msg.peerUid).then()
+          const selfUin = getSelfUin()
           try {
             const adminUin =
               (await getGroupMember(msg.peerUid, groupElement.adminUid))?.uin ||
@@ -432,13 +434,13 @@ export class OB11Constructor {
             if (adminUin) {
               return new OB11GroupDecreaseEvent(
                 parseInt(msg.peerUid),
-                parseInt(selfInfo.uin),
+                parseInt(selfUin),
                 parseInt(adminUin),
                 'kick_me',
               )
             }
           } catch (e) {
-            return new OB11GroupDecreaseEvent(parseInt(msg.peerUid), parseInt(selfInfo.uin), 0, 'leave')
+            return new OB11GroupDecreaseEvent(parseInt(msg.peerUid), parseInt(selfUin), 0, 'leave')
           }
         }
       }
@@ -565,7 +567,7 @@ export class OB11Constructor {
             const postMsg = await dbUtil.getMsgBySeqId(origMsg?.msgSeq!) ?? origMsg
             // 如果 senderUin 为 0，可能是 历史消息 或 自身消息
             if (msgList[0].senderUin === '0') {
-              msgList[0].senderUin = postMsg?.senderUin ?? selfInfo.uin
+              msgList[0].senderUin = postMsg?.senderUin ?? getSelfUin()
             }
             return new OB11GroupEssenceEvent(parseInt(msg.peerUid), postMsg?.msgShortId!, parseInt(msgList[0].senderUin!))
             // 获取MsgSeq+Peer可获取具体消息

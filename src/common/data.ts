@@ -8,14 +8,8 @@ import { type LLOneBotError } from './types'
 import { NTQQGroupApi } from '../ntqqapi/api/group'
 import { log } from './utils/log'
 import { isNumeric } from './utils/helper'
-import { NTQQFriendApi } from '../ntqqapi/api'
+import { NTQQFriendApi, NTQQUserApi } from '../ntqqapi/api'
 
-export const selfInfo: SelfInfo = {
-  uid: '',
-  uin: '',
-  nick: '',
-  online: true,
-}
 export let groups: Group[] = []
 export let friends: Friend[] = []
 export const llonebotError: LLOneBotError = {
@@ -98,4 +92,39 @@ export async function getGroupMember(groupQQ: string | number, memberUinOrUid: s
     member = getMember()
   }
   return member
+}
+
+const selfInfo: SelfInfo = {
+  uid: '',
+  uin: '',
+  nick: '',
+  online: true,
+}
+
+export async function getSelfNick(force = false): Promise<string> {
+  if (!selfInfo.nick || force) {
+    const userInfo = await NTQQUserApi.getUserDetailInfo(selfInfo.uid)
+    if (userInfo) {
+      selfInfo.nick = userInfo.nick
+      return userInfo.nick
+    }
+  }
+
+  return selfInfo.nick
+}
+
+export function getSelfInfo() {
+  return selfInfo
+}
+
+export function setSelfInfo(data: Partial<SelfInfo>) {
+  Object.assign(selfInfo, data)
+}
+
+export function getSelfUid() {
+  return selfInfo['uid']
+}
+
+export function getSelfUin() {
+  return selfInfo['uin']
 }

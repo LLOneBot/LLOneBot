@@ -1,5 +1,5 @@
 import { OB11Message } from '../types'
-import { selfInfo } from '@/common/data'
+import { getSelfUin } from '@/common/data'
 import { OB11BaseMetaEvent } from '../event/meta/OB11BaseMetaEvent'
 import { OB11BaseNoticeEvent } from '../event/notice/OB11BaseNoticeEvent'
 import { WebSocket as WebSocketClass } from 'ws'
@@ -35,9 +35,10 @@ export function postWsEvent(event: PostEventType) {
 
 export function postOb11Event(msg: PostEventType, reportSelf = false, postWs = true) {
   const config = getConfigUtil().getConfig()
+  const selfUin = getSelfUin()
   // 判断msg是否是event
   if (!config.reportSelfMessage && !reportSelf) {
-    if (msg.post_type === 'message' && (msg as OB11Message).user_id.toString() == selfInfo.uin) {
+    if (msg.post_type === 'message' && (msg as OB11Message).user_id.toString() == selfUin) {
       return
     }
   }
@@ -48,7 +49,7 @@ export function postOb11Event(msg: PostEventType, reportSelf = false, postWs = t
     const sig = hmac.digest('hex')
     let headers = {
       'Content-Type': 'application/json',
-      'x-self-id': selfInfo.uin,
+      'x-self-id': selfUin,
     }
     if (config.ob11.httpSecret) {
       headers['x-signature'] = 'sha1=' + sig

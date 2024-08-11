@@ -17,7 +17,10 @@ import { DATA_DIR } from '../common/utils'
 import {
   getGroupMember,
   llonebotError,
-  selfInfo,
+  setSelfInfo,
+  getSelfInfo,
+  getSelfUid,
+  getSelfUin
 } from '../common/data'
 import { hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmdS, registerReceiveHook, startHook } from '../ntqqapi/hook'
 import { OB11Constructor } from '../onebot11/constructor'
@@ -45,7 +48,6 @@ import { GroupDecreaseSubType, OB11GroupDecreaseEvent } from '../onebot11/event/
 import '../ntqqapi/wrapper'
 import { NTEventDispatch } from '../common/utils/EventTask'
 import { wrapperConstructor, getSession } from '../ntqqapi/wrapper'
-import { sleep } from '../common/utils/helper'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -160,7 +162,7 @@ function onLoad() {
           if (!debug && msg.message.length === 0) {
             return
           }
-          const isSelfMsg = msg.user_id.toString() == selfInfo.uin
+          const isSelfMsg = msg.user_id.toString() === getSelfUin()
           if (isSelfMsg && !reportSelfMessage) {
             return
           }
@@ -278,39 +280,6 @@ function onLoad() {
             log('收到群通知', notify)
             await dbUtil.addGroupNotify(notify)
             const flag = notify.group.groupCode + '|' + notify.seq + '|' + notify.type
-            // let member2: GroupMember;
-            // if (notify.user2.uid) {
-            //     member2 = await getGroupMember(notify.group.groupCode, null, notify.user2.uid);
-            // }
-            // 原本的群管变更通知事件处理
-            // if (
-            //   [GroupNotifyTypes.ADMIN_SET, GroupNotifyTypes.ADMIN_UNSET, GroupNotifyTypes.ADMIN_UNSET_OTHER].includes(
-            //     notify.type,
-            //   )
-            // ) {
-            //   const member1 = await getGroupMember(notify.group.groupCode, notify.user1.uid)
-            //   log('有管理员变动通知')
-            //   refreshGroupMembers(notify.group.groupCode).then()
-            //   let groupAdminNoticeEvent = new OB11GroupAdminNoticeEvent()
-            //   groupAdminNoticeEvent.group_id = parseInt(notify.group.groupCode)
-            //   log('开始获取变动的管理员')
-            //   if (member1) {
-            //     log('变动管理员获取成功')
-            //     groupAdminNoticeEvent.user_id = parseInt(member1.uin)
-            //     groupAdminNoticeEvent.sub_type = [
-            //       GroupNotifyTypes.ADMIN_UNSET,
-            //       GroupNotifyTypes.ADMIN_UNSET_OTHER,
-            //     ].includes(notify.type)
-            //       ? 'unset'
-            //       : 'set'
-            //     // member1.role = notify.type == GroupNotifyTypes.ADMIN_SET ? GroupMemberRole.admin : GroupMemberRole.normal;
-            //     postOb11Event(groupAdminNoticeEvent, true)
-            //   }
-            //   else {
-            //     log('获取群通知的成员信息失败', notify, getGroup(notify.group.groupCode))
-            //   }
-            // }
-            // else 
             if (notify.type == GroupNotifyTypes.MEMBER_EXIT || notify.type == GroupNotifyTypes.KICK_MEMBER) {
               log('有成员退出通知', notify)
               try {
@@ -419,7 +388,7 @@ function onLoad() {
 
   let startTime = 0 // 毫秒
 
-  async function start() {
+  async function start(uid: string, uin: string) {
     log('llonebot pid', process.pid)
     const config = getConfigUtil().getConfig()
     if (!config.enableLLOB) {
@@ -428,8 +397,9 @@ function onLoad() {
     }
     llonebotError.otherError = ''
     startTime = Date.now()
-    dbUtil.init(selfInfo.uin)
     NTEventDispatch.init({ ListenerMap: wrapperConstructor, WrapperSession: getSession()! })
+    dbUtil.init(uin)
+
     log('start activate group member info')
     NTQQGroupApi.activateMemberInfoChange().then().catch(log)
     NTQQGroupApi.activateMemberListChange().then().catch(log)
@@ -451,35 +421,18 @@ function onLoad() {
     log('LLOneBot start')
   }
 
-  let getSelfNickCount = 0
   const init = async () => {
-    if (!selfInfo.uin) {
-      selfInfo.uin = globalThis.authData?.uin
-      selfInfo.uid = globalThis.authData?.uid
-      selfInfo.nick = selfInfo.uin
+    const current = getSelfInfo()
+    if (!current.uin) {
+      setSelfInfo({
+        uin: globalThis.authData?.uin,
+        uid: globalThis.authData?.uid,
+        nick: current.uin,
+      })
     }
     //log('self info', selfInfo, globalThis.authData)
-    if (selfInfo.uin) {
-      async function getUserNick() {
-        try {
-          getSelfNickCount++
-          const userInfo = await NTQQUserApi.getUserDetailInfo(selfInfo.uid)
-          log('self info', userInfo)
-          if (userInfo) {
-            selfInfo.nick = userInfo.nick
-            return
-          }
-        } catch (e: any) {
-          log('get self nickname failed', e.stack)
-        }
-        if (getSelfNickCount < 10) {
-          await sleep(1000)
-          return await getUserNick()
-        }
-      }
-
-      await getUserNick()
-      start()
+    if (current.uin) {
+      start(current.uid, current.uin)
     }
     else {
       setTimeout(init, 1000)
@@ -490,7 +443,7 @@ function onLoad() {
 
 // 创建窗口时触发
 function onBrowserWindowCreated(window: BrowserWindow) {
-  if (selfInfo.uid) {
+  if (getSelfUid()) {
     return
   }
   mainWindow = window
