@@ -1,6 +1,6 @@
 import { callNTQQApi, GeneralCallResult, NTQQApiMethod } from '../ntcall'
 import { RawMessage, SendMessageElement, Peer, ChatType2 } from '../types'
-import { selfInfo } from '../../common/data'
+import { getSelfNick, getSelfUid } from '../../common/data'
 import { getBuildVersion } from '../../common/utils'
 import { getSession } from '@/ntqqapi/wrapper'
 import { NTEventDispatch } from '@/common/utils/EventTask'
@@ -28,7 +28,7 @@ export class NTQQMsgApi {
       fromGroupCode: GroupCode,
       sig: '',
       selfPhone: '',
-      selfUid: selfInfo.uid,
+      selfUid: getSelfUid(),
       gameSession: TempGameSession
     })
   }
@@ -208,9 +208,10 @@ export class NTQQMsgApi {
   }
 
   static async multiForwardMsg(srcPeer: Peer, destPeer: Peer, msgIds: string[]): Promise<RawMessage> {
-    const msgInfos = msgIds.map(id => {
-      return { msgId: id, senderShowName: selfInfo.nick }
+    const msgInfos = msgIds.map(async id => {
+      return { msgId: id, senderShowName: await getSelfNick() }
     })
+    const selfUid = getSelfUid()
     let data = await NTEventDispatch.CallNormalEvent<
       (msgInfo: typeof msgInfos, srcPeer: Peer, destPeer: Peer, comment: Array<any>, attr: Map<any, any>,) => Promise<unknown>,
       (msgList: RawMessage[]) => void
@@ -221,7 +222,7 @@ export class NTQQMsgApi {
       5000,
       (msgRecords: RawMessage[]) => {
         for (let msgRecord of msgRecords) {
-          if (msgRecord.peerUid == destPeer.peerUid && msgRecord.senderUid == selfInfo.uid) {
+          if (msgRecord.peerUid == destPeer.peerUid && msgRecord.senderUid == selfUid) {
             return true
           }
         }
@@ -242,7 +243,7 @@ export class NTQQMsgApi {
       if (forwardData.app != 'com.tencent.multimsg') {
         continue
       }
-      if (msg.peerUid == destPeer.peerUid && msg.senderUid == selfInfo.uid) {
+      if (msg.peerUid == destPeer.peerUid && msg.senderUid == selfUid) {
         return msg
       }
     }
