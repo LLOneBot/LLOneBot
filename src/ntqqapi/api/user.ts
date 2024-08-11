@@ -1,7 +1,7 @@
 import { callNTQQApi, GeneralCallResult, NTQQApiClass, NTQQApiMethod } from '../ntcall'
 import { SelfInfo, User, UserDetailInfoByUin, UserDetailInfoByUinV2 } from '../types'
 import { ReceiveCmdS } from '../hook'
-import { selfInfo, friends, groupMembers } from '@/common/data'
+import { friends, groupMembers, getSelfUin } from '@/common/data'
 import { CacheClassFuncAsync, log, getBuildVersion } from '@/common/utils'
 import { getSession } from '@/ntqqapi/wrapper'
 import { RequestUtil } from '@/common/utils/request'
@@ -9,8 +9,6 @@ import { NodeIKernelProfileService, UserDetailSource, ProfileBizType } from '../
 import { NodeIKernelProfileListener } from '../listeners'
 import { NTEventDispatch } from '@/common/utils/EventTask'
 import { NTQQFriendApi } from './friend'
-
-const userInfoCache: Record<string, User> = {} // uid: User
 
 export class NTQQUserApi {
   static async setQQAvatar(filePath: string) {
@@ -120,7 +118,8 @@ export class NTQQUserApi {
   }
 
   static async getQzoneCookies() {
-    const requestUrl = 'https://ssl.ptlogin2.qq.com/jump?ptlang=1033&clientuin=' + selfInfo.uin + '&clientkey=' + (await this.getClientKey()).clientKey + '&u1=https%3A%2F%2Fuser.qzone.qq.com%2F' + selfInfo.uin + '%2Finfocenter&keyindex=19%27'
+    const uin = getSelfUin()
+    const requestUrl = 'https://ssl.ptlogin2.qq.com/jump?ptlang=1033&clientuin=' + uin + '&clientkey=' + (await this.getClientKey()).clientKey + '&u1=https%3A%2F%2Fuser.qzone.qq.com%2F' + uin + '%2Finfocenter&keyindex=19%27'
     let cookies: { [key: string]: string } = {}
     try {
       cookies = await RequestUtil.HttpsGetCookies(requestUrl)
@@ -135,7 +134,7 @@ export class NTQQUserApi {
     if (clientKeyData.result !== 0) {
       throw new Error('获取clientKey失败')
     }
-    const url = 'https://ssl.ptlogin2.qq.com/jump?ptlang=1033&clientuin=' + selfInfo.uin
+    const url = 'https://ssl.ptlogin2.qq.com/jump?ptlang=1033&clientuin=' + getSelfUin()
       + '&clientkey=' + clientKeyData.clientKey
       + '&u1=https%3A%2F%2Fh5.qzone.qq.com%2Fqqnt%2Fqzoneinpcqq%2Ffriend%3Frefresh%3D0%26clientuin%3D0%26darkMode%3D0&keyindex=' + clientKeyData.keyIndex
     return (await RequestUtil.HttpsGetCookies(url))?.skey
@@ -144,7 +143,8 @@ export class NTQQUserApi {
   @CacheClassFuncAsync(1800 * 1000)
   static async getCookies(domain: string) {
     const ClientKeyData = await NTQQUserApi.forceFetchClientKey()
-    const requestUrl = 'https://ssl.ptlogin2.qq.com/jump?ptlang=1033&clientuin=' + selfInfo.uin + '&clientkey=' + ClientKeyData.clientKey + '&u1=https%3A%2F%2F' + domain + '%2F' + selfInfo.uin + '%2Finfocenter&keyindex=19%27'
+    const uin = getSelfUin()
+    const requestUrl = 'https://ssl.ptlogin2.qq.com/jump?ptlang=1033&clientuin=' + uin + '&clientkey=' + ClientKeyData.clientKey + '&u1=https%3A%2F%2F' + domain + '%2F' + uin + '%2Finfocenter&keyindex=19%27'
     const cookies: { [key: string]: string; } = await RequestUtil.HttpsGetCookies(requestUrl)
     return cookies
   }

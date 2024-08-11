@@ -1,4 +1,4 @@
-import { selfInfo } from '../../../common/data'
+import { getSelfInfo } from '../../../common/data'
 import { LifeCycleSubType, OB11LifeCycleEvent } from '../../event/meta/OB11LifeCycleEvent'
 import { ActionName } from '../../action/types'
 import { OB11Response } from '../../action/OB11Response'
@@ -78,6 +78,7 @@ export class ReverseWebsocket {
 
   private connect() {
     const { token, heartInterval } = getConfigUtil().getConfig()
+    const selfInfo = getSelfInfo()
     this.websocket = new WebSocketClass(this.url, {
       maxPayload: 1024 * 1024 * 1024,
       handshakeTimeout: 2000,

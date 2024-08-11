@@ -8,7 +8,8 @@ import {
   getFriend,
   getGroupMember,
   groups,
-  selfInfo,
+  getSelfUin,
+  setSelfInfo
 } from '@/common/data'
 import { OB11GroupDecreaseEvent } from '../onebot11/event/notice/OB11GroupDecreaseEvent'
 import { postOb11Event } from '../onebot11/server/post-ob11-event'
@@ -242,18 +243,7 @@ async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
       continue
     }
     log('update group', group)
-    // if (!activatedGroups.includes(group.groupCode)) {
-    NTQQMsgApi.activateChat({ peerUid: group.groupCode, chatType: ChatType.group })
-      .then((r) => {
-        // activatedGroups.push(group.groupCode);
-        // log(`激活群聊天窗口${group.groupName}(${group.groupCode})`, r)
-        // if (r.result !== 0) {
-        //     setTimeout(() => NTQQMsgApi.activateGroupChat(group.groupCode).then(r => log(`再次激活群聊天窗口${group.groupName}(${group.groupCode})`, r)), 500);
-        // }else {
-        // }
-      })
-      .catch(log)
-    // }
+    NTQQMsgApi.activateChat({ peerUid: group.groupCode, chatType: ChatType.group }).then().catch(log)
     let existGroup = groups.find((g) => g.groupCode == group.groupCode)
     if (existGroup) {
       Object.assign(existGroup, group)
@@ -293,12 +283,13 @@ async function processGroupEvent(payload: { groupList: Group[] }) {
           }
 
           // 判断bot是否是管理员，如果是管理员不需要从这里得知有人退群，这里的退群无法得知是主动退群还是被踢
-          let bot = await getGroupMember(group.groupCode, selfInfo.uin)
+          const selfUin = getSelfUin()
+          const bot = await getGroupMember(group.groupCode, selfUin)
           if (bot?.role == GroupMemberRole.admin || bot?.role == GroupMemberRole.owner) {
             continue
           }
           for (const member of oldMembers) {
-            if (!newMembersSet.has(member.uin) && member.uin != selfInfo.uin) {
+            if (!newMembersSet.has(member.uin) && member.uin != selfUin) {
               postOb11Event(
                 new OB11GroupDecreaseEvent(
                   parseInt(group.groupCode),
@@ -458,7 +449,9 @@ export async function startHook() {
   })
 
   registerReceiveHook<{ info: { status: number } }>(ReceiveCmdS.SELF_STATUS, (info) => {
-    selfInfo.online = info.info.status !== 20
+    setSelfInfo({
+      online: info.info.status !== 20
+    })
   })
 
   let activatedPeerUids: string[] = []

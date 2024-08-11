@@ -9,7 +9,7 @@ import { OB11HeartbeatEvent } from '../../event/meta/OB11HeartbeatEvent'
 import { WebsocketServerBase } from '../../../common/server/websocket'
 import { IncomingMessage } from 'node:http'
 import { wsReply } from './reply'
-import { selfInfo } from '../../../common/data'
+import { getSelfInfo } from '../../../common/data'
 import { log } from '../../../common/utils/log'
 import { getConfigUtil } from '../../../common/config'
 
@@ -59,7 +59,7 @@ class OB11WebsocketServer extends WebsocketServerBase {
       }
       const { heartInterval } = getConfigUtil().getConfig()
       const wsClientInterval = setInterval(() => {
-        postWsEvent(new OB11HeartbeatEvent(selfInfo.online!, true, heartInterval!))
+        postWsEvent(new OB11HeartbeatEvent(getSelfInfo().online!, true, heartInterval!))
       }, heartInterval) // 心跳包
       wsClient.on('close', () => {
         log('event上报ws客户端已断开')
