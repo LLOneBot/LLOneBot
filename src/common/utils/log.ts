@@ -1,4 +1,4 @@
-import { selfInfo } from '../data'
+import { getSelfInfo } from '../data'
 import fs from 'fs'
 import path from 'node:path'
 import { DATA_DIR, truncateString } from './index'
@@ -15,7 +15,7 @@ export function log(...msg: any[]) {
   if (!getConfigUtil().getConfig().log) {
     return //console.log(...msg);
   }
-
+  const selfInfo = getSelfInfo()
   const userInfo = selfInfo.uin ? `${selfInfo.nick}(${selfInfo.uin})` : ''
   let logMsg = ''
   for (let msgItem of msg) {
@@ -31,5 +31,5 @@ export function log(...msg: any[]) {
   logMsg = `${currentDateTime} ${userInfo}: ${logMsg}\n\n`
   // sendLog(...msg);
   // console.log(msg)
-  fs.appendFile(path.join(logDir, logFileName), logMsg, (err: any) => {})
+  fs.appendFile(path.join(logDir, logFileName), logMsg, () => {})
 }

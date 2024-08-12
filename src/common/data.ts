@@ -1,32 +1,17 @@
 import {
-  CategoryFriend,
   type Friend,
-  type FriendRequest,
   type Group,
   type GroupMember,
   type SelfInfo,
-  User,
 } from '../ntqqapi/types'
-import { type FileCache, type LLOneBotError } from './types'
+import { type LLOneBotError } from './types'
 import { NTQQGroupApi } from '../ntqqapi/api/group'
 import { log } from './utils/log'
 import { isNumeric } from './utils/helper'
-import { NTQQFriendApi } from '../ntqqapi/api'
-import { WebApiGroupMember } from '@/ntqqapi/api/webapi'
+import { NTQQFriendApi, NTQQUserApi } from '../ntqqapi/api'
 
-export const selfInfo: SelfInfo = {
-  uid: '',
-  uin: '',
-  nick: '',
-  online: true,
-}
-export const WebGroupData = {
-  GroupData: new Map<string, Array<WebApiGroupMember>>(),
-  GroupTime: new Map<string, number>(),
-}
 export let groups: Group[] = []
 export let friends: Friend[] = []
-export let friendRequests: Map<number, FriendRequest> = new Map<number, FriendRequest>()
 export const llonebotError: LLOneBotError = {
   ffmpegError: '',
   httpServerError: '',
@@ -109,16 +94,37 @@ export async function getGroupMember(groupQQ: string | number, memberUinOrUid: s
   return member
 }
 
-export const uidMaps: Record<string, string> = {} // 一串加密的字符串(uid) -> qq号
-
-export function getUidByUin(uin: string) {
-  for (const uid in uidMaps) {
-    if (uidMaps[uid] === uin) {
-      return uid
-    }
-  }
+const selfInfo: SelfInfo = {
+  uid: '',
+  uin: '',
+  nick: '',
+  online: true,
 }
 
-export let tempGroupCodeMap: Record<string, string> = {} // peerUid => 群号
+export async function getSelfNick(force = false): Promise<string> {
+  if (!selfInfo.nick || force) {
+    const userInfo = await NTQQUserApi.getUserDetailInfo(selfInfo.uid)
+    if (userInfo) {
+      selfInfo.nick = userInfo.nick
+      return userInfo.nick
+    }
+  }
 
-export let rawFriends: CategoryFriend[] = []
+  return selfInfo.nick
+}
+
+export function getSelfInfo() {
+  return selfInfo
+}
+
+export function setSelfInfo(data: Partial<SelfInfo>) {
+  Object.assign(selfInfo, data)
+}
+
+export function getSelfUid() {
+  return selfInfo['uid']
+}
+
+export function getSelfUin() {
+  return selfInfo['uin']
+}
