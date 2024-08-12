@@ -1,16 +1,15 @@
 import type { BrowserWindow } from 'electron'
 import { NTQQApiClass, NTQQApiMethod } from './ntcall'
-import { NTQQMsgApi, sendMessagePool } from './api/msg'
-import { CategoryFriend, ChatType, Group, GroupMember, GroupMemberRole, RawMessage, User } from './types'
+import { NTQQMsgApi } from './api/msg'
+import { CategoryFriend, ChatType, Group, GroupMember, GroupMemberRole, RawMessage } from './types'
 import {
   deleteGroup,
   friends,
   getFriend,
   getGroupMember,
-  groups, rawFriends,
-  selfInfo,
-  tempGroupCodeMap,
-  uidMaps,
+  groups,
+  getSelfUin,
+  setSelfInfo
 } from '@/common/data'
 import { OB11GroupDecreaseEvent } from '../onebot11/event/notice/OB11GroupDecreaseEvent'
 import { postOb11Event } from '../onebot11/server/post-ob11-event'
@@ -244,18 +243,7 @@ async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
       continue
     }
     log('update group', group)
-    // if (!activatedGroups.includes(group.groupCode)) {
-    NTQQMsgApi.activateChat({ peerUid: group.groupCode, chatType: ChatType.group })
-      .then((r) => {
-        // activatedGroups.push(group.groupCode);
-        // log(`激活群聊天窗口${group.groupName}(${group.groupCode})`, r)
-        // if (r.result !== 0) {
-        //     setTimeout(() => NTQQMsgApi.activateGroupChat(group.groupCode).then(r => log(`再次激活群聊天窗口${group.groupName}(${group.groupCode})`, r)), 500);
-        // }else {
-        // }
-      })
-      .catch(log)
-    // }
+    NTQQMsgApi.activateChat({ peerUid: group.groupCode, chatType: ChatType.group }).then().catch(log)
     let existGroup = groups.find((g) => g.groupCode == group.groupCode)
     if (existGroup) {
       Object.assign(existGroup, group)
@@ -295,12 +283,13 @@ async function processGroupEvent(payload: { groupList: Group[] }) {
           }
 
           // 判断bot是否是管理员，如果是管理员不需要从这里得知有人退群，这里的退群无法得知是主动退群还是被踢
-          let bot = await getGroupMember(group.groupCode, selfInfo.uin)
+          const selfUin = getSelfUin()
+          const bot = await getGroupMember(group.groupCode, selfUin)
           if (bot?.role == GroupMemberRole.admin || bot?.role == GroupMemberRole.owner) {
             continue
           }
           for (const member of oldMembers) {
-            if (!newMembersSet.has(member.uin) && member.uin != selfInfo.uin) {
+            if (!newMembersSet.has(member.uin) && member.uin != selfUin) {
               postOb11Event(
                 new OB11GroupDecreaseEvent(
                   parseInt(group.groupCode),
@@ -402,8 +391,6 @@ export async function startHook() {
   registerReceiveHook<{
     data: CategoryFriend[]
   }>(ReceiveCmdS.FRIENDS, (payload) => {
-    rawFriends.length = 0;
-    rawFriends.push(...payload.data);
     for (const fData of payload.data) {
       const _friends = fData.buddyList
       for (let friend of _friends) {
@@ -420,23 +407,6 @@ export async function startHook() {
   })
 
   registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.NEW_MSG, ReceiveCmdS.NEW_ACTIVE_MSG], (payload) => {
-    // 保存一下uid
-    for (const message of payload.msgList) {
-      const uid = message.senderUid
-      const uin = message.senderUin
-      if (uid && uin) {
-        if (message.chatType === ChatType.temp) {
-          dbUtil.getReceivedTempUinMap().then((receivedTempUinMap) => {
-            if (!receivedTempUinMap[uin]) {
-              receivedTempUinMap[uin] = uid
-              dbUtil.setReceivedTempUinMap(receivedTempUinMap)
-            }
-          })
-        }
-        uidMaps[uid] = uin
-      }
-    }
-
     // 自动清理新消息文件
     const { autoDeleteFile } = getConfigUtil().getConfig()
     if (!autoDeleteFile) {
@@ -459,10 +429,6 @@ export async function startHook() {
           if (msgElement.picElement) {
             pathList.push(...Object.values(msgElement.picElement.thumbPath))
           }
-          const aioOpGrayTipElement = msgElement.grayTipElement?.aioOpGrayTipElement
-          if (aioOpGrayTipElement) {
-            tempGroupCodeMap[aioOpGrayTipElement.peerUid] = aioOpGrayTipElement.fromGrpCodeOfTmpChat
-          }
 
           // log("需要清理的文件", pathList);
           for (const path of pathList) {
@@ -479,22 +445,13 @@ export async function startHook() {
 
   registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmdS.SELF_SEND_MSG, ({ msgRecord }) => {
     const message = msgRecord
-    const peerUid = message.peerUid
-    // log("收到自己发送成功的消息", Object.keys(sendMessagePool), message);
-    // log("收到自己发送成功的消息", message.msgId, message.msgSeq);
     dbUtil.addMsg(message).then()
-    const sendCallback = sendMessagePool[peerUid]
-    if (sendCallback) {
-      try {
-        sendCallback(message)
-      } catch (e: any) {
-        log('receive self msg error', e.stack)
-      }
-    }
   })
 
   registerReceiveHook<{ info: { status: number } }>(ReceiveCmdS.SELF_STATUS, (info) => {
-    selfInfo.online = info.info.status !== 20
+    setSelfInfo({
+      online: info.info.status !== 20
+    })
   })
 
   let activatedPeerUids: string[] = []

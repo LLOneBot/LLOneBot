@@ -24,9 +24,10 @@ import {
   TipGroupElementType,
   User,
   VideoElement,
-  FriendV2
+  FriendV2,
+  ChatType2
 } from '../ntqqapi/types'
-import { deleteGroup, getGroupMember, selfInfo, tempGroupCodeMap, uidMaps } from '../common/data'
+import { deleteGroup, getGroupMember, getSelfUin } from '../common/data'
 import { EventType } from './event/OB11BaseEvent'
 import { encodeCQCode } from './cqcode'
 import { dbUtil } from '../common/db'
@@ -59,15 +60,15 @@ export class OB11Constructor {
       debug,
       ob11: { messagePostFormat },
     } = config
-    const message_type = msg.chatType == ChatType.group ? 'group' : 'private'
+    const selfUin = getSelfUin()
     const resMsg: OB11Message = {
-      self_id: parseInt(selfInfo.uin),
+      self_id: parseInt(selfUin),
       user_id: parseInt(msg.senderUin!),
       time: parseInt(msg.msgTime) || Date.now(),
       message_id: msg.msgShortId!,
       real_id: msg.msgShortId!,
       message_seq: msg.msgShortId!,
-      message_type: msg.chatType == ChatType.group ? 'group' : 'private',
+      message_type: msg.chatType === ChatType.group ? 'group' : 'private',
       sender: {
         user_id: parseInt(msg.senderUin!),
         nickname: msg.sendNickName,
@@ -78,7 +79,7 @@ export class OB11Constructor {
       sub_type: 'friend',
       message: messagePostFormat === 'string' ? '' : [],
       message_format: messagePostFormat === 'string' ? 'string' : 'array',
-      post_type: selfInfo.uin == msg.senderUin ? EventType.MESSAGE_SENT : EventType.MESSAGE,
+      post_type: selfUin == msg.senderUin ? EventType.MESSAGE_SENT : EventType.MESSAGE,
     }
     if (debug) {
       resMsg.raw = msg
@@ -96,11 +97,15 @@ export class OB11Constructor {
       resMsg.sub_type = 'friend'
       resMsg.sender.nickname = (await NTQQUserApi.getUserDetailInfo(msg.senderUid)).nick
     }
-    else if (msg.chatType == ChatType.temp) {
+    else if (msg.chatType as unknown as ChatType2 == ChatType2.KCHATTYPETEMPC2CFROMGROUP) {
       resMsg.sub_type = 'group'
-      const tempGroupCode = tempGroupCodeMap[msg.peerUin]
-      if (tempGroupCode) {
-        resMsg.group_id = parseInt(tempGroupCode)
+      const ret = await NTQQMsgApi.getTempChatInfo(ChatType2.KCHATTYPETEMPC2CFROMGROUP, msg.senderUid)
+      if (ret.result === 0) {
+        resMsg.group_id = parseInt(ret.tmpChatInfo!.groupCode)
+        resMsg.sender.nickname = ret.tmpChatInfo!.fromNick
+      } else {
+        resMsg.group_id = 284840486 //兜底数据
+        resMsg.sender.nickname = '临时会话'
       }
     }
 
@@ -175,7 +180,7 @@ export class OB11Constructor {
         // message_data["data"]["path"] = element.picElement.sourcePath
         // let currentRKey = "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
 
-        message_data['data']['url'] = await NTQQFileApi.getImageUrl(element.picElement, msg.chatType)
+        message_data['data']['url'] = await NTQQFileApi.getImageUrl(element.picElement)
         // message_data["data"]["file_id"] = element.picElement.fileUuid
         message_data['data']['file_size'] = element.picElement.fileSize
         dbUtil
@@ -328,7 +333,11 @@ export class OB11Constructor {
             //筛选item带有uid的元素
             const poke_uid = pokedetail.filter(item => item.uid)
             if (poke_uid.length == 2) {
-              return new OB11FriendPokeEvent(parseInt((uidMaps[poke_uid[0].uid])!), parseInt((uidMaps[poke_uid[1].uid])), pokedetail)
+              return new OB11FriendPokeEvent(
+                parseInt(await NTQQUserApi.getUinByUid(poke_uid[0].uid)),
+                parseInt(await NTQQUserApi.getUinByUid(poke_uid[1].uid)),
+                pokedetail
+              )
             }
           }
           //下面得改 上面也是错的grayTipElement.subElementType == GrayTipElementSubType.MEMBER_NEW_TITLE
@@ -417,6 +426,7 @@ export class OB11Constructor {
           log(`收到我被踢出或退群提示, 群${msg.peerUid}`, groupElement)
           deleteGroup(msg.peerUid)
           NTQQGroupApi.quitGroup(msg.peerUid).then()
+          const selfUin = getSelfUin()
           try {
             const adminUin =
               (await getGroupMember(msg.peerUid, groupElement.adminUid))?.uin ||
@@ -424,13 +434,13 @@ export class OB11Constructor {
             if (adminUin) {
               return new OB11GroupDecreaseEvent(
                 parseInt(msg.peerUid),
-                parseInt(selfInfo.uin),
+                parseInt(selfUin),
                 parseInt(adminUin),
                 'kick_me',
               )
             }
           } catch (e) {
-            return new OB11GroupDecreaseEvent(parseInt(msg.peerUid), parseInt(selfInfo.uin), 0, 'leave')
+            return new OB11GroupDecreaseEvent(parseInt(msg.peerUid), parseInt(selfUin), 0, 'leave')
           }
         }
       }
@@ -533,7 +543,12 @@ export class OB11Constructor {
             //筛选item带有uid的元素
             const poke_uid = pokedetail.filter(item => item.uid)
             if (poke_uid.length == 2) {
-              return new OB11GroupPokeEvent(parseInt(msg.peerUid), parseInt((uidMaps[poke_uid[0].uid])!), parseInt((uidMaps[poke_uid[1].uid])), pokedetail)
+              return new OB11GroupPokeEvent(
+                parseInt(msg.peerUid),
+                parseInt(await NTQQUserApi.getUinByUid(poke_uid[0].uid)),
+                parseInt(await NTQQUserApi.getUinByUid(poke_uid[1].uid)),
+                pokedetail
+              )
             }
           }
           if (grayTipElement.jsonGrayTipElement.busiId == 2401) {
@@ -552,7 +567,7 @@ export class OB11Constructor {
             const postMsg = await dbUtil.getMsgBySeqId(origMsg?.msgSeq!) ?? origMsg
             // 如果 senderUin 为 0，可能是 历史消息 或 自身消息
             if (msgList[0].senderUin === '0') {
-              msgList[0].senderUin = postMsg?.senderUin ?? selfInfo.uin
+              msgList[0].senderUin = postMsg?.senderUin ?? getSelfUin()
             }
             return new OB11GroupEssenceEvent(parseInt(msg.peerUid), postMsg?.msgShortId!, parseInt(msgList[0].senderUin!))
             // 获取MsgSeq+Peer可获取具体消息

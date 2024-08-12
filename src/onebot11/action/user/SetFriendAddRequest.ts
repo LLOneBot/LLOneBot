@@ -4,7 +4,7 @@ import { NTQQFriendApi } from '../../../ntqqapi/api/friend'
 
 interface Payload {
   flag: string
-  approve: boolean
+  approve?: boolean | string
   remark?: string
 }
 
@@ -12,7 +12,7 @@ export default class SetFriendAddRequest extends BaseAction<Payload, null> {
   actionName = ActionName.SetFriendAddRequest
 
   protected async _handle(payload: Payload): Promise<null> {
-    const approve = payload.approve.toString() === 'true'
+    const approve = payload.approve?.toString() !== 'false'
     await NTQQFriendApi.handleFriendRequest(payload.flag, approve)
     return null
   }

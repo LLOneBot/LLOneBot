@@ -2,14 +2,12 @@ import {
   AtType,
   ChatType,
   ElementType,
-  Friend,
-  Group,
   GroupMemberRole,
   PicSubType,
   RawMessage,
   SendMessageElement,
 } from '../../../ntqqapi/types'
-import { friends, getGroup, getGroupMember, getUidByUin, selfInfo } from '../../../common/data'
+import { getGroup, getGroupMember, getSelfUid, getSelfUin } from '../../../common/data'
 import {
   OB11MessageCustomMusic,
   OB11MessageData,
@@ -27,7 +25,7 @@ import { ActionName, BaseCheckResult } from '../types'
 import fs from 'node:fs'
 import { decodeCQCode } from '../../cqcode'
 import { dbUtil } from '../../../common/db'
-import { ALLOW_SEND_TEMP_MSG, getConfigUtil } from '../../../common/config'
+import { getConfigUtil } from '../../../common/config'
 import { log } from '../../../common/utils/log'
 import { sleep } from '../../../common/utils/helper'
 import { uri2local } from '../../../common/utils'
@@ -103,7 +101,7 @@ export async function createSendElements(
                 remainAtAllCount = (await NTQQGroupApi.getGroupAtAllRemainCount(groupCode)).atInfo
                   .RemainAtAllCountForUin
                 log(`群${groupCode}剩余at全体次数`, remainAtAllCount)
-                const self = await getGroupMember(groupCode, selfInfo.uin)
+                const self = await getGroupMember(groupCode, getSelfUin())
                 isAdmin = self?.role === GroupMemberRole.admin || self?.role === GroupMemberRole.owner
               } catch (e) {
               }
@@ -459,7 +457,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
       const nodeMsg = await NTQQMsgApi.sendMsg(
         {
           chatType: ChatType.friend,
-          peerUid: selfInfo.uid,
+          peerUid: getSelfUid(),
         },
         sendElements,
         true,
@@ -475,7 +473,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
   private async handleForwardNode(destPeer: Peer, messageNodes: OB11MessageNode[]) {
     const selfPeer = {
       chatType: ChatType.friend,
-      peerUid: selfInfo.uid,
+      peerUid: getSelfUid(),
     }
     let nodeMsgIds: string[] = []
     // 先判断一遍是不是id和自定义混用
@@ -491,7 +489,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
           nodeMsgIds.push(nodeMsg?.msgId!)
         }
         else {
-          if (nodeMsg?.peerUid !== selfInfo.uid) {
+          if (nodeMsg?.peerUid !== selfPeer.peerUid) {
             const cloneMsg = await this.cloneMsg(nodeMsg!)
             if (cloneMsg) {
               nodeMsgIds.push(cloneMsg.msgId)
@@ -564,7 +562,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     if (needSendSelf) {
       log('需要克隆转发消息')
       for (const [index, msg] of nodeMsgArray.entries()) {
-        if (msg.peerUid !== selfInfo.uid) {
+        if (msg.peerUid !== selfPeer.peerUid) {
           const cloneMsg = await this.cloneMsg(msg)
           if (cloneMsg) {
             nodeMsgIds[index] = cloneMsg.msgId
@@ -585,13 +583,9 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     if (nodeMsgIds.length === 0) {
       throw Error('转发消息失败，节点为空')
     }
-    try {
-      log('开发转发', nodeMsgIds)
-      return await NTQQMsgApi.multiForwardMsg(srcPeer!, destPeer, nodeMsgIds)
-    } catch (e) {
-      log('forward failed', e)
-      return null
-    }
+    const returnMsg = await NTQQMsgApi.multiForwardMsg(srcPeer!, destPeer, nodeMsgIds)
+    returnMsg.msgShortId = await dbUtil.addMsg(returnMsg)
+    return returnMsg
   }
 }
 
