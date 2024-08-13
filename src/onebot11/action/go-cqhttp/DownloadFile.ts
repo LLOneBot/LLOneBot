@@ -1,8 +1,9 @@
 import BaseAction from '../BaseAction'
 import { ActionName } from '../types'
 import fs from 'fs'
-import { join as joinPath } from 'node:path'
-import { calculateFileMD5, httpDownload, TEMP_DIR } from '../../../common/utils'
+import fsPromise from 'fs/promises'
+import path from 'node:path'
+import { calculateFileMD5, httpDownload, TEMP_DIR } from '@/common/utils'
 import { randomUUID } from 'node:crypto'
 
 interface Payload {
@@ -22,15 +23,15 @@ export default class GoCQHTTPDownloadFile extends BaseAction<Payload, FileRespon
 
   protected async _handle(payload: Payload): Promise<FileResponse> {
     const isRandomName = !payload.name
-    let name = payload.name || randomUUID()
-    const filePath = joinPath(TEMP_DIR, name)
+    const name = payload.name ? path.basename(payload.name) : randomUUID()
+    const filePath = path.join(TEMP_DIR, name)
 
     if (payload.base64) {
-      fs.writeFileSync(filePath, payload.base64, 'base64')
+      await fsPromise.writeFile(filePath, payload.base64, 'base64')
     } else if (payload.url) {
       const headers = this.getHeaders(payload.headers)
-      let buffer = await httpDownload({ url: payload.url, headers: headers })
-      fs.writeFileSync(filePath, Buffer.from(buffer), 'binary')
+      const buffer = await httpDownload({ url: payload.url, headers: headers })
+      await fsPromise.writeFile(filePath, buffer)
     } else {
       throw new Error('不存在任何文件, 无法下载')
     }
@@ -38,8 +39,8 @@ export default class GoCQHTTPDownloadFile extends BaseAction<Payload, FileRespon
       if (isRandomName) {
         // 默认实现要名称未填写时文件名为文件 md5
         const md5 = await calculateFileMD5(filePath)
-        const newPath = joinPath(TEMP_DIR, md5)
-        fs.renameSync(filePath, newPath)
+        const newPath = path.join(TEMP_DIR, md5)
+        await fsPromise.rename(filePath, newPath)
         return { file: newPath }
       }
       return { file: filePath }

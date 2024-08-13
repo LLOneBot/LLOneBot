@@ -1,27 +1,24 @@
 import { ActionName } from '../types'
 import BaseAction from '../BaseAction'
-import { dbUtil } from '../../../common/db'
-import { NTQQMsgApi } from '../../../ntqqapi/api/msg'
+import { NTQQMsgApi } from '@/ntqqapi/api/msg'
+import { MessageUnique } from '@/common/utils/MessageUnique'
 
 interface Payload {
-  message_id: number
+  message_id: number | string
 }
 
 class DeleteMsg extends BaseAction<Payload, void> {
   actionName = ActionName.DeleteMsg
 
   protected async _handle(payload: Payload) {
-    let msg = await dbUtil.getMsgByShortId(payload.message_id)
+    if (!payload.message_id) {
+      throw Error('message_id不能为空')
+    }
+    const msg = await MessageUnique.getMsgIdAndPeerByShortId(+payload.message_id)
     if (!msg) {
       throw `消息${payload.message_id}不存在`
     }
-    await NTQQMsgApi.recallMsg(
-      {
-        chatType: msg.chatType,
-        peerUid: msg.peerUid,
-      },
-      [msg.msgId],
-    )
+    await NTQQMsgApi.recallMsg(msg.Peer, [msg.MsgId])
   }
 }
 

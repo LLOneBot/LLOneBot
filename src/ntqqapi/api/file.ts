@@ -24,6 +24,7 @@ import { fileTypeFromFile } from 'file-type'
 import fsPromise from 'node:fs/promises'
 import { NTEventDispatch } from '@/common/utils/EventTask'
 import { OnRichMediaDownloadCompleteParams } from '@/ntqqapi/listeners'
+import { NodeIKernelSearchService } from '@/ntqqapi/services'
 
 export class NTQQFileApi {
   static async getVideoUrl(peer: Peer, msgId: string, elementId: string): Promise<string> {
@@ -202,6 +203,122 @@ export class NTQQFileApi {
     }
     log('图片url获取失败', element)
     return ''
+  }
+
+  // forked from https://github.com/NapNeko/NapCatQQ/blob/6f6b258f22d7563f15d84e7172c4d4cbb547f47e/src/core/src/apis/file.ts#L149
+  static async addFileCache(peer: Peer, msgId: string, msgSeq: string, senderUid: string, elemId: string, elemType: string, fileSize: string, fileName: string) {
+    let GroupData: any[] | undefined
+    let BuddyData: any[] | undefined
+    if (peer.chatType === ChatType.group) {
+      GroupData =
+        [{
+          groupCode: peer.peerUid,
+          isConf: false,
+          hasModifyConfGroupFace: true,
+          hasModifyConfGroupName: true,
+          groupName: 'LLOneBot.Cached',
+          remark: 'LLOneBot.Cached',
+        }];
+    } else if (peer.chatType === ChatType.friend) {
+      BuddyData = [{
+        category_name: 'LLOneBot.Cached',
+        peerUid: peer.peerUid,
+        peerUin: peer.peerUid,
+        remark: 'LLOneBot.Cached',
+      }]
+    } else {
+      return undefined
+    }
+
+    const session = getSession()
+    return session?.getSearchService().addSearchHistory({
+      type: 4,
+      contactList: [],
+      id: -1,
+      groupInfos: [],
+      msgs: [],
+      fileInfos: [
+        {
+          chatType: peer.chatType,
+          buddyChatInfo: BuddyData || [],
+          discussChatInfo: [],
+          groupChatInfo: GroupData || [],
+          dataLineChatInfo: [],
+          tmpChatInfo: [],
+          msgId: msgId,
+          msgSeq: msgSeq,
+          msgTime: Math.floor(Date.now() / 1000).toString(),
+          senderUid: senderUid,
+          senderNick: 'LLOneBot.Cached',
+          senderRemark: 'LLOneBot.Cached',
+          senderCard: 'LLOneBot.Cached',
+          elemId: elemId,
+          elemType: elemType,
+          fileSize: fileSize,
+          filePath: '',
+          fileName: fileName,
+          hits: [{
+            start: 12,
+            end: 14,
+          }],
+        },
+      ],
+    })
+  }
+
+  static async searchfile(keys: string[]) {
+    type EventType = NodeIKernelSearchService['searchFileWithKeywords']
+
+    interface OnListener {
+      searchId: string,
+      hasMore: boolean,
+      resultItems: {
+        chatType: ChatType,
+        buddyChatInfo: any[],
+        discussChatInfo: any[],
+        groupChatInfo:
+        {
+          groupCode: string,
+          isConf: boolean,
+          hasModifyConfGroupFace: boolean,
+          hasModifyConfGroupName: boolean,
+          groupName: string,
+          remark: string
+        }[],
+        dataLineChatInfo: any[],
+        tmpChatInfo: any[],
+        msgId: string,
+        msgSeq: string,
+        msgTime: string,
+        senderUid: string,
+        senderNick: string,
+        senderRemark: string,
+        senderCard: string,
+        elemId: string,
+        elemType: number,
+        fileSize: string,
+        filePath: string,
+        fileName: string,
+        hits:
+        {
+          start: number,
+          end: number
+        }[]
+      }[]
+    }
+
+    const Event = NTEventDispatch.createEventFunction<EventType>('NodeIKernelSearchService/searchFileWithKeywords')
+    let id = ''
+    const Listener = NTEventDispatch.RegisterListen<(params: OnListener) => void>
+      (
+        'NodeIKernelSearchListener/onSearchFileKeywordsResult',
+        1,
+        20000,
+        (params) => id !== '' && params.searchId == id,
+      )
+    id = await Event!(keys, 12)
+    const [ret] = await Listener
+    return ret
   }
 }
 
