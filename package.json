@@ -2,7 +2,7 @@
   "name": "llonebot",
   "version": "1.0.0",
   "type": "module",
-  "description": "NTQQLiteLoaderOneBotApi",
+  "description": "",
   "main": "dist/main.js",
   "scripts": {
     "build": "electron-vite build",
