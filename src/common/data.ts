@@ -16,7 +16,7 @@ export const llonebotError: LLOneBotError = {
   ffmpegError: '',
   httpServerError: '',
   wsServerError: '',
-  otherError: 'LLOnebot未能正常启动，请检查日志查看错误',
+  otherError: 'LLOneBot 未能正常启动，请检查日志查看错误',
 }
 // 群号 -> 群成员map(uid=>GroupMember)
 export const groupMembers: Map<string, Map<string, GroupMember>> = new Map<string, Map<string, GroupMember>>()
@@ -102,7 +102,7 @@ const selfInfo: SelfInfo = {
 }
 
 export async function getSelfNick(force = false): Promise<string> {
-  if (!selfInfo.nick || force) {
+  if ((!selfInfo.nick || force) && selfInfo.uid) {
     const userInfo = await NTQQUserApi.getUserDetailInfo(selfInfo.uid)
     if (userInfo) {
       selfInfo.nick = userInfo.nick

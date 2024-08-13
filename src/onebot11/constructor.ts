@@ -23,14 +23,14 @@ import {
   Sex,
   TipGroupElementType,
   User,
-  VideoElement,
   FriendV2,
   ChatType2
 } from '../ntqqapi/types'
 import { deleteGroup, getGroupMember, getSelfUin } from '../common/data'
 import { EventType } from './event/OB11BaseEvent'
 import { encodeCQCode } from './cqcode'
-import { dbUtil } from '../common/db'
+import { MessageUnique } from '../common/utils/MessageUnique'
+import { UUIDConverter } from '../common/utils/helper'
 import { OB11GroupIncreaseEvent } from './event/notice/OB11GroupIncreaseEvent'
 import { OB11GroupBanEvent } from './event/notice/OB11GroupBanEvent'
 import { OB11GroupUploadNoticeEvent } from './event/notice/OB11GroupUploadNoticeEvent'
@@ -152,55 +152,48 @@ export class OB11Constructor {
       }
       else if (element.replyElement) {
         message_data['type'] = OB11MessageDataType.reply
-        // log("收到回复消息", element.replyElement.replayMsgSeq)
         try {
-          const replyMsg = await dbUtil.getMsgBySeqId(element.replyElement.replayMsgSeq)
-          // log("找到回复消息", replyMsg.msgShortId, replyMsg.msgId)
-          if (replyMsg) {
-            message_data['data']['id'] = replyMsg.msgShortId?.toString()
+          const records = msg.records.find(msgRecord => msgRecord.msgId === element.replyElement.sourceMsgIdInRecords)
+          if (!records) throw new Error('找不到回复消息')
+          let replyMsg = (await NTQQMsgApi.getMsgsBySeqAndCount({
+            peerUid: msg.peerUid,
+            guildId: '',
+            chatType: msg.chatType,
+          }, element.replyElement.replayMsgSeq, 1, true, true)).msgList[0]
+          if (!replyMsg || records.msgRandom !== replyMsg.msgRandom) {
+            const peer = {
+              chatType: msg.chatType,
+              peerUid: msg.peerUid,
+              guildId: '',
+            }
+            replyMsg = (await NTQQMsgApi.getSingleMsg(peer, element.replyElement.replayMsgSeq)).msgList[0]
           }
-          else {
-            continue
+          // 284840486: 合并消息内侧 消息具体定位不到
+          if ((!replyMsg || records.msgRandom !== replyMsg.msgRandom) && msg.peerUin !== '284840486') {
+            throw new Error('回复消息消息验证失败')
           }
+          message_data['data']['id'] = MessageUnique.createMsg({
+            peerUid: msg.peerUid,
+            guildId: '',
+            chatType: msg.chatType,
+          }, replyMsg.msgId)?.toString()
         } catch (e: any) {
           log('获取不到引用的消息', e.stack, element.replyElement.replayMsgSeq)
+          continue
         }
       }
       else if (element.picElement) {
         message_data['type'] = OB11MessageDataType.image
-        // message_data["data"]["file"] = element.picElement.sourcePath
         let fileName = element.picElement.fileName
-        const sourcePath = element.picElement.sourcePath
         const isGif = element.picElement.picType === PicType.gif
         if (isGif && !fileName.endsWith('.gif')) {
           fileName += '.gif'
         }
         message_data['data']['file'] = fileName
         message_data['data']['subType'] = element.picElement.picSubType
-        // message_data["data"]["path"] = element.picElement.sourcePath
-        // let currentRKey = "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
-
+        message_data['data']['file_id'] = UUIDConverter.encode(msg.peerUin, msg.msgId)
         message_data['data']['url'] = await NTQQFileApi.getImageUrl(element.picElement)
-        // message_data["data"]["file_id"] = element.picElement.fileUuid
         message_data['data']['file_size'] = element.picElement.fileSize
-        dbUtil
-          .addFileCache(fileName, {
-            fileName,
-            elementId: element.elementId,
-            filePath: sourcePath,
-            fileSize: element.picElement.fileSize.toString(),
-            url: message_data['data']['url'],
-            downloadFunc: async () => {
-              await NTQQFileApi.downloadMedia(
-                msg.msgId,
-                msg.chatType,
-                msg.peerUid,
-                element.elementId,
-                element.picElement.thumbPath?.get(0) || '',
-                element.picElement.sourcePath,
-              )
-            },
-          }).then()
       }
       else if (element.videoElement || element.fileElement) {
         const videoOrFileElement = element.videoElement || element.fileElement
@@ -208,7 +201,7 @@ export class OB11Constructor {
         message_data['type'] = ob11MessageDataType
         message_data['data']['file'] = videoOrFileElement.fileName
         message_data['data']['path'] = videoOrFileElement.filePath
-        message_data['data']['file_id'] = videoOrFileElement.fileUuid
+        message_data['data']['file_id'] = UUIDConverter.encode(msg.peerUin, msg.msgId)
         message_data['data']['file_size'] = videoOrFileElement.fileSize
         if (element.videoElement) {
           message_data['data']['url'] = await NTQQFileApi.getVideoUrl({
@@ -217,50 +210,40 @@ export class OB11Constructor {
           }, msg.msgId, element.elementId,
           )
         }
-        dbUtil
-          .addFileCache(videoOrFileElement.fileUuid!, {
-            msgId: msg.msgId,
-            elementId: element.elementId,
-            fileName: videoOrFileElement.fileName,
-            filePath: videoOrFileElement.filePath,
-            fileSize: videoOrFileElement.fileSize!,
-            downloadFunc: async () => {
-              await NTQQFileApi.downloadMedia(
-                msg.msgId,
-                msg.chatType,
-                msg.peerUid,
-                element.elementId,
-                ob11MessageDataType == OB11MessageDataType.video
-                  ? (videoOrFileElement as VideoElement).thumbPath?.get(0)
-                  : null,
-                videoOrFileElement.filePath,
-              )
-            },
-          })
-          .then()
-        // 怎么拿到url呢
+        NTQQFileApi.addFileCache(
+          {
+            peerUid: msg.peerUid,
+            chatType: msg.chatType,
+            guildId: '',
+          },
+          msg.msgId,
+          msg.msgSeq,
+          msg.senderUid,
+          element.elementId,
+          element.elementType.toString(),
+          videoOrFileElement.fileSize || '0',
+          videoOrFileElement.fileName,
+        )
       }
       else if (element.pttElement) {
         message_data['type'] = OB11MessageDataType.voice
         message_data['data']['file'] = element.pttElement.fileName
         message_data['data']['path'] = element.pttElement.filePath
-        // message_data["data"]["file_id"] = element.pttElement.fileUuid
+        message_data['data']['file_id'] = UUIDConverter.encode(msg.peerUin, msg.msgId)
         message_data['data']['file_size'] = element.pttElement.fileSize
-        dbUtil
-          .addFileCache(element.pttElement.fileName, {
-            elementId: element.elementId,
-            fileName: element.pttElement.fileName,
-            filePath: element.pttElement.filePath,
-            fileSize: element.pttElement.fileSize,
-          })
-          .then()
-
-        // log("收到语音消息", msg)
-        // window.LLAPI.Ptt2Text(message.raw.msgId, message.peer, messages).then(text => {
-        //     console.log("语音转文字结果", text)
-        // }).catch(err => {
-        //     console.log("语音转文字失败", err)
-        // })
+        NTQQFileApi.addFileCache({
+          peerUid: msg.peerUid,
+          chatType: msg.chatType,
+          guildId: '',
+        },
+          msg.msgId,
+          msg.msgSeq,
+          msg.senderUid,
+          element.elementId,
+          element.elementType.toString(),
+          element.pttElement.fileSize || '0',
+          element.pttElement.fileUuid || '',
+        )
       }
       else if (element.arkElement) {
         message_data['type'] = OB11MessageDataType.json
@@ -474,16 +457,27 @@ export class OB11Constructor {
             const senderUin = emojiLikeData.gtip.qq.jp
             const msgSeq = emojiLikeData.gtip.url.msgseq
             const emojiId = emojiLikeData.gtip.face.id
-            const msg = await dbUtil.getMsgBySeqId(msgSeq)
-            if (!msg) {
+            const replyMsgList = (await NTQQMsgApi.getMsgsBySeqAndCount({
+              chatType: ChatType.group,
+              guildId: '',
+              peerUid: msg.peerUid,
+            }, msgSeq, 1, true, true)).msgList
+            if (replyMsgList.length < 1) {
               return
             }
-            return new OB11GroupMsgEmojiLikeEvent(parseInt(msg.peerUid), parseInt(senderUin), msg.msgShortId!, [
+            const likes = [
               {
                 emoji_id: emojiId,
                 count: 1,
               },
-            ])
+            ]
+            const shortId = MessageUnique.getShortIdByMsgId(replyMsgList[0].msgId)
+            return new OB11GroupMsgEmojiLikeEvent(
+              parseInt(msg.peerUid),
+              parseInt(senderUin),
+              shortId!,
+              likes
+            )
           } catch (e: any) {
             log('解析表情回应消息失败', e.stack)
           }
@@ -556,20 +550,23 @@ export class OB11Constructor {
             const searchParams = new URL(json.items[0].jp).searchParams
             const msgSeq = searchParams.get('msgSeq')!
             const Group = searchParams.get('groupCode')
-            const Businessid = searchParams.get('businessid')
             const Peer: Peer = {
               guildId: '',
               chatType: ChatType.group,
               peerUid: Group!
             }
-            let msgList = (await NTQQMsgApi.getMsgsBySeqAndCount(Peer, msgSeq.toString(), 1, true, true)).msgList
-            const origMsg = await dbUtil.getMsgByLongId(msgList[0].msgId)
-            const postMsg = await dbUtil.getMsgBySeqId(origMsg?.msgSeq!) ?? origMsg
+            const { msgList } = await NTQQMsgApi.getMsgsBySeqAndCount(Peer, msgSeq.toString(), 1, true, true)
+            //const origMsg = await dbUtil.getMsgByLongId(msgList[0].msgId)
+            //const postMsg = await dbUtil.getMsgBySeqId(origMsg?.msgSeq!) ?? origMsg
             // 如果 senderUin 为 0，可能是 历史消息 或 自身消息
-            if (msgList[0].senderUin === '0') {
-              msgList[0].senderUin = postMsg?.senderUin ?? getSelfUin()
-            }
-            return new OB11GroupEssenceEvent(parseInt(msg.peerUid), postMsg?.msgShortId!, parseInt(msgList[0].senderUin!))
+            //if (msgList[0].senderUin === '0') {
+            //msgList[0].senderUin = postMsg?.senderUin ?? getSelfUin()
+            //}
+            return new OB11GroupEssenceEvent(
+              parseInt(msg.peerUid),
+              MessageUnique.getShortIdByMsgId(msgList[0].msgId)!,
+              parseInt(msgList[0].senderUin!)
+            )
             // 获取MsgSeq+Peer可获取具体消息
           }
           if (grayTipElement.jsonGrayTipElement.busiId == 2407) {
@@ -590,6 +587,7 @@ export class OB11Constructor {
 
   static async RecallEvent(
     msg: RawMessage,
+    shortId: number
   ): Promise<OB11FriendRecallNoticeEvent | OB11GroupRecallNoticeEvent | undefined> {
     let msgElement = msg.elements.find(
       (element) => element.grayTipElement?.subElementType === GrayTipElementSubType.RECALL,
@@ -606,11 +604,11 @@ export class OB11Constructor {
         parseInt(msg.peerUid),
         parseInt(sender?.uin!),
         parseInt(operator?.uin!),
-        msg.msgShortId!,
+        shortId,
       )
     }
     else {
-      return new OB11FriendRecallNoticeEvent(parseInt(msg.senderUin!), msg.msgShortId!)
+      return new OB11FriendRecallNoticeEvent(parseInt(msg.senderUin!), shortId)
     }
   }
 

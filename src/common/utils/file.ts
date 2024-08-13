@@ -2,7 +2,6 @@ import fs from 'node:fs'
 import fsPromise from 'node:fs/promises'
 import path from 'node:path'
 import { log, TEMP_DIR } from './index'
-import { dbUtil } from '../db'
 import * as fileType from 'file-type'
 import { randomUUID, createHash } from 'node:crypto'
 
@@ -186,13 +185,6 @@ export async function uri2local(uri: string, fileName: string | null = null): Pr
         filePath = pathname.slice(1)
       } else {
         filePath = pathname
-      }
-    } else {
-      const cache = await dbUtil.getFileCache(uri)
-      if (cache) {
-        filePath = cache.filePath
-      } else {
-        filePath = uri
       }
     }
 

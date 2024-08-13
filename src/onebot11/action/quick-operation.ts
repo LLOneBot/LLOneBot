@@ -4,12 +4,12 @@
 import { OB11Message, OB11MessageAt, OB11MessageData, OB11MessageDataType } from '../types'
 import { OB11FriendRequestEvent } from '../event/request/OB11FriendRequest'
 import { OB11GroupRequestEvent } from '../event/request/OB11GroupRequest'
-import { dbUtil } from '@/common/db'
 import { NTQQFriendApi, NTQQGroupApi, NTQQMsgApi, NTQQUserApi } from '@/ntqqapi/api'
 import { ChatType, GroupRequestOperateTypes, Peer } from '@/ntqqapi/types'
 import { convertMessage2List, createSendElements, sendMsg } from './msg/SendMsg'
 import { isNull, log } from '@/common/utils'
 import { getConfigUtil } from '@/common/config'
+import { MessageUnique } from '@/common/utils/MessageUnique'
 
 
 interface QuickOperationPrivateMessage {
@@ -61,7 +61,6 @@ export async function handleQuickOperation(context: QuickOperationEvent, quickAc
 }
 
 async function handleMsg(msg: OB11Message, quickAction: QuickOperationPrivateMessage | QuickOperationGroupMessage) {
-  const rawMessage = await dbUtil.getMsgByShortId(msg.message_id)
   const reply = quickAction.reply
   const ob11Config = getConfigUtil().getConfig().ob11
   const peer: Peer = {
@@ -105,17 +104,21 @@ async function handleMsg(msg: OB11Message, quickAction: QuickOperationPrivateMes
   }
   if (msg.message_type === 'group') {
     const groupMsgQuickAction = quickAction as QuickOperationGroupMessage
+    const rawMessage = await MessageUnique.getMsgIdAndPeerByShortId(+(msg.message_id ?? 0))
+    if (!rawMessage) return
     // handle group msg
     if (groupMsgQuickAction.delete) {
-      NTQQMsgApi.recallMsg(peer, [rawMessage?.msgId!]).then().catch(log)
+      NTQQMsgApi.recallMsg(peer, [rawMessage.MsgId]).then().catch(log)
     }
     if (groupMsgQuickAction.kick) {
-      NTQQGroupApi.kickMember(peer.peerUid, [rawMessage?.senderUid!]).then().catch(log)
+      const { msgList } = await NTQQMsgApi.getMsgsByMsgId(peer, [rawMessage.MsgId])
+      NTQQGroupApi.kickMember(peer.peerUid, [msgList[0].senderUid]).then().catch(log)
     }
     if (groupMsgQuickAction.ban) {
+      const { msgList } = await NTQQMsgApi.getMsgsByMsgId(peer, [rawMessage.MsgId])
       NTQQGroupApi.banMember(peer.peerUid, [
         {
-          uid: rawMessage?.senderUid!,
+          uid: msgList[0].senderUid,
           timeStamp: groupMsgQuickAction.ban_duration || 60 * 30,
         },
       ]).then().catch(log)

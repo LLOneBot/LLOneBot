@@ -164,7 +164,7 @@ export interface OB11MessagePoke {
   }
 }
 
-interface OB11MessageFileBase {
+export interface OB11MessageFileBase {
   data: {
     thumb?: string
     name?: string

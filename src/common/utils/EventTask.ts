@@ -16,6 +16,7 @@ export interface ListenerIBase {
   new(listener: any): ListenerClassBase
 }
 
+// forked from https://github.com/NapNeko/NapCatQQ/blob/6f6b258f22d7563f15d84e7172c4d4cbb547f47e/src/common/utils/EventTask.ts#L20
 export class NTEventWrapper {
   private ListenerMap: { [key: string]: ListenerIBase } | undefined//ListenerName-Unique -> Listener构造函数
   private WrapperSession: NodeIQQNTWrapperSession | undefined//WrapperSession
@@ -67,6 +68,8 @@ export class NTEventWrapper {
       return undefined
     }
   }
+
+  createEventFunction = this.CreatEventFunction
 
   CreatListenerFunction<T>(listenerMainName: string, uniqueCode: string = ''): T {
     const ListenerType = this.ListenerMap![listenerMainName]
