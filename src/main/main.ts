@@ -401,8 +401,9 @@ function onLoad() {
     dbUtil.init(uin)
 
     log('start activate group member info')
-    NTQQGroupApi.activateMemberInfoChange().then().catch(log)
-    NTQQGroupApi.activateMemberListChange().then().catch(log)
+    // 下面两个会导致CPU占用过高，QQ卡死
+    // NTQQGroupApi.activateMemberInfoChange().then().catch(log)
+    // NTQQGroupApi.activateMemberListChange().then().catch(log)
     startReceiveHook().then()
 
     if (config.ob11.enableHttp) {
@@ -432,13 +433,13 @@ function onLoad() {
     }
     //log('self info', selfInfo, globalThis.authData)
     if (current.uin) {
-      start(current.uid, current.uin)
+      await start(current.uid, current.uin)
     }
     else {
       setTimeout(init, 1000)
     }
   }
-  init()
+  init().then()
 }
 
 // 创建窗口时触发
