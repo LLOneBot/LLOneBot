@@ -1,7 +1,16 @@
 import type { BrowserWindow } from 'electron'
 import { NTQQApiClass, NTQQApiMethod } from './ntcall'
 import { NTQQMsgApi } from './api/msg'
-import { CategoryFriend, ChatType, Group, GroupMember, GroupMemberRole, RawMessage } from './types'
+import {
+  CategoryFriend,
+  ChatType,
+  FriendV2,
+  Group,
+  GroupMember,
+  GroupMemberRole,
+  RawMessage,
+  SimpleInfo, User,
+} from './types'
 import {
   deleteGroup,
   friends,
@@ -103,8 +112,8 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
                   if (hook.hookFunc.constructor.name === 'AsyncFunction') {
                     ; (_ as Promise<void>).then()
                   }
-                } catch (e) {
-                  log('hook error', e, receiveData.payload)
+                } catch (e: any) {
+                  log('hook error', ntQQApiMethodName, e.stack.toString())
                 }
               }).then()
             }
@@ -332,7 +341,7 @@ export async function startHook() {
   })
   registerReceiveHook<{ groupList: Group[]; updateType: number }>(ReceiveCmdS.GROUPS_STORE, (payload) => {
     // updateType 3是群列表变动，2是群成员变动
-    // log("群列表变动", payload.updateType, payload.groupList)
+    // log("群列表变动, store", payload.updateType, payload.groupList)
     if (payload.updateType != 2) {
       updateGroups(payload.groupList).then()
     }
@@ -391,17 +400,32 @@ export async function startHook() {
   registerReceiveHook<{
     data: CategoryFriend[]
   }>(ReceiveCmdS.FRIENDS, (payload) => {
-    for (const fData of payload.data) {
-      const _friends = fData.buddyList
-      for (let friend of _friends) {
-        NTQQMsgApi.activateChat({ peerUid: friend.uid, chatType: ChatType.friend }).then()
-        let existFriend = friends.find((f) => f.uin == friend.uin)
-        if (!existFriend) {
-          friends.push(friend)
+    // log("onBuddyListChange", payload)
+    // let friendListV2: {userSimpleInfos: Map<string, SimpleInfo>} = []
+    type V2data = {userSimpleInfos: Map<string, SimpleInfo>}
+    let friendList: User[] = [];
+    if ((payload as any).userSimpleInfos) {
+      // friendListV2 = payload as any
+      friendList = Object.values((payload as unknown as V2data).userSimpleInfos).map((v: SimpleInfo) => {
+        return {
+          ...v.coreInfo,
         }
-        else {
-          Object.assign(existFriend, friend)
-        }
+      })
+    }
+    else{
+      for (const fData of payload.data) {
+        friendList.push(...fData.buddyList)
+      }
+    }
+    log('好友列表变动', friendList)
+    for (let friend of friendList) {
+      NTQQMsgApi.activateChat({ peerUid: friend.uid, chatType: ChatType.friend }).then()
+      let existFriend = friends.find((f) => f.uin == friend.uin)
+      if (!existFriend) {
+        friends.push(friend)
+      }
+      else {
+        Object.assign(existFriend, friend)
       }
     }
   })
