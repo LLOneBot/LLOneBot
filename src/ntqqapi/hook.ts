@@ -1,7 +1,16 @@
 import type { BrowserWindow } from 'electron'
 import { NTQQApiClass, NTQQApiMethod } from './ntcall'
 import { NTQQMsgApi } from './api/msg'
-import { CategoryFriend, ChatType, Group, GroupMember, GroupMemberRole, RawMessage } from './types'
+import {
+  CategoryFriend,
+  ChatType,
+  FriendV2,
+  Group,
+  GroupMember,
+  GroupMemberRole,
+  RawMessage,
+  SimpleInfo, User,
+} from './types'
 import {
   deleteGroup,
   friends,
@@ -14,15 +23,15 @@ import {
 import { OB11GroupDecreaseEvent } from '../onebot11/event/notice/OB11GroupDecreaseEvent'
 import { postOb11Event } from '../onebot11/server/post-ob11-event'
 import { getConfigUtil, HOOK_LOG } from '@/common/config'
-import fs from 'fs'
-import { dbUtil } from '@/common/db'
+import fs from 'node:fs'
 import { NTQQGroupApi } from './api/group'
 import { log } from '@/common/utils'
+import { randomUUID } from 'node:crypto'
+import { MessageUnique } from '../common/utils/MessageUnique'
 import { isNumeric, sleep } from '@/common/utils'
 import { OB11Constructor } from '../onebot11/constructor'
 import { OB11GroupCardEvent } from '../onebot11/event/notice/OB11GroupCardEvent'
 import { OB11GroupAdminNoticeEvent } from '../onebot11/event/notice/OB11GroupAdminNoticeEvent'
-import { randomUUID } from 'node:crypto'
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 
@@ -103,8 +112,8 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
                   if (hook.hookFunc.constructor.name === 'AsyncFunction') {
                     ; (_ as Promise<void>).then()
                   }
-                } catch (e) {
-                  log('hook error', e, receiveData.payload)
+                } catch (e: any) {
+                  log('hook error', ntQQApiMethodName, e.stack.toString())
                 }
               }).then()
             }
@@ -332,7 +341,7 @@ export async function startHook() {
   })
   registerReceiveHook<{ groupList: Group[]; updateType: number }>(ReceiveCmdS.GROUPS_STORE, (payload) => {
     // updateType 3是群列表变动，2是群成员变动
-    // log("群列表变动", payload.updateType, payload.groupList)
+    // log("群列表变动, store", payload.updateType, payload.groupList)
     if (payload.updateType != 2) {
       updateGroups(payload.groupList).then()
     }
@@ -391,17 +400,32 @@ export async function startHook() {
   registerReceiveHook<{
     data: CategoryFriend[]
   }>(ReceiveCmdS.FRIENDS, (payload) => {
-    for (const fData of payload.data) {
-      const _friends = fData.buddyList
-      for (let friend of _friends) {
-        NTQQMsgApi.activateChat({ peerUid: friend.uid, chatType: ChatType.friend }).then()
-        let existFriend = friends.find((f) => f.uin == friend.uin)
-        if (!existFriend) {
-          friends.push(friend)
+    // log("onBuddyListChange", payload)
+    // let friendListV2: {userSimpleInfos: Map<string, SimpleInfo>} = []
+    type V2data = {userSimpleInfos: Map<string, SimpleInfo>}
+    let friendList: User[] = [];
+    if ((payload as any).userSimpleInfos) {
+      // friendListV2 = payload as any
+      friendList = Object.values((payload as unknown as V2data).userSimpleInfos).map((v: SimpleInfo) => {
+        return {
+          ...v.coreInfo,
         }
-        else {
-          Object.assign(existFriend, friend)
-        }
+      })
+    }
+    else{
+      for (const fData of payload.data) {
+        friendList.push(...fData.buddyList)
+      }
+    }
+    log('好友列表变动', friendList)
+    for (let friend of friendList) {
+      NTQQMsgApi.activateChat({ peerUid: friend.uid, chatType: ChatType.friend }).then()
+      let existFriend = friends.find((f) => f.uin == friend.uin)
+      if (!existFriend) {
+        friends.push(friend)
+      }
+      else {
+        Object.assign(existFriend, friend)
       }
     }
   })
@@ -444,8 +468,12 @@ export async function startHook() {
   })
 
   registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmdS.SELF_SEND_MSG, ({ msgRecord }) => {
-    const message = msgRecord
-    dbUtil.addMsg(message).then()
+    const { msgId, chatType, peerUid } = msgRecord
+    const peer = {
+      chatType,
+      peerUid
+    }
+    MessageUnique.createMsg(peer, msgId)
   })
 
   registerReceiveHook<{ info: { status: number } }>(ReceiveCmdS.SELF_STATUS, (info) => {
