@@ -5,14 +5,7 @@ import './scripts/gen-manifest'
 const external = [
   'silk-wasm',
   'ws',
-  'level',
-  'classic-level',
-  'abstract-level',
-  'level-supports',
-  'level-transcoder',
-  'module-error',
-  'catering',
-  'node-gyp-build',
+  '@minatojs/sql.js',
 ]
 
 function genCpModule(module: string) {

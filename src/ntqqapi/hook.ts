@@ -23,15 +23,15 @@ import {
 import { OB11GroupDecreaseEvent } from '../onebot11/event/notice/OB11GroupDecreaseEvent'
 import { postOb11Event } from '../onebot11/server/post-ob11-event'
 import { getConfigUtil, HOOK_LOG } from '@/common/config'
-import fs from 'fs'
-import { dbUtil } from '@/common/db'
+import fs from 'node:fs'
 import { NTQQGroupApi } from './api/group'
 import { log } from '@/common/utils'
+import { randomUUID } from 'node:crypto'
+import { MessageUnique } from '../common/utils/MessageUnique'
 import { isNumeric, sleep } from '@/common/utils'
 import { OB11Constructor } from '../onebot11/constructor'
 import { OB11GroupCardEvent } from '../onebot11/event/notice/OB11GroupCardEvent'
 import { OB11GroupAdminNoticeEvent } from '../onebot11/event/notice/OB11GroupAdminNoticeEvent'
-import { randomUUID } from 'node:crypto'
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 
@@ -246,12 +246,12 @@ let activatedGroups: string[] = []
 
 async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
   for (let group of _groups) {
-    log('update group', group)
+    log('update group', group.groupCode)
     if (group.privilegeFlag === 0) {
       deleteGroup(group.groupCode)
       continue
     }
-    log('update group', group)
+    //log('update group', group)
     NTQQMsgApi.activateChat({ peerUid: group.groupCode, chatType: ChatType.group }).then().catch(log)
     let existGroup = groups.find((g) => g.groupCode == group.groupCode)
     if (existGroup) {
@@ -468,8 +468,12 @@ export async function startHook() {
   })
 
   registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmdS.SELF_SEND_MSG, ({ msgRecord }) => {
-    const message = msgRecord
-    dbUtil.addMsg(message).then()
+    const { msgId, chatType, peerUid } = msgRecord
+    const peer = {
+      chatType,
+      peerUid
+    }
+    MessageUnique.createMsg(peer, msgId)
   })
 
   registerReceiveHook<{ info: { status: number } }>(ReceiveCmdS.SELF_STATUS, (info) => {

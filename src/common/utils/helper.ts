@@ -144,3 +144,26 @@ export function CacheClassFuncAsyncExtend(ttl: number = 3600 * 1000, customKey: 
   }
   return logExecutionTime
 }
+
+// forked from https://github.com/NapNeko/NapCatQQ/blob/6f6b258f22d7563f15d84e7172c4d4cbb547f47e/src/common/utils/helper.ts#L14
+export class UUIDConverter {
+  static encode(highStr: string, lowStr: string): string {
+    const high = BigInt(highStr)
+    const low = BigInt(lowStr)
+    const highHex = high.toString(16).padStart(16, '0')
+    const lowHex = low.toString(16).padStart(16, '0')
+    const combinedHex = highHex + lowHex
+    const uuid = `${combinedHex.substring(0, 8)}-${combinedHex.substring(8, 12)}-${combinedHex.substring(
+      12,
+      16,
+    )}-${combinedHex.substring(16, 20)}-${combinedHex.substring(20)}`
+    return uuid
+  }
+
+  static decode(uuid: string): { high: string; low: string } {
+    const hex = uuid.replace(/-/g, '')
+    const high = BigInt('0x' + hex.substring(0, 16))
+    const low = BigInt('0x' + hex.substring(16))
+    return { high: high.toString(), low: low.toString() }
+  }
+}
