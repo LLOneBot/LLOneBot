@@ -184,21 +184,30 @@ export class OB11Constructor {
       }
       else if (element.picElement) {
         message_data['type'] = OB11MessageDataType.image
-        let fileName = element.picElement.fileName
-        const isGif = element.picElement.picType === PicType.gif
+        const { picElement } = element
+        /*let fileName = picElement.fileName
+        const isGif = picElement.picType === PicType.gif
         if (isGif && !fileName.endsWith('.gif')) {
           fileName += '.gif'
-        }
-        message_data['data']['file'] = fileName
-        message_data['data']['subType'] = element.picElement.picSubType
+        }*/
+        message_data['data']['file'] = picElement.fileName
+        message_data['data']['subType'] = picElement.picSubType
         message_data['data']['file_id'] = UUIDConverter.encode(msg.peerUin, msg.msgId)
-        message_data['data']['url'] = await NTQQFileApi.getImageUrl(element.picElement)
-        message_data['data']['file_size'] = element.picElement.fileSize
+        message_data['data']['url'] = await NTQQFileApi.getImageUrl(picElement)
+        message_data['data']['file_size'] = picElement.fileSize
+        MessageUnique.addFileCache({
+          peerUid: msg.peerUid,
+          msgId: msg.msgId,
+          chatType: msg.chatType,
+          elementId: element.elementId,
+          elementType: element.elementType,
+          fileName: picElement.fileName,
+          fileSize: String(picElement.fileSize || '0'),
+        })
       }
       else if (element.videoElement || element.fileElement) {
         const videoOrFileElement = element.videoElement || element.fileElement
-        const ob11MessageDataType = element.videoElement ? OB11MessageDataType.video : OB11MessageDataType.file
-        message_data['type'] = ob11MessageDataType
+        message_data['type'] = element.videoElement ? OB11MessageDataType.video : OB11MessageDataType.file
         message_data['data']['file'] = videoOrFileElement.fileName
         message_data['data']['path'] = videoOrFileElement.filePath
         message_data['data']['file_id'] = UUIDConverter.encode(msg.peerUin, msg.msgId)
@@ -210,40 +219,32 @@ export class OB11Constructor {
           }, msg.msgId, element.elementId,
           )
         }
-        NTQQFileApi.addFileCache(
-          {
-            peerUid: msg.peerUid,
-            chatType: msg.chatType,
-            guildId: '',
-          },
-          msg.msgId,
-          msg.msgSeq,
-          msg.senderUid,
-          element.elementId,
-          element.elementType.toString(),
-          videoOrFileElement.fileSize || '0',
-          videoOrFileElement.fileName,
-        )
+        MessageUnique.addFileCache({
+          peerUid: msg.peerUid,
+          msgId: msg.msgId,
+          chatType: msg.chatType,
+          elementId: element.elementId,
+          elementType: element.elementType,
+          fileName: videoOrFileElement.fileName,
+          fileSize: String(videoOrFileElement.fileSize || '0')
+        })
       }
       else if (element.pttElement) {
         message_data['type'] = OB11MessageDataType.voice
-        message_data['data']['file'] = element.pttElement.fileName
-        message_data['data']['path'] = element.pttElement.filePath
+        const { pttElement } = element
+        message_data['data']['file'] = pttElement.fileName
+        message_data['data']['path'] = pttElement.filePath
         message_data['data']['file_id'] = UUIDConverter.encode(msg.peerUin, msg.msgId)
-        message_data['data']['file_size'] = element.pttElement.fileSize
-        NTQQFileApi.addFileCache({
+        message_data['data']['file_size'] = pttElement.fileSize
+        MessageUnique.addFileCache({
           peerUid: msg.peerUid,
+          msgId: msg.msgId,
           chatType: msg.chatType,
-          guildId: '',
-        },
-          msg.msgId,
-          msg.msgSeq,
-          msg.senderUid,
-          element.elementId,
-          element.elementType.toString(),
-          element.pttElement.fileSize || '0',
-          element.pttElement.fileUuid || '',
-        )
+          elementId: element.elementId,
+          elementType: element.elementType,
+          fileName: pttElement.fileName,
+          fileSize: String(pttElement.fileSize || '0')
+        })
       }
       else if (element.arkElement) {
         message_data['type'] = OB11MessageDataType.json

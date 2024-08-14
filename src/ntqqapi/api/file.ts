@@ -179,7 +179,6 @@ export class NTQQFileApi {
     const url: string = element.originImageUrl!  // 没有域名
     const md5HexStr = element.md5HexStr
     const fileMd5 = element.md5HexStr
-    const fileUuid = element.fileUuid
 
     if (url) {
       const UrlParse = new URL(IMAGE_HTTP_HOST + url) //临时解析拼接
