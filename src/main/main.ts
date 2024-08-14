@@ -21,7 +21,8 @@ import {
   setSelfInfo,
   getSelfInfo,
   getSelfUid,
-  getSelfUin
+  getSelfUin,
+  addMsgCache
 } from '../common/data'
 import { hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmdS, registerReceiveHook, startHook } from '../ntqqapi/hook'
 import { OB11Constructor } from '../onebot11/constructor'
@@ -222,6 +223,7 @@ function onLoad() {
           if (!oriMessageId) {
             continue
           }
+          addMsgCache(message)
           OB11Constructor.RecallEvent(message, oriMessageId).then((recallEvent) => {
             if (recallEvent) {
               //log('post recall event', recallEvent)

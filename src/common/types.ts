@@ -30,6 +30,7 @@ export interface Config {
   ffmpeg?: string // ffmpeg路径
   musicSignUrl?: string
   ignoreBeforeLoginMsg?: boolean
+  msgCacheExpire?: number
 }
 
 export interface LLOneBotError {
