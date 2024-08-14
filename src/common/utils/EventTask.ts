@@ -34,7 +34,7 @@ export class NTEventWrapper {
         if (typeof target[prop] === 'undefined') {
           // 如果方法不存在，返回一个函数，这个函数调用existentMethod
           return (...args: any[]) => {
-            current.DispatcherListener.apply(current, [ListenerMainName, prop, ...args]).then()
+            current.dispatcherListener.apply(current, [ListenerMainName, prop, ...args]).then()
           }
         }
         // 如果方法存在，正常返回
@@ -48,7 +48,7 @@ export class NTEventWrapper {
     this.WrapperSession = WrapperSession
   }
 
-  CreatEventFunction<T extends (...args: any) => any>(eventName: string): T | undefined {
+  createEventFunction<T extends (...args: any) => any>(eventName: string): T | undefined {
     const eventNameArr = eventName.split('/')
     type eventType = {
       [key: string]: () => { [key: string]: (...params: Parameters<T>) => Promise<ReturnType<T>> }
@@ -69,16 +69,14 @@ export class NTEventWrapper {
     }
   }
 
-  createEventFunction = this.CreatEventFunction
-
-  CreatListenerFunction<T>(listenerMainName: string, uniqueCode: string = ''): T {
+  createListenerFunction<T>(listenerMainName: string, uniqueCode: string = ''): T {
     const ListenerType = this.ListenerMap![listenerMainName]
     let Listener = this.ListenerManger.get(listenerMainName + uniqueCode)
     if (!Listener && ListenerType) {
       Listener = new ListenerType(this.createProxyDispatch(listenerMainName))
       const ServiceSubName = listenerMainName.match(/^NodeIKernel(.*?)Listener$/)![1]
       const Service = 'NodeIKernel' + ServiceSubName + 'Service/addKernel' + ServiceSubName + 'Listener'
-      const addfunc = this.CreatEventFunction<(listener: T) => number>(Service)
+      const addfunc = this.createEventFunction<(listener: T) => number>(Service)
       addfunc!(Listener as T)
       //console.log(addfunc!(Listener as T))
       this.ListenerManger.set(listenerMainName + uniqueCode, Listener)
@@ -87,7 +85,7 @@ export class NTEventWrapper {
   }
 
   //统一回调清理事件
-  async DispatcherListener(ListenerMainName: string, ListenerSubName: string, ...args: any[]) {
+  async dispatcherListener(ListenerMainName: string, ListenerSubName: string, ...args: any[]) {
     //console.log("[EventDispatcher]",ListenerMainName, ListenerSubName, ...args)
     this.EventTask.get(ListenerMainName)?.get(ListenerSubName)?.forEach((task, uuid) => {
       //console.log(task.func, uuid, task.createtime, task.timeout)
@@ -103,7 +101,7 @@ export class NTEventWrapper {
 
   async CallNoListenerEvent<EventType extends (...args: any[]) => Promise<any> | any>(EventName = '', timeout: number = 3000, ...args: Parameters<EventType>) {
     return new Promise<Awaited<ReturnType<EventType>>>(async (resolve, reject) => {
-      const EventFunc = this.CreatEventFunction<EventType>(EventName)
+      const EventFunc = this.createEventFunction<EventType>(EventName)
       let complete = false
       const Timeouter = setTimeout(() => {
         if (!complete) {
@@ -152,7 +150,7 @@ export class NTEventWrapper {
         this.EventTask.get(ListenerMainName)?.set(ListenerSubName, new Map())
       }
       this.EventTask.get(ListenerMainName)?.get(ListenerSubName)?.set(id, eventCallbak)
-      this.CreatListenerFunction(ListenerMainName)
+      this.createListenerFunction(ListenerMainName)
     })
   }
 
@@ -198,8 +196,8 @@ export class NTEventWrapper {
         this.EventTask.get(ListenerMainName)?.set(ListenerSubName, new Map())
       }
       this.EventTask.get(ListenerMainName)?.get(ListenerSubName)?.set(id, eventCallbak)
-      this.CreatListenerFunction(ListenerMainName)
-      const EventFunc = this.CreatEventFunction<EventType>(EventName)
+      this.createListenerFunction(ListenerMainName)
+      const EventFunc = this.createEventFunction<EventType>(EventName)
       retEvent = await EventFunc!(...(args as any[]))
     })
   }
