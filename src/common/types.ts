@@ -41,11 +41,10 @@ export interface LLOneBotError {
 
 export interface FileCache {
   fileName: string
-  filePath: string
   fileSize: string
-  fileUuid?: string
-  url?: string
-  msgId?: string
+  msgId: string
+  peerUid: string
+  chatType: number
   elementId: string
-  downloadFunc?: () => Promise<void>
+  elementType: number
 }

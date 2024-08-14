@@ -3,9 +3,10 @@ import fsPromise from 'node:fs/promises'
 import { getConfigUtil } from '@/common/config'
 import { NTQQFileApi, NTQQGroupApi, NTQQUserApi, NTQQFriendApi, NTQQMsgApi } from '@/ntqqapi/api'
 import { ActionName } from '../types'
-import { RawMessage } from '@/ntqqapi/types'
+import { PicElement } from '@/ntqqapi/types'
 import { UUIDConverter } from '@/common/utils/helper'
 import { Peer, ChatType, ElementType } from '@/ntqqapi/types'
+import { MessageUnique } from '@/common/utils/MessageUnique'
 
 export interface GetFilePayload {
   file: string // 文件名或者fileUuid
@@ -51,10 +52,10 @@ export abstract class GetFileBase extends BaseAction<GetFilePayload, GetFileResp
           throw new Error('chattype not support')
         }
         const msgList = await NTQQMsgApi.getMsgsByMsgId(peer, [msgId])
-        if (msgList.msgList.length == 0) {
+        if (msgList.msgList.length === 0) {
           throw new Error('msg not found')
         }
-        const msg = msgList.msgList[0];
+        const msg = msgList.msgList[0]
         const findEle = msg.elements.find(e => e.elementType == ElementType.VIDEO || e.elementType == ElementType.FILE || e.elementType == ElementType.PTT)
         if (!findEle) {
           throw new Error('element not found')
@@ -68,7 +69,7 @@ export abstract class GetFileBase extends BaseAction<GetFilePayload, GetFileResp
           file_size: fileSize,
           file_name: fileName,
         }
-        if (enableLocalFile2Url) {
+        if (enableLocalFile2Url && downloadPath) {
           try {
             res.base64 = await fsPromise.readFile(downloadPath, 'base64')
           } catch (e) {
@@ -82,33 +83,42 @@ export abstract class GetFileBase extends BaseAction<GetFilePayload, GetFileResp
 
     }
 
-    const NTSearchNameResult = (await NTQQFileApi.searchfile([payload.file])).resultItems
-    if (NTSearchNameResult.length !== 0) {
-      const MsgId = NTSearchNameResult[0].msgId
-      let peer: Peer | undefined = undefined
-      if (NTSearchNameResult[0].chatType == ChatType.group) {
-        peer = { chatType: ChatType.group, peerUid: NTSearchNameResult[0].groupChatInfo[0].groupCode }
-      }
-      if (!peer) {
-        throw new Error('chattype not support')
-      }
-      const msgList: RawMessage[] = (await NTQQMsgApi.getMsgsByMsgId(peer, [MsgId]))?.msgList
-      if (!msgList || msgList.length == 0) {
-        throw new Error('msg not found')
-      }
-      const msg = msgList[0]
-      const file = msg.elements.filter(e => e.elementType == NTSearchNameResult[0].elemType)
-      if (file.length == 0) {
-        throw new Error('file not found')
-      }
-      const downloadPath = await NTQQFileApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid, file[0].elementId, '', '')
+    const fileCache = await MessageUnique.getFileCache(String(payload.file))
+    if (fileCache?.length) {
+      const downloadPath = await NTQQFileApi.downloadMedia(
+        fileCache[0].msgId,
+        fileCache[0].chatType,
+        fileCache[0].peerUid,
+        fileCache[0].elementId,
+        '',
+        ''
+      )
       const res: GetFileResponse = {
         file: downloadPath,
         url: downloadPath,
-        file_size: NTSearchNameResult[0].fileSize.toString(),
-        file_name: NTSearchNameResult[0].fileName,
+        file_size: fileCache[0].fileSize,
+        file_name: fileCache[0].fileName,
       }
-      if (enableLocalFile2Url) {
+      const peer: Peer = {
+        chatType: fileCache[0].chatType,
+        peerUid: fileCache[0].peerUid,
+        guildId: ''
+      }
+      if (fileCache[0].elementType === ElementType.PIC) {
+        const msgList = await NTQQMsgApi.getMsgsByMsgId(peer, [fileCache[0].msgId])
+        if (msgList.msgList.length === 0) {
+          throw new Error('msg not found')
+        }
+        const msg = msgList.msgList[0]
+        const findEle = msg.elements.find(e => e.elementId === fileCache[0].elementId)
+        if (!findEle) {
+          throw new Error('element not found')
+        }
+        res.url = await NTQQFileApi.getImageUrl(findEle.picElement)
+      } else if (fileCache[0].elementType === ElementType.VIDEO) {
+        res.url = await NTQQFileApi.getVideoUrl(peer, fileCache[0].msgId, fileCache[0].elementId)
+      }
+      if (enableLocalFile2Url && downloadPath && res.file === res.url) {
         try {
           res.base64 = await fsPromise.readFile(downloadPath, 'base64')
         } catch (e) {
