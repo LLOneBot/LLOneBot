@@ -7,6 +7,7 @@ import SQLite from '@minatojs/driver-sqlite'
 import fsPromise from 'node:fs/promises'
 import fs from 'node:fs'
 import path from 'node:path'
+import { FileCache } from '../types'
 
 interface SQLiteTables extends Tables {
     message: {
@@ -15,6 +16,7 @@ interface SQLiteTables extends Tables {
         chatType: number
         peerUid: string
     }
+    file: FileCache
 }
 
 interface MsgIdAndPeerByShortId {
@@ -49,6 +51,17 @@ class MessageUniqueWrapper {
             peerUid: 'string(24)'
         }, {
             primary: 'shortId'
+        })
+        database.extend('file', {
+            fileName: 'string',
+            fileSize: 'string',
+            msgId: 'string(24)',
+            peerUid: 'string(24)',
+            chatType: 'unsigned',
+            elementId: 'string(24)',
+            elementType: 'unsigned',
+        }, {
+            primary: 'fileName'
         })
         this.db = database
     }
@@ -127,6 +140,14 @@ class MessageUniqueWrapper {
     resize(maxSize: number): void {
         this.msgIdMap.resize(maxSize)
         this.msgDataMap.resize(maxSize)
+    }
+
+    addFileCache(data: FileCache) {
+        return this.db?.upsert('file', [data], 'fileName')
+    }
+
+    getFileCache(fileName: string) {
+        return this.db?.get('file', { fileName })
     }
 }
 
