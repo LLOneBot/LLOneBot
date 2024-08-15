@@ -221,7 +221,7 @@ async function onSettingWindowCreated(view: Element) {
         ),
         SettingItem(
           '消息内容缓存时长',
-          '单位为秒',
+          '单位为秒，可用于获取撤回的消息',
           `<div class="q-input"><input class="q-input__inner" data-config-key="msgCacheExpire" type="number" min="1" value="${config.msgCacheExpire}" placeholder="${config.msgCacheExpire}" /></div>`,
         ),
       ]),
