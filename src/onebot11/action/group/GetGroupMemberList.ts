@@ -14,7 +14,6 @@ class GetGroupMemberList extends BaseAction<Payload, OB11GroupMember[]> {
   actionName = ActionName.GetGroupMemberList
 
   protected async _handle(payload: Payload) {
-    //const isNocache = payload.no_cache == true || payload.no_cache === 'true' //已强制无缓存
     const groupMembers = await NTQQGroupApi.getGroupMembers(payload.group_id.toString())
     const groupMembersArr = Array.from(groupMembers.values())
 
