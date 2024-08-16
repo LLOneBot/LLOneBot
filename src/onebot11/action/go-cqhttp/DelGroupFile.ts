@@ -5,7 +5,7 @@ import { NTQQGroupApi } from '@/ntqqapi/api'
 interface Payload {
     group_id: string | number
     file_id: string
-    busid?: number
+    busid?: 102
 }
 
 export class GoCQHTTPDelGroupFile extends BaseAction<Payload, void> {
