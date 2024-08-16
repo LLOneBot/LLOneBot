@@ -29,7 +29,6 @@ import { getGroupMember, getSelfUin } from '../common/data'
 import { EventType } from './event/OB11BaseEvent'
 import { encodeCQCode } from './cqcode'
 import { MessageUnique } from '../common/utils/MessageUnique'
-import { UUIDConverter } from '../common/utils/helper'
 import { OB11GroupIncreaseEvent } from './event/notice/OB11GroupIncreaseEvent'
 import { OB11GroupBanEvent } from './event/notice/OB11GroupBanEvent'
 import { OB11GroupUploadNoticeEvent } from './event/notice/OB11GroupUploadNoticeEvent'
@@ -191,41 +190,61 @@ export class OB11Constructor {
         }*/
         message_data['data']['file'] = picElement.fileName
         message_data['data']['subType'] = picElement.picSubType
-        message_data['data']['file_id'] = UUIDConverter.encode(msg.peerUin, msg.msgId)
+        //message_data['data']['file_id'] = picElement.fileUuid
         message_data['data']['url'] = await NTQQFileApi.getImageUrl(picElement)
         message_data['data']['file_size'] = picElement.fileSize
         MessageUnique.addFileCache({
           peerUid: msg.peerUid,
           msgId: msg.msgId,
+          msgTime: +msg.msgTime,
           chatType: msg.chatType,
           elementId: element.elementId,
           elementType: element.elementType,
           fileName: picElement.fileName,
           fileSize: String(picElement.fileSize || '0'),
+          fileUuid: picElement.fileUuid
         })
       }
-      else if (element.videoElement || element.fileElement) {
-        const videoOrFileElement = element.videoElement || element.fileElement
-        message_data['type'] = element.videoElement ? OB11MessageDataType.video : OB11MessageDataType.file
-        message_data['data']['file'] = videoOrFileElement.fileName
-        message_data['data']['path'] = videoOrFileElement.filePath
-        message_data['data']['file_id'] = UUIDConverter.encode(msg.peerUin, msg.msgId)
-        message_data['data']['file_size'] = videoOrFileElement.fileSize
-        if (element.videoElement) {
-          message_data['data']['url'] = await NTQQFileApi.getVideoUrl({
-            chatType: msg.chatType,
-            peerUid: msg.peerUid,
-          }, msg.msgId, element.elementId,
-          )
-        }
+      else if (element.videoElement) {
+        message_data['type'] = OB11MessageDataType.video
+        const { videoElement } = element
+        message_data['data']['file'] = videoElement.fileName
+        message_data['data']['path'] = videoElement.filePath
+        //message_data['data']['file_id'] = videoElement.fileUuid
+        message_data['data']['file_size'] = videoElement.fileSize
+        message_data['data']['url'] = await NTQQFileApi.getVideoUrl({
+          chatType: msg.chatType,
+          peerUid: msg.peerUid,
+        }, msg.msgId, element.elementId)
         MessageUnique.addFileCache({
           peerUid: msg.peerUid,
           msgId: msg.msgId,
+          msgTime: +msg.msgTime,
           chatType: msg.chatType,
           elementId: element.elementId,
           elementType: element.elementType,
-          fileName: videoOrFileElement.fileName,
-          fileSize: String(videoOrFileElement.fileSize || '0')
+          fileName: videoElement.fileName,
+          fileSize: String(videoElement.fileSize || '0'),
+          fileUuid: videoElement.fileUuid!
+        })
+      }
+      else if (element.fileElement) {
+        message_data['type'] = OB11MessageDataType.file
+        const { fileElement } = element
+        message_data['data']['file'] = fileElement.fileName
+        message_data['data']['path'] = fileElement.filePath
+        message_data['data']['file_id'] = fileElement.fileUuid
+        message_data['data']['file_size'] = fileElement.fileSize
+        MessageUnique.addFileCache({
+          peerUid: msg.peerUid,
+          msgId: msg.msgId,
+          msgTime: +msg.msgTime,
+          chatType: msg.chatType,
+          elementId: element.elementId,
+          elementType: element.elementType,
+          fileName: fileElement.fileName,
+          fileSize: String(fileElement.fileSize || '0'),
+          fileUuid: fileElement.fileUuid!
         })
       }
       else if (element.pttElement) {
@@ -233,16 +252,18 @@ export class OB11Constructor {
         const { pttElement } = element
         message_data['data']['file'] = pttElement.fileName
         message_data['data']['path'] = pttElement.filePath
-        message_data['data']['file_id'] = UUIDConverter.encode(msg.peerUin, msg.msgId)
+        //message_data['data']['file_id'] = pttElement.fileUuid
         message_data['data']['file_size'] = pttElement.fileSize
         MessageUnique.addFileCache({
           peerUid: msg.peerUid,
           msgId: msg.msgId,
+          msgTime: +msg.msgTime,
           chatType: msg.chatType,
           elementId: element.elementId,
           elementType: element.elementType,
           fileName: pttElement.fileName,
-          fileSize: String(pttElement.fileSize || '0')
+          fileSize: String(pttElement.fileSize || '0'),
+          fileUuid: pttElement.fileUuid
         })
       }
       else if (element.arkElement) {
