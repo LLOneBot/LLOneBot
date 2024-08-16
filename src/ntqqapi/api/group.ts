@@ -1,5 +1,5 @@
 import { ReceiveCmdS } from '../hook'
-import { Group, GroupMember, GroupMemberRole, GroupNotifies, GroupRequestOperateTypes } from '../types'
+import { Group, GroupMember, GroupMemberRole, GroupNotifies, GroupRequestOperateTypes, GroupNotify } from '../types'
 import { callNTQQApi, GeneralCallResult, NTQQApiMethod } from '../ntcall'
 import { NTQQWindowApi, NTQQWindows } from './window'
 import { getSession } from '../wrapper'
@@ -52,7 +52,7 @@ export class NTQQGroupApi {
     return groupList
   }
 
-  async getGroupMemberV2(GroupCode: string, uid: string, forced = false) {
+  static async getGroupMemberV2(GroupCode: string, uid: string, forced = false) {
     type ListenerType = NodeIKernelGroupListener['onMemberInfoChange']
     type EventType = NodeIKernelGroupService['getMemberInfo']
     const [, , , _members] = await NTEventDispatch.CallNormalEvent<EventType, ListenerType>
@@ -117,6 +117,36 @@ export class NTQQGroupApi {
       ReceiveCmdS.GROUP_NOTIFY,
     )
   }
+
+  static async getSingleScreenNotifies(num: number) {
+    const [_retData, _doubt, _seq, notifies] = await NTEventDispatch.CallNormalEvent
+      <(arg1: boolean, arg2: string, arg3: number) => Promise<any>, (doubt: boolean, seq: string, notifies: GroupNotify[]) => void>
+      (
+        'NodeIKernelGroupService/getSingleScreenNotifies',
+        'NodeIKernelGroupListener/onGroupSingleScreenNotifies',
+        1,
+        5000,
+        () => true,
+        false,
+        '',
+        num,
+      )
+    return notifies
+  }
+
+  static async delGroupFile(groupCode: string, files: string[]) {
+    const session = getSession()
+    return session?.getRichMediaService().deleteGroupFile(groupCode, [102], files)!
+  }
+
+  static DelGroupFile = NTQQGroupApi.delGroupFile
+
+  static async delGroupFileFolder(groupCode: string, folderId: string) {
+    const session = getSession()
+    return session?.getRichMediaService().deleteGroupFolder(groupCode, folderId)!
+  }
+
+  static DelGroupFileFolder = NTQQGroupApi.delGroupFileFolder
 
   static async handleGroupRequest(flag: string, operateType: GroupRequestOperateTypes, reason?: string) {
     const flagitem = flag.split('|')
