@@ -5,7 +5,6 @@ import BaseAction from '../BaseAction'
 import { ActionName } from '../types'
 import { NTQQUserApi, WebApi } from '@/ntqqapi/api'
 import { isNull } from '@/common/utils/helper'
-import { log } from '../../../common/utils/log'
 
 interface Payload {
   group_id: number | string
@@ -29,7 +28,6 @@ class GetGroupMemberInfo extends BaseAction<Payload, OB11GroupMember> {
       if (self?.role === 3 || self?.role === 4) {
         const webGroupMembers = await WebApi.getGroupMembers(payload.group_id.toString())
         const target = webGroupMembers.find(e => e?.uin && e.uin === ret.user_id)
-        log(target)
         if (target) {
           ret.join_time = target.join_time
           ret.last_sent_time = target.last_speak_time
