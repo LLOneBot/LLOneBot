@@ -289,12 +289,12 @@ export async function sendMsg(
       log('文件大小计算失败', e, fileElement)
     }
   }
-  log('发送消息总大小', totalSize, 'bytes')
-  let timeout = ((totalSize / 1024 / 100) * 1000) + 5000  // 100kb/s
-  log('设置消息超时时间', timeout)
+  //log('发送消息总大小', totalSize, 'bytes')
+  const timeout = 10000 + (totalSize / 1024 / 256 * 1000)  // 10s Basic Timeout + PredictTime( For File 512kb/s )
+  //log('设置消息超时时间', timeout)
   const returnMsg = await NTQQMsgApi.sendMsg(peer, sendElements, waitComplete, timeout)
-  log('消息发送结果', returnMsg)
   returnMsg.msgShortId = MessageUnique.createMsg(peer, returnMsg.msgId)
+  log('消息发送', returnMsg.msgShortId)
   deleteAfterSentFiles.map(path => fsPromise.unlink(path))
   return returnMsg
 }

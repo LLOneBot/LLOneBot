@@ -16,7 +16,7 @@ export class RequestUtil {
               const redirectUrl = new URL(res.headers.location, url);
               RequestUtil.HttpsGetCookies(redirectUrl.href).then((redirectCookies) => {
                 // 合并重定向过程中的cookies
-                log('redirectCookies', redirectCookies)
+                //log('redirectCookies', redirectCookies)
                 cookies = { ...cookies, ...redirectCookies };
                 resolve(cookies);
               });
@@ -33,7 +33,7 @@ export class RequestUtil {
         });
         if (res.headers['set-cookie']) {
           // console.log(res.headers['set-cookie']);
-          log('set-cookie', url, res.headers['set-cookie']);
+          //log('set-cookie', url, res.headers['set-cookie']);
           res.headers['set-cookie'].forEach((cookie) => {
             const parts = cookie.split(';')[0].split('=');
             const key = parts[0];
