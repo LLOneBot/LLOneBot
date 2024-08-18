@@ -66,6 +66,7 @@ export async function getGroupMember(groupCode: string | number, memberUinOrUid:
   let member = getMember()
   if (!member) {
     members = await NTQQGroupApi.getGroupMembers(groupCodeStr)
+    groupMembers.set(groupCodeStr, members)
     member = getMember()
   }
   return member
