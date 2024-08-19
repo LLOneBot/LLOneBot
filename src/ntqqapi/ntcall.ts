@@ -1,7 +1,6 @@
 import { ipcMain } from 'electron'
 import { hookApiCallbacks, ReceiveCmd, ReceiveCmdS, registerReceiveHook, removeReceiveHook } from './hook'
 import { log } from '../common/utils/log'
-import { HOOK_LOG } from '../common/config'
 import { randomUUID } from 'node:crypto'
 
 export enum NTQQApiClass {
@@ -15,6 +14,7 @@ export enum NTQQApiClass {
   SKEY_API = 'ns-SkeyApi',
   GROUP_HOME_WORK = 'ns-GroupHomeWork',
   GROUP_ESSENCE = 'ns-GroupEssence',
+  NODE_STORE_API = 'ns-NodeStoreApi'
 }
 
 export enum NTQQApiMethod {
@@ -129,7 +129,7 @@ export function callNTQQApi<ReturnType>(params: NTQQApiParams) {
   timeout = timeout ?? 5
   afterFirstCmd = afterFirstCmd ?? true
   const uuid = randomUUID()
-  HOOK_LOG && log('callNTQQApi', channel, className, methodName, args, uuid)
+  //HOOK_LOG && log('callNTQQApi', channel, className, methodName, args, uuid)
   return new Promise((resolve: (data: ReturnType) => void, reject) => {
     // log("callNTQQApiPromise", channel, className, methodName, args, uuid)
     const _timeout = timeout * 1000
@@ -202,25 +202,4 @@ export function callNTQQApi<ReturnType>(params: NTQQApiParams) {
 export interface GeneralCallResult {
   result: number // 0: success
   errMsg: string
-}
-
-export class NTQQApi {
-  static async call(className: NTQQApiClass, cmdName: string, args: any[]) {
-    return await callNTQQApi<GeneralCallResult>({
-      className,
-      methodName: cmdName,
-      args: [...args],
-    })
-  }
-
-  static async fetchUnitedCommendConfig() {
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.FETCH_UNITED_COMMEND_CONFIG,
-      args: [
-        {
-          groups: ['100243'],
-        },
-      ],
-    })
-  }
 }
