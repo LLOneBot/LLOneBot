@@ -34,7 +34,7 @@
     "@types/fluent-ffmpeg": "^2.1.25",
     "@types/node": "^20.14.15",
     "@types/ws": "^8.5.12",
-    "electron": "^29.1.4",
+    "electron": "^31.4.0",
     "electron-vite": "^2.3.0",
     "typescript": "^5.5.4",
     "vite": "^5.4.1",

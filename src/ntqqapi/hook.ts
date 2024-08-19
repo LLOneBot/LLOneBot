@@ -16,7 +16,7 @@ import {
   setSelfInfo
 } from '@/common/data'
 import { postOb11Event } from '../onebot11/server/post-ob11-event'
-import { getConfigUtil, HOOK_LOG } from '@/common/config'
+import { getConfigUtil } from '@/common/config'
 import fs from 'node:fs'
 import { log } from '@/common/utils'
 import { randomUUID } from 'node:crypto'
@@ -81,7 +81,7 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
   const originalSend = window.webContents.send
   const patchSend = (channel: string, ...args: NTQQApiReturnData) => {
     // console.log("hookNTQQApiReceive", channel, args)
-    let isLogger = false
+    /*let isLogger = false
     try {
       isLogger = args[0]?.eventName?.startsWith('ns-LoggerApi')
     } catch (e) { }
@@ -91,7 +91,7 @@ export function hookNTQQApiReceive(window: BrowserWindow) {
       } catch (e) {
         log('hook log error', e, args)
       }
-    }
+    }*/
     try {
       if (args?.[1] instanceof Array) {
         for (let receiveData of args?.[1]) {
@@ -145,9 +145,9 @@ export function hookNTQQApiCall(window: BrowserWindow) {
         isLogger = args[3][0].eventName.startsWith('ns-LoggerApi')
       } catch (e) { }
       if (!isLogger) {
-        try {
+        /*try {
           HOOK_LOG && log('call NTQQ api', thisArg, args)
-        } catch (e) { }
+        } catch (e) { }*/
         try {
           const _args: unknown[] = args[3][1]
           const cmdName: NTQQApiMethod = _args[0] as NTQQApiMethod
@@ -181,16 +181,16 @@ export function hookNTQQApiCall(window: BrowserWindow) {
   const proxyIpcInvoke = new Proxy(ipc_invoke_proxy, {
     apply(target, thisArg, args) {
       // console.log(args);
-      HOOK_LOG && log('call NTQQ invoke api', thisArg, args)
+      //HOOK_LOG && log('call NTQQ invoke api', thisArg, args)
       args[0]['_replyChannel']['sendReply'] = new Proxy(args[0]['_replyChannel']['sendReply'], {
         apply(sendtarget, sendthisArg, sendargs) {
           sendtarget.apply(sendthisArg, sendargs)
         },
       })
       let ret = target.apply(thisArg, args)
-      try {
+      /*try {
         HOOK_LOG && log('call NTQQ invoke api return', ret)
-      } catch (e) { }
+      } catch (e) { }*/
       return ret
     },
   })
