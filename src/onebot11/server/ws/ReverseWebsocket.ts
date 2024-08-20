@@ -104,6 +104,10 @@ export class ReverseWebsocket {
 
     this.websocket.on('error', log)
 
+    this.websocket.on('ping',()=>{
+      this.websocket?.pong()
+    })
+
     const wsClientInterval = setInterval(() => {
       postWsEvent(new OB11HeartbeatEvent(selfInfo.online!, true, heartInterval!))
     }, heartInterval) // 心跳包
