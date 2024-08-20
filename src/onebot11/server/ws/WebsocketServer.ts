@@ -1,70 +1,131 @@
-import { WebSocket } from 'ws'
+import BaseAction from '../../action/BaseAction'
+import { WebSocket, WebSocketServer } from 'ws'
 import { actionMap } from '../../action'
 import { OB11Response } from '../../action/OB11Response'
 import { postWsEvent, registerWsEventSender, unregisterWsEventSender } from '../post-ob11-event'
 import { ActionName } from '../../action/types'
-import BaseAction from '../../action/BaseAction'
 import { LifeCycleSubType, OB11LifeCycleEvent } from '../../event/meta/OB11LifeCycleEvent'
 import { OB11HeartbeatEvent } from '../../event/meta/OB11HeartbeatEvent'
-import { WebsocketServerBase } from '../../../common/server/websocket'
 import { IncomingMessage } from 'node:http'
 import { wsReply } from './reply'
-import { getSelfInfo } from '../../../common/data'
-import { log } from '../../../common/utils/log'
-import { getConfigUtil } from '../../../common/config'
+import { getSelfInfo } from '@/common/data'
+import { log } from '@/common/utils/log'
+import { getConfigUtil } from '@/common/config'
+import { llonebotError } from '@/common/data'
 
-class OB11WebsocketServer extends WebsocketServerBase {
-  authorizeFailed(wsClient: WebSocket) {
-    wsClient.send(JSON.stringify(OB11Response.res(null, 'failed', 1403, 'token验证失败')))
+export class OB11WebsocketServer {
+  private ws?: WebSocketServer
+
+  constructor() {
+    log(`llonebot websocket service started`)
   }
 
-  async handleAction(wsClient: WebSocket, actionName: string, params: any, echo?: any) {
+  start(port: number) {
+    try {
+      this.ws = new WebSocketServer({ port, maxPayload: 1024 * 1024 * 1024 })
+      llonebotError.wsServerError = ''
+    } catch (e: any) {
+      llonebotError.wsServerError = '正向 WebSocket 服务启动失败, ' + e.toString()
+      return
+    }
+    this.ws?.on('connection', (socket, req) => {
+      const url = req.url?.split('?').shift()
+      this.authorize(socket, req)
+      this.onConnect(socket, url!)
+    })
+  }
+
+  stop() {
+    llonebotError.wsServerError = ''
+    this.ws?.close(err => {
+      log('ws server close failed!', err)
+    })
+    this.ws = undefined
+  }
+
+  restart(port: number) {
+    this.stop()
+    this.start(port)
+  }
+
+  private authorize(socket: WebSocket, req: IncomingMessage) {
+    const { token } = getConfigUtil().getConfig()
+    const url = req.url?.split('?').shift()
+    log('ws connect', url)
+    let clientToken = ''
+    const authHeader = req.headers['authorization']
+    if (authHeader) {
+      clientToken = authHeader.split('Bearer ').pop()!
+      log('receive ws header token', clientToken)
+    } else {
+      const { searchParams } = new URL(`http://localhost${req.url}`)
+      const urlToken = searchParams.get('access_token')
+      if (urlToken) {
+        if (Array.isArray(urlToken)) {
+          clientToken = urlToken[0]
+        } else {
+          clientToken = urlToken
+        }
+        log('receive ws url token', clientToken)
+      }
+    }
+    if (token && clientToken !== token) {
+      this.authorizeFailed(socket)
+      return socket.close()
+    }
+  }
+
+  private authorizeFailed(socket: WebSocket) {
+    socket.send(JSON.stringify(OB11Response.res(null, 'failed', 1403, 'token验证失败')))
+  }
+
+  private async handleAction(socket: WebSocket, actionName: string, params: any, echo?: any) {
     const action: BaseAction<any, any> = actionMap.get(actionName)!
     if (!action) {
-      return wsReply(wsClient, OB11Response.error('不支持的api ' + actionName, 1404, echo))
+      return wsReply(socket, OB11Response.error('不支持的api ' + actionName, 1404, echo))
     }
     try {
-      let handleResult = await action.websocketHandle(params, echo)
+      const handleResult = await action.websocketHandle(params, echo)
       handleResult.echo = echo
-      wsReply(wsClient, handleResult)
+      wsReply(socket, handleResult)
     } catch (e: any) {
-      wsReply(wsClient, OB11Response.error(`api处理出错:${e.stack}`, 1200, echo))
+      wsReply(socket, OB11Response.error(`api处理出错:${e.stack}`, 1200, echo))
     }
   }
 
-  onConnect(wsClient: WebSocket, url: string, req: IncomingMessage) {
-    if (url == '/api' || url == '/api/' || url == '/') {
-      wsClient.on('message', async (msg) => {
+  private onConnect(socket: WebSocket, url: string) {
+    if (['/api', '/api/', '/'].includes(url)) {
+      socket.on('message', async (msg) => {
         let receiveData: { action: ActionName | null; params: any; echo?: any } = { action: null, params: {} }
-        let echo = null
+        let echo: any
         try {
           receiveData = JSON.parse(msg.toString())
           echo = receiveData.echo
           log('收到正向Websocket消息', receiveData)
         } catch (e) {
-          return wsReply(wsClient, OB11Response.error('json解析失败，请检查数据格式', 1400, echo))
+          return wsReply(socket, OB11Response.error('json解析失败，请检查数据格式', 1400, echo))
         }
-        this.handleAction(wsClient, receiveData.action!, receiveData.params, receiveData.echo).then()
+        this.handleAction(socket, receiveData.action!, receiveData.params, receiveData.echo)
       })
     }
-    if (url == '/event' || url == '/event/' || url == '/') {
-      registerWsEventSender(wsClient)
+    if (['/event', '/event/', '/'].includes(url)) {
+      registerWsEventSender(socket)
 
       log('event上报ws客户端已连接')
 
       try {
-        wsReply(wsClient, new OB11LifeCycleEvent(LifeCycleSubType.CONNECT))
+        wsReply(socket, new OB11LifeCycleEvent(LifeCycleSubType.CONNECT))
       } catch (e) {
         log('发送生命周期失败', e)
       }
       const { heartInterval } = getConfigUtil().getConfig()
-      const wsClientInterval = setInterval(() => {
+      const intervalId = setInterval(() => {
         postWsEvent(new OB11HeartbeatEvent(getSelfInfo().online!, true, heartInterval!))
       }, heartInterval) // 心跳包
-      wsClient.on('close', () => {
+      socket.on('close', () => {
         log('event上报ws客户端已断开')
-        clearInterval(wsClientInterval)
-        unregisterWsEventSender(wsClient)
+        clearInterval(intervalId)
+        unregisterWsEventSender(socket)
       })
     }
   }
