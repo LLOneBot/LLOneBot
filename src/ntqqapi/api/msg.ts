@@ -11,28 +11,6 @@ export class NTQQMsgApi {
     return session?.getMsgService().getTempChatInfo(chatType, peerUid)!
   }
 
-  static async prepareTempChat(toUserUid: string, GroupCode: string, nickname: string) {
-    //By Jadx/Ida Mlikiowa
-    let TempGameSession = {
-      nickname: '',
-      gameAppId: '',
-      selfTinyId: '',
-      peerRoleId: '',
-      peerOpenId: '',
-    }
-    const session = getSession()
-    return session?.getMsgService().prepareTempChat({
-      chatType: ChatType2.KCHATTYPETEMPC2CFROMGROUP,
-      peerUid: toUserUid,
-      peerNickname: nickname,
-      fromGroupCode: GroupCode,
-      sig: '',
-      selfPhone: '',
-      selfUid: getSelfUid(),
-      gameSession: TempGameSession
-    })
-  }
-
   static async setEmojiLike(peer: Peer, msgSeq: string, emojiId: string, set: boolean = true) {
     // nt_qq//global//nt_data//Emoji//emoji-resource//sysface_res/apng/ 下可以看到所有QQ表情预览
     // nt_qq\global\nt_data\Emoji\emoji-resource\face_config.json 里面有所有表情的id, 自带表情id是QSid, 标准emoji表情id是QCid
@@ -199,21 +177,6 @@ export class NTQQMsgApi {
       }
     }
     throw new Error('转发消息超时')
-  }
-
-  static async queryMsgsWithFilterExWithSeq(peer: Peer, msgSeq: string) {
-    const session = getSession()
-    const ret = await session?.getMsgService().queryMsgsWithFilterEx('0', '0', msgSeq, {
-      chatInfo: peer,//此处为Peer 为关键查询参数 没有啥也没有 by mlik iowa
-      filterMsgType: [],
-      filterSendersUid: [],
-      filterMsgToTime: '0',
-      filterMsgFromTime: '0',
-      isReverseOrder: false,
-      isIncludeCurrent: true,
-      pageLimit: 1,
-    })
-    return ret!
   }
 
   static async getMsgsBySeqAndCount(peer: Peer, seq: string, count: number, desc: boolean, z: boolean) {

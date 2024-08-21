@@ -1,8 +1,7 @@
-import { callNTQQApi, GeneralCallResult, NTQQApiClass, NTQQApiMethod } from '../ntcall'
-import { SelfInfo, User, UserDetailInfoByUin, UserDetailInfoByUinV2, UserDetailInfoListenerArg } from '../types'
-import { ReceiveCmdS } from '../hook'
+import { callNTQQApi, GeneralCallResult, NTQQApiMethod } from '../ntcall'
+import { User, UserDetailInfoByUin, UserDetailInfoByUinV2, UserDetailInfoListenerArg } from '../types'
 import { friends, groupMembers, getSelfUin } from '@/common/data'
-import { CacheClassFuncAsync, log, getBuildVersion } from '@/common/utils'
+import { CacheClassFuncAsync, getBuildVersion } from '@/common/utils'
 import { getSession } from '@/ntqqapi/wrapper'
 import { RequestUtil } from '@/common/utils/request'
 import { NodeIKernelProfileService, UserDetailSource, ProfileBizType } from '../services'
@@ -23,23 +22,6 @@ export class NTQQUserApi {
       ],
       timeout: 10 * Time.second, // 10秒不一定够
     })
-  }
-
-  static async getSelfInfo() {
-    return await callNTQQApi<SelfInfo>({
-      className: NTQQApiClass.GLOBAL_DATA,
-      methodName: NTQQApiMethod.SELF_INFO,
-      timeout: 2 * Time.second,
-    })
-  }
-
-  static async getUserInfo(uid: string) {
-    const result = await callNTQQApi<{ profiles: Map<string, User> }>({
-      methodName: NTQQApiMethod.USER_INFO,
-      args: [{ force: true, uids: [uid] }, undefined],
-      cbCmd: ReceiveCmdS.USER_INFO,
-    })
-    return result.profiles.get(uid)
   }
 
   static async fetchUserDetailInfo(uid: string) {
@@ -109,32 +91,6 @@ export class NTQQUserApi {
         [0]
       )
     return profile
-  }
-
-  // return 'p_uin=o0xxx; p_skey=orXDssiGF8axxxxxxxxxxxxxx_; skey='
-  static async getCookieWithoutSkey() {
-    return await callNTQQApi<string>({
-      className: NTQQApiClass.GROUP_HOME_WORK,
-      methodName: NTQQApiMethod.UPDATE_SKEY,
-      args: [
-        {
-          domain: 'qun.qq.com',
-        },
-      ],
-    })
-  }
-
-  static async getQzoneCookies() {
-    const uin = getSelfUin()
-    const requestUrl = 'https://ssl.ptlogin2.qq.com/jump?ptlang=1033&clientuin=' + uin + '&clientkey=' + (await NTQQUserApi.getClientKey()).clientKey + '&u1=https%3A%2F%2Fuser.qzone.qq.com%2F' + uin + '%2Finfocenter&keyindex=19%27'
-    let cookies: { [key: string]: string } = {}
-    try {
-      cookies = await RequestUtil.HttpsGetCookies(requestUrl)
-    } catch (e: any) {
-      log('获取QZone Cookies失败', e)
-      cookies = {}
-    }
-    return cookies
   }
 
   static async getSkey(): Promise<string> {
@@ -224,20 +180,15 @@ export class NTQQUserApi {
     return uid
   }
 
-  static async getUidByUinV2(Uin: string) {
-    const session = getSession()
-    let uid = (await session?.getProfileService().getUidByUin('FriendsServiceImpl', [Uin]))?.get(Uin)
+  static async getUidByUinV2(uin: string) {
+    const session = getSession()!
+    let uid = (await session.getGroupService().getUidByUins([uin])).uids.get(uin)
     if (uid) return uid
-    uid = (await session?.getGroupService().getUidByUins([Uin]))?.uids.get(Uin)
+    uid = (await session.getProfileService().getUidByUin('FriendsServiceImpl', [uin])).get(uin)
     if (uid) return uid
-    uid = (await session?.getUixConvertService().getUid([Uin]))?.uidInfo.get(Uin)
+    uid = (await session.getUixConvertService().getUid([uin])).uidInfo.get(uin)
     if (uid) return uid
-    console.log((await NTQQFriendApi.getBuddyIdMapCache(true)))
-    uid = (await NTQQFriendApi.getBuddyIdMapCache(true)).getValue(Uin)//从Buddy缓存获取Uid
-    if (uid) return uid
-    uid = (await NTQQFriendApi.getBuddyIdMap(true)).getValue(Uin)
-    if (uid) return uid
-    let unveifyUid = (await NTQQUserApi.getUserDetailInfoByUinV2(Uin)).detail.uid//从QQ Native 特殊转换
+    const unveifyUid = (await NTQQUserApi.getUserDetailInfoByUinV2(uin)).detail.uid //从QQ Native 特殊转换
     if (unveifyUid.indexOf('*') == -1) uid = unveifyUid
     //if (uid) return uid
     return uid
@@ -289,19 +240,17 @@ export class NTQQUserApi {
     return uin
   }
 
-  static async getUinByUidV2(Uid: string) {
-    const session = getSession()
-    let uin = (await session?.getProfileService().getUinByUid('FriendsServiceImpl', [Uid]))?.get(Uid)
+  static async getUinByUidV2(uid: string) {
+    const session = getSession()!
+    let uin = (await session.getGroupService().getUinByUids([uid])).uins.get(uid)
     if (uin) return uin
-    uin = (await session?.getGroupService().getUinByUids([Uid]))?.uins.get(Uid)
+    uin = (await session.getProfileService().getUinByUid('FriendsServiceImpl', [uid])).get(uid)
     if (uin) return uin
-    uin = (await session?.getUixConvertService().getUin([Uid]))?.uinInfo.get(Uid)
+    uin = (await session.getUixConvertService().getUin([uid])).uinInfo.get(uid)
     if (uin) return uin
-    uin = (await NTQQFriendApi.getBuddyIdMapCache(true)).getKey(Uid) //从Buddy缓存获取Uin
+    uin = (await NTQQFriendApi.getBuddyIdMap(true)).getKey(uid)
     if (uin) return uin
-    uin = (await NTQQFriendApi.getBuddyIdMap(true)).getKey(Uid)
-    if (uin) return uin
-    uin = (await NTQQUserApi.getUserDetailInfo(Uid)).uin //从QQ Native 转换
+    uin = (await NTQQUserApi.getUserDetailInfo(uid)).uin //从QQ Native 转换
     return uin
   }
 

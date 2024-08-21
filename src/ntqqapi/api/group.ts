@@ -8,35 +8,6 @@ import { NodeIKernelGroupListener } from '../listeners'
 import { NodeIKernelGroupService } from '../services'
 
 export class NTQQGroupApi {
-  static async activateMemberListChange() {
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.ACTIVATE_MEMBER_LIST_CHANGE,
-      classNameIsRegister: true,
-      args: [],
-    })
-  }
-
-  static async activateMemberInfoChange() {
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.ACTIVATE_MEMBER_INFO_CHANGE,
-      classNameIsRegister: true,
-      args: [],
-    })
-  }
-
-  static async getGroupAllInfo(groupCode: string, source: number = 4) {
-    return await callNTQQApi<GeneralCallResult & Group>({
-      methodName: NTQQApiMethod.GET_GROUP_ALL_INFO,
-      args: [
-        {
-          groupCode,
-          source
-        },
-        null,
-      ],
-    })
-  }
-
   static async getGroups(forced = false): Promise<Group[]> {
     type ListenerType = NodeIKernelGroupListener['onGroupListUpdate']
     const [, , groupList] = await NTEventDispatch.CallNormalEvent
@@ -50,23 +21,6 @@ export class NTQQGroupApi {
         forced
       )
     return groupList
-  }
-
-  static async getGroupMemberV2(GroupCode: string, uid: string, forced = false) {
-    type ListenerType = NodeIKernelGroupListener['onMemberInfoChange']
-    type EventType = NodeIKernelGroupService['getMemberInfo']
-    const [, , , _members] = await NTEventDispatch.CallNormalEvent<EventType, ListenerType>
-      (
-        'NodeIKernelGroupService/getMemberInfo',
-        'NodeIKernelGroupListener/onMemberInfoChange',
-        1,
-        5000,
-        (groupCode: string, changeType: number, members: Map<string, GroupMember>) => {
-          return groupCode == GroupCode && members.has(uid)
-        },
-        GroupCode, [uid], forced,
-      )
-    return _members.get(uid)
   }
 
   static async getGroupMembers(groupQQ: string, num = 3000): Promise<Map<string, GroupMember>> {
@@ -103,20 +57,6 @@ export class NTQQGroupApi {
       throw ('获取群成员列表出错,' + result.errMsg)
     }
     return result.result.infos
-  }
-
-  static async getGroupMembersInfo(groupCode: string, uids: string[], forceUpdate: boolean = false) {
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.GROUP_MEMBERS_INFO,
-      args: [
-        {
-          forceUpdate,
-          groupCode,
-          uids
-        },
-        null,
-      ],
-    })
   }
 
   static async getGroupNotifies() {
@@ -165,13 +105,6 @@ export class NTQQGroupApi {
   }
 
   static DelGroupFile = NTQQGroupApi.delGroupFile
-
-  static async delGroupFileFolder(groupCode: string, folderId: string) {
-    const session = getSession()
-    return session?.getRichMediaService().deleteGroupFolder(groupCode, folderId)!
-  }
-
-  static DelGroupFileFolder = NTQQGroupApi.delGroupFileFolder
 
   static async handleGroupRequest(flag: string, operateType: GroupRequestOperateTypes, reason?: string) {
     const flagitem = flag.split('|')
@@ -254,17 +187,6 @@ export class NTQQGroupApi {
       ],
     })
   }
-
-  static async getGroupRemainAtTimes(GroupCode: string) {
-    const session = getSession()
-    return session?.getGroupService().getGroupRemainAtTimes(GroupCode)!
-  }
-
-  // 头衔不可用
-  static async setGroupTitle(groupQQ: string, uid: string, title: string) {
-  }
-
-  static publishGroupBulletin(groupQQ: string, title: string, content: string) { }
 
   static async removeGroupEssence(GroupCode: string, msgId: string) {
     const session = getSession()
