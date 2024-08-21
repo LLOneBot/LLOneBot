@@ -110,7 +110,7 @@ export class NTQQGroupApi {
   /** 27187 TODO */
   static async delGroupFile(groupCode: string, files: string[]) {
     const session = getSession()
-    return session?.getRichMediaService().deleteGroupFile(groupCode, [102], files)!
+    return session?.getRichMediaService().deleteGroupFile(groupCode, [102], files)
   }
 
   static async handleGroupRequest(flag: string, operateType: GroupRequestOperateTypes, reason?: string) {
