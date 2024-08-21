@@ -28,6 +28,7 @@ import { OnRichMediaDownloadCompleteParams } from '@/ntqqapi/listeners'
 import { Time } from 'cosmokit'
 
 export class NTQQFileApi {
+  /** 27187 TODO */
   static async getVideoUrl(peer: Peer, msgId: string, elementId: string) {
     const session = getSession()
     return (await session?.getRichMediaService().getVideoPlayUrlV2(peer,
