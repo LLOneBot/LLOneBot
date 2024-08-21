@@ -1,28 +1,30 @@
 import type { BrowserWindow } from 'electron'
 import { NTQQApiClass, NTQQApiMethod } from './ntcall'
 import { NTQQMsgApi } from './api/msg'
-import { CategoryFriend, ChatType, Group, GroupMember, GroupMemberRole, RawMessage } from './types'
 import {
-  deleteGroup,
+  CategoryFriend,
+  ChatType,
+  GroupMember,
+  GroupMemberRole,
+  RawMessage,
+  SimpleInfo, User,
+} from './types'
+import {
   friends,
   getFriend,
   getGroupMember,
-  groups,
-  getSelfUin,
   setSelfInfo
 } from '@/common/data'
-import { OB11GroupDecreaseEvent } from '../onebot11/event/notice/OB11GroupDecreaseEvent'
 import { postOb11Event } from '../onebot11/server/post-ob11-event'
-import { getConfigUtil, HOOK_LOG } from '@/common/config'
-import fs from 'fs'
-import { dbUtil } from '@/common/db'
-import { NTQQGroupApi } from './api/group'
+import { getConfigUtil } from '@/common/config'
+import fs from 'node:fs'
 import { log } from '@/common/utils'
+import { randomUUID } from 'node:crypto'
+import { MessageUnique } from '../common/utils/MessageUnique'
 import { isNumeric, sleep } from '@/common/utils'
 import { OB11Constructor } from '../onebot11/constructor'
 import { OB11GroupCardEvent } from '../onebot11/event/notice/OB11GroupCardEvent'
 import { OB11GroupAdminNoticeEvent } from '../onebot11/event/notice/OB11GroupAdminNoticeEvent'
-import { randomUUID } from 'node:crypto'
 
 export let hookApiCallbacks: Record<string, (apiReturn: any) => void> = {}
 
@@ -78,52 +80,41 @@ let callHooks: Array<{
 export function hookNTQQApiReceive(window: BrowserWindow) {
   const originalSend = window.webContents.send
   const patchSend = (channel: string, ...args: NTQQApiReturnData) => {
-    // console.log("hookNTQQApiReceive", channel, args)
-    let isLogger = false
-    try {
-      isLogger = args[0]?.eventName?.startsWith('ns-LoggerApi')
-    } catch (e) { }
-    if (!isLogger) {
-      try {
-        HOOK_LOG && log(`received ntqq api message: ${channel}`, args)
-      } catch (e) {
-        log('hook log error', e, args)
+    /*try {
+      const isLogger = args[0]?.eventName?.startsWith('ns-LoggerApi')
+      if (!isLogger) {
+        log(`received ntqq api message: ${channel}`, args)
       }
-    }
-    try {
-      if (args?.[1] instanceof Array) {
-        for (let receiveData of args?.[1]) {
-          const ntQQApiMethodName = receiveData.cmdName
-          // log(`received ntqq api message: ${channel} ${ntQQApiMethodName}`, JSON.stringify(receiveData))
-          for (let hook of receiveHooks) {
-            if (hook.method.includes(ntQQApiMethodName)) {
-              new Promise((resolve, reject) => {
-                try {
-                  let _ = hook.hookFunc(receiveData.payload)
-                  if (hook.hookFunc.constructor.name === 'AsyncFunction') {
-                    ; (_ as Promise<void>).then()
-                  }
-                } catch (e) {
-                  log('hook error', e, receiveData.payload)
-                }
-              }).then()
-            }
+    } catch { }*/
+    if (args?.[1] instanceof Array) {
+      for (const receiveData of args?.[1]) {
+        const ntQQApiMethodName = receiveData.cmdName
+        // log(`received ntqq api message: ${channel} ${ntQQApiMethodName}`, JSON.stringify(receiveData))
+        for (const hook of receiveHooks) {
+          if (hook.method.includes(ntQQApiMethodName)) {
+            new Promise((resolve, reject) => {
+              try {
+                hook.hookFunc(receiveData.payload)
+              } catch (e: any) {
+                log('hook error', ntQQApiMethodName, e.stack.toString())
+              }
+              resolve(undefined)
+            }).then()
           }
         }
       }
-      if (args[0]?.callbackId) {
-        // log("hookApiCallback", hookApiCallbacks, args)
-        const callbackId = args[0].callbackId
-        if (hookApiCallbacks[callbackId]) {
-          // log("callback found")
-          new Promise((resolve, reject) => {
-            hookApiCallbacks[callbackId](args[1])
-          }).then()
-          delete hookApiCallbacks[callbackId]
-        }
+    }
+    if (args[0]?.callbackId) {
+      // log("hookApiCallback", hookApiCallbacks, args)
+      const callbackId = args[0].callbackId
+      if (hookApiCallbacks[callbackId]) {
+        // log("callback found")
+        new Promise((resolve, reject) => {
+          hookApiCallbacks[callbackId](args[1])
+          resolve(undefined)
+        }).then()
+        delete hookApiCallbacks[callbackId]
       }
-    } catch (e: any) {
-      log('hookNTQQApiReceive error', e.stack.toString(), args)
     }
     originalSend.call(window.webContents, channel, ...args)
   }
@@ -143,9 +134,9 @@ export function hookNTQQApiCall(window: BrowserWindow) {
         isLogger = args[3][0].eventName.startsWith('ns-LoggerApi')
       } catch (e) { }
       if (!isLogger) {
-        try {
+        /*try {
           HOOK_LOG && log('call NTQQ api', thisArg, args)
-        } catch (e) { }
+        } catch (e) { }*/
         try {
           const _args: unknown[] = args[3][1]
           const cmdName: NTQQApiMethod = _args[0] as NTQQApiMethod
@@ -179,16 +170,16 @@ export function hookNTQQApiCall(window: BrowserWindow) {
   const proxyIpcInvoke = new Proxy(ipc_invoke_proxy, {
     apply(target, thisArg, args) {
       // console.log(args);
-      HOOK_LOG && log('call NTQQ invoke api', thisArg, args)
+      //HOOK_LOG && log('call NTQQ invoke api', thisArg, args)
       args[0]['_replyChannel']['sendReply'] = new Proxy(args[0]['_replyChannel']['sendReply'], {
         apply(sendtarget, sendthisArg, sendargs) {
           sendtarget.apply(sendthisArg, sendargs)
         },
       })
       let ret = target.apply(thisArg, args)
-      try {
+      /*try {
         HOOK_LOG && log('call NTQQ invoke api return', ret)
-      } catch (e) { }
+      } catch (e) { }*/
       return ret
     },
   })
@@ -233,16 +224,16 @@ export function removeReceiveHook(id: string) {
   receiveHooks.splice(index, 1)
 }
 
-let activatedGroups: string[] = []
+//let activatedGroups: string[] = []
 
-async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
+/*async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
   for (let group of _groups) {
-    log('update group', group)
+    log('update group', group.groupCode)
     if (group.privilegeFlag === 0) {
       deleteGroup(group.groupCode)
       continue
     }
-    log('update group', group)
+    //log('update group', group)
     NTQQMsgApi.activateChat({ peerUid: group.groupCode, chatType: ChatType.group }).then().catch(log)
     let existGroup = groups.find((g) => g.groupCode == group.groupCode)
     if (existGroup) {
@@ -260,9 +251,9 @@ async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
       }
     }
   }
-}
+}*/
 
-async function processGroupEvent(payload: { groupList: Group[] }) {
+/*async function processGroupEvent(payload: { groupList: Group[] }) {
   try {
     const newGroupList = payload.groupList
     for (const group of newGroupList) {
@@ -313,12 +304,12 @@ async function processGroupEvent(payload: { groupList: Group[] }) {
     updateGroups(payload.groupList).then()
     log('更新群信息错误', e.stack.toString())
   }
-}
+}*/
 
 export async function startHook() {
 
   // 群列表变动
-  registerReceiveHook<{ groupList: Group[]; updateType: number }>(ReceiveCmdS.GROUPS, (payload) => {
+  /*registerReceiveHook<{ groupList: Group[]; updateType: number }>(ReceiveCmdS.GROUPS, (payload) => {
     // updateType 3是群列表变动，2是群成员变动
     // log("群列表变动", payload.updateType, payload.groupList)
     if (payload.updateType != 2) {
@@ -332,7 +323,7 @@ export async function startHook() {
   })
   registerReceiveHook<{ groupList: Group[]; updateType: number }>(ReceiveCmdS.GROUPS_STORE, (payload) => {
     // updateType 3是群列表变动，2是群成员变动
-    // log("群列表变动", payload.updateType, payload.groupList)
+    // log("群列表变动, store", payload.updateType, payload.groupList)
     if (payload.updateType != 2) {
       updateGroups(payload.groupList).then()
     }
@@ -341,7 +332,7 @@ export async function startHook() {
         processGroupEvent(payload).then()
       }
     }
-  })
+  })*/
 
   registerReceiveHook<{
     groupCode: string
@@ -391,17 +382,32 @@ export async function startHook() {
   registerReceiveHook<{
     data: CategoryFriend[]
   }>(ReceiveCmdS.FRIENDS, (payload) => {
-    for (const fData of payload.data) {
-      const _friends = fData.buddyList
-      for (let friend of _friends) {
-        NTQQMsgApi.activateChat({ peerUid: friend.uid, chatType: ChatType.friend }).then()
-        let existFriend = friends.find((f) => f.uin == friend.uin)
-        if (!existFriend) {
-          friends.push(friend)
+    // log("onBuddyListChange", payload)
+    // let friendListV2: {userSimpleInfos: Map<string, SimpleInfo>} = []
+    type V2data = { userSimpleInfos: Map<string, SimpleInfo> }
+    let friendList: User[] = [];
+    if ((payload as any).userSimpleInfos) {
+      // friendListV2 = payload as any
+      friendList = Object.values((payload as unknown as V2data).userSimpleInfos).map((v: SimpleInfo) => {
+        return {
+          ...v.coreInfo,
         }
-        else {
-          Object.assign(existFriend, friend)
-        }
+      })
+    }
+    else {
+      for (const fData of payload.data) {
+        friendList.push(...fData.buddyList)
+      }
+    }
+    log('好友列表变动', friendList)
+    for (let friend of friendList) {
+      NTQQMsgApi.activateChat({ peerUid: friend.uid, chatType: ChatType.friend }).then()
+      let existFriend = friends.find((f) => f.uin == friend.uin)
+      if (!existFriend) {
+        friends.push(friend)
+      }
+      else {
+        Object.assign(existFriend, friend)
       }
     }
   })
@@ -444,8 +450,12 @@ export async function startHook() {
   })
 
   registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmdS.SELF_SEND_MSG, ({ msgRecord }) => {
-    const message = msgRecord
-    dbUtil.addMsg(message).then()
+    const { msgId, chatType, peerUid } = msgRecord
+    const peer = {
+      chatType,
+      peerUid
+    }
+    MessageUnique.createMsg(peer, msgId)
   })
 
   registerReceiveHook<{ info: { status: number } }>(ReceiveCmdS.SELF_STATUS, (info) => {

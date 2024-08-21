@@ -1,12 +1,11 @@
 import BaseAction from '../BaseAction'
-import fs from 'fs/promises'
-import { dbUtil } from '@/common/db'
+import fsPromise from 'node:fs/promises'
 import { getConfigUtil } from '@/common/config'
-import { checkFileReceived, log, sleep, uri2local } from '@/common/utils'
-import { NTQQFileApi } from '@/ntqqapi/api'
+import { NTQQFileApi, NTQQGroupApi, NTQQUserApi, NTQQFriendApi, NTQQMsgApi } from '@/ntqqapi/api'
 import { ActionName } from '../types'
-import { FileElement, RawMessage, VideoElement } from '@/ntqqapi/types'
-import { FileCache } from '@/common/types'
+import { UUIDConverter } from '@/common/utils/helper'
+import { Peer, ChatType, ElementType } from '@/ntqqapi/types'
+import { MessageUnique } from '@/common/utils/MessageUnique'
 
 export interface GetFilePayload {
   file: string // 文件名或者fileUuid
@@ -21,79 +20,60 @@ export interface GetFileResponse {
 }
 
 export abstract class GetFileBase extends BaseAction<GetFilePayload, GetFileResponse> {
-  private getElement(msg: RawMessage, elementId: string): VideoElement | FileElement {
-    let element = msg.elements.find((e) => e.elementId === elementId)
-    if (!element) {
-      throw new Error('element not found')
-    }
-    return element.fileElement
-  }
-  private async download(cache: FileCache, file: string) {
-    log('需要调用 NTQQ 下载文件api')
-    if (cache.msgId) {
-      let msg = await dbUtil.getMsgByLongId(cache.msgId)
-      if (msg) {
-        log('找到了文件 msg', msg)
-        let element = this.getElement(msg, cache.elementId)
-        log('找到了文件 element', element)
-        // 构建下载函数
-        await NTQQFileApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid, cache.elementId, '', '')
-        // 等待文件下载完成
-        msg = await dbUtil.getMsgByLongId(cache.msgId)
-        log('下载完成后的msg', msg)
-        cache.filePath = this.getElement(msg!, cache.elementId).filePath
-        await checkFileReceived(cache.filePath, 10 * 1000)
-        dbUtil.addFileCache(file, cache).then()
-      }
-    }
-  }
+  // forked from https://github.com/NapNeko/NapCatQQ/blob/6f6b258f22d7563f15d84e7172c4d4cbb547f47e/src/onebot11/action/file/GetFile.ts#L44
   protected async _handle(payload: GetFilePayload): Promise<GetFileResponse> {
-    let cache = await dbUtil.getFileCache(payload.file)
-    if (!cache) {
-      throw new Error('file not found')
+    const { enableLocalFile2Url } = getConfigUtil().getConfig()
+
+    let fileCache = await MessageUnique.getFileCacheById(String(payload.file))
+    if (!fileCache?.length) {
+      fileCache = await MessageUnique.getFileCacheByName(String(payload.file))
     }
-    const { autoDeleteFile, enableLocalFile2Url, autoDeleteFileSecond } = getConfigUtil().getConfig()
-    if (cache.downloadFunc) {
-      await cache.downloadFunc()
-    }
-    try {
-      await fs.access(cache.filePath, fs.constants.F_OK)
-    } catch (e) {
-      // log("file not found", e)
-      if (cache.url) {
-        const downloadResult = await uri2local(cache.url)
-        if (downloadResult.success) {
-          cache.filePath = downloadResult.path
-          dbUtil.addFileCache(payload.file, cache).then()
-        } else {
-          await this.download(cache, payload.file)
-        }
-      } else {
-        // 没有url的可能是私聊文件或者群文件，需要自己下载
-        await this.download(cache, payload.file)
+
+    if (fileCache?.length) {
+      const downloadPath = await NTQQFileApi.downloadMedia(
+        fileCache[0].msgId,
+        fileCache[0].chatType,
+        fileCache[0].peerUid,
+        fileCache[0].elementId,
+        '',
+        ''
+      )
+      const res: GetFileResponse = {
+        file: downloadPath,
+        url: downloadPath,
+        file_size: fileCache[0].fileSize,
+        file_name: fileCache[0].fileName,
       }
-    }
-    let res: GetFileResponse = {
-      file: cache.filePath,
-      url: cache.url,
-      file_size: cache.fileSize,
-      file_name: cache.fileName,
-    }
-    if (enableLocalFile2Url) {
-      if (!cache.url) {
+      const peer: Peer = {
+        chatType: fileCache[0].chatType,
+        peerUid: fileCache[0].peerUid,
+        guildId: ''
+      }
+      if (fileCache[0].elementType === ElementType.PIC) {
+        const msgList = await NTQQMsgApi.getMsgsByMsgId(peer, [fileCache[0].msgId])
+        if (msgList.msgList.length === 0) {
+          throw new Error('msg not found')
+        }
+        const msg = msgList.msgList[0]
+        const findEle = msg.elements.find(e => e.elementId === fileCache[0].elementId)
+        if (!findEle) {
+          throw new Error('element not found')
+        }
+        res.url = await NTQQFileApi.getImageUrl(findEle.picElement)
+      } else if (fileCache[0].elementType === ElementType.VIDEO) {
+        res.url = await NTQQFileApi.getVideoUrl(peer, fileCache[0].msgId, fileCache[0].elementId)
+      }
+      if (enableLocalFile2Url && downloadPath && res.file === res.url) {
         try {
-          res.base64 = await fs.readFile(cache.filePath, 'base64')
+          res.base64 = await fsPromise.readFile(downloadPath, 'base64')
         } catch (e) {
           throw new Error('文件下载失败. ' + e)
         }
       }
+      //不手动删除？文件持久化了
+      return res
     }
-    // if (autoDeleteFile) {
-    //     setTimeout(() => {
-    //         fs.unlink(cache.filePath)
-    //     }, autoDeleteFileSecond * 1000)
-    // }
-    return res
+    throw new Error('file not found')
   }
 }
 

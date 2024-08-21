@@ -1,3 +1,4 @@
+// forked from https://github.com/NapNeko/NapCatQQ/blob/6f6b258f22d7563f15d84e7172c4d4cbb547f47e/src/common/utils/MessageUnique.ts#L5
 export class LimitedHashTable<K, V> {
     private keyToValue: Map<K, V> = new Map()
     private valueToKey: Map<V, K> = new Map()

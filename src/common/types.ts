@@ -30,6 +30,8 @@ export interface Config {
   ffmpeg?: string // ffmpeg路径
   musicSignUrl?: string
   ignoreBeforeLoginMsg?: boolean
+  /** 单位为秒 */
+  msgCacheExpire?: number
 }
 
 export interface LLOneBotError {
@@ -41,11 +43,22 @@ export interface LLOneBotError {
 
 export interface FileCache {
   fileName: string
-  filePath: string
   fileSize: string
-  fileUuid?: string
-  url?: string
-  msgId?: string
+  msgId: string
+  peerUid: string
+  chatType: number
   elementId: string
-  downloadFunc?: () => Promise<void>
+  elementType: number
+}
+
+export interface FileCacheV2 {
+  fileName: string
+  fileSize: string
+  fileUuid: string
+  msgId: string
+  msgTime: number
+  peerUid: string
+  chatType: number
+  elementId: string
+  elementType: number
 }

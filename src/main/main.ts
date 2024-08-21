@@ -1,6 +1,7 @@
 // 运行在 Electron 主进程 下的插件入口
 
 import { BrowserWindow, dialog, ipcMain } from 'electron'
+import path from 'node:path'
 import fs from 'node:fs'
 import { Config } from '../common/types'
 import {
@@ -13,20 +14,20 @@ import {
   CHANNEL_UPDATE,
 } from '../common/channels'
 import { ob11WebsocketServer } from '../onebot11/server/ws/WebsocketServer'
-import { DATA_DIR } from '../common/utils'
+import { DATA_DIR, TEMP_DIR } from '../common/utils'
 import {
-  getGroupMember,
   llonebotError,
   setSelfInfo,
   getSelfInfo,
   getSelfUid,
-  getSelfUin
+  getSelfUin,
+  addMsgCache
 } from '../common/data'
 import { hookNTQQApiCall, hookNTQQApiReceive, ReceiveCmdS, registerReceiveHook, startHook } from '../ntqqapi/hook'
 import { OB11Constructor } from '../onebot11/constructor'
 import {
   FriendRequestNotify,
-  GroupNotifies,
+  GroupNotify,
   GroupNotifyTypes,
   RawMessage,
   BuddyReqType,
@@ -36,8 +37,7 @@ import { postOb11Event } from '../onebot11/server/post-ob11-event'
 import { ob11ReverseWebsockets } from '../onebot11/server/ws/ReverseWebsocket'
 import { OB11GroupRequestEvent } from '../onebot11/event/request/OB11GroupRequest'
 import { OB11FriendRequestEvent } from '../onebot11/event/request/OB11FriendRequest'
-import path from 'node:path'
-import { dbUtil } from '../common/db'
+import { MessageUnique } from '../common/utils/MessageUnique'
 import { setConfig } from './setConfig'
 import { NTQQUserApi, NTQQGroupApi } from '../ntqqapi/api'
 import { checkNewVersion, upgradeLLOneBot } from '../common/utils/upgrade'
@@ -48,6 +48,7 @@ import { GroupDecreaseSubType, OB11GroupDecreaseEvent } from '../onebot11/event/
 import '../ntqqapi/wrapper'
 import { NTEventDispatch } from '../common/utils/EventTask'
 import { wrapperConstructor, getSession } from '../ntqqapi/wrapper'
+import { Peer } from '../ntqqapi/types'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -94,7 +95,7 @@ function onLoad() {
   }
   ipcMain.handle(CHANNEL_ERROR, async (event, arg) => {
     const ffmpegOk = await checkFfmpeg(getConfigUtil().getConfig().ffmpeg)
-    llonebotError.ffmpegError = ffmpegOk ? '' : '没有找到ffmpeg,音频只能发送wav和silk,视频尺寸可能异常'
+    llonebotError.ffmpegError = ffmpegOk ? '' : '没有找到 FFmpeg, 音频只能发送 WAV 和 SILK, 视频尺寸可能异常'
     let { httpServerError, wsServerError, otherError, ffmpegError } = llonebotError
     let error = `${otherError}\n${httpServerError}\n${wsServerError}\n${ffmpegError}`
     error = error.replace('\n\n', '\n')
@@ -148,14 +149,16 @@ function onLoad() {
     const { debug, reportSelfMessage } = getConfigUtil().getConfig()
     for (let message of msgList) {
       // 过滤启动之前的消息
-      // log('收到新消息', message);
       if (parseInt(message.msgTime) < startTime / 1000) {
         continue
       }
       // log("收到新消息", message.msgId, message.msgSeq)
-      // if (message.senderUin !== selfInfo.uin){
-      message.msgShortId = await dbUtil.addMsg(message)
-      // }
+      const peer: Peer = {
+        chatType: message.chatType,
+        peerUid: message.peerUid
+      }
+      message.msgShortId = MessageUnique.createMsg(peer, message.msgId)
+      addMsgCache(message)
 
       OB11Constructor.message(message)
         .then((msg) => {
@@ -180,19 +183,12 @@ function onLoad() {
         }
       })
       OB11Constructor.PrivateEvent(message).then((privateEvent) => {
-        log(message)
+        //log(message)
         if (privateEvent) {
           // log("post private event", privateEvent);
           postOb11Event(privateEvent)
         }
       })
-      // OB11Constructor.FriendAddEvent(message).then((friendAddEvent) => {
-      //   log(message)
-      //   if (friendAddEvent) {
-      //     // log("post friend add event", friendAddEvent);
-      //     postOb11Event(friendAddEvent)
-      //   }
-      // })
     }
   }
 
@@ -210,29 +206,22 @@ function onLoad() {
     const recallMsgIds: string[] = [] // 避免重复上报
     registerReceiveHook<{ msgList: Array<RawMessage> }>([ReceiveCmdS.UPDATE_MSG], async (payload) => {
       for (const message of payload.msgList) {
-        log('message update', message.msgId, message)
         if (message.recallTime != '0') {
           if (recallMsgIds.includes(message.msgId)) {
             continue
           }
           recallMsgIds.push(message.msgId)
-          const oriMessage = await dbUtil.getMsgByLongId(message.msgId)
-          if (!oriMessage) {
+          const oriMessageId = MessageUnique.getShortIdByMsgId(message.msgId)
+          if (!oriMessageId) {
             continue
           }
-          oriMessage.recallTime = message.recallTime
-          dbUtil.updateMsg(oriMessage).then()
-          message.msgShortId = oriMessage.msgShortId
-          OB11Constructor.RecallEvent(message).then((recallEvent) => {
+          OB11Constructor.RecallEvent(message, oriMessageId).then((recallEvent) => {
             if (recallEvent) {
-              log('post recall event', recallEvent)
+              //log('post recall event', recallEvent)
               postOb11Event(recallEvent)
             }
           })
-          // 不让入库覆盖原来消息，不然就获取不到撤回的消息内容了
-          continue
         }
-        dbUtil.updateMsg(message).then()
       }
     })
     registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmdS.SELF_SEND_MSG, async (payload) => {
@@ -247,6 +236,7 @@ function onLoad() {
         log('report self message error: ', e.stack.toString())
       }
     })
+    const processedGroupNotify: string[] = []
     registerReceiveHook<{
       doubt: boolean
       oldestUnreadSeq: string
@@ -254,54 +244,43 @@ function onLoad() {
     }>(ReceiveCmdS.UNREAD_GROUP_NOTIFY, async (payload) => {
       if (payload.unreadCount) {
         // log("开始获取群通知详情")
-        let notify: GroupNotifies
+        let notifies: GroupNotify[]
         try {
-          notify = await NTQQGroupApi.getGroupNotifies()
+          notifies = (await NTQQGroupApi.getSingleScreenNotifies(14)).slice(0, payload.unreadCount)
         } catch (e) {
           // log("获取群通知详情失败", e);
           return
         }
 
-        const notifies = notify.notifies.slice(0, payload.unreadCount)
-        // log("获取群通知详情完成", notifies, payload);
-
         for (const notify of notifies) {
           try {
             notify.time = Date.now()
-            // const notifyTime = parseInt(notify.seq) / 1000
-            // log(`加群通知时间${notifyTime}`, `LLOneBot启动时间${startTime}`);
-            // if (notifyTime < startTime) {
-            //     continue;
-            // }
-            let existNotify = await dbUtil.getGroupNotify(notify.seq)
-            if (existNotify) {
+            const notifyTime = parseInt(notify.seq) / 1000
+            const flag = notify.group.groupCode + '|' + notify.seq + '|' + notify.type
+            if (notifyTime < startTime || processedGroupNotify.includes(flag)) {
               continue
             }
-            log('收到群通知', notify)
-            await dbUtil.addGroupNotify(notify)
-            const flag = notify.group.groupCode + '|' + notify.seq + '|' + notify.type
+            processedGroupNotify.push(flag)
             if (notify.type == GroupNotifyTypes.MEMBER_EXIT || notify.type == GroupNotifyTypes.KICK_MEMBER) {
               log('有成员退出通知', notify)
-              try {
-                const member1 = await NTQQUserApi.getUserDetailInfo(notify.user1.uid)
-                let operatorId = member1.uin
-                let subType: GroupDecreaseSubType = 'leave'
-                if (notify.user2.uid) {
-                  // 是被踢的
-                  const member2 = await getGroupMember(notify.group.groupCode, notify.user2.uid)
-                  operatorId = member2?.uin!
-                  subType = 'kick'
+              const member1Uin = (await NTQQUserApi.getUinByUid(notify.user1.uid))!
+              let operatorId = member1Uin
+              let subType: GroupDecreaseSubType = 'leave'
+              if (notify.user2.uid) {
+                // 是被踢的
+                const member2Uin = await NTQQUserApi.getUinByUid(notify.user2.uid)
+                if (member2Uin) {
+                  operatorId = member2Uin
                 }
-                let groupDecreaseEvent = new OB11GroupDecreaseEvent(
-                  parseInt(notify.group.groupCode),
-                  parseInt(member1.uin),
-                  parseInt(operatorId),
-                  subType,
-                )
-                postOb11Event(groupDecreaseEvent, true)
-              } catch (e: any) {
-                log('获取群通知的成员信息失败', notify, e.stack.toString())
+                subType = 'kick'
               }
+              const groupDecreaseEvent = new OB11GroupDecreaseEvent(
+                parseInt(notify.group.groupCode),
+                parseInt(member1Uin),
+                parseInt(operatorId),
+                subType,
+              )
+              postOb11Event(groupDecreaseEvent, true)
             }
             else if ([GroupNotifyTypes.JOIN_REQUEST, GroupNotifyTypes.JOIN_REQUEST_BY_INVITED].includes(notify.type)) {
               log('有加群请求')
@@ -389,20 +368,25 @@ function onLoad() {
   let startTime = 0 // 毫秒
 
   async function start(uid: string, uin: string) {
-    log('llonebot pid', process.pid)
+    log('process pid', process.pid)
     const config = getConfigUtil().getConfig()
     if (!config.enableLLOB) {
+      llonebotError.otherError = 'LLOneBot 未启动'
       log('LLOneBot 开关设置为关闭，不启动LLOneBot')
       return
+    }
+    if (!fs.existsSync(TEMP_DIR)) {
+      fs.mkdirSync(TEMP_DIR, { recursive: true })
     }
     llonebotError.otherError = ''
     startTime = Date.now()
     NTEventDispatch.init({ ListenerMap: wrapperConstructor, WrapperSession: getSession()! })
-    dbUtil.init(uin)
+    MessageUnique.init(uin)
 
-    log('start activate group member info')
-    NTQQGroupApi.activateMemberInfoChange().then().catch(log)
-    NTQQGroupApi.activateMemberListChange().then().catch(log)
+    //log('start activate group member info')
+    // 下面两个会导致CPU占用过高，QQ卡死
+    // NTQQGroupApi.activateMemberInfoChange().then().catch(log)
+    // NTQQGroupApi.activateMemberListChange().then().catch(log)
     startReceiveHook().then()
 
     if (config.ob11.enableHttp) {
@@ -421,7 +405,7 @@ function onLoad() {
     log('LLOneBot start')
   }
 
-  const init = async () => {
+  const intervalId = setInterval(() => {
     const current = getSelfInfo()
     if (!current.uin) {
       setSelfInfo({
@@ -430,15 +414,11 @@ function onLoad() {
         nick: current.uin,
       })
     }
-    //log('self info', selfInfo, globalThis.authData)
-    if (current.uin) {
+    if (current.uin && getSession()) {
+      clearInterval(intervalId)
       start(current.uid, current.uin)
     }
-    else {
-      setTimeout(init, 1000)
-    }
-  }
-  init()
+  }, 600)
 }
 
 // 创建窗口时触发

@@ -270,4 +270,24 @@ export class NTQQMsgApi {
     const session = getSession()
     return await session?.getMsgService().getMsgsBySeqAndCount(peer, seq, count, desc, z)!
   }
+
+  static async getLastestMsgByUids(peer: Peer, count = 20, isReverseOrder = false) {
+    const session = getSession()
+    const ret = await session?.getMsgService().queryMsgsWithFilterEx('0', '0', '0', {
+      chatInfo: peer,
+      filterMsgType: [],
+      filterSendersUid: [],
+      filterMsgToTime: '0',
+      filterMsgFromTime: '0',
+      isReverseOrder: isReverseOrder, //此参数有点离谱 注意不是本次查询的排序 而是全部消历史信息的排序 默认false 从新消息拉取到旧消息
+      isIncludeCurrent: true,
+      pageLimit: count,
+    })
+    return ret!
+  }
+
+  static async getSingleMsg(peer: Peer, seq: string) {
+    const session = getSession()
+    return await session?.getMsgService().getSingleMsg(peer, seq)!
+  }
 }
