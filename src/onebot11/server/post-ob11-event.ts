@@ -27,9 +27,10 @@ export function unregisterWsEventSender(ws: WebSocketClass) {
 
 export function postWsEvent(event: PostEventType) {
   for (const ws of eventWSList) {
-    new Promise(() => {
+    new Promise((resolve) => {
       wsReply(ws, event)
-    }).then().catch(log)
+      resolve(undefined)
+    }).then()
   }
 }
 
@@ -61,13 +62,15 @@ export function postOb11Event(msg: PostEventType, reportSelf = false, postWs = t
         body: msgStr,
       }).then(
         async (res) => {
-          log(`新消息事件HTTP上报成功: ${host} `, msgStr)
+          if (msg.post_type) {
+            log(`HTTP 事件上报: ${host} `, msg.post_type)
+          }
           try {
             const resJson = await res.json()
             log(`新消息事件HTTP上报返回快速操作: `, JSON.stringify(resJson))
             handleQuickOperation(msg as QuickOperationEvent, resJson).then().catch(log);
           } catch (e) {
-            log(`新消息事件HTTP上报没有返回快速操作，不需要处理`)
+            //log(`新消息事件HTTP上报没有返回快速操作，不需要处理`)
             return
           }
         },

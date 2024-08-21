@@ -5,9 +5,7 @@ import path from 'node:path'
 import { getSelfUin } from './data'
 import { DATA_DIR } from './utils'
 
-export const HOOK_LOG = false
-
-export const ALLOW_SEND_TEMP_MSG = false
+//export const HOOK_LOG = false
 
 export class ConfigUtil {
   private readonly configPath: string
@@ -52,6 +50,7 @@ export class ConfigUtil {
       autoDeleteFile: false,
       autoDeleteFileSecond: 60,
       musicSignUrl: '',
+      msgCacheExpire: 120
     }
 
     if (!fs.existsSync(this.configPath)) {

@@ -1,6 +1,5 @@
 import {
   type Friend,
-  type Group,
   type GroupMember,
   type SelfInfo,
 } from '../ntqqapi/types'
@@ -9,23 +8,25 @@ import { NTQQGroupApi } from '../ntqqapi/api/group'
 import { log } from './utils/log'
 import { isNumeric } from './utils/helper'
 import { NTQQFriendApi, NTQQUserApi } from '../ntqqapi/api'
+import { RawMessage } from '../ntqqapi/types'
+import { getConfigUtil } from './config'
+import { getBuildVersion } from './utils/QQBasicInfo'
 
-export let groups: Group[] = []
 export let friends: Friend[] = []
 export const llonebotError: LLOneBotError = {
   ffmpegError: '',
   httpServerError: '',
   wsServerError: '',
-  otherError: 'LLOnebot未能正常启动，请检查日志查看错误',
+  otherError: 'LLOneBot 未能正常启动，请检查日志查看错误',
 }
 // 群号 -> 群成员map(uid=>GroupMember)
 export const groupMembers: Map<string, Map<string, GroupMember>> = new Map<string, Map<string, GroupMember>>()
 
 export async function getFriend(uinOrUid: string): Promise<Friend | undefined> {
-  let filterKey = isNumeric(uinOrUid.toString()) ? 'uin' : 'uid'
-  let filterValue = uinOrUid
+  const filterKey: 'uin' | 'uid' = isNumeric(uinOrUid.toString()) ? 'uin' : 'uid'
+  const filterValue = uinOrUid
   let friend = friends.find((friend) => friend[filterKey] === filterValue.toString())
-  if (!friend) {
+  if (!friend && getBuildVersion() < 26702) {
     try {
       const _friends = await NTQQFriendApi.getFriends(true)
       friend = _friends.find((friend) => friend[filterKey] === filterValue.toString())
@@ -39,39 +40,15 @@ export async function getFriend(uinOrUid: string): Promise<Friend | undefined> {
   return friend
 }
 
-export async function getGroup(qq: string): Promise<Group | undefined> {
-  let group = groups.find((group) => group.groupCode === qq.toString())
-  if (!group) {
-    try {
-      const _groups = await NTQQGroupApi.getGroups(true)
-      group = _groups.find((group) => group.groupCode === qq.toString())
-      if (group) {
-        groups.push(group)
-      }
-    } catch (e) {
-    }
-  }
-  return group
-}
-
-export function deleteGroup(groupCode: string) {
-  const groupIndex = groups.findIndex((group) => group.groupCode === groupCode.toString())
-  // log(groups, groupCode, groupIndex);
-  if (groupIndex !== -1) {
-    log('删除群', groupCode)
-    groups.splice(groupIndex, 1)
-  }
-}
-
-export async function getGroupMember(groupQQ: string | number, memberUinOrUid: string | number) {
-  groupQQ = groupQQ.toString()
-  memberUinOrUid = memberUinOrUid.toString()
-  let members = groupMembers.get(groupQQ)
+export async function getGroupMember(groupCode: string | number, memberUinOrUid: string | number) {
+  const groupCodeStr = groupCode.toString()
+  const memberUinOrUidStr = memberUinOrUid.toString()
+  let members = groupMembers.get(groupCodeStr)
   if (!members) {
     try {
-      members = await NTQQGroupApi.getGroupMembers(groupQQ)
+      members = await NTQQGroupApi.getGroupMembers(groupCodeStr)
       // 更新群成员列表
-      groupMembers.set(groupQQ, members)
+      groupMembers.set(groupCodeStr, members)
     }
     catch (e) {
       return null
@@ -79,16 +56,17 @@ export async function getGroupMember(groupQQ: string | number, memberUinOrUid: s
   }
   const getMember = () => {
     let member: GroupMember | undefined = undefined
-    if (isNumeric(memberUinOrUid)) {
-      member = Array.from(members!.values()).find(member => member.uin === memberUinOrUid)
+    if (isNumeric(memberUinOrUidStr)) {
+      member = Array.from(members!.values()).find(member => member.uin === memberUinOrUidStr)
     } else {
-      member = members!.get(memberUinOrUid)
+      member = members!.get(memberUinOrUidStr)
     }
     return member
   }
   let member = getMember()
   if (!member) {
-    members = await NTQQGroupApi.getGroupMembers(groupQQ)
+    members = await NTQQGroupApi.getGroupMembers(groupCodeStr)
+    groupMembers.set(groupCodeStr, members)
     member = getMember()
   }
   return member
@@ -102,7 +80,7 @@ const selfInfo: SelfInfo = {
 }
 
 export async function getSelfNick(force = false): Promise<string> {
-  if (!selfInfo.nick || force) {
+  if ((!selfInfo.nick || force) && selfInfo.uid) {
     const userInfo = await NTQQUserApi.getUserDetailInfo(selfInfo.uid)
     if (userInfo) {
       selfInfo.nick = userInfo.nick
@@ -127,4 +105,24 @@ export function getSelfUid() {
 
 export function getSelfUin() {
   return selfInfo['uin']
+}
+
+const messages: Map<string, RawMessage> = new Map()
+
+/** 缓存近期消息内容 */
+export async function addMsgCache(msg: RawMessage) {
+  const expire = getConfigUtil().getConfig().msgCacheExpire! * 1000
+  if (expire === 0) {
+    return
+  }
+  const id = msg.msgId
+  messages.set(id, msg)
+  setTimeout(() => {
+    messages.delete(id)
+  }, expire)
+}
+
+/** 获取近期消息内容 */
+export function getMsgCache(msgId: string) {
+  return messages.get(msgId)
 }

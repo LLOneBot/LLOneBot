@@ -2,10 +2,12 @@ import { OB11Message } from '../../types'
 import { OB11Constructor } from '../../constructor'
 import BaseAction from '../BaseAction'
 import { ActionName } from '../types'
-import { dbUtil } from '../../../common/db'
+import { NTQQMsgApi } from '@/ntqqapi/api'
+import { MessageUnique } from '@/common/utils/MessageUnique'
+import { getMsgCache } from '@/common/data'
 
 export interface PayloadType {
-  message_id: number
+  message_id: number | string
 }
 
 export type ReturnDataType = OB11Message
@@ -18,14 +20,22 @@ class GetMsg extends BaseAction<PayloadType, OB11Message> {
     if (!payload.message_id) {
       throw '参数message_id不能为空'
     }
-    let msg = await dbUtil.getMsgByShortId(payload.message_id)
-    if (!msg) {
-      msg = await dbUtil.getMsgByLongId(payload.message_id.toString())
+    const msgShortId = MessageUnique.getShortIdByMsgId(payload.message_id.toString())
+    const msgIdWithPeer = await MessageUnique.getMsgIdAndPeerByShortId(msgShortId || +payload.message_id)
+    if (!msgIdWithPeer) {
+      throw ('消息不存在')
     }
-    if (!msg) {
-      throw '消息不存在'
+    const peer = {
+      guildId: '',
+      peerUid: msgIdWithPeer.Peer.peerUid,
+      chatType: msgIdWithPeer.Peer.chatType
     }
-    return await OB11Constructor.message(msg)
+    const msg = getMsgCache(msgIdWithPeer.MsgId) ?? (await NTQQMsgApi.getMsgsByMsgId(peer, [msgIdWithPeer.MsgId])).msgList[0]
+    const retMsg = await OB11Constructor.message(msg)
+    retMsg.message_id = MessageUnique.createMsg(peer, msg.msgId)!
+    retMsg.message_seq = retMsg.message_id
+    retMsg.real_id = retMsg.message_id
+    return retMsg
   }
 }
 

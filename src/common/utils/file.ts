@@ -1,10 +1,9 @@
 import fs from 'node:fs'
 import fsPromise from 'node:fs/promises'
 import path from 'node:path'
-import { log, TEMP_DIR } from './index'
-import { dbUtil } from '../db'
-import * as fileType from 'file-type'
+import { TEMP_DIR } from './index'
 import { randomUUID, createHash } from 'node:crypto'
+import { fileURLToPath } from 'node:url'
 
 export function isGIF(path: string) {
   const buffer = Buffer.alloc(4)
@@ -31,31 +30,6 @@ export function checkFileReceived(path: string, timeout: number = 3000): Promise
 
     check()
   })
-}
-
-export async function file2base64(path: string) {
-  let result = {
-    err: '',
-    data: '',
-  }
-  try {
-    // 读取文件内容
-    // if (!fs.existsSync(path)){
-    //     path = path.replace("\\Ori\\", "\\Thumb\\");
-    // }
-    try {
-      await checkFileReceived(path, 5000)
-    } catch (e: any) {
-      result.err = e.toString()
-      return result
-    }
-    const data = await fsPromise.readFile(path)
-    // 转换为Base64编码
-    result.data = data.toString('base64')
-  } catch (err: any) {
-    result.err = err.toString()
-  }
-  return result
 }
 
 export function calculateFileMD5(filePath: string): Promise<string> {
@@ -110,119 +84,118 @@ export async function httpDownload(options: string | HttpDownloadOptions): Promi
   return Buffer.from(await fetchRes.arrayBuffer())
 }
 
+export enum FileUriType {
+  Unknown = 0,
+  FileURL = 1,
+  RemoteURL = 2,
+  OneBotBase64 = 3,
+  DataURL = 4,
+  Path = 5
+}
+
+export function checkUriType(uri: string): { type: FileUriType } {
+  if (uri.startsWith('base64://')) {
+    return { type: FileUriType.OneBotBase64 }
+  }
+  if (uri.startsWith('data:')) {
+    return { type: FileUriType.DataURL }
+  }
+  if (uri.startsWith('http://') || uri.startsWith('https://')) {
+    return { type: FileUriType.RemoteURL }
+  }
+  if (uri.startsWith('file://')) {
+    return { type: FileUriType.FileURL }
+  }
+  try {
+    if (fs.existsSync(uri)) return { type: FileUriType.Path }
+  } catch { }
+  return { type: FileUriType.Unknown }
+}
+
+interface FetchFileRes {
+  data: Buffer
+  url: string
+}
+
+async function fetchFile(url: string): Promise<FetchFileRes> {
+  const headers: Record<string, string> = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36',
+    'Host': new URL(url).hostname
+  }
+  const raw = await fetch(url, { headers }).catch((err) => {
+    if (err.cause) {
+      throw err.cause
+    }
+    throw err
+  })
+  if (!raw.ok) throw new Error(`statusText: ${raw.statusText}`)
+  return {
+    data: Buffer.from(await raw.arrayBuffer()),
+    url: raw.url
+  }
+}
+
 type Uri2LocalRes = {
   success: boolean
   errMsg: string
   fileName: string
-  ext: string
   path: string
   isLocal: boolean
 }
 
-export async function uri2local(uri: string, fileName: string | null = null): Promise<Uri2LocalRes> {
-  let res = {
-    success: false,
-    errMsg: '',
-    fileName: '',
-    ext: '',
-    path: '',
-    isLocal: false,
-  }
-  if (!fileName) {
-    fileName = randomUUID()
-  }
-  let filePath = path.join(TEMP_DIR, fileName)
-  let url: URL | null = null
-  try {
-    url = new URL(uri)
-  } catch (e: any) {
-    res.errMsg = `uri ${uri} 解析失败,` + e.toString() + ` 可能${uri}不存在`
-    return res
+export async function uri2local(uri: string, filename?: string): Promise<Uri2LocalRes> {
+  const { type } = checkUriType(uri)
+
+  if (type === FileUriType.FileURL) {
+    const filePath = fileURLToPath(uri)
+    const fileName = path.basename(filePath)
+    return { success: true, errMsg: '', fileName, path: filePath, isLocal: true }
   }
 
-  // log("uri protocol", url.protocol, uri);
-  if (url.protocol == 'base64:') {
-    // base64转成文件
-    let base64Data = uri.split('base64://')[1]
-    try {
-      const buffer = Buffer.from(base64Data, 'base64')
-      await fsPromise.writeFile(filePath, buffer)
-    } catch (e: any) {
-      res.errMsg = `base64文件下载失败,` + e.toString()
-      return res
-    }
-  } else if (url.protocol == 'http:' || url.protocol == 'https:') {
-    // 下载文件
-    let buffer: Buffer | null = null
-    try {
-      buffer = await httpDownload(uri)
-    } catch (e: any) {
-      res.errMsg = `${url}下载失败,` + e.toString()
-      return res
-    }
-    try {
-      const pathInfo = path.parse(decodeURIComponent(url.pathname))
-      if (pathInfo.name) {
-        fileName = pathInfo.name
-        if (pathInfo.ext) {
-          fileName += pathInfo.ext
-          // res.ext = pathInfo.ext
-        }
-      }
-      fileName = fileName.replace(/[/\\:*?"<>|]/g, '_')
-      res.fileName = fileName
-      filePath = path.join(TEMP_DIR, randomUUID() + fileName)
-      await fsPromise.writeFile(filePath, buffer)
-    } catch (e: any) {
-      res.errMsg = `${url}下载失败,` + e.toString()
-      return res
-    }
-  } else {
-    let pathname: string
-    if (url.protocol === 'file:') {
-      // await fs.copyFile(url.pathname, filePath);
-      pathname = decodeURIComponent(url.pathname)
-      if (process.platform === 'win32') {
-        filePath = pathname.slice(1)
-      } else {
-        filePath = pathname
-      }
-    } else {
-      const cache = await dbUtil.getFileCache(uri)
-      if (cache) {
-        filePath = cache.filePath
-      } else {
-        filePath = uri
-      }
-    }
+  if (type === FileUriType.Path) {
+    const fileName = path.basename(uri)
+    return { success: true, errMsg: '', fileName, path: uri, isLocal: true }
+  }
 
-    res.isLocal = true
-  }
-  // else{
-  //     res.errMsg = `不支持的file协议,` + url.protocol
-  //     return res
-  // }
-  // if (isGIF(filePath) && !res.isLocal) {
-  //     await fs.rename(filePath, filePath + ".gif");
-  //     filePath += ".gif";
-  // }
-  if (!res.isLocal && !res.ext) {
+  if (type === FileUriType.RemoteURL) {
     try {
-      const ext = (await fileType.fileTypeFromFile(filePath))?.ext
-      if (ext) {
-        log('获取文件类型', ext, filePath)
-        await fsPromise.rename(filePath, filePath + `.${ext}`)
-        filePath += `.${ext}`
-        res.fileName += `.${ext}`
-        res.ext = ext
+      const res = await fetchFile(uri)
+      const match = res.url.match(/.+\/([^/?]*)(?=\?)?/)
+      if (match?.[1]) {
+        filename ??= match[1].replace(/[/\\:*?"<>|]/g, '_')
+      } else {
+        filename ??= randomUUID()
       }
-    } catch (e) {
-      // log("获取文件类型失败", filePath,e.stack)
+      const filePath = path.join(TEMP_DIR, filename)
+      await fsPromise.writeFile(filePath, res.data)
+      return { success: true, errMsg: '', fileName: filename, path: filePath, isLocal: false }
+    } catch (e: any) {
+      const errMsg = `${uri}下载失败,` + e.toString()
+      return { success: false, errMsg, fileName: '', path: '', isLocal: false }
     }
   }
-  res.success = true
-  res.path = filePath
-  return res
+
+  if (type === FileUriType.OneBotBase64) {
+    filename ??= randomUUID()
+    const filePath = path.join(TEMP_DIR, filename)
+    const base64 = uri.replace(/^base64:\/\//, '')
+    await fsPromise.writeFile(filePath, base64, 'base64')
+    return { success: true, errMsg: '', fileName: filename, path: filePath, isLocal: false }
+  }
+
+  if (type === FileUriType.DataURL) {
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+    const capture = /^data:([\w/.+-]+);base64,(.*)$/.exec(uri)
+    if (capture) {
+      filename ??= randomUUID()
+      const [, _type, base64] = capture
+      const filePath = path.join(TEMP_DIR, filename)
+      await fsPromise.writeFile(filePath, base64, 'base64')
+      return { success: true, errMsg: '', fileName: filename, path: filePath, isLocal: false }
+    }
+  }
+
+  return { success: false, errMsg: '未知文件类型', fileName: '', path: '', isLocal: false }
 }
 
 export async function copyFolder(sourcePath: string, destPath: string) {

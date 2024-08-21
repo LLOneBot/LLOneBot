@@ -138,45 +138,47 @@ export class WebApi {
     return ret
   }
 
-  @CacheClassFuncAsync(3600 * 1000, 'webapi_get_group_members')
   static async getGroupMembers(GroupCode: string, cached: boolean = true): Promise<WebApiGroupMember[]> {
-    //logDebug('webapi 获取群成员', GroupCode)
-    let MemberData: Array<WebApiGroupMember> = new Array<WebApiGroupMember>()
-    try {
-      const CookiesObject = await NTQQUserApi.getCookies('qun.qq.com')
-      const CookieValue = Object.entries(CookiesObject).map(([key, value]) => `${key}=${value}`).join('; ')
-      const Bkn = WebApi.genBkn(CookiesObject.skey)
-      const retList: Promise<WebApiGroupMemberRet>[] = []
-      const fastRet = await RequestUtil.HttpGetJson<WebApiGroupMemberRet>('https://qun.qq.com/cgi-bin/qun_mgr/search_group_members?st=0&end=40&sort=1&gc=' + GroupCode + '&bkn=' + Bkn, 'POST', '', { 'Cookie': CookieValue });
-      if (!fastRet?.count || fastRet?.errcode !== 0 || !fastRet?.mems) {
-        return []
-      } else {
-        for (const key in fastRet.mems) {
-          MemberData.push(fastRet.mems[key])
-        }
+    const memberData: Array<WebApiGroupMember> = new Array<WebApiGroupMember>()
+    const cookieObject = await NTQQUserApi.getCookies('qun.qq.com')
+    const cookieStr = Object.entries(cookieObject).map(([key, value]) => `${key}=${value}`).join('; ')
+    const retList: Promise<WebApiGroupMemberRet>[] = []
+    const params = new URLSearchParams({
+      st: '0',
+      end: '40',
+      sort: '1',
+      gc: GroupCode,
+      bkn: WebApi.genBkn(cookieObject.skey)
+    })
+    const fastRet = await RequestUtil.HttpGetJson<WebApiGroupMemberRet>(`https://qun.qq.com/cgi-bin/qun_mgr/search_group_members?${params}`, 'POST', '', { 'Cookie': cookieStr })
+    if (!fastRet?.count || fastRet?.errcode !== 0 || !fastRet?.mems) {
+      return []
+    } else {
+      for (const member of fastRet.mems) {
+        memberData.push(member)
       }
-      //初始化获取PageNum
-      const PageNum = Math.ceil(fastRet.count / 40)
-      //遍历批量请求
-      for (let i = 2; i <= PageNum; i++) {
-        const ret: Promise<WebApiGroupMemberRet> = RequestUtil.HttpGetJson<WebApiGroupMemberRet>('https://qun.qq.com/cgi-bin/qun_mgr/search_group_members?st=' + (i - 1) * 40 + '&end=' + i * 40 + '&sort=1&gc=' + GroupCode + '&bkn=' + Bkn, 'POST', '', { 'Cookie': CookieValue });
-        retList.push(ret)
-      }
-      //批量等待
-      for (let i = 1; i <= PageNum; i++) {
-        const ret = await (retList[i])
-        if (!ret?.count || ret?.errcode !== 0 || !ret?.mems) {
-          continue
-        }
-        for (const key in ret.mems) {
-          MemberData.push(ret.mems[key])
-        }
-      }
-    } catch {
-      return MemberData
     }
-    return MemberData
+    const pageNum = Math.ceil(fastRet.count / 40)
+    //遍历批量请求
+    for (let i = 2; i <= pageNum; i++) {
+      params.set('st', String((i - 1) * 40))
+      params.set('end', String(i * 40))
+      const ret = RequestUtil.HttpGetJson<WebApiGroupMemberRet>(`https://qun.qq.com/cgi-bin/qun_mgr/search_group_members?${params}`, 'POST', '', { 'Cookie': cookieStr })
+      retList.push(ret)
+    }
+    //批量等待
+    for (let i = 1; i <= pageNum; i++) {
+      const ret = await (retList[i])
+      if (!ret?.count || ret?.errcode !== 0 || !ret?.mems) {
+        continue
+      }
+      for (const member of ret.mems) {
+        memberData.push(member)
+      }
+    }
+    return memberData
   }
+
   // public static async addGroupDigest(groupCode: string, msgSeq: string) {
   //   const url = `https://qun.qq.com/cgi-bin/group_digest/cancel_digest?random=665&X-CROSS-ORIGIN=fetch&group_code=${groupCode}&msg_seq=${msgSeq}&msg_random=444021292`;
   //   const res = await this.request(url);
