@@ -1,4 +1,5 @@
-import { callNTQQApi, GeneralCallResult, NTQQApiClass, NTQQApiMethod } from '../ntcall'
+import { invoke, NTClass, NTMethod } from '../ntcall'
+import { GeneralCallResult } from '../services'
 import {
   CacheFileList,
   CacheFileListItem,
@@ -144,9 +145,9 @@ export class NTQQFileApi {
   }
 
   static async getImageSize(filePath: string) {
-    return await callNTQQApi<{ width: number; height: number }>({
-      className: NTQQApiClass.FS_API,
-      methodName: NTQQApiMethod.IMAGE_SIZE,
+    return await invoke<{ width: number; height: number }>({
+      className: NTClass.FS_API,
+      methodName: NTMethod.IMAGE_SIZE,
       args: [filePath],
     })
   }
@@ -186,8 +187,8 @@ export class NTQQFileApi {
 
 export class NTQQFileCacheApi {
   static async setCacheSilentScan(isSilent: boolean = true) {
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.CACHE_SET_SILENCE,
+    return await invoke<GeneralCallResult>({
+      methodName: NTMethod.CACHE_SET_SILENCE,
       args: [
         {
           isSilent,
@@ -198,21 +199,21 @@ export class NTQQFileCacheApi {
   }
 
   static getCacheSessionPathList() {
-    return callNTQQApi<
+    return invoke<
       {
         key: string
         value: string
       }[]
     >({
-      className: NTQQApiClass.OS_API,
-      methodName: NTQQApiMethod.CACHE_PATH_SESSION,
+      className: NTClass.OS_API,
+      methodName: NTMethod.CACHE_PATH_SESSION,
     })
   }
 
   static clearCache(cacheKeys: Array<string> = ['tmp', 'hotUpdate']) {
-    return callNTQQApi<any>({
+    return invoke<any>({
       // TODO: 目前还不知道真正的返回值是什么
-      methodName: NTQQApiMethod.CACHE_CLEAR,
+      methodName: NTMethod.CACHE_CLEAR,
       args: [
         {
           keys: cacheKeys,
@@ -223,8 +224,8 @@ export class NTQQFileCacheApi {
   }
 
   static addCacheScannedPaths(pathMap: object = {}) {
-    return callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.CACHE_ADD_SCANNED_PATH,
+    return invoke<GeneralCallResult>({
+      methodName: NTMethod.CACHE_ADD_SCANNED_PATH,
       args: [
         {
           pathMap: { ...pathMap },
@@ -235,35 +236,35 @@ export class NTQQFileCacheApi {
   }
 
   static scanCache() {
-    callNTQQApi<GeneralCallResult>({
+    invoke<GeneralCallResult>({
       methodName: ReceiveCmdS.CACHE_SCAN_FINISH,
       classNameIsRegister: true,
     }).then()
-    return callNTQQApi<CacheScanResult>({
-      methodName: NTQQApiMethod.CACHE_SCAN,
+    return invoke<CacheScanResult>({
+      methodName: NTMethod.CACHE_SCAN,
       args: [null, null],
       timeout: 300 * Time.second,
     })
   }
 
   static getHotUpdateCachePath() {
-    return callNTQQApi<string>({
-      className: NTQQApiClass.HOTUPDATE_API,
-      methodName: NTQQApiMethod.CACHE_PATH_HOT_UPDATE,
+    return invoke<string>({
+      className: NTClass.HOTUPDATE_API,
+      methodName: NTMethod.CACHE_PATH_HOT_UPDATE,
     })
   }
 
   static getDesktopTmpPath() {
-    return callNTQQApi<string>({
-      className: NTQQApiClass.BUSINESS_API,
-      methodName: NTQQApiMethod.CACHE_PATH_DESKTOP_TEMP,
+    return invoke<string>({
+      className: NTClass.BUSINESS_API,
+      methodName: NTMethod.CACHE_PATH_DESKTOP_TEMP,
     })
   }
 
   static getChatCacheList(type: ChatType, pageSize: number = 1000, pageIndex: number = 0) {
     return new Promise<ChatCacheList>((res, rej) => {
-      callNTQQApi<ChatCacheList>({
-        methodName: NTQQApiMethod.CACHE_CHAT_GET,
+      invoke<ChatCacheList>({
+        methodName: NTMethod.CACHE_CHAT_GET,
         args: [
           {
             chatType: type,
@@ -282,8 +283,8 @@ export class NTQQFileCacheApi {
   static getFileCacheInfo(fileType: CacheFileType, pageSize: number = 1000, lastRecord?: CacheFileListItem) {
     const _lastRecord = lastRecord ? lastRecord : { fileType: fileType }
 
-    return callNTQQApi<CacheFileList>({
-      methodName: NTQQApiMethod.CACHE_FILE_GET,
+    return invoke<CacheFileList>({
+      methodName: NTMethod.CACHE_FILE_GET,
       args: [
         {
           fileType: fileType,
@@ -298,8 +299,8 @@ export class NTQQFileCacheApi {
   }
 
   static async clearChatCache(chats: ChatCacheListItemBasic[] = [], fileKeys: string[] = []) {
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.CACHE_CHAT_CLEAR,
+    return await invoke<GeneralCallResult>({
+      methodName: NTMethod.CACHE_CHAT_CLEAR,
       args: [
         {
           chats,
