@@ -1,4 +1,5 @@
-import { callNTQQApi, GeneralCallResult, NTQQApiMethod } from '../ntcall'
+import { invoke, NTMethod } from '../ntcall'
+import { GeneralCallResult } from '../services'
 import { RawMessage, SendMessageElement, Peer, ChatType2 } from '../types'
 import { getSelfNick, getSelfUid } from '../../common/data'
 import { getBuildVersion } from '../../common/utils'
@@ -28,8 +29,8 @@ export class NTQQMsgApi {
   static async activateChat(peer: Peer) {
     // await this.fetchRecentContact();
     // await sleep(500);
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.ACTIVE_CHAT_PREVIEW,
+    return await invoke<GeneralCallResult>({
+      methodName: NTMethod.ACTIVE_CHAT_PREVIEW,
       args: [{ peer, cnt: 20 }, null],
     })
   }
@@ -37,8 +38,8 @@ export class NTQQMsgApi {
   static async activateChatAndGetHistory(peer: Peer) {
     // await this.fetchRecentContact();
     // await sleep(500);
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.ACTIVE_CHAT_HISTORY,
+    return await invoke<GeneralCallResult>({
+      methodName: NTMethod.ACTIVE_CHAT_HISTORY,
       // 参数似乎不是这样
       args: [{ peer, cnt: 20 }, null],
     })

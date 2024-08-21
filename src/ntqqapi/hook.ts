@@ -1,5 +1,5 @@
 import type { BrowserWindow } from 'electron'
-import { NTQQApiClass, NTQQApiMethod } from './ntcall'
+import { NTClass, NTMethod } from './ntcall'
 import { NTQQMsgApi } from './api/msg'
 import {
   CategoryFriend,
@@ -53,16 +53,16 @@ export let ReceiveCmdS = {
 
 export type ReceiveCmd = (typeof ReceiveCmdS)[keyof typeof ReceiveCmdS]
 
-interface NTQQApiReturnData<PayloadType = unknown> extends Array<any> {
+interface NTQQApiReturnData<Payload = unknown> extends Array<any> {
   0: {
     type: 'request'
-    eventName: NTQQApiClass
+    eventName: NTClass
     callbackId?: string
   }
   1: {
     cmdName: ReceiveCmd
     cmdType: 'event'
-    payload: PayloadType
+    payload: Payload
   }[]
 }
 
@@ -73,7 +73,7 @@ let receiveHooks: Array<{
 }> = []
 
 let callHooks: Array<{
-  method: NTQQApiMethod[]
+  method: NTMethod[]
   hookFunc: (callParams: unknown[]) => void | Promise<void>
 }> = []
 
@@ -141,7 +141,7 @@ export function hookNTQQApiCall(window: BrowserWindow) {
         } catch (e) { }
         try {
           const _args: unknown[] = args[3][1]
-          const cmdName: NTQQApiMethod = _args[0] as NTQQApiMethod
+          const cmdName: NTMethod = _args[0] as NTMethod
           const callParams = _args.slice(1)
           callHooks.forEach((hook) => {
             if (hook.method.includes(cmdName)) {
@@ -207,7 +207,7 @@ export function registerReceiveHook<PayloadType>(
 }
 
 export function registerCallHook(
-  method: NTQQApiMethod | NTQQApiMethod[],
+  method: NTMethod | NTMethod[],
   hookFunc: (callParams: unknown[]) => void | Promise<void>,
 ): void {
   if (!Array.isArray(method)) {
@@ -499,7 +499,7 @@ export async function startHook() {
     }
   })
 
-  registerCallHook(NTQQApiMethod.DELETE_ACTIVE_CHAT, async (payload) => {
+  registerCallHook(NTMethod.DELETE_ACTIVE_CHAT, async (payload) => {
     const peerUid = payload[0] as string
     log('激活的聊天窗口被删除，准备重新激活', peerUid)
     let chatType = ChatType.friend

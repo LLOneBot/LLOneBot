@@ -1,6 +1,7 @@
 import { ReceiveCmdS } from '../hook'
 import { Group, GroupMember, GroupMemberRole, GroupNotifies, GroupRequestOperateTypes, GroupNotify } from '../types'
-import { callNTQQApi, GeneralCallResult, NTQQApiMethod } from '../ntcall'
+import { invoke, NTMethod } from '../ntcall'
+import { GeneralCallResult } from '../services'
 import { NTQQWindowApi, NTQQWindows } from './window'
 import { getSession } from '../wrapper'
 import { NTEventDispatch } from '@/common/utils/EventTask'
@@ -31,8 +32,8 @@ export class NTQQGroupApi {
       const sceneId = groupService.createMemberListScene(groupQQ, 'groupMemberList_MainWindow')
       result = await groupService.getNextMemberList(sceneId, undefined, num)
     } else {
-      const sceneId = await callNTQQApi<string>({
-        methodName: NTQQApiMethod.GROUP_MEMBER_SCENE,
+      const sceneId = await invoke<string>({
+        methodName: NTMethod.GROUP_MEMBER_SCENE,
         args: [
           {
             groupCode: groupQQ,
@@ -40,10 +41,10 @@ export class NTQQGroupApi {
           },
         ],
       })
-      result = await callNTQQApi<
+      result = await invoke<
         ReturnType<NodeIKernelGroupService['getNextMemberList']>
       >({
-        methodName: NTQQApiMethod.GROUP_MEMBERS,
+        methodName: NTMethod.GROUP_MEMBERS,
         args: [
           {
             sceneId,
@@ -62,12 +63,12 @@ export class NTQQGroupApi {
   static async getGroupNotifies() {
     // 获取管理员变更
     // 加群通知，退出通知，需要管理员权限
-    callNTQQApi<GeneralCallResult>({
+    invoke<GeneralCallResult>({
       methodName: ReceiveCmdS.GROUP_NOTIFY,
       classNameIsRegister: true,
     }).then()
-    return await callNTQQApi<GroupNotifies>({
-      methodName: NTQQApiMethod.GET_GROUP_NOTICE,
+    return await invoke<GroupNotifies>({
+      methodName: NTMethod.GET_GROUP_NOTICE,
       cbCmd: ReceiveCmdS.GROUP_NOTIFY,
       afterFirstCmd: false,
       args: [{ doubt: false, startSeq: '', number: 14 }, null],
@@ -167,7 +168,7 @@ export class NTQQGroupApi {
   }
 
   static async getGroupAtAllRemainCount(groupCode: string) {
-    return await callNTQQApi<
+    return await invoke<
       GeneralCallResult & {
         atInfo: {
           canAtAll: boolean
@@ -178,7 +179,7 @@ export class NTQQGroupApi {
         }
       }
     >({
-      methodName: NTQQApiMethod.GROUP_AT_ALL_REMAIN_COUNT,
+      methodName: NTMethod.GROUP_AT_ALL_REMAIN_COUNT,
       args: [
         {
           groupCode,

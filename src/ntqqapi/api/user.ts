@@ -1,4 +1,5 @@
-import { callNTQQApi, GeneralCallResult, NTQQApiMethod } from '../ntcall'
+import { invoke, NTMethod } from '../ntcall'
+import { GeneralCallResult } from '../services'
 import { User, UserDetailInfoByUin, UserDetailInfoByUinV2, UserDetailInfoListenerArg } from '../types'
 import { friends, groupMembers, getSelfUin } from '@/common/data'
 import { CacheClassFuncAsync, getBuildVersion } from '@/common/utils'
@@ -12,8 +13,8 @@ import { Time } from 'cosmokit'
 
 export class NTQQUserApi {
   static async setQQAvatar(filePath: string) {
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.SET_QQ_AVATAR,
+    return await invoke<GeneralCallResult>({
+      methodName: NTMethod.SET_QQ_AVATAR,
       args: [
         {
           path: filePath,
@@ -44,7 +45,7 @@ export class NTQQUserApi {
         )
       info = profile
     } else {
-      const result = await callNTQQApi<{ info: UserDetailInfoListenerArg }>({
+      const result = await invoke<{ info: UserDetailInfoListenerArg }>({
         methodName: 'nodeIKernelProfileService/fetchUserDetailInfo',
         cbCmd: 'nodeIKernelProfileListener/onUserDetailInfoChanged',
         afterFirstCmd: false,

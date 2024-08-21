@@ -2,9 +2,9 @@ import { ipcMain } from 'electron'
 import { hookApiCallbacks, ReceiveCmd, registerReceiveHook, removeReceiveHook } from './hook'
 import { log } from '../common/utils/log'
 import { randomUUID } from 'node:crypto'
-import { GeneralCallResult } from './services/common'
+import { GeneralCallResult } from './services'
 
-export enum NTQQApiClass {
+export enum NTClass {
   NT_API = 'ns-ntApi',
   FS_API = 'ns-FsApi',
   OS_API = 'ns-OsApi',
@@ -18,8 +18,7 @@ export enum NTQQApiClass {
   NODE_STORE_API = 'ns-NodeStoreApi'
 }
 
-export enum NTQQApiMethod {
-  TEST = 'NodeIKernelTipOffService/getPskey',
+export enum NTMethod {
   RECENT_CONTACT = 'nodeIKernelRecentContactService/fetchAndSubscribeABatchOfRecentContact',
   ACTIVE_CHAT_PREVIEW = 'nodeIKernelMsgService/getAioFirstViewLatestMsgsAndAddActiveChat', // 激活聊天窗口，有时候必须这样才能收到消息, 并返回最新预览消息
   ACTIVE_CHAT_HISTORY = 'nodeIKernelMsgService/getMsgsIncludeSelfAndAddActiveChat', // 激活聊天窗口，有时候必须这样才能收到消息, 并返回历史消息
@@ -94,27 +93,27 @@ export enum NTQQApiMethod {
   FETCH_UNITED_COMMEND_CONFIG = 'nodeIKernelUnitedConfigService/fetchUnitedCommendConfig', // 发包需要调用的
 }
 
-enum NTQQApiChannel {
+export enum NTChannel {
   IPC_UP_2 = 'IPC_UP_2',
   IPC_UP_3 = 'IPC_UP_3',
   IPC_UP_1 = 'IPC_UP_1',
 }
 
-interface NTQQApiParams {
-  methodName: NTQQApiMethod | string
-  className?: NTQQApiClass
-  channel?: NTQQApiChannel
+interface InvokeParams {
+  methodName: string
+  className?: NTClass
+  channel?: NTChannel
   classNameIsRegister?: boolean
   args?: unknown[]
-  cbCmd?: ReceiveCmd | ReceiveCmd[] | null
+  cbCmd?: string | string[]
   cmdCB?: (payload: any) => boolean
   afterFirstCmd?: boolean // 是否在methodName调用完之后再去hook cbCmd
   timeout?: number
 }
 
-export function callNTQQApi<ReturnType>(params: NTQQApiParams) {
-  const className = params.className ?? NTQQApiClass.NT_API
-  const channel = params.channel ?? NTQQApiChannel.IPC_UP_2
+export function invoke<ReturnType>(params: InvokeParams) {
+  const className = params.className ?? NTClass.NT_API
+  const channel = params.channel ?? NTChannel.IPC_UP_2
   const timeout = params.timeout ?? 5000
   const afterFirstCmd = params.afterFirstCmd ?? true
   const uuid = randomUUID()
@@ -185,5 +184,3 @@ export function callNTQQApi<ReturnType>(params: NTQQApiParams) {
     )
   })
 }
-
-export { GeneralCallResult }

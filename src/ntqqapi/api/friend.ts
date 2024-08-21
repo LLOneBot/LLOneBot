@@ -1,6 +1,6 @@
 import { Friend, FriendV2 } from '../types'
 import { ReceiveCmdS } from '../hook'
-import { callNTQQApi, NTQQApiMethod } from '../ntcall'
+import { invoke, NTMethod } from '../ntcall'
 import { getSession } from '@/ntqqapi/wrapper'
 import { BuddyListReqType, NodeIKernelProfileService } from '../services'
 import { NTEventDispatch } from '@/common/utils/EventTask'
@@ -9,7 +9,7 @@ import { LimitedHashTable } from '@/common/utils/table'
 export class NTQQFriendApi {
   /** 大于或等于 26702 应使用 getBuddyV2 */
   static async getFriends(forced = false) {
-    const data = await callNTQQApi<{
+    const data = await invoke<{
       data: {
         categoryId: number
         categroyName: string
@@ -17,7 +17,7 @@ export class NTQQFriendApi {
         buddyList: Friend[]
       }[]
     }>({
-      methodName: NTQQApiMethod.FRIENDS,
+      methodName: NTMethod.FRIENDS,
       args: [{ force_update: forced }, undefined],
       cbCmd: ReceiveCmdS.FRIENDS,
       afterFirstCmd: false,
@@ -101,7 +101,7 @@ export class NTQQFriendApi {
     if (session) {
       return session.getBuddyService().isBuddy(uid)
     } else {
-      return await callNTQQApi<boolean>({
+      return await invoke<boolean>({
         methodName: 'nodeIKernelBuddyService/isBuddy',
         args: [
           { uid },
