@@ -1,10 +1,9 @@
 import { Friend, FriendV2 } from '../types'
 import { ReceiveCmdS } from '../hook'
-import { callNTQQApi, GeneralCallResult, NTQQApiMethod } from '../ntcall'
+import { callNTQQApi, NTQQApiMethod } from '../ntcall'
 import { getSession } from '@/ntqqapi/wrapper'
 import { BuddyListReqType, NodeIKernelProfileService } from '../services'
 import { NTEventDispatch } from '@/common/utils/EventTask'
-import { CacheClassFuncAsyncExtend } from '@/common/utils/helper'
 import { LimitedHashTable } from '@/common/utils/table'
 
 export class NTQQFriendApi {
@@ -29,23 +28,6 @@ export class NTQQFriendApi {
       _friends.push(...fData.buddyList)
     }
     return _friends
-  }
-
-  static async likeFriend(uid: string, count = 1) {
-    return await callNTQQApi<GeneralCallResult>({
-      methodName: NTQQApiMethod.LIKE_FRIEND,
-      args: [
-        {
-          doLikeUserInfo: {
-            friendUid: uid,
-            sourceId: 71,
-            doLikeCount: count,
-            doLikeTollCount: 0,
-          },
-        },
-        null,
-      ],
-    })
   }
 
   static async handleFriendRequest(flag: string, accept: boolean) {
@@ -73,11 +55,6 @@ export class NTQQFriendApi {
       'NodeIKernelProfileService/getCoreAndBaseInfo', 5000, 'nodeStore', uids
     )
     return Array.from(data.values())
-  }
-
-  @CacheClassFuncAsyncExtend(3600 * 1000, 'getBuddyIdMap', () => true)
-  static async getBuddyIdMapCache(refresh = false): Promise<LimitedHashTable<string, string>> {
-    return await NTQQFriendApi.getBuddyIdMap(refresh)
   }
 
   static async getBuddyIdMap(refresh = false): Promise<LimitedHashTable<string, string>> {
