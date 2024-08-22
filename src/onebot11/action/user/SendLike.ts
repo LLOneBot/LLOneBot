@@ -3,8 +3,8 @@ import { ActionName } from '../types'
 import { NTQQUserApi } from '@/ntqqapi/api'
 
 interface Payload {
-  user_id: number
-  times: number
+  user_id: number | string
+  times: number | string
 }
 
 export default class SendLike extends BaseAction<Payload, null> {
@@ -14,7 +14,7 @@ export default class SendLike extends BaseAction<Payload, null> {
     try {
       const qq = payload.user_id.toString()
       const uid: string = await NTQQUserApi.getUidByUin(qq) || ''
-      const result = await NTQQUserApi.like(uid, parseInt(payload.times?.toString()) || 1)
+      const result = await NTQQUserApi.like(uid, +payload.times || 1)
       if (result?.result !== 0) {
         throw Error(result?.errMsg)
       }
