@@ -82,7 +82,8 @@ export interface CategoryFriend {
   categroyName: string
   categroyMbCount: number
   onlineCount: number
-  buddyList: User[]
+  buddyList: User[] // V1
+  buddyUids: string[]
 }
 
 export interface CoreInfo {
