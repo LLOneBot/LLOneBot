@@ -49,6 +49,7 @@ import { OB11GroupRecallNoticeEvent } from './event/notice/OB11GroupRecallNotice
 import { OB11FriendPokeEvent, OB11GroupPokeEvent } from './event/notice/OB11PokeEvent'
 import { OB11BaseNoticeEvent } from './event/notice/OB11BaseNoticeEvent'
 import { OB11GroupEssenceEvent } from './event/notice/OB11GroupEssenceEvent'
+import { omit } from 'cosmokit'
 
 export class OB11Constructor {
   static async message(msg: RawMessage): Promise<OB11Message> {
@@ -661,7 +662,7 @@ export class OB11Constructor {
     for (const friend of friends) {
       const sexValue = this.sex(friend.baseInfo.sex!)
       data.push({
-        ...friend.baseInfo,
+        ...omit(friend.baseInfo, ['richBuffer']),
         ...friend.coreInfo,
         user_id: parseInt(friend.coreInfo.uin),
         nickname: friend.coreInfo.nick,
