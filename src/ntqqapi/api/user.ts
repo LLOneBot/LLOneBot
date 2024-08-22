@@ -5,7 +5,7 @@ import { friends, groupMembers, getSelfUin } from '@/common/data'
 import { CacheClassFuncAsync, getBuildVersion } from '@/common/utils'
 import { getSession } from '@/ntqqapi/wrapper'
 import { RequestUtil } from '@/common/utils/request'
-import { NodeIKernelProfileService, UserDetailSource, ProfileBizType } from '../services'
+import { NodeIKernelProfileService, UserDetailSource, ProfileBizType, forceFetchClientKeyRetType } from '../services'
 import { NodeIKernelProfileListener } from '../listeners'
 import { NTEventDispatch } from '@/common/utils/EventTask'
 import { NTQQFriendApi } from './friend'
@@ -146,25 +146,31 @@ export class NTQQUserApi {
     return (hash & 0x7fffffff).toString()
   }
 
-  /** 27187 TODO */
-  static async getPSkey(domains: string[]): Promise<Map<string, string>> {
-    const session = getSession()
-    const res = await session?.getTipOffService().getPskey(domains, true)
-    if (res?.result !== 0) {
-      throw new Error(`获取Pskey失败: ${res?.errMsg}`)
-    }
-    return res.domainPskeyMap
-  }
-
-  /** 27187 TODO */
   static async like(uid: string, count = 1) {
     const session = getSession()
-    return session?.getProfileLikeService().setBuddyProfileLike({
-      friendUid: uid,
-      sourceId: 71,
-      doLikeCount: count,
-      doLikeTollCount: 0
-    })
+    if (session) {
+      return session.getProfileLikeService().setBuddyProfileLike({
+        friendUid: uid,
+        sourceId: 71,
+        doLikeCount: count,
+        doLikeTollCount: 0
+      })
+    } else {
+      return await invoke<GeneralCallResult & { succCounts: number }>({
+        methodName: 'nodeIKernelProfileLikeService/setBuddyProfileLike',
+        args: [
+          {
+            doLikeUserInfo: {
+              friendUid: uid,
+              sourceId: 71,
+              doLikeCount: count,
+              doLikeTollCount: 0
+            }
+          },
+          null,
+        ],
+      })
+    }
   }
 
   static async getUidByUinV1(Uin: string) {
@@ -348,9 +354,17 @@ export class NTQQUserApi {
     return await NTQQUserApi.getUinByUidV1(Uid)
   }
 
-  /** 27187 TODO */
   static async forceFetchClientKey() {
     const session = getSession()
-    return await session?.getTicketService().forceFetchClientKey('')
+    if (session) {
+      return await session.getTicketService().forceFetchClientKey('')
+    } else {
+      return await invoke<forceFetchClientKeyRetType>({
+        methodName: 'nodeIKernelTicketService/forceFetchClientKey',
+        args: [{
+          domain: ''
+        }, null],
+      })
+    }
   }
 }

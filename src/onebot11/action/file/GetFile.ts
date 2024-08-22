@@ -63,7 +63,7 @@ export abstract class GetFileBase extends BaseAction<GetFilePayload, GetFileResp
       } else if (fileCache[0].elementType === ElementType.VIDEO) {
         res.url = await NTQQFileApi.getVideoUrl(peer, fileCache[0].msgId, fileCache[0].elementId)
       }
-      if (enableLocalFile2Url && downloadPath && res.file === res.url) {
+      if (enableLocalFile2Url && downloadPath && (res.file === res.url || res.url === undefined)) {
         try {
           res.base64 = await fsPromise.readFile(downloadPath, 'base64')
         } catch (e) {

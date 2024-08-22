@@ -178,29 +178,6 @@ export class WebApi {
     return memberData
   }
 
-  static async setGroupNotice(GroupCode: string, Content: string = '') {
-    //https://web.qun.qq.com/cgi-bin/announce/add_qun_notice?bkn=${bkn}
-    //qid=${群号}&bkn=${bkn}&text=${内容}&pinned=0&type=1&settings={"is_show_edit_card":1,"tip_window_type":1,"confirm_required":1}
-    const _Pskey = (await NTQQUserApi.getPSkey(['qun.qq.com']))['qun.qq.com']
-    const _Skey = await NTQQUserApi.getSkey()
-    const CookieValue = 'p_skey=' + _Pskey + '; skey=' + _Skey + '; p_uin=o' + getSelfUin()
-    let ret: any = undefined
-    //console.log(CookieValue)
-    if (!_Skey || !_Pskey) {
-      //获取Cookies失败
-      return undefined
-    }
-    const Bkn = WebApi.genBkn(_Skey)
-    const data = 'qid=' + GroupCode + '&bkn=' + Bkn + '&text=' + Content + '&pinned=0&type=1&settings={"is_show_edit_card":1,"tip_window_type":1,"confirm_required":1}'
-    const url = 'https://web.qun.qq.com/cgi-bin/announce/add_qun_notice?bkn=' + Bkn
-    try {
-      ret = await RequestUtil.HttpGetJson<any>(url, 'GET', '', { 'Cookie': CookieValue })
-      return ret
-    } catch (e) {
-      return undefined
-    }
-  }
-
   static genBkn(sKey: string) {
     sKey = sKey || '';
     let hash = 5381;
