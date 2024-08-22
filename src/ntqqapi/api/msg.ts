@@ -1,5 +1,5 @@
 import { invoke, NTMethod } from '../ntcall'
-import { GeneralCallResult } from '../services'
+import { GeneralCallResult, TmpChatInfoApi } from '../services'
 import { RawMessage, SendMessageElement, Peer, ChatType2 } from '../types'
 import { getSelfNick, getSelfUid } from '../../common/data'
 import { getSession } from '@/ntqqapi/wrapper'
@@ -16,10 +16,22 @@ function generateMsgId() {
 }
 
 export class NTQQMsgApi {
-  /** 27187 TODO */
   static async getTempChatInfo(chatType: ChatType2, peerUid: string) {
     const session = getSession()
-    return session?.getMsgService().getTempChatInfo(chatType, peerUid)
+    if (session) {
+      return session.getMsgService().getTempChatInfo(chatType, peerUid)
+    } else {
+      return await invoke<TmpChatInfoApi>({
+        methodName: 'nodeIKernelMsgService/getTempChatInfo',
+        args: [
+          {
+            chatType,
+            peerUid,
+          },
+          null,
+        ],
+      })
+    }
   }
 
   static async setEmojiLike(peer: Peer, msgSeq: string, emojiId: string, set: boolean = true) {
