@@ -5,6 +5,7 @@ import { getSession } from '@/ntqqapi/wrapper'
 import { BuddyListReqType, NodeIKernelProfileService } from '../services'
 import { NTEventDispatch } from '@/common/utils/EventTask'
 import { LimitedHashTable } from '@/common/utils/table'
+import { pick } from 'cosmokit'
 
 export class NTQQFriendApi {
   /** 大于或等于 26702 应使用 getBuddyV2 */
@@ -73,7 +74,7 @@ export class NTQQFriendApi {
     } else {
       const data = await invoke<{
         buddyCategory: CategoryFriend[]
-        userSimpleInfos: Map<string, SimpleInfo>
+        userSimpleInfos: Record<string, SimpleInfo>
       }>({
         className: NTClass.NODE_STORE_API,
         methodName: 'getBuddyList',
@@ -81,7 +82,11 @@ export class NTQQFriendApi {
         cbCmd: ReceiveCmdS.FRIENDS,
         afterFirstCmd: false,
       })
-      return Array.from(data.userSimpleInfos.values())
+      const categoryUids: Map<number, string[]> = new Map()
+      for (const item of data.buddyCategory) {
+        categoryUids.set(item.categoryId, item.buddyUids)
+      }
+      return Object.values(data.userSimpleInfos).filter(v => v.baseInfo && categoryUids.get(v.baseInfo.categoryId)?.includes(v.uid!))
     }
   }
 
@@ -102,7 +107,7 @@ export class NTQQFriendApi {
     } else {
       const data = await invoke<{
         buddyCategory: CategoryFriend[]
-        userSimpleInfos: Map<string, SimpleInfo>
+        userSimpleInfos: Record<string, SimpleInfo>
       }>({
         className: NTClass.NODE_STORE_API,
         methodName: 'getBuddyList',
@@ -110,9 +115,9 @@ export class NTQQFriendApi {
         cbCmd: ReceiveCmdS.FRIENDS,
         afterFirstCmd: false,
       })
-      data.userSimpleInfos.forEach((value, key) => {
-        retMap.set(value.uin!, value.uid!)
-      })
+      for (const item of Object.values(data.userSimpleInfos)) {
+        retMap.set(item.uin!, item.uid!)
+      }
     }
     return retMap
   }
@@ -141,7 +146,7 @@ export class NTQQFriendApi {
     } else {
       const data = await invoke<{
         buddyCategory: CategoryFriend[]
-        userSimpleInfos: Map<string, SimpleInfo>
+        userSimpleInfos: Record<string, SimpleInfo>
       }>({
         className: NTClass.NODE_STORE_API,
         methodName: 'getBuddyList',
@@ -149,16 +154,19 @@ export class NTQQFriendApi {
         cbCmd: ReceiveCmdS.FRIENDS,
         afterFirstCmd: false,
       })
-      return Array.from(data.userSimpleInfos).map(([key, value]) => {
-        if (value.baseInfo) {
+      const category: Map<number, Pick<CategoryFriend, 'buddyUids' | 'categroyName'>> = new Map()
+      for (const item of data.buddyCategory) {
+        category.set(item.categoryId, pick(item, ['buddyUids', 'categroyName']))
+      }
+      return Object.values(data.userSimpleInfos)
+        .filter(v => v.baseInfo && category.get(v.baseInfo.categoryId)?.buddyUids.includes(v.uid!))
+        .map(value => {
           return {
             ...value,
             categoryId: value.baseInfo.categoryId,
-            categroyName: data.buddyCategory.find(e => e.categoryId === value.baseInfo.categoryId)?.categroyName
+            categroyName: category.get(value.baseInfo.categoryId)?.categroyName
           }
-        }
-        return value
-      })
+        })
     }
   }
 
