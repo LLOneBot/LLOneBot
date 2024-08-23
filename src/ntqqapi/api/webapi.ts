@@ -197,7 +197,7 @@ export class WebApi {
       let res = '';
       let resJson;
       try {
-        res = await RequestUtil.HttpGetText(url, 'GET', '', { 'Cookie': CookieValue });
+        res = await RequestUtil.HttpGetText(url, 'GET', '', { 'Cookie': cookieStr });
         const match = res.match(/window\.__INITIAL_STATE__=(.*?);/);
         if (match) {
           resJson = JSON.parse(match[1].trim());
@@ -214,7 +214,8 @@ export class WebApi {
     }
 
     let HonorInfo: any = { group_id: groupCode };
-    const CookieValue = (await NTQQUserApi.getCookies('qun.qq.com')).cookies;
+    const cookieObject = await NTQQUserApi.getCookies('qun.qq.com')
+    const cookieStr = Object.entries(cookieObject).map(([key, value]) => `${key}=${value}`).join('; ')
 
     if (getType === WebHonorType.TALKACTIVE || getType === WebHonorType.ALL) {
       try {
