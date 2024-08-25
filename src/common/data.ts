@@ -1,44 +1,23 @@
 import {
-  type Friend,
   type GroupMember,
   type SelfInfo,
 } from '../ntqqapi/types'
 import { type LLOneBotError } from './types'
 import { NTQQGroupApi } from '../ntqqapi/api/group'
-import { log } from './utils/log'
 import { isNumeric } from './utils/helper'
-import { NTQQFriendApi, NTQQUserApi } from '../ntqqapi/api'
+import { NTQQUserApi } from '../ntqqapi/api'
 import { RawMessage } from '../ntqqapi/types'
 import { getConfigUtil } from './config'
-import { getBuildVersion } from './utils/QQBasicInfo'
 
-export let friends: Friend[] = []
 export const llonebotError: LLOneBotError = {
   ffmpegError: '',
   httpServerError: '',
   wsServerError: '',
   otherError: 'LLOneBot 未能正常启动，请检查日志查看错误',
 }
+
 // 群号 -> 群成员map(uid=>GroupMember)
 export const groupMembers: Map<string, Map<string, GroupMember>> = new Map<string, Map<string, GroupMember>>()
-
-export async function getFriend(uinOrUid: string): Promise<Friend | undefined> {
-  const filterKey: 'uin' | 'uid' = isNumeric(uinOrUid.toString()) ? 'uin' : 'uid'
-  const filterValue = uinOrUid
-  let friend = friends.find((friend) => friend[filterKey] === filterValue.toString())
-  if (!friend && getBuildVersion() < 26702) {
-    try {
-      const _friends = await NTQQFriendApi.getFriends(true)
-      friend = _friends.find((friend) => friend[filterKey] === filterValue.toString())
-      if (friend) {
-        friends.push(friend)
-      }
-    } catch (e: any) {
-      log('刷新好友列表失败', e.stack.toString())
-    }
-  }
-  return friend
-}
 
 export async function getGroupMember(groupCode: string | number, memberUinOrUid: string | number) {
   const groupCodeStr = groupCode.toString()

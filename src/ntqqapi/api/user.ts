@@ -1,7 +1,7 @@
 import { invoke, NTMethod } from '../ntcall'
 import { GeneralCallResult } from '../services'
 import { User, UserDetailInfoByUin, UserDetailInfoByUinV2, UserDetailInfoListenerArg } from '../types'
-import { friends, groupMembers, getSelfUin } from '@/common/data'
+import { groupMembers, getSelfUin } from '@/common/data'
 import { CacheClassFuncAsync, getBuildVersion } from '@/common/utils'
 import { getSession } from '@/ntqqapi/wrapper'
 import { RequestUtil } from '@/common/utils/request'
@@ -177,14 +177,6 @@ export class NTQQUserApi {
     const session = getSession()
     // 通用转换开始尝试
     let uid = (await session?.getUixConvertService().getUid([Uin]))?.uidInfo.get(Uin)
-    // Uid 好友转
-    if (!uid) {
-      friends.forEach((t) => {
-        if (t.uin == Uin) {
-          uid = t.uid
-        }
-      })
-    }
     //Uid 群友列表转
     if (!uid) {
       for (let groupMembersList of groupMembers.values()) {
@@ -289,14 +281,6 @@ export class NTQQUserApi {
         [Uid]
       )
     let uin = ret.uinInfo.get(Uid)
-    if (!uin) {
-      //从Buddy缓存获取Uin
-      friends.forEach((t) => {
-        if (t.uid == Uid) {
-          uin = t.uin
-        }
-      })
-    }
     if (!uin) {
       uin = (await NTQQUserApi.getUserDetailInfo(Uid)).uin //从QQ Native 转换
     }
