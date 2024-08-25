@@ -12,10 +12,12 @@ export interface OB11Config {
   enableHttpHeart?: boolean
   enableQOAutoQuote: boolean  // 快速操作回复自动引用原消息
 }
+
 export interface CheckVersion {
   result: boolean
   version: string
 }
+
 export interface Config {
   enableLLOB: boolean
   ob11: OB11Config

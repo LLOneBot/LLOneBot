@@ -18,14 +18,14 @@ export class NTQQFriendApi {
         buddyList: Friend[]
       }[]
     }>({
-      methodName: NTMethod.FRIENDS,
-      args: [{ force_update: forced }, undefined],
+      className: NTClass.NODE_STORE_API,
+      methodName: 'getBuddyList',
       cbCmd: ReceiveCmdS.FRIENDS,
       afterFirstCmd: false,
     })
-    let _friends: Friend[] = []
-    for (const fData of data.data) {
-      _friends.push(...fData.buddyList)
+    const _friends: Friend[] = []
+    for (const item of data.data) {
+      _friends.push(...item.buddyList)
     }
     return _friends
   }
