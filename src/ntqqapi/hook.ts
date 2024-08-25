@@ -1,17 +1,16 @@
 import type { BrowserWindow } from 'electron'
 import { NTClass, NTMethod } from './ntcall'
-import { NTQQMsgApi } from './api/msg'
+import { NTQQMsgApi, NTQQFriendApi } from './api'
 import {
   CategoryFriend,
   ChatType,
   GroupMember,
   GroupMemberRole,
   RawMessage,
-  SimpleInfo, User,
+  SimpleInfo,
+  User
 } from './types'
 import {
-  friends,
-  getFriend,
   getGroupMember,
   setSelfInfo
 } from '@/common/data'
@@ -224,116 +223,7 @@ export function removeReceiveHook(id: string) {
   receiveHooks.splice(index, 1)
 }
 
-//let activatedGroups: string[] = []
-
-/*async function updateGroups(_groups: Group[], needUpdate: boolean = true) {
-  for (let group of _groups) {
-    log('update group', group.groupCode)
-    if (group.privilegeFlag === 0) {
-      deleteGroup(group.groupCode)
-      continue
-    }
-    //log('update group', group)
-    NTQQMsgApi.activateChat({ peerUid: group.groupCode, chatType: ChatType.group }).then().catch(log)
-    let existGroup = groups.find((g) => g.groupCode == group.groupCode)
-    if (existGroup) {
-      Object.assign(existGroup, group)
-    } else {
-      groups.push(group)
-      existGroup = group
-    }
-
-    if (needUpdate) {
-      const members = await NTQQGroupApi.getGroupMembers(group.groupCode)
-
-      if (members) {
-        existGroup.members = Array.from(members.values())
-      }
-    }
-  }
-}*/
-
-/*async function processGroupEvent(payload: { groupList: Group[] }) {
-  try {
-    const newGroupList = payload.groupList
-    for (const group of newGroupList) {
-      let existGroup = groups.find((g) => g.groupCode == group.groupCode)
-      if (existGroup) {
-        if (existGroup.memberCount > group.memberCount) {
-          log(`群(${group.groupCode})成员数量减少${existGroup.memberCount} -> ${group.memberCount}`)
-          const oldMembers = existGroup.members
-
-          await sleep(200) // 如果请求QQ API的速度过快，通常无法正确拉取到最新的群信息，因此这里人为引入一个延时
-          const newMembers = await NTQQGroupApi.getGroupMembers(group.groupCode)
-
-          group.members = Array.from(newMembers.values())
-          const newMembersSet = new Set<string>() // 建立索引降低时间复杂度
-
-          for (const member of newMembers) {
-            newMembersSet.add(member[1].uin)
-          }
-
-          // 判断bot是否是管理员，如果是管理员不需要从这里得知有人退群，这里的退群无法得知是主动退群还是被踢
-          const selfUin = getSelfUin()
-          const bot = await getGroupMember(group.groupCode, selfUin)
-          if (bot?.role == GroupMemberRole.admin || bot?.role == GroupMemberRole.owner) {
-            continue
-          }
-          for (const member of oldMembers) {
-            if (!newMembersSet.has(member.uin) && member.uin != selfUin) {
-              postOb11Event(
-                new OB11GroupDecreaseEvent(
-                  parseInt(group.groupCode),
-                  parseInt(member.uin),
-                  parseInt(member.uin),
-                  'leave',
-                ),
-              )
-              break
-            }
-          }
-        }
-        if (group.privilegeFlag === 0) {
-          deleteGroup(group.groupCode)
-        }
-      }
-    }
-
-    updateGroups(newGroupList, false).then()
-  } catch (e: any) {
-    updateGroups(payload.groupList).then()
-    log('更新群信息错误', e.stack.toString())
-  }
-}*/
-
 export async function startHook() {
-
-  // 群列表变动
-  /*registerReceiveHook<{ groupList: Group[]; updateType: number }>(ReceiveCmdS.GROUPS, (payload) => {
-    // updateType 3是群列表变动，2是群成员变动
-    // log("群列表变动", payload.updateType, payload.groupList)
-    if (payload.updateType != 2) {
-      updateGroups(payload.groupList).then()
-    }
-    else {
-      if (process.platform == 'win32') {
-        processGroupEvent(payload).then()
-      }
-    }
-  })
-  registerReceiveHook<{ groupList: Group[]; updateType: number }>(ReceiveCmdS.GROUPS_STORE, (payload) => {
-    // updateType 3是群列表变动，2是群成员变动
-    // log("群列表变动, store", payload.updateType, payload.groupList)
-    if (payload.updateType != 2) {
-      updateGroups(payload.groupList).then()
-    }
-    else {
-      if (process.platform != 'win32') {
-        processGroupEvent(payload).then()
-      }
-    }
-  })*/
-
   registerReceiveHook<{
     groupCode: string
     dataSource: number
@@ -402,13 +292,6 @@ export async function startHook() {
     log('好友列表变动', friendList.length)
     for (let friend of friendList) {
       NTQQMsgApi.activateChat({ peerUid: friend.uid, chatType: ChatType.friend }).then()
-      let existFriend = friends.find((f) => f.uin == friend.uin)
-      if (!existFriend) {
-        friends.push(friend)
-      }
-      else {
-        Object.assign(existFriend, friend)
-      }
     }
   })
 
@@ -506,11 +389,8 @@ export async function startHook() {
     if (isNumeric(peerUid)) {
       chatType = ChatType.group
     }
-    else {
-      // 检查是否好友
-      if (!(await getFriend(peerUid))) {
-        chatType = ChatType.temp
-      }
+    else if (!(await NTQQFriendApi.isBuddy(peerUid))) {
+      chatType = ChatType.temp
     }
     const peer = { peerUid, chatType }
     await sleep(1000)
