@@ -157,6 +157,23 @@ export class NTQQMsgApi {
     }
   }
 
+  static async prepareTempMessage(uid: string, fromGroup: string) {
+    return await invoke({
+      methodName: NTMethod.PREPARE_TEMP_CHAT,
+      args: [{
+        preInfo: {
+          chatType: 100,
+          peerUid: uid,
+          fromGroupCode: fromGroup.toString(),
+          sig: '',
+          peerNickname: '',
+          selfUid: '',
+          selfPhone: ''
+        }
+      }, undefined]
+    })
+  }
+
   static async sendMsg(peer: Peer, msgElements: SendMessageElement[], waitComplete = true, timeout = 10000) {
     const msgId = generateMsgId()
     peer.guildId = msgId

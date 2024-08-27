@@ -303,6 +303,26 @@ async function createContext(payload: OB11PostSendMsg, contextMode: ContextMode)
   // This function determines the type of message by the existence of user_id / group_id,
   // not message_type.
   // This redundant design of Ob11 here should be blamed.
+  if (payload.user_id && payload.group_id) {  // 有群号和用户QQ号，就认为是临时消息
+    let members = await NTQQGroupApi.getGroupMembers(payload.group_id)
+    let tempUserUid: string | null = null;
+
+    for (let member of members.values()) {
+      if (member.uin == payload.user_id) {
+        tempUserUid = member.uid
+        break
+      }
+    }
+
+    if (tempUserUid == null) throw `在群${payload.group_id}内找不到私聊对象${payload.user_id}`
+    await NTQQMsgApi.prepareTempMessage(tempUserUid, payload.group_id);
+
+    return {
+      chatType: ChatType.temp,
+      peerUid: tempUserUid!,
+      guildId: payload.group_id.toString()
+    }
+  }
 
   if ((contextMode === ContextMode.Group || contextMode === ContextMode.Normal) && payload.group_id) {
     return {
@@ -320,6 +340,7 @@ async function createContext(payload: OB11PostSendMsg, contextMode: ContextMode)
       guildId: payload.group_id?.toString() || '' //临时主动发起时需要传入群号
     }
   }
+
   throw '请指定 group_id 或 user_id'
 }
 
@@ -340,14 +361,6 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
       return {
         valid: false,
         message: '音乐消息不可以和其他消息混在一起发送',
-      }
-    }
-    if (payload.user_id && payload.message_type !== 'group') {
-      const uid = await NTQQUserApi.getUidByUin(payload.user_id.toString())
-      const isBuddy = await NTQQFriendApi.isBuddy(uid!)
-      // 此处有问题
-      if (!isBuddy) {
-        //return { valid: false, message: '异常消息' }
       }
     }
     return {

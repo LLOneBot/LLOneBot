@@ -48,6 +48,7 @@ export enum NTMethod {
 
   RECALL_MSG = 'nodeIKernelMsgService/recallMsg',
   SEND_MSG = 'nodeIKernelMsgService/sendMsg',
+  PREPARE_TEMP_CHAT = "nodeIKernelMsgService/prepareTempChat",
   EMOJI_LIKE = 'nodeIKernelMsgService/setMsgEmojiLikes',
 
   DOWNLOAD_MEDIA = 'nodeIKernelMsgService/downloadRichMedia',
