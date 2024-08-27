@@ -1,9 +1,9 @@
+import BaseAction from '../BaseAction'
 import { OB11GroupMember } from '../../types'
 import { OB11Constructor } from '../../constructor'
-import BaseAction from '../BaseAction'
 import { ActionName } from '../types'
-import { isNull } from '@/common/utils/helper'
 import { selfInfo } from '@/common/globalVars'
+import { isNullable } from 'cosmokit'
 
 interface Payload {
   group_id: number | string
@@ -16,7 +16,7 @@ class GetGroupMemberInfo extends BaseAction<Payload, OB11GroupMember> {
   protected async _handle(payload: Payload) {
     const member = await this.ctx.ntGroupApi.getGroupMember(payload.group_id.toString(), payload.user_id.toString())
     if (member) {
-      if (isNull(member.sex)) {
+      if (isNullable(member.sex)) {
         //log('获取群成员详细信息')
         const info = await this.ctx.ntUserApi.getUserDetailInfo(member.uid, true)
         //log('群成员详细信息结果', info)

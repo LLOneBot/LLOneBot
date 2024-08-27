@@ -8,7 +8,7 @@ import { llonebotError, selfInfo } from '@/common/globalVars'
 import { OB11Response } from '../action/OB11Response'
 import { OB11Message } from '../types'
 import { OB11BaseEvent } from '../event/OB11BaseEvent'
-import { handleQuickOperation, QuickOperationEvent } from '../helper/quick-operation'
+import { handleQuickOperation, QuickOperationEvent } from '../helper/quickOperation'
 import { OB11HeartbeatEvent } from '../event/meta/OB11HeartbeatEvent'
 
 type RegisterHandler = (res: Response, payload: any) => Promise<any>

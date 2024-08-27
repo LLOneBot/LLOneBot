@@ -1,8 +1,8 @@
-import { version } from '../../version'
-import * as path from 'node:path'
-import * as fs from 'node:fs'
-import { copyFolder, httpDownload, log } from '.'
+import path from 'node:path'
 import compressing from 'compressing'
+import { writeFile } from 'node:fs/promises'
+import { version } from '../../version'
+import { copyFolder, log, fetchFile } from '.'
 import { PLUGIN_DIR, TEMP_DIR } from '../globalVars'
 
 const downloadMirrorHosts = ['https://mirror.ghproxy.com/']
@@ -34,8 +34,8 @@ export async function upgradeLLOneBot() {
     // 多镜像下载
     for (const mirrorGithub of downloadMirrorHosts) {
       try {
-        const buffer = await httpDownload(mirrorGithub + downloadUrl)
-        fs.writeFileSync(filePath, buffer)
+        const res = await fetchFile(mirrorGithub + downloadUrl)
+        await writeFile(filePath, res.data)
         downloadSuccess = true
         break
       } catch (e) {
@@ -89,7 +89,7 @@ export async function getRemoteVersionByMirror(mirrorGithub: string) {
   let releasePage = 'error'
 
   try {
-    releasePage = (await httpDownload(mirrorGithub + '/LLOneBot/LLOneBot/releases')).toString()
+    releasePage = (await fetchFile(mirrorGithub + '/LLOneBot/LLOneBot/releases')).data.toString()
     // log("releasePage", releasePage);
     if (releasePage === 'error') return ''
     return releasePage.match(new RegExp('(?<=(tag/v)).*?(?=("))'))?.[0]

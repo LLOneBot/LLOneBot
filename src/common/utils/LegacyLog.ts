@@ -1,8 +1,24 @@
 import fs from 'fs'
 import path from 'node:path'
-import { truncateString } from './index'
 import { getConfigUtil } from '../config'
 import { LOG_DIR } from '../globalVars'
+
+function truncateString(obj: any, maxLength = 500) {
+  if (obj !== null && typeof obj === 'object') {
+    Object.keys(obj).forEach((key) => {
+      if (typeof obj[key] === 'string') {
+        // 如果是字符串且超过指定长度，则截断
+        if (obj[key].length > maxLength) {
+          obj[key] = obj[key].substring(0, maxLength) + '...'
+        }
+      } else if (typeof obj[key] === 'object') {
+        // 如果是对象或数组，则递归调用
+        truncateString(obj[key], maxLength)
+      }
+    })
+  }
+  return obj
+}
 
 export const logFileName = `llonebot-${new Date().toLocaleString('zh-CN')}.log`.replace(/\//g, '-').replace(/:/g, '-')
 

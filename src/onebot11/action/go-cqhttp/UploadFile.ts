@@ -5,7 +5,7 @@ import { SendMsgElementConstructor } from '@/ntqqapi/constructor'
 import { ChatType, SendFileElement } from '@/ntqqapi/types'
 import { uri2local } from '@/common/utils'
 import { Peer } from '@/ntqqapi/types'
-import { sendMsg } from '../msg/SendMsg'
+import { sendMsg } from '../../helper/createMessage'
 
 interface Payload {
   user_id: number | string

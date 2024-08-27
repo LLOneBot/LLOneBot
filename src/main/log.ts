@@ -3,9 +3,9 @@ import { Context, Logger } from 'cordis'
 import { appendFile } from 'node:fs'
 import { LOG_DIR, selfInfo } from '@/common/globalVars'
 import { noop } from 'cosmokit'
-import { getConfigUtil } from '../common/config'
 
 interface Config {
+  enable: boolean
   filename: string
 }
 
@@ -13,9 +13,8 @@ export default class Log {
   static name = 'logger'
 
   constructor(ctx: Context, cfg: Config) {
-    // fetch data from the database
     Logger.targets.splice(0, Logger.targets.length)
-    if (!getConfigUtil().getConfig().log) {
+    if (!cfg.enable) {
       return
     }
     const file = path.join(LOG_DIR, cfg.filename)

@@ -5,8 +5,8 @@ import { MessageUnique } from '../common/utils/MessageUnique'
 import { NTEventDispatch } from '../common/utils/EventTask'
 import { wrapperConstructor, getSession } from './wrapper'
 import { Config as LLOBConfig } from '../common/types'
-import { llonebotError, TEMP_DIR } from '../common/globalVars'
-import { isNumeric } from '../common/utils/helper'
+import { llonebotError } from '../common/globalVars'
+import { isNumeric } from '../common/utils/misc'
 import { NTMethod } from './ntcall'
 import {
   RawMessage,

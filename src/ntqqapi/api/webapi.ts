@@ -129,22 +129,6 @@ export class NTQQWebApi extends Service {
     super(ctx, 'ntWebApi', true)
   }
 
-  async getGroupEssenceMsg(GroupCode: string, page_start: string): Promise<GroupEssenceMsgRet | undefined> {
-    const { cookies: CookieValue, bkn: Bkn } = await this.ctx.ntUserApi.getCookies('qun.qq.com')
-    const url = 'https://qun.qq.com/cgi-bin/group_digest/digest_list?bkn=' + Bkn + '&group_code=' + GroupCode + '&page_start=' + page_start + '&page_limit=20'
-    let ret: GroupEssenceMsgRet
-    try {
-      ret = await RequestUtil.HttpGetJson<GroupEssenceMsgRet>(url, 'GET', '', { 'Cookie': CookieValue })
-    } catch {
-      return undefined
-    }
-    //console.log(url, CookieValue)
-    if (ret.retcode !== 0) {
-      return undefined
-    }
-    return ret
-  }
-
   async getGroupMembers(GroupCode: string, cached: boolean = true): Promise<WebApiGroupMember[]> {
     const memberData: Array<WebApiGroupMember> = new Array<WebApiGroupMember>()
     const cookieObject = await this.ctx.ntUserApi.getCookies('qun.qq.com')

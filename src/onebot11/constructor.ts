@@ -18,7 +18,6 @@ import {
   Peer,
   GroupMember,
   RawMessage,
-  SelfInfo,
   Sex,
   TipGroupElementType,
   User,
@@ -32,8 +31,7 @@ import { OB11GroupIncreaseEvent } from './event/notice/OB11GroupIncreaseEvent'
 import { OB11GroupBanEvent } from './event/notice/OB11GroupBanEvent'
 import { OB11GroupUploadNoticeEvent } from './event/notice/OB11GroupUploadNoticeEvent'
 import { OB11GroupNoticeEvent } from './event/notice/OB11GroupNoticeEvent'
-import { calcQQLevel } from '../common/utils/qqlevel'
-import { isNull, sleep } from '../common/utils/helper'
+import { calcQQLevel } from '../common/utils/misc'
 import { getConfigUtil } from '../common/config'
 import { OB11GroupTitleEvent } from './event/notice/OB11GroupTitleEvent'
 import { OB11GroupCardEvent } from './event/notice/OB11GroupCardEvent'
@@ -46,7 +44,7 @@ import { OB11GroupRecallNoticeEvent } from './event/notice/OB11GroupRecallNotice
 import { OB11FriendPokeEvent, OB11GroupPokeEvent } from './event/notice/OB11PokeEvent'
 import { OB11BaseNoticeEvent } from './event/notice/OB11BaseNoticeEvent'
 import { OB11GroupEssenceEvent } from './event/notice/OB11GroupEssenceEvent'
-import { omit } from 'cosmokit'
+import { omit, isNullable } from 'cosmokit'
 import { Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
 
@@ -379,7 +377,7 @@ export namespace OB11Constructor {
         // log("收到群提示消息", groupElement)
         if (groupElement.type === TipGroupElementType.memberIncrease) {
           ctx.logger.info('收到群成员增加消息', groupElement)
-          await sleep(1000)
+          await ctx.sleep(1000)
           const member = await ctx.ntGroupApi.getGroupMember(msg.peerUid, groupElement.memberUid)
           let memberUin = member?.uin
           if (!memberUin) {
@@ -598,7 +596,7 @@ export namespace OB11Constructor {
             const title = json.items[3].txt
             ctx.logger.info('收到群成员新头衔消息', json)
             ctx.ntGroupApi.getGroupMember(msg.peerUid, memberUin).then(member => {
-              if (!isNull(member)) {
+              if (!isNullable(member)) {
                 member.memberSpecialTitle = title
               }
             })

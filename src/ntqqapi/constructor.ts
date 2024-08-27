@@ -18,9 +18,9 @@ import ffmpeg from 'fluent-ffmpeg'
 import { calculateFileMD5, isGIF } from '../common/utils/file'
 import { defaultVideoThumb, getVideoInfo } from '../common/utils/video'
 import { encodeSilk } from '../common/utils/audio'
-import { isNull } from '../common/utils'
 import faceConfig from './helper/face_config.json'
 import { Context } from 'cordis'
+import { isNullable } from 'cosmokit'
 
 export const mFaceCache = new Map<string, string>() // emojiId -> faceName
 
@@ -315,7 +315,7 @@ export namespace SendMsgElementConstructor {
     // 实际测试并不能控制结果
 
     // 随机1到6
-    if (isNull(resultId)) resultId = Math.floor(Math.random() * 6) + 1
+    if (isNullable(resultId)) resultId = Math.floor(Math.random() * 6) + 1
     return {
       elementType: ElementType.FACE,
       elementId: '',
@@ -337,7 +337,7 @@ export namespace SendMsgElementConstructor {
   // 猜拳(石头剪刀布)表情
   export function rps(resultId: number | null): SendFaceElement {
     // 实际测试并不能控制结果
-    if (isNull(resultId)) resultId = Math.floor(Math.random() * 3) + 1
+    if (isNullable(resultId)) resultId = Math.floor(Math.random() * 3) + 1
     return {
       elementType: ElementType.FACE,
       elementId: '',
