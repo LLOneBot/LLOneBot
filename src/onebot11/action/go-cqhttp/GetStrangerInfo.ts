@@ -2,9 +2,9 @@ import BaseAction from '../BaseAction'
 import { OB11User } from '../../types'
 import { OB11Constructor } from '../../constructor'
 import { ActionName } from '../types'
-import { getBuildVersion } from '@/common/utils/QQBasicInfo'
+import { getBuildVersion } from '@/common/utils'
 import { OB11UserSex } from '../../types'
-import { calcQQLevel } from '@/common/utils/qqlevel'
+import { calcQQLevel } from '@/common/utils/misc'
 
 interface Payload {
   user_id: number | string

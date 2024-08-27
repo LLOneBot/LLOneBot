@@ -2,7 +2,7 @@ import BaseAction from '../BaseAction'
 import { OB11User } from '../../types'
 import { OB11Constructor } from '../../constructor'
 import { ActionName } from '../types'
-import { getBuildVersion } from '@/common/utils/QQBasicInfo'
+import { getBuildVersion } from '@/common/utils'
 
 interface Payload {
   no_cache: boolean | string

@@ -1,6 +1,6 @@
+import BaseAction from '../BaseAction'
 import { OB11Message } from '../../types'
 import { OB11Constructor } from '../../constructor'
-import BaseAction from '../BaseAction'
 import { ActionName } from '../types'
 import { MessageUnique } from '@/common/utils/MessageUnique'
 
@@ -14,7 +14,6 @@ class GetMsg extends BaseAction<PayloadType, OB11Message> {
   actionName = ActionName.GetMsg
 
   protected async _handle(payload: PayloadType) {
-    // log("history msg ids", Object.keys(msgHistory));
     if (!payload.message_id) {
       throw '参数message_id不能为空'
     }

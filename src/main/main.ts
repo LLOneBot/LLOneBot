@@ -50,7 +50,7 @@ function onLoad() {
   }
 
   if (!fs.existsSync(LOG_DIR)) {
-    fs.mkdirSync(LOG_DIR, { recursive: true })
+    fs.mkdirSync(LOG_DIR)
   }
 
   ipcMain.handle(CHANNEL_CHECK_VERSION, async (event, arg) => {
@@ -152,10 +152,11 @@ function onLoad() {
       return
     }
     if (!fs.existsSync(TEMP_DIR)) {
-      fs.mkdirSync(TEMP_DIR, { recursive: true })
+      fs.mkdirSync(TEMP_DIR)
     }
     const ctx = new Context()
     ctx.plugin(Log, {
+      enable: config.log!,
       filename: logFileName
     })
     ctx.plugin(NTQQFileApi)

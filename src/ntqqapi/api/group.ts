@@ -8,7 +8,7 @@ import { NTEventDispatch } from '@/common/utils/EventTask'
 import { NodeIKernelGroupListener } from '../listeners'
 import { NodeIKernelGroupService } from '../services'
 import { Service, Context } from 'cordis'
-import { isNumeric } from '@/common/utils/helper'
+import { isNumeric } from '@/common/utils/misc'
 
 declare module 'cordis' {
   interface Context {

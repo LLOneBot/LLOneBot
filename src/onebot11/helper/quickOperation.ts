@@ -2,12 +2,11 @@ import { OB11Message, OB11MessageAt, OB11MessageData, OB11MessageDataType } from
 import { OB11FriendRequestEvent } from '../event/request/OB11FriendRequest'
 import { OB11GroupRequestEvent } from '../event/request/OB11GroupRequest'
 import { ChatType, GroupRequestOperateTypes, Peer } from '@/ntqqapi/types'
-import { convertMessage2List, createSendElements, sendMsg } from '../action/msg/SendMsg'
+import { convertMessage2List, createSendElements, sendMsg } from '../helper/createMessage'
 import { getConfigUtil } from '@/common/config'
 import { MessageUnique } from '@/common/utils/MessageUnique'
 import { isNullable } from 'cosmokit'
 import { Context } from 'cordis'
-
 
 interface QuickOperationPrivateMessage {
   reply?: string
@@ -21,7 +20,6 @@ interface QuickOperationGroupMessage extends QuickOperationPrivateMessage {
   kick?: boolean
   ban?: boolean
   ban_duration?: number
-  //
 }
 
 interface QuickOperationFriendRequest {
