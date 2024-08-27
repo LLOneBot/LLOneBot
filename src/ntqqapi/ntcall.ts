@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
 import { hookApiCallbacks, registerReceiveHook, removeReceiveHook } from './hook'
-import { log } from '../common/utils/LegacyLog'
+import { log } from '../common/utils/legacyLog'
 import { randomUUID } from 'node:crypto'
 import { GeneralCallResult } from './services'
 

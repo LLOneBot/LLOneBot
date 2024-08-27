@@ -23,7 +23,7 @@ import { checkFfmpeg } from '../common/utils/video'
 import { getSession } from '../ntqqapi/wrapper'
 import { Context } from 'cordis'
 import { llonebotError, selfInfo, LOG_DIR, DATA_DIR, TEMP_DIR } from '../common/globalVars'
-import { log, logFileName } from '../common/utils/LegacyLog'
+import { log, logFileName } from '../common/utils/legacyLog'
 import {
   NTQQFileApi,
   NTQQFileCacheApi,

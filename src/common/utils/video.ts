@@ -1,6 +1,6 @@
 import ffmpeg from 'fluent-ffmpeg'
 import fs from 'node:fs'
-import { log } from './LegacyLog'
+import { log } from './legacyLog'
 import { getConfigUtil } from '../config'
 
 const defaultVideoThumbB64 =

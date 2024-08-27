@@ -2,7 +2,7 @@ import BaseAction from '../BaseAction'
 import { OB11ForwardMessage, OB11Message, OB11MessageData } from '../../types'
 import { OB11Constructor } from '../../constructor'
 import { ActionName } from '../types'
-import { MessageUnique } from '@/common/utils/MessageUnique'
+import { MessageUnique } from '@/common/utils/messageUnique'
 
 interface Payload {
   message_id: string // long msg id，gocq

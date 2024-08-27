@@ -2,7 +2,7 @@ import BaseAction from '../BaseAction'
 import { ChatType } from '@/ntqqapi/types'
 import { ActionName } from '../types'
 import { Peer } from '@/ntqqapi/types'
-import { MessageUnique } from '@/common/utils/MessageUnique'
+import { MessageUnique } from '@/common/utils/messageUnique'
 
 interface Payload {
   message_id: number | string
