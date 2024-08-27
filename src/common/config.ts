@@ -2,8 +2,7 @@ import fs from 'node:fs'
 import { Config, OB11Config } from './types'
 import { mergeNewProperties } from './utils/helper'
 import path from 'node:path'
-import { getSelfUin } from './data'
-import { DATA_DIR } from './utils'
+import { selfInfo, DATA_DIR } from './globalVars'
 
 export class ConfigUtil {
   private readonly configPath: string
@@ -94,6 +93,6 @@ export class ConfigUtil {
 }
 
 export function getConfigUtil() {
-  const configFilePath = path.join(DATA_DIR, `config_${getSelfUin()}.json`)
+  const configFilePath = path.join(DATA_DIR, `config_${selfInfo.uin}.json`)
   return new ConfigUtil(configFilePath)
 }

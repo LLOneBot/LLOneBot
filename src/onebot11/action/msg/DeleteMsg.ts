@@ -1,6 +1,5 @@
 import { ActionName } from '../types'
 import BaseAction from '../BaseAction'
-import { NTQQMsgApi } from '@/ntqqapi/api/msg'
 import { MessageUnique } from '@/common/utils/MessageUnique'
 
 interface Payload {
@@ -18,7 +17,7 @@ class DeleteMsg extends BaseAction<Payload, void> {
     if (!msg) {
       throw `消息${payload.message_id}不存在`
     }
-    await NTQQMsgApi.recallMsg(msg.Peer, [msg.MsgId])
+    await this.ctx.ntMsgApi.recallMsg(msg.Peer, [msg.MsgId])
   }
 }
 
