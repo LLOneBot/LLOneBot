@@ -3,7 +3,7 @@ import fsPromise from 'node:fs/promises'
 import { getConfigUtil } from '@/common/config'
 import { ActionName } from '../types'
 import { Peer, ElementType } from '@/ntqqapi/types'
-import { MessageUnique } from '@/common/utils/MessageUnique'
+import { MessageUnique } from '@/common/utils/messageUnique'
 
 export interface GetFilePayload {
   file: string // 文件名或者fileUuid

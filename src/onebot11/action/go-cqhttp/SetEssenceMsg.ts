@@ -1,6 +1,6 @@
 import BaseAction from '../BaseAction'
 import { ActionName } from '../types'
-import { MessageUnique } from '@/common/utils/MessageUnique'
+import { MessageUnique } from '@/common/utils/messageUnique'
 
 interface Payload {
   message_id: number | string

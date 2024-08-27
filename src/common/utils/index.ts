@@ -1,6 +1,6 @@
 export * from './file'
 export * from './misc'
-export * from './LegacyLog'
+export * from './legacyLog'
 export * from './misc'
 export * from './upgrade'
 export { getVideoInfo, checkFfmpeg } from './video'

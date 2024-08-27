@@ -4,7 +4,7 @@ import { OB11GroupRequestEvent } from '../event/request/OB11GroupRequest'
 import { ChatType, GroupRequestOperateTypes, Peer } from '@/ntqqapi/types'
 import { convertMessage2List, createSendElements, sendMsg } from '../helper/createMessage'
 import { getConfigUtil } from '@/common/config'
-import { MessageUnique } from '@/common/utils/MessageUnique'
+import { MessageUnique } from '@/common/utils/messageUnique'
 import { isNullable } from 'cosmokit'
 import { Context } from 'cordis'
 

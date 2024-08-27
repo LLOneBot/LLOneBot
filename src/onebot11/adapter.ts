@@ -12,7 +12,7 @@ import {
 } from '../ntqqapi/types'
 import { OB11GroupRequestEvent } from './event/request/OB11GroupRequest'
 import { OB11FriendRequestEvent } from './event/request/OB11FriendRequest'
-import { MessageUnique } from '../common/utils/MessageUnique'
+import { MessageUnique } from '../common/utils/messageUnique'
 import { getConfigUtil } from '../common/config'
 import { GroupDecreaseSubType, OB11GroupDecreaseEvent } from './event/notice/OB11GroupDecreaseEvent'
 import { selfInfo } from '../common/globalVars'

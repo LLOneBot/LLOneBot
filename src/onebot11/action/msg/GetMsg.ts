@@ -2,7 +2,7 @@ import BaseAction from '../BaseAction'
 import { OB11Message } from '../../types'
 import { OB11Constructor } from '../../constructor'
 import { ActionName } from '../types'
-import { MessageUnique } from '@/common/utils/MessageUnique'
+import { MessageUnique } from '@/common/utils/messageUnique'
 
 export interface PayloadType {
   message_id: number | string

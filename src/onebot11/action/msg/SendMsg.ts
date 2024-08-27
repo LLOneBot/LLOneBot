@@ -19,7 +19,7 @@ import fs from 'node:fs'
 import { getConfigUtil } from '@/common/config'
 import { CustomMusicSignPostData, IdMusicSignPostData, MusicSign, MusicSignPostData } from '@/common/utils/sign'
 import { Peer } from '@/ntqqapi/types/msg'
-import { MessageUnique } from '@/common/utils/MessageUnique'
+import { MessageUnique } from '@/common/utils/messageUnique'
 import { selfInfo } from '@/common/globalVars'
 import { convertMessage2List, createSendElements, sendMsg } from '../../helper/createMessage'
 

@@ -4,7 +4,7 @@ import { ActionName } from '../types'
 import { ChatType } from '@/ntqqapi/types'
 import { OB11Constructor } from '../../constructor'
 import { RawMessage } from '@/ntqqapi/types'
-import { MessageUnique } from '@/common/utils/MessageUnique'
+import { MessageUnique } from '@/common/utils/messageUnique'
 
 interface Payload {
   group_id: number | string
