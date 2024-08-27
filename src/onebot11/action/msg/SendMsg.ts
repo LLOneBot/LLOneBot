@@ -6,7 +6,6 @@ import {
   RawMessage,
   SendMessageElement,
 } from '@/ntqqapi/types'
-import { getGroupMember, getSelfUid, getSelfUin } from '@/common/data'
 import {
   OB11MessageCustomMusic,
   OB11MessageData,
@@ -24,14 +23,14 @@ import fs from 'node:fs'
 import fsPromise from 'node:fs/promises'
 import { decodeCQCode } from '../../cqcode'
 import { getConfigUtil } from '@/common/config'
-import { log } from '@/common/utils/log'
 import { sleep } from '@/common/utils/helper'
 import { uri2local } from '@/common/utils'
-import { NTQQGroupApi, NTQQMsgApi, NTQQUserApi, NTQQFriendApi } from '@/ntqqapi/api'
 import { CustomMusicSignPostData, IdMusicSignPostData, MusicSign, MusicSignPostData } from '@/common/utils/sign'
 import { Peer } from '@/ntqqapi/types/msg'
 import { MessageUnique } from '@/common/utils/MessageUnique'
 import { OB11MessageFileBase } from '../../types'
+import { Context } from 'cordis'
+import { selfInfo } from '@/common/globalVars'
 
 export interface ReturnDataType {
   message_id: number
@@ -72,6 +71,7 @@ export function convertMessage2List(message: OB11MessageMixType, autoEscape = fa
 
 // forked from https://github.com/NapNeko/NapCatQQ/blob/6f6b258f22d7563f15d84e7172c4d4cbb547f47e/src/onebot11/action/msg/SendMsg/create-send-elements.ts#L26
 async function handleOb11FileLikeMessage(
+  ctx: Context,
   { data: inputdata }: OB11MessageFileBase,
   { deleteAfterSentFiles }: Pick<MessageContext, 'deleteAfterSentFiles'>,
 ) {
@@ -85,7 +85,7 @@ async function handleOb11FileLikeMessage(
   } = (await uri2local(inputdata?.url || inputdata.file))
 
   if (!success) {
-    log('文件下载失败', errMsg)
+    ctx.logger.error('文件下载失败', errMsg)
     throw Error('文件下载失败' + errMsg)
   }
 
@@ -97,6 +97,7 @@ async function handleOb11FileLikeMessage(
 }
 
 export async function createSendElements(
+  ctx: Context,
   messageData: OB11MessageData[],
   peer: Peer,
   ignoreTypes: OB11MessageDataType[] = [],
@@ -128,10 +129,10 @@ export async function createSendElements(
             let isAdmin: boolean = true
             if (groupCode) {
               try {
-                remainAtAllCount = (await NTQQGroupApi.getGroupAtAllRemainCount(groupCode)).atInfo
+                remainAtAllCount = (await ctx.ntGroupApi.getGroupAtAllRemainCount(groupCode)).atInfo
                   .RemainAtAllCountForUin
-                log(`群${groupCode}剩余at全体次数`, remainAtAllCount)
-                const self = await getGroupMember(groupCode, getSelfUin())
+                ctx.logger.info(`群${groupCode}剩余at全体次数`, remainAtAllCount)
+                const self = await ctx.ntGroupApi.getGroupMember(groupCode, selfInfo.uin)
                 isAdmin = self?.role === GroupMemberRole.admin || self?.role === GroupMemberRole.owner
               } catch (e) {
               }
@@ -141,7 +142,7 @@ export async function createSendElements(
             }
           }
           else if (peer.chatType === ChatType.group) {
-            const atMember = await getGroupMember(peer.peerUid, atQQ)
+            const atMember = await ctx.ntGroupApi.getGroupMember(peer.peerUid, atQQ)
             if (atMember) {
               const display = `@${atMember.cardName || atMember.nick}`
               sendElements.push(
@@ -149,7 +150,7 @@ export async function createSendElements(
               )
             } else {
               const atNmae = sendMsg.data?.name
-              const uid = await NTQQUserApi.getUidByUin(atQQ) || ''
+              const uid = await ctx.ntUserApi.getUidByUin(atQQ) || ''
               const display = atNmae ? `@${atNmae}` : ''
               sendElements.push(
                 SendMsgElementConstructor.at(atQQ, uid, AtType.atUser, display),
@@ -163,10 +164,10 @@ export async function createSendElements(
         if (sendMsg.data?.id) {
           const replyMsgId = await MessageUnique.getMsgIdAndPeerByShortId(+sendMsg.data.id)
           if (!replyMsgId) {
-            log('回复消息不存在', replyMsgId)
+            ctx.logger.warn('回复消息不存在', replyMsgId)
             continue
           }
-          const replyMsg = (await NTQQMsgApi.getMsgsByMsgId(
+          const replyMsg = (await ctx.ntMsgApi.getMsgsByMsgId(
             replyMsgId.Peer,
             [replyMsgId.MsgId!]
           )).msgList[0]
@@ -203,7 +204,8 @@ export async function createSendElements(
         break
       case OB11MessageDataType.image: {
         const res = await SendMsgElementConstructor.pic(
-          (await handleOb11FileLikeMessage(sendMsg, { deleteAfterSentFiles })).path,
+          ctx,
+          (await handleOb11FileLikeMessage(ctx, sendMsg, { deleteAfterSentFiles })).path,
           sendMsg.data.summary || '',
           sendMsg.data.subType || 0
         )
@@ -212,25 +214,25 @@ export async function createSendElements(
       }
         break
       case OB11MessageDataType.file: {
-        const { path, fileName } = await handleOb11FileLikeMessage(sendMsg, { deleteAfterSentFiles })
-        sendElements.push(await SendMsgElementConstructor.file(path, fileName))
+        const { path, fileName } = await handleOb11FileLikeMessage(ctx, sendMsg, { deleteAfterSentFiles })
+        sendElements.push(await SendMsgElementConstructor.file(ctx, path, fileName))
       }
         break
       case OB11MessageDataType.video: {
-        const { path, fileName } = await handleOb11FileLikeMessage(sendMsg, { deleteAfterSentFiles })
+        const { path, fileName } = await handleOb11FileLikeMessage(ctx, sendMsg, { deleteAfterSentFiles })
         let thumb = sendMsg.data.thumb
         if (thumb) {
           const uri2LocalRes = await uri2local(thumb)
           if (uri2LocalRes.success) thumb = uri2LocalRes.path
         }
-        const res = await SendMsgElementConstructor.video(path, fileName, thumb)
+        const res = await SendMsgElementConstructor.video(ctx, path, fileName, thumb)
         deleteAfterSentFiles.push(res.videoElement.filePath)
         sendElements.push(res)
       }
         break
       case OB11MessageDataType.voice: {
-        const { path } = await handleOb11FileLikeMessage(sendMsg, { deleteAfterSentFiles })
-        sendElements.push(await SendMsgElementConstructor.ptt(path))
+        const { path } = await handleOb11FileLikeMessage(ctx, sendMsg, { deleteAfterSentFiles })
+        sendElements.push(await SendMsgElementConstructor.ptt(ctx, path))
       }
         break
       case OB11MessageDataType.json: {
@@ -261,6 +263,7 @@ export async function createSendElements(
 }
 
 export async function sendMsg(
+  ctx: Context,
   peer: Peer,
   sendElements: SendMessageElement[],
   deleteAfterSentFiles: string[],
@@ -286,45 +289,45 @@ export async function sendMsg(
         totalSize += fs.statSync(fileElement.picElement.sourcePath).size
       }
     } catch (e) {
-      log('文件大小计算失败', e, fileElement)
+      ctx.logger.warn('文件大小计算失败', e, fileElement)
     }
   }
   //log('发送消息总大小', totalSize, 'bytes')
   const timeout = 10000 + (totalSize / 1024 / 256 * 1000)  // 10s Basic Timeout + PredictTime( For File 512kb/s )
   //log('设置消息超时时间', timeout)
-  const returnMsg = await NTQQMsgApi.sendMsg(peer, sendElements, waitComplete, timeout)
+  const returnMsg = await ctx.ntMsgApi.sendMsg(peer, sendElements, waitComplete, timeout)
   returnMsg.msgShortId = MessageUnique.createMsg(peer, returnMsg.msgId)
-  log('消息发送', returnMsg.msgShortId)
+  ctx.logger.info('消息发送', returnMsg.msgShortId)
   deleteAfterSentFiles.map(path => fsPromise.unlink(path))
   return returnMsg
 }
 
-async function createContext(payload: OB11PostSendMsg, contextMode: ContextMode): Promise<Peer> {
-  // This function determines the type of message by the existence of user_id / group_id,
-  // not message_type.
-  // This redundant design of Ob11 here should be blamed.
-
-  if ((contextMode === ContextMode.Group || contextMode === ContextMode.Normal) && payload.group_id) {
-    return {
-      chatType: ChatType.group,
-      peerUid: payload.group_id.toString(),
-    }
-  }
-  if ((contextMode === ContextMode.Private || contextMode === ContextMode.Normal) && payload.user_id) {
-    const Uid = await NTQQUserApi.getUidByUin(payload.user_id.toString())
-    const isBuddy = await NTQQFriendApi.isBuddy(Uid!)
-    //console.log("[调试代码] UIN:", payload.user_id, " UID:", Uid, " IsBuddy:", isBuddy)
-    return {
-      chatType: isBuddy ? ChatType.friend : ChatType.temp,
-      peerUid: Uid!,
-      guildId: payload.group_id?.toString() || '' //临时主动发起时需要传入群号
-    }
-  }
-  throw '请指定 group_id 或 user_id'
-}
-
 export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
   actionName = ActionName.SendMsg
+
+  private async createContext(payload: OB11PostSendMsg, contextMode: ContextMode): Promise<Peer> {
+    // This function determines the type of message by the existence of user_id / group_id,
+    // not message_type.
+    // This redundant design of Ob11 here should be blamed.
+
+    if ((contextMode === ContextMode.Group || contextMode === ContextMode.Normal) && payload.group_id) {
+      return {
+        chatType: ChatType.group,
+        peerUid: payload.group_id.toString(),
+      }
+    }
+    if ((contextMode === ContextMode.Private || contextMode === ContextMode.Normal) && payload.user_id) {
+      const Uid = await this.ctx.ntUserApi.getUidByUin(payload.user_id.toString())
+      const isBuddy = await this.ctx.ntFriendApi.isBuddy(Uid!)
+      //console.log("[调试代码] UIN:", payload.user_id, " UID:", Uid, " IsBuddy:", isBuddy)
+      return {
+        chatType: isBuddy ? ChatType.friend : ChatType.temp,
+        peerUid: Uid!,
+        guildId: payload.group_id?.toString() || '' //临时主动发起时需要传入群号
+      }
+    }
+    throw '请指定 group_id 或 user_id'
+  }
 
   protected async check(payload: OB11PostSendMsg): Promise<BaseCheckResult> {
     const messages = convertMessage2List(payload.message)
@@ -343,12 +346,6 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
       }
     }
     if (payload.user_id && payload.message_type !== 'group') {
-      const uid = await NTQQUserApi.getUidByUin(payload.user_id.toString())
-      const isBuddy = await NTQQFriendApi.isBuddy(uid!)
-      // 此处有问题
-      if (!isBuddy) {
-        //return { valid: false, message: '异常消息' }
-      }
     }
     return {
       valid: true,
@@ -362,7 +359,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     } else if (payload.message_type === 'private') {
       contextMode = ContextMode.Private
     }
-    const peer = await createContext(payload, contextMode)
+    const peer = await this.createContext(payload, contextMode)
     const messages = convertMessage2List(
       payload.message,
       payload.auto_escape === true || payload.auto_escape === 'true',
@@ -412,7 +409,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         }
         let jsonContent: string
         try {
-          jsonContent = await new MusicSign(musicSignUrl).sign(postData)
+          jsonContent = await new MusicSign(this.ctx, musicSignUrl).sign(postData)
           if (!jsonContent) {
             throw '音乐消息生成失败，提交内容有误或者签名服务器签名失败'
           }
@@ -426,13 +423,13 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
       }
     }
     // log("send msg:", peer, sendElements)
-    const { sendElements, deleteAfterSentFiles } = await createSendElements(messages, peer)
+    const { sendElements, deleteAfterSentFiles } = await createSendElements(this.ctx, messages, peer)
     if (sendElements.length === 1) {
       if (sendElements[0] === null) {
         return { message_id: 0 }
       }
     }
-    const returnMsg = await sendMsg(peer, sendElements, deleteAfterSentFiles)
+    const returnMsg = await sendMsg(this.ctx, peer, sendElements, deleteAfterSentFiles)
     return { message_id: returnMsg.msgShortId! }
   }
 
@@ -444,7 +441,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
   }
 
   private async cloneMsg(msg: RawMessage): Promise<RawMessage | undefined> {
-    log('克隆的目标消息', msg)
+    this.ctx.logger.info('克隆的目标消息', msg)
     let sendElements: SendMessageElement[] = []
     for (const ele of msg.elements) {
       sendElements.push(ele as SendMessageElement)
@@ -453,14 +450,14 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
       //     }
     }
     if (sendElements.length === 0) {
-      log('需要clone的消息无法解析，将会忽略掉', msg)
+      this.ctx.logger.warn('需要clone的消息无法解析，将会忽略掉', msg)
     }
-    log('克隆消息', sendElements)
+    this.ctx.logger.info('克隆消息', sendElements)
     try {
-      const nodeMsg = await NTQQMsgApi.sendMsg(
+      const nodeMsg = await this.ctx.ntMsgApi.sendMsg(
         {
           chatType: ChatType.friend,
-          peerUid: getSelfUid(),
+          peerUid: selfInfo.uid,
         },
         sendElements,
         true,
@@ -468,7 +465,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
       await sleep(400)
       return nodeMsg
     } catch (e) {
-      log(e, '克隆转发消息失败,将忽略本条消息', msg)
+      this.ctx.logger.warn(e, '克隆转发消息失败,将忽略本条消息', msg)
     }
   }
 
@@ -476,7 +473,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
   private async handleForwardNode(destPeer: Peer, messageNodes: OB11MessageNode[]) {
     const selfPeer = {
       chatType: ChatType.friend,
-      peerUid: getSelfUid(),
+      peerUid: selfInfo.uid,
     }
     let nodeMsgIds: string[] = []
     // 先判断一遍是不是id和自定义混用
@@ -487,7 +484,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
       if (nodeId) {
         const nodeMsg = await MessageUnique.getMsgIdAndPeerByShortId(+nodeId) || await MessageUnique.getPeerByMsgId(nodeId)
         if (!nodeMsg) {
-          log('转发消息失败，未找到消息', nodeId)
+          this.ctx.logger.warn('转发消息失败，未找到消息', nodeId)
           continue
         }
         nodeMsgIds.push(nodeMsg.MsgId)
@@ -497,10 +494,11 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         // 提取消息段，发给自己生成消息id
         try {
           const { sendElements, deleteAfterSentFiles } = await createSendElements(
+            this.ctx,
             convertMessage2List(messageNode.data.content),
             destPeer
           )
-          log('开始生成转发节点', sendElements)
+          this.ctx.logger.info('开始生成转发节点', sendElements)
           let sendElementsSplit: SendMessageElement[][] = []
           let splitIndex = 0
           for (const ele of sendElements) {
@@ -518,19 +516,19 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             else {
               sendElementsSplit[splitIndex].push(ele)
             }
-            log(sendElementsSplit)
+            this.ctx.logger.info(sendElementsSplit)
           }
           // log("分割后的转发节点", sendElementsSplit)
           for (const eles of sendElementsSplit) {
-            const nodeMsg = await sendMsg(selfPeer, eles, [], true)
+            const nodeMsg = await sendMsg(this.ctx, selfPeer, eles, [], true)
             nodeMsgIds.push(nodeMsg.msgId)
             await sleep(400)
-            log('转发节点生成成功', nodeMsg.msgId)
+            this.ctx.logger.info('转发节点生成成功', nodeMsg.msgId)
           }
           deleteAfterSentFiles.map((f) => fs.unlink(f, () => {
           }))
         } catch (e) {
-          log('生成转发消息节点失败', e)
+          this.ctx.logger.error('生成转发消息节点失败', e)
         }
       }
     }
@@ -542,7 +540,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     for (const msgId of nodeMsgIds) {
       const nodeMsgPeer = await MessageUnique.getPeerByMsgId(msgId)
       if (nodeMsgPeer) {
-        const nodeMsg = (await NTQQMsgApi.getMsgsByMsgId(nodeMsgPeer.Peer, [msgId])).msgList[0]
+        const nodeMsg = (await this.ctx.ntMsgApi.getMsgsByMsgId(nodeMsgPeer.Peer, [msgId])).msgList[0]
         srcPeer = srcPeer ?? { chatType: nodeMsg.chatType, peerUid: nodeMsg.peerUid }
         if (srcPeer.peerUid !== nodeMsg.peerUid) {
           needSendSelf = true
@@ -570,7 +568,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
     if (nodeMsgIds.length === 0) {
       throw Error('转发消息失败，节点为空')
     }
-    const returnMsg = await NTQQMsgApi.multiForwardMsg(srcPeer!, destPeer, nodeMsgIds)
+    const returnMsg = await this.ctx.ntMsgApi.multiForwardMsg(srcPeer!, destPeer, nodeMsgIds)
     returnMsg.msgShortId = MessageUnique.createMsg(destPeer, returnMsg.msgId)
     return returnMsg
   }

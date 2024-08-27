@@ -3,7 +3,8 @@ import { ActionName } from '../types'
 import fs from 'fs'
 import fsPromise from 'fs/promises'
 import path from 'node:path'
-import { calculateFileMD5, httpDownload, TEMP_DIR } from '@/common/utils'
+import { calculateFileMD5, httpDownload } from '@/common/utils'
+import { TEMP_DIR } from '@/common/globalVars'
 import { randomUUID } from 'node:crypto'
 
 interface Payload {

@@ -1,12 +1,11 @@
 import path from 'node:path'
 import os from 'node:os'
-import { systemPlatform } from './system'
 
 export const exePath = process.execPath
 
 function getPKGPath() {
   let p = path.join(path.dirname(exePath), 'resources', 'app', 'package.json')
-  if (systemPlatform === 'darwin') {
+  if (os.platform() === 'darwin') {
     p = path.join(path.dirname(path.dirname(exePath)), 'Resources', 'app', 'package.json')
   }
   return p
