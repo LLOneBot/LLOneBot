@@ -153,8 +153,8 @@ export function invoke<ReturnType>(params: InvokeParams<ReturnType>) {
           afterFirstCmd && secondCallback()
         }
         else {
-          log('ntqq api call failed', result)
-          reject(`ntqq api call failed, ${result.errMsg}`)
+          log('ntqq api call failed,', params.methodName, result)
+          reject(`ntqq api call failed, ${params.methodName}, ${result.errMsg}`)
         }
       }
     }
