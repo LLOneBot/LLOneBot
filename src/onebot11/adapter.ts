@@ -13,7 +13,6 @@ import {
 import { OB11GroupRequestEvent } from './event/request/OB11GroupRequest'
 import { OB11FriendRequestEvent } from './event/request/OB11FriendRequest'
 import { MessageUnique } from '../common/utils/messageUnique'
-import { getConfigUtil } from '../common/config'
 import { GroupDecreaseSubType, OB11GroupDecreaseEvent } from './event/notice/OB11GroupDecreaseEvent'
 import { selfInfo } from '../common/globalVars'
 import { OB11Config, Config as LLOBConfig } from '../common/types'
@@ -74,7 +73,7 @@ class OneBot11Adapter extends Service {
 
   /** 缓存近期消息内容 */
   public async addMsgCache(msg: RawMessage) {
-    const expire = getConfigUtil().getConfig().msgCacheExpire! * 1000
+    const expire = this.config.msgCacheExpire * 1000
     if (expire === 0) {
       return
     }
