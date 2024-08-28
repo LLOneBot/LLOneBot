@@ -18,18 +18,15 @@ export default class Log {
       return
     }
     const file = path.join(LOG_DIR, cfg.filename)
-    const refreshNick = ctx.debounce(() => {
+    /*const refreshNick = ctx.debounce(() => {
       const ntUserApi = ctx.get('ntUserApi')
       if (ntUserApi && !selfInfo.nick) {
         ntUserApi.getSelfNick(true)
       }
-    }, 1000)
+    }, 1000)*/
     const target: Logger.Target = {
       colors: 0,
       record: (record: Logger.Record) => {
-        if (!selfInfo.nick) {
-          refreshNick()
-        }
         const dateTime = new Date(record.timestamp).toLocaleString()
         const userInfo = selfInfo.uin ? `${selfInfo.nick}(${selfInfo.uin})` : ''
         const content = `${dateTime} [${record.type}] ${userInfo} | ${record.name} ${record.content}\n\n`
