@@ -143,7 +143,7 @@ export async function uri2local(uri: string, filename?: string): Promise<Uri2Loc
       await fsPromise.writeFile(filePath, res.data)
       return { success: true, errMsg: '', fileName: filename, path: filePath, isLocal: false }
     } catch (e: any) {
-      const errMsg = `${uri}下载失败,` + e.toString()
+      const errMsg = `${uri} 下载失败, ${e.message}`
       return { success: false, errMsg, fileName: '', path: '', isLocal: false }
     }
   }
