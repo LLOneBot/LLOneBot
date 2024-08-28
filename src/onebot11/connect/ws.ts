@@ -285,13 +285,13 @@ class OB11WebSocketReverseManager {
   }
 
   public async start() {
+    if (this.list.length > 0) {
+      return
+    }
     for (const url of this.config.hosts) {
-      this.ctx.logger.info('开始连接反向 WebSocket', url)
-      try {
-        this.list.push(new OB11WebSocketReverse(this.ctx, { ...this.config, url }))
-      } catch (e: any) {
-        this.ctx.logger.error(e.stack)
-      }
+      const ws = new OB11WebSocketReverse(this.ctx, { ...this.config, url })
+      ws.start()
+      this.list.push(ws)
     }
   }
 
