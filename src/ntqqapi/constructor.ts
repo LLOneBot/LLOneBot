@@ -303,6 +303,8 @@ export namespace SendMsgElementConstructor {
     return {
       elementType: ElementType.MFACE,
       marketFaceElement: {
+        imageWidth: 300,
+        imageHeight: 300,
         emojiPackageId,
         emojiId,
         key,

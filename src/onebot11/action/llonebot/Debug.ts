@@ -14,9 +14,9 @@ export default class Debug extends BaseAction<Payload, any> {
     const { ntMsgApi, ntFileApi, ntFileCacheApi, ntFriendApi, ntGroupApi, ntUserApi, ntWindowApi } = this.ctx
     const ntqqApi = [ntMsgApi, ntFriendApi, ntGroupApi, ntUserApi, ntFileApi, ntFileCacheApi, ntWindowApi]
     for (const ntqqApiClass of ntqqApi) {
-      const method = ntqqApiClass[payload.method]
+      const method = ntqqApiClass[payload.method] as Function
       if (method) {
-        const result = method(...payload.args)
+        const result = method.apply(ntqqApiClass, payload.args)
         if (method.constructor.name === 'AsyncFunction') {
           return await result
         }

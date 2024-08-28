@@ -113,7 +113,7 @@ class OB11Http {
       this.ctx.logger.error(err)
       throw err
     }
-    this.expressAPP[method](url, this.authorize, async (req: Request, res: Response) => {
+    this.expressAPP[method](url, this.authorize.bind(this), async (req: Request, res: Response) => {
       let payload = req.body
       if (method == 'get') {
         payload = req.query

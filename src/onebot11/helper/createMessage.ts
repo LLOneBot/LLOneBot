@@ -119,7 +119,7 @@ export async function createSendElements(
       case OB11MessageDataType.mface: {
         sendElements.push(
           SendMsgElementConstructor.mface(
-            sendMsg.data.emoji_package_id,
+            +sendMsg.data.emoji_package_id,
             sendMsg.data.emoji_id,
             sendMsg.data.key,
             sendMsg.data.summary,
@@ -203,8 +203,8 @@ async function handleOb11FileLikeMessage(
   } = (await uri2local(inputdata?.url || inputdata.file))
 
   if (!success) {
-    ctx.logger.error('文件下载失败', errMsg)
-    throw Error('文件下载失败' + errMsg)
+    ctx.logger.error(errMsg)
+    throw Error(errMsg)
   }
 
   if (!isLocal) { // 只删除http和base64转过来的文件
