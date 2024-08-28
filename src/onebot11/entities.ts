@@ -37,7 +37,7 @@ import { OB11GroupTitleEvent } from './event/notice/OB11GroupTitleEvent'
 import { OB11GroupCardEvent } from './event/notice/OB11GroupCardEvent'
 import { OB11GroupDecreaseEvent } from './event/notice/OB11GroupDecreaseEvent'
 import { OB11GroupMsgEmojiLikeEvent } from './event/notice/OB11MsgEmojiLikeEvent'
-import { mFaceCache } from '../ntqqapi/constructor'
+import { mFaceCache } from '../ntqqapi/entities'
 import { OB11FriendAddNoticeEvent } from './event/notice/OB11FriendAddNoticeEvent'
 import { OB11FriendRecallNoticeEvent } from './event/notice/OB11FriendRecallNoticeEvent'
 import { OB11GroupRecallNoticeEvent } from './event/notice/OB11GroupRecallNoticeEvent'
@@ -48,7 +48,7 @@ import { omit, isNullable } from 'cosmokit'
 import { Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
 
-export namespace OB11Constructor {
+export namespace OB11Entities {
   export async function message(ctx: Context, msg: RawMessage): Promise<OB11Message> {
     let config = getConfigUtil().getConfig()
     const {
@@ -319,7 +319,7 @@ export namespace OB11Constructor {
     return resMsg
   }
 
-  export async function PrivateEvent(ctx: Context, msg: RawMessage): Promise<OB11BaseNoticeEvent | void> {
+  export async function privateEvent(ctx: Context, msg: RawMessage): Promise<OB11BaseNoticeEvent | void> {
     if (msg.chatType !== ChatType.friend) {
       return
     }
@@ -352,7 +352,7 @@ export namespace OB11Constructor {
     }
   }
 
-  export async function GroupEvent(ctx: Context, msg: RawMessage): Promise<OB11GroupNoticeEvent | void> {
+  export async function groupEvent(ctx: Context, msg: RawMessage): Promise<OB11GroupNoticeEvent | void> {
     if (msg.chatType !== ChatType.group) {
       return
     }
@@ -607,7 +607,7 @@ export namespace OB11Constructor {
     }
   }
 
-  export async function RecallEvent(
+  export async function recallEvent(
     ctx: Context,
     msg: RawMessage,
     shortId: number
@@ -638,13 +638,13 @@ export namespace OB11Constructor {
       user_id: parseInt(friend.uin),
       nickname: friend.nick,
       remark: friend.remark,
-      sex: OB11Constructor.sex(friend.sex!),
+      sex: sex(friend.sex!),
       level: (friend.qqLevel && calcQQLevel(friend.qqLevel)) || 0,
     }
   }
 
   export function friends(friends: User[]): OB11User[] {
-    return friends.map(OB11Constructor.friend)
+    return friends.map(friend)
   }
 
   export function friendsV2(friends: FriendV2[]): OB11User[] {
@@ -689,7 +689,7 @@ export namespace OB11Constructor {
       user_id: parseInt(member.uin),
       nickname: member.nick,
       card: member.cardName,
-      sex: OB11Constructor.sex(member.sex!),
+      sex: sex(member.sex!),
       age: 0,
       area: '',
       level: '0',
@@ -701,7 +701,7 @@ export namespace OB11Constructor {
       card_changeable: true,
       is_robot: member.isRobot,
       shut_up_timestamp: member.shutUpTime,
-      role: OB11Constructor.groupMemberRole(member.role),
+      role: groupMemberRole(member.role),
       title: member.memberSpecialTitle || '',
     }
   }
@@ -711,16 +711,12 @@ export namespace OB11Constructor {
       ...user,
       user_id: parseInt(user.uin),
       nickname: user.nick,
-      sex: OB11Constructor.sex(user.sex!),
+      sex: sex(user.sex!),
       age: 0,
       qid: user.qid,
       login_days: 0,
       level: (user.qqLevel && calcQQLevel(user.qqLevel)) || 0,
     }
-  }
-
-  export function groupMembers(group: Group): OB11GroupMember[] {
-    return group.members.map((m) => OB11Constructor.groupMember(group.groupCode, m))
   }
 
   export function group(group: Group): OB11Group {
@@ -733,6 +729,6 @@ export namespace OB11Constructor {
   }
 
   export function groups(groups: Group[]): OB11Group[] {
-    return groups.map(OB11Constructor.group)
+    return groups.map(group)
   }
 }

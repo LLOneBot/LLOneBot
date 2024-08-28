@@ -1,6 +1,6 @@
 import BaseAction from '../BaseAction'
 import { OB11GroupMember } from '../../types'
-import { OB11Constructor } from '../../constructor'
+import { OB11Entities } from '../../entities'
 import { ActionName } from '../types'
 import { selfInfo } from '@/common/globalVars'
 import { isNullable } from 'cosmokit'
@@ -22,7 +22,7 @@ class GetGroupMemberInfo extends BaseAction<Payload, OB11GroupMember> {
         //log('群成员详细信息结果', info)
         Object.assign(member, info)
       }
-      const ret = OB11Constructor.groupMember(payload.group_id.toString(), member)
+      const ret = OB11Entities.groupMember(payload.group_id.toString(), member)
       const self = await this.ctx.ntGroupApi.getGroupMember(payload.group_id.toString(), selfInfo.uid)
       if (self?.role === 3 || self?.role === 4) {
         const webGroupMembers = await this.ctx.ntWebApi.getGroupMembers(payload.group_id.toString())

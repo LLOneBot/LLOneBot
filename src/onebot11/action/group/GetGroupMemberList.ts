@@ -1,5 +1,5 @@
 import { OB11GroupMember } from '../../types'
-import { OB11Constructor } from '../../constructor'
+import { OB11Entities } from '../../entities'
 import BaseAction from '../BaseAction'
 import { ActionName } from '../types'
 import { selfInfo } from '@/common/globalVars'
@@ -17,7 +17,7 @@ class GetGroupMemberList extends BaseAction<Payload, OB11GroupMember[]> {
     const groupMembersArr = Array.from(groupMembers.values())
 
     let _groupMembers = groupMembersArr.map(item => {
-      return OB11Constructor.groupMember(payload.group_id.toString(), item)
+      return OB11Entities.groupMember(payload.group_id.toString(), item)
     })
 
     const MemberMap: Map<number, OB11GroupMember> = new Map<number, OB11GroupMember>()
