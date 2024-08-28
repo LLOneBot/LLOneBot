@@ -1,6 +1,6 @@
 import BaseAction from '../BaseAction'
 import { OB11Message } from '../../types'
-import { OB11Constructor } from '../../constructor'
+import { OB11Entities } from '../../entities'
 import { ActionName } from '../types'
 import { MessageUnique } from '@/common/utils/messageUnique'
 
@@ -28,7 +28,7 @@ class GetMsg extends BaseAction<PayloadType, OB11Message> {
       chatType: msgIdWithPeer.Peer.chatType
     }
     const msg = this.adapter.getMsgCache(msgIdWithPeer.MsgId) ?? (await this.ctx.ntMsgApi.getMsgsByMsgId(peer, [msgIdWithPeer.MsgId])).msgList[0]
-    const retMsg = await OB11Constructor.message(this.ctx, msg)
+    const retMsg = await OB11Entities.message(this.ctx, msg)
     retMsg.message_id = MessageUnique.createMsg(peer, msg.msgId)!
     retMsg.message_seq = retMsg.message_id
     retMsg.real_id = retMsg.message_id

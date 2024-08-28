@@ -1,5 +1,5 @@
 import { Service, Context } from 'cordis'
-import { OB11Constructor } from './constructor'
+import { OB11Entities } from './entities'
 import {
   GroupNotify,
   GroupNotifyTypes,
@@ -203,7 +203,7 @@ class OneBot11Adapter extends Service {
       message.msgShortId = MessageUnique.createMsg(peer, message.msgId)
       this.addMsgCache(message)
 
-      OB11Constructor.message(this.ctx, message)
+      OB11Entities.message(this.ctx, message)
         .then((msg) => {
           if (!this.config.debug && msg.message.length === 0) {
             return
@@ -219,13 +219,13 @@ class OneBot11Adapter extends Service {
         })
         .catch((e) => this.ctx.logger.error('constructMessage error: ', e.stack.toString()))
 
-      OB11Constructor.GroupEvent(this.ctx, message).then((groupEvent) => {
+      OB11Entities.groupEvent(this.ctx, message).then((groupEvent) => {
         if (groupEvent) {
           this.dispatch(groupEvent)
         }
       })
 
-      OB11Constructor.PrivateEvent(this.ctx, message).then((privateEvent) => {
+      OB11Entities.privateEvent(this.ctx, message).then((privateEvent) => {
         if (privateEvent) {
           this.dispatch(privateEvent)
         }
@@ -240,7 +240,7 @@ class OneBot11Adapter extends Service {
         if (!oriMessageId) {
           continue
         }
-        OB11Constructor.RecallEvent(this.ctx, message, oriMessageId).then((recallEvent) => {
+        OB11Entities.recallEvent(this.ctx, message, oriMessageId).then((recallEvent) => {
           if (recallEvent) {
             this.dispatch(recallEvent)
           }
