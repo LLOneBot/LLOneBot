@@ -3,7 +3,7 @@ import {
   GroupExtParam,
   GroupMember,
   GroupMemberRole,
-  GroupNotifyTypes,
+  GroupNotifyType,
   GroupRequestOperateTypes,
 } from '@/ntqqapi/types'
 import { GeneralCallResult } from './common'
@@ -181,7 +181,7 @@ export interface NodeIKernelGroupService {
       operateType: GroupRequestOperateTypes, // 2 拒绝
       targetMsg: {
         seq: string,  // 通知序列号
-        type: GroupNotifyTypes,
+        type: GroupNotifyType,
         groupCode: string,
         postscript: string
       }

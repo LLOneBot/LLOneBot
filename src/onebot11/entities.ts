@@ -427,7 +427,7 @@ export namespace OB11Entities {
           ctx.logger.info(`收到我被踢出或退群提示, 群${msg.peerUid}`, groupElement)
           ctx.ntGroupApi.quitGroup(msg.peerUid)
           try {
-            const adminUin = (await ctx.ntGroupApi.getGroupMember(msg.peerUid, groupElement.adminUid))?.uin || (await ctx.ntUserApi.getUidByUin(groupElement.adminUid))
+            const adminUin = (await ctx.ntGroupApi.getGroupMember(msg.peerUid, groupElement.adminUid))?.uin || (await ctx.ntUserApi.getUinByUid(groupElement.adminUid))
             if (adminUin) {
               return new OB11GroupDecreaseEvent(
                 parseInt(msg.peerUid),
