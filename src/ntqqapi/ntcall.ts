@@ -137,21 +137,21 @@ export function invoke<
   S extends keyof NTService = any,
   M extends keyof NTService[S] & string = any,
   O = string
->(method: `${O extends `${S}/${M}` ? `${S}/${M}` : string}`, args?: unknown[], options?: InvokeOptions<R>) {
-  const className = options?.className ?? NTClass.NT_API
-  const channel = options?.channel ?? NTChannel.IPC_UP_2
-  const timeout = options?.timeout ?? 5000
-  const afterFirstCmd = options?.afterFirstCmd ?? true
+>(method: `${O extends `${S}/${M}` ? `${S}/${M}` : string}`, args?: unknown[], options: InvokeOptions<R> = {}) {
+  const className = options.className ?? NTClass.NT_API
+  const channel = options.channel ?? NTChannel.IPC_UP_2
+  const timeout = options.timeout ?? 5000
+  const afterFirstCmd = options.afterFirstCmd ?? true
   const uuid = randomUUID()
   let eventName = className + '-' + channel[channel.length - 1]
-  if (options?.classNameIsRegister) {
+  if (options.classNameIsRegister) {
     eventName += '-register'
   }
   const apiArgs = [method, ...(args ?? [])]
   //log('callNTQQApi', channel, eventName, apiArgs, uuid)
   return new Promise((resolve: (data: R) => void, reject) => {
     let success = false
-    if (!options?.cbCmd) {
+    if (!options.cbCmd) {
       // QQ后端会返回结果，并且可以根据uuid识别
       hookApiCallbacks[uuid] = (r: R) => {
         success = true
