@@ -2,13 +2,14 @@ import { Service, Context } from 'cordis'
 import { OB11Entities } from './entities'
 import {
   GroupNotify,
-  GroupNotifyTypes,
+  GroupNotifyType,
   RawMessage,
   BuddyReqType,
   Peer,
   FriendRequest,
   GroupMember,
-  GroupMemberRole
+  GroupMemberRole,
+  GroupNotifyStatus
 } from '../ntqqapi/types'
 import { OB11GroupRequestEvent } from './event/request/OB11GroupRequest'
 import { OB11FriendRequestEvent } from './event/request/OB11FriendRequest'
@@ -108,15 +109,14 @@ class OneBot11Adapter extends Service {
   private async handleGroupNotify(notifies: GroupNotify[]) {
     for (const notify of notifies) {
       try {
-        notify.time = Date.now()
         const notifyTime = parseInt(notify.seq) / 1000
         const flag = notify.group.groupCode + '|' + notify.seq + '|' + notify.type
         if (notifyTime < this.startTime) {
           continue
         }
-        if (notify.type == GroupNotifyTypes.MEMBER_EXIT || notify.type == GroupNotifyTypes.KICK_MEMBER) {
+        if ([GroupNotifyType.MEMBER_LEAVE_NOTIFY_ADMIN, GroupNotifyType.KICK_MEMBER_NOTIFY_ADMIN].includes(notify.type)) {
           this.ctx.logger.info('有成员退出通知', notify)
-          const member1Uin = (await this.ctx.ntUserApi.getUinByUid(notify.user1.uid))!
+          const member1Uin = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
           let operatorId = member1Uin
           let subType: GroupDecreaseSubType = 'leave'
           if (notify.user2.uid) {
@@ -135,57 +135,35 @@ class OneBot11Adapter extends Service {
           )
           this.dispatch(groupDecreaseEvent)
         }
-        else if ([GroupNotifyTypes.JOIN_REQUEST, GroupNotifyTypes.JOIN_REQUEST_BY_INVITED].includes(notify.type)) {
+        else if ([GroupNotifyType.REQUEST_JOIN_NEED_ADMINI_STRATOR_PASS].includes(notify.type) && notify.status === GroupNotifyStatus.KUNHANDLE) {
           this.ctx.logger.info('有加群请求')
-          let requestQQ = ''
-          try {
-            // uid-->uin
-            requestQQ = (await this.ctx.ntUserApi.getUinByUid(notify.user1.uid))
-            if (isNaN(parseInt(requestQQ))) {
-              requestQQ = (await this.ctx.ntUserApi.getUserDetailInfo(notify.user1.uid)).uin
-            }
-          } catch (e) {
-            this.ctx.logger.error('获取加群人QQ号失败 Uid:', notify.user1.uid, e)
-          }
-          let invitorId: string
-          if (notify.type == GroupNotifyTypes.JOIN_REQUEST_BY_INVITED) {
-            // groupRequestEvent.sub_type = 'invite'
-            try {
-              // uid-->uin
-              invitorId = (await this.ctx.ntUserApi.getUinByUid(notify.user2.uid))
-              if (isNaN(parseInt(invitorId))) {
-                invitorId = (await this.ctx.ntUserApi.getUserDetailInfo(notify.user2.uid)).uin
-              }
-            } catch (e) {
-              invitorId = ''
-              this.ctx.logger.error('获取邀请人QQ号失败 Uid:', notify.user2.uid, e)
-            }
+          let requestUin = (await this.ctx.ntUserApi.getUinByUid(notify.user1.uid))
+          if (isNaN(parseInt(requestUin))) {
+            requestUin = (await this.ctx.ntUserApi.getUserDetailInfo(notify.user1.uid)).uin
           }
           const groupRequestEvent = new OB11GroupRequestEvent(
             parseInt(notify.group.groupCode),
-            parseInt(requestQQ) || 0,
+            parseInt(requestUin) || 0,
             flag,
             notify.postscript,
-            invitorId! === undefined ? undefined : +invitorId,
-            'add'
           )
           this.dispatch(groupRequestEvent)
         }
-        else if (notify.type == GroupNotifyTypes.INVITE_ME) {
+        else if (notify.type === GroupNotifyType.INVITED_BY_MEMBER && notify.status === GroupNotifyStatus.KUNHANDLE) {
           this.ctx.logger.info('收到邀请我加群通知')
-          const userId = (await this.ctx.ntUserApi.getUinByUid(notify.user2.uid)) || ''
+          const userId = await this.ctx.ntUserApi.getUinByUid(notify.user2.uid)
           const groupInviteEvent = new OB11GroupRequestEvent(
             parseInt(notify.group.groupCode),
-            parseInt(userId),
+            parseInt(userId) || 0,
             flag,
-            undefined,
+            notify.postscript,
             undefined,
             'invite'
           )
           this.dispatch(groupInviteEvent)
         }
       } catch (e: any) {
-        this.ctx.logger.error('解析群通知失败', e.stack.toString())
+        this.ctx.logger.error('解析群通知失败', e.stack)
       }
     }
   }
