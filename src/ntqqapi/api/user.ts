@@ -214,7 +214,7 @@ export class NTQQUserApi extends Service {
       if (uid) return uid
       uid = (await invoke('nodeIKernelProfileService/getUidByUin', [{ callFrom: 'FriendsServiceImpl', uin: [uin] }, null])).get(uin)
       if (uid) return uid
-      uid = (await invoke('nodeIKernelUixConvertService/getUid', [{ uin: [uin] }, null])).uidInfo.get(uin)
+      uid = (await invoke('nodeIKernelUixConvertService/getUid', [{ uins: [uin] }, null])).uidInfo.get(uin)
       if (uid) return uid
     }
     const unveifyUid = (await this.getUserDetailInfoByUinV2(uin)).detail.uid //从QQ Native 特殊转换
@@ -284,7 +284,7 @@ export class NTQQUserApi extends Service {
       if (uin) return uin
       uin = (await invoke('nodeIKernelProfileService/getUinByUid', [{ callFrom: 'FriendsServiceImpl', uid: [uid] }, null])).get(uid)
       if (uin) return uin
-      uin = (await invoke('nodeIKernelUixConvertService/getUin', [{ uid: [uid] }, null])).uinInfo.get(uid)
+      uin = (await invoke('nodeIKernelUixConvertService/getUin', [{ uids: [uid] }, null])).uinInfo.get(uid)
       if (uin) return uin
     }
     let uin = (await this.ctx.ntFriendApi.getBuddyIdMap(true)).getKey(uid)
