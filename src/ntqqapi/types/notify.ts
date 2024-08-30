@@ -1,13 +1,19 @@
-export enum GroupNotifyTypes {
-  INVITE_ME = 1,
-  INVITED_JOIN = 4, // 有人接受了邀请入群
-  JOIN_REQUEST_BY_INVITED = 5,  // 有人邀请了别人入群
-  JOIN_REQUEST = 7,
-  ADMIN_SET = 8,
-  KICK_MEMBER = 9,
-  MEMBER_EXIT = 11, // 主动退出
-  ADMIN_UNSET = 12, // 我被取消管理员
-  ADMIN_UNSET_OTHER = 13, // 其他人取消管理员
+export enum GroupNotifyType {
+  INVITED_BY_MEMBER = 1,
+  REFUSE_INVITED,
+  REFUSED_BY_ADMINI_STRATOR,
+  AGREED_TOJOIN_DIRECT, // 有人接受了邀请入群
+  INVITED_NEED_ADMINI_STRATOR_PASS, // 有人邀请了别人入群
+  AGREED_TO_JOIN_BY_ADMINI_STRATOR,
+  REQUEST_JOIN_NEED_ADMINI_STRATOR_PASS,
+  SET_ADMIN,
+  KICK_MEMBER_NOTIFY_ADMIN,
+  KICK_MEMBER_NOTIFY_KICKED,
+  MEMBER_LEAVE_NOTIFY_ADMIN, // 主动退出
+  CANCEL_ADMIN_NOTIFY_CANCELED, // 我被取消管理员
+  CANCEL_ADMIN_NOTIFY_ADMIN, // 其他人取消管理员
+  TRANSFER_GROUP_NOTIFY_OLDOWNER,
+  TRANSFER_GROUP_NOTIFY_ADMIN
 }
 
 export interface GroupNotifies {
@@ -17,17 +23,18 @@ export interface GroupNotifies {
 }
 
 export enum GroupNotifyStatus {
-  IGNORE = 0,
-  WAIT_HANDLE = 1,
-  APPROVE = 2,
-  REJECT = 3,
+  KINIT, // 初始化
+  KUNHANDLE, // 未处理
+  KAGREED, // 同意
+  KREFUSED, // 拒绝
+  KIGNORED // 忽略
 }
 
 export interface GroupNotify {
   time: number // 自己添加的字段，时间戳，毫秒, 用于判断收到短时间内收到重复的notify
   seq: string // 唯一标识符，转成数字再除以1000应该就是时间戳？
-  type: GroupNotifyTypes
-  status: GroupNotifyStatus // 0是已忽略？，1是未处理，2是已同意
+  type: GroupNotifyType
+  status: GroupNotifyStatus
   group: { groupCode: string; groupName: string }
   user1: { uid: string; nickName: string } // 被设置管理员的人
   user2: { uid: string; nickName: string } // 操作者

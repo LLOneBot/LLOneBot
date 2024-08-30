@@ -1,14 +1,15 @@
 import { Service, Context } from 'cordis'
-import { OB11Constructor } from './constructor'
+import { OB11Entities } from './entities'
 import {
   GroupNotify,
-  GroupNotifyTypes,
+  GroupNotifyType,
   RawMessage,
   BuddyReqType,
   Peer,
   FriendRequest,
   GroupMember,
-  GroupMemberRole
+  GroupMemberRole,
+  GroupNotifyStatus
 } from '../ntqqapi/types'
 import { OB11GroupRequestEvent } from './event/request/OB11GroupRequest'
 import { OB11FriendRequestEvent } from './event/request/OB11FriendRequest'
@@ -108,15 +109,14 @@ class OneBot11Adapter extends Service {
   private async handleGroupNotify(notifies: GroupNotify[]) {
     for (const notify of notifies) {
       try {
-        notify.time = Date.now()
         const notifyTime = parseInt(notify.seq) / 1000
         const flag = notify.group.groupCode + '|' + notify.seq + '|' + notify.type
         if (notifyTime < this.startTime) {
           continue
         }
-        if (notify.type == GroupNotifyTypes.MEMBER_EXIT || notify.type == GroupNotifyTypes.KICK_MEMBER) {
+        if ([GroupNotifyType.MEMBER_LEAVE_NOTIFY_ADMIN, GroupNotifyType.KICK_MEMBER_NOTIFY_ADMIN].includes(notify.type)) {
           this.ctx.logger.info('有成员退出通知', notify)
-          const member1Uin = (await this.ctx.ntUserApi.getUinByUid(notify.user1.uid))!
+          const member1Uin = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
           let operatorId = member1Uin
           let subType: GroupDecreaseSubType = 'leave'
           if (notify.user2.uid) {
@@ -127,65 +127,51 @@ class OneBot11Adapter extends Service {
             }
             subType = 'kick'
           }
-          const groupDecreaseEvent = new OB11GroupDecreaseEvent(
+          const event = new OB11GroupDecreaseEvent(
             parseInt(notify.group.groupCode),
             parseInt(member1Uin),
             parseInt(operatorId),
             subType,
           )
-          this.dispatch(groupDecreaseEvent)
+          this.dispatch(event)
         }
-        else if ([GroupNotifyTypes.JOIN_REQUEST, GroupNotifyTypes.JOIN_REQUEST_BY_INVITED].includes(notify.type)) {
+        else if (notify.type === GroupNotifyType.REQUEST_JOIN_NEED_ADMINI_STRATOR_PASS && notify.status === GroupNotifyStatus.KUNHANDLE) {
           this.ctx.logger.info('有加群请求')
-          let requestQQ = ''
-          try {
-            // uid-->uin
-            requestQQ = (await this.ctx.ntUserApi.getUinByUid(notify.user1.uid))
-            if (isNaN(parseInt(requestQQ))) {
-              requestQQ = (await this.ctx.ntUserApi.getUserDetailInfo(notify.user1.uid)).uin
-            }
-          } catch (e) {
-            this.ctx.logger.error('获取加群人QQ号失败 Uid:', notify.user1.uid, e)
-          }
-          let invitorId: string
-          if (notify.type == GroupNotifyTypes.JOIN_REQUEST_BY_INVITED) {
-            // groupRequestEvent.sub_type = 'invite'
-            try {
-              // uid-->uin
-              invitorId = (await this.ctx.ntUserApi.getUinByUid(notify.user2.uid))
-              if (isNaN(parseInt(invitorId))) {
-                invitorId = (await this.ctx.ntUserApi.getUserDetailInfo(notify.user2.uid)).uin
-              }
-            } catch (e) {
-              invitorId = ''
-              this.ctx.logger.error('获取邀请人QQ号失败 Uid:', notify.user2.uid, e)
-            }
-          }
-          const groupRequestEvent = new OB11GroupRequestEvent(
+          const requestUin = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
+          const event = new OB11GroupRequestEvent(
             parseInt(notify.group.groupCode),
-            parseInt(requestQQ) || 0,
+            parseInt(requestUin) || 0,
             flag,
             notify.postscript,
-            invitorId! === undefined ? undefined : +invitorId,
-            'add'
           )
-          this.dispatch(groupRequestEvent)
+          this.dispatch(event)
         }
-        else if (notify.type == GroupNotifyTypes.INVITE_ME) {
+        else if (notify.type === GroupNotifyType.INVITED_BY_MEMBER && notify.status === GroupNotifyStatus.KUNHANDLE) {
           this.ctx.logger.info('收到邀请我加群通知')
-          const userId = (await this.ctx.ntUserApi.getUinByUid(notify.user2.uid)) || ''
-          const groupInviteEvent = new OB11GroupRequestEvent(
+          const userId = await this.ctx.ntUserApi.getUinByUid(notify.user2.uid)
+          const event = new OB11GroupRequestEvent(
             parseInt(notify.group.groupCode),
-            parseInt(userId),
+            parseInt(userId) || 0,
             flag,
-            undefined,
+            notify.postscript,
             undefined,
             'invite'
           )
-          this.dispatch(groupInviteEvent)
+          this.dispatch(event)
+        }
+        else if (notify.type === GroupNotifyType.INVITED_NEED_ADMINI_STRATOR_PASS && notify.status === GroupNotifyStatus.KUNHANDLE) {
+          this.ctx.logger.info('收到群员邀请加群通知')
+          const userId = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
+          const event = new OB11GroupRequestEvent(
+            parseInt(notify.group.groupCode),
+            parseInt(userId) || 0,
+            flag,
+            notify.postscript
+          )
+          this.dispatch(event)
         }
       } catch (e: any) {
-        this.ctx.logger.error('解析群通知失败', e.stack.toString())
+        this.ctx.logger.error('解析群通知失败', e.stack)
       }
     }
   }
@@ -203,7 +189,7 @@ class OneBot11Adapter extends Service {
       message.msgShortId = MessageUnique.createMsg(peer, message.msgId)
       this.addMsgCache(message)
 
-      OB11Constructor.message(this.ctx, message)
+      OB11Entities.message(this.ctx, message)
         .then((msg) => {
           if (!this.config.debug && msg.message.length === 0) {
             return
@@ -219,13 +205,13 @@ class OneBot11Adapter extends Service {
         })
         .catch((e) => this.ctx.logger.error('constructMessage error: ', e.stack.toString()))
 
-      OB11Constructor.GroupEvent(this.ctx, message).then((groupEvent) => {
+      OB11Entities.groupEvent(this.ctx, message).then((groupEvent) => {
         if (groupEvent) {
           this.dispatch(groupEvent)
         }
       })
 
-      OB11Constructor.PrivateEvent(this.ctx, message).then((privateEvent) => {
+      OB11Entities.privateEvent(this.ctx, message).then((privateEvent) => {
         if (privateEvent) {
           this.dispatch(privateEvent)
         }
@@ -240,7 +226,7 @@ class OneBot11Adapter extends Service {
         if (!oriMessageId) {
           continue
         }
-        OB11Constructor.RecallEvent(this.ctx, message, oriMessageId).then((recallEvent) => {
+        OB11Entities.recallEvent(this.ctx, message, oriMessageId).then((recallEvent) => {
           if (recallEvent) {
             this.dispatch(recallEvent)
           }

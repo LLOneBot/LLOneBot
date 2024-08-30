@@ -1,6 +1,6 @@
 import BaseAction from '../BaseAction'
 import { OB11ForwardMessage, OB11Message, OB11MessageData } from '../../types'
-import { OB11Constructor } from '../../constructor'
+import { OB11Entities } from '../../entities'
 import { ActionName } from '../types'
 import { MessageUnique } from '@/common/utils/messageUnique'
 
@@ -32,7 +32,7 @@ export class GoCQHTTGetForwardMsgAction extends BaseAction<Payload, Response> {
     const msgList = data.msgList
     const messages = await Promise.all(
       msgList.map(async (msg) => {
-        const resMsg = await OB11Constructor.message(this.ctx, msg)
+        const resMsg = await OB11Entities.message(this.ctx, msg)
         resMsg.message_id = MessageUnique.createMsg({
           chatType: msg.chatType,
           peerUid: msg.peerUid,

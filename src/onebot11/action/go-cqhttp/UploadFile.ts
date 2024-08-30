@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import BaseAction from '../BaseAction'
 import { ActionName } from '../types'
-import { SendMsgElementConstructor } from '@/ntqqapi/constructor'
+import { SendElementEntities } from '@/ntqqapi/entities'
 import { ChatType, SendFileElement } from '@/ntqqapi/types'
 import { uri2local } from '@/common/utils'
 import { Peer } from '@/ntqqapi/types'
@@ -28,7 +28,7 @@ export class GoCQHTTPUploadGroupFile extends BaseAction<Payload, null> {
     if (!downloadResult.success) {
       throw new Error(downloadResult.errMsg)
     }
-    const sendFileEle = await SendMsgElementConstructor.file(this.ctx, downloadResult.path, payload.name, payload.folder_id)
+    const sendFileEle = await SendElementEntities.file(this.ctx, downloadResult.path, payload.name, payload.folder_id)
     await sendMsg(this.ctx, {
       chatType: ChatType.group,
       peerUid: payload.group_id?.toString()!,
@@ -62,7 +62,7 @@ export class GoCQHTTPUploadPrivateFile extends BaseAction<Payload, null> {
     if (!downloadResult.success) {
       throw new Error(downloadResult.errMsg)
     }
-    const sendFileEle: SendFileElement = await SendMsgElementConstructor.file(this.ctx, downloadResult.path, payload.name)
+    const sendFileEle: SendFileElement = await SendElementEntities.file(this.ctx, downloadResult.path, payload.name)
     await sendMsg(this.ctx, peer, [sendFileEle], [], true)
     return null
   }

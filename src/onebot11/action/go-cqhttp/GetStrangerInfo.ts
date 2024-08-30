@@ -1,6 +1,6 @@
 import BaseAction from '../BaseAction'
 import { OB11User } from '../../types'
-import { OB11Constructor } from '../../constructor'
+import { OB11Entities } from '../../entities'
 import { ActionName } from '../types'
 import { getBuildVersion } from '@/common/utils'
 import { OB11UserSex } from '../../types'
@@ -33,7 +33,7 @@ export default class GoCQHTTPGetStrangerInfo extends BaseAction<Payload, OB11Use
         return ret
       }
       const data = { ...extendData, ...(await this.ctx.ntUserApi.getUserDetailInfo(uid)) }
-      return OB11Constructor.stranger(data)
+      return OB11Entities.stranger(data)
     } else {
       const user_id = payload.user_id.toString()
       const extendData = await this.ctx.ntUserApi.getUserDetailInfoByUinV2(user_id)
@@ -52,7 +52,7 @@ export default class GoCQHTTPGetStrangerInfo extends BaseAction<Payload, OB11Use
         return ret
       }
       const data = { ...extendData, ...(await this.ctx.ntUserApi.getUserDetailInfo(uid)) }
-      return OB11Constructor.stranger(data)
+      return OB11Entities.stranger(data)
     }
   }
 }

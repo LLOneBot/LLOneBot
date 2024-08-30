@@ -5,7 +5,6 @@ import {
   CacheFileListItem,
   CacheFileType,
   CacheScanResult,
-  ChatCacheList,
   ChatCacheListItemBasic,
   ChatType,
   ElementType,
@@ -43,14 +42,32 @@ export class NTQQFileApi extends Service {
     this.rkeyManager = new RkeyManager(ctx, 'http://napcat-sign.wumiao.wang:2082/rkey')
   }
 
-  /** 27187 TODO */
   async getVideoUrl(peer: Peer, msgId: string, elementId: string) {
     const session = getSession()
-    return (await session?.getRichMediaService().getVideoPlayUrlV2(peer,
-      msgId,
-      elementId,
-      0,
-      { downSourceType: 1, triggerType: 1 }))?.urlResult.domainUrl[0].url
+    if (session) {
+      return (await session.getRichMediaService().getVideoPlayUrlV2(
+        peer,
+        msgId,
+        elementId,
+        0,
+        { downSourceType: 1, triggerType: 1 }
+      )).urlResult.domainUrl[0]?.url
+    } else {
+      const data = await invoke('nodeIKernelRichMediaService/getVideoPlayUrlV2', [{
+        peer,
+        msgId,
+        elemId: elementId,
+        videoCodecFormat: 0,
+        exParams: {
+          downSourceType: 1,
+          triggerType: 1
+        },
+      }, null])
+      if (data.result !== 0) {
+        this.ctx.logger.warn('getVideoUrl', data)
+      }
+      return data.urlResult.domainUrl[0]?.url
+    }
   }
 
   async getFileType(filePath: string) {
@@ -82,23 +99,18 @@ export class NTQQFileApi extends Service {
         file_uuid: ''
       })
     } else {
-      mediaPath = await invoke<string>({
-        methodName: NTMethod.MEDIA_FILE_PATH,
-        args: [
-          {
-            path_info: {
-              md5HexStr: fileMd5,
-              fileName: fileName,
-              elementType: elementType,
-              elementSubType,
-              thumbSize: 0,
-              needCreate: true,
-              downloadType: 1,
-              file_uuid: '',
-            },
-          },
-        ],
-      })
+      mediaPath = await invoke(NTMethod.MEDIA_FILE_PATH, [{
+        path_info: {
+          md5HexStr: fileMd5,
+          fileName: fileName,
+          elementType: elementType,
+          elementSubType,
+          thumbSize: 0,
+          needCreate: true,
+          downloadType: 1,
+          file_uuid: '',
+        },
+      }])
     }
     await fsPromise.copyFile(filePath, mediaPath)
     const fileSize = (await fsPromise.stat(filePath)).size
@@ -174,9 +186,9 @@ export class NTQQFileApi extends Service {
       )
       filePath = data[1].filePath
     } else {
-      const data = await invoke<{ notifyInfo: OnRichMediaDownloadCompleteParams }>({
-        methodName: NTMethod.DOWNLOAD_MEDIA,
-        args: [
+      const data = await invoke<{ notifyInfo: OnRichMediaDownloadCompleteParams }>(
+        NTMethod.DOWNLOAD_MEDIA,
+        [
           {
             getReq: {
               fileModelId: '0',
@@ -193,10 +205,12 @@ export class NTQQFileApi extends Service {
           },
           null,
         ],
-        cbCmd: ReceiveCmdS.MEDIA_DOWNLOAD_COMPLETE,
-        cmdCB: payload => payload.notifyInfo.msgId === msgId,
-        timeout
-      })
+        {
+          cbCmd: ReceiveCmdS.MEDIA_DOWNLOAD_COMPLETE,
+          cmdCB: payload => payload.notifyInfo.msgId === msgId,
+          timeout
+        }
+      )
       filePath = data.notifyInfo.filePath
     }
     if (filePath.startsWith('\\')) {
@@ -208,11 +222,13 @@ export class NTQQFileApi extends Service {
   }
 
   async getImageSize(filePath: string) {
-    return await invoke<{ width: number; height: number }>({
-      className: NTClass.FS_API,
-      methodName: NTMethod.IMAGE_SIZE,
-      args: [filePath],
-    })
+    return await invoke<{ width: number; height: number }>(
+      NTMethod.IMAGE_SIZE,
+      [filePath],
+      {
+        className: NTClass.FS_API,
+      }
+    )
   }
 
   async getImageUrl(element: PicElement) {
@@ -254,15 +270,7 @@ export class NTQQFileCacheApi extends Service {
   }
 
   async setCacheSilentScan(isSilent: boolean = true) {
-    return await invoke<GeneralCallResult>({
-      methodName: NTMethod.CACHE_SET_SILENCE,
-      args: [
-        {
-          isSilent,
-        },
-        null,
-      ],
-    })
+    return await invoke<GeneralCallResult>(NTMethod.CACHE_SET_SILENCE, [{ isSilent }, null])
   }
 
   getCacheSessionPathList() {
@@ -271,110 +279,38 @@ export class NTQQFileCacheApi extends Service {
         key: string
         value: string
       }[]
-    >({
-      className: NTClass.OS_API,
-      methodName: NTMethod.CACHE_PATH_SESSION,
-    })
-  }
-
-  clearCache(cacheKeys: Array<string> = ['tmp', 'hotUpdate']) {
-    return invoke<any>({
-      // TODO: 目前还不知道真正的返回值是什么
-      methodName: NTMethod.CACHE_CLEAR,
-      args: [
-        {
-          keys: cacheKeys,
-        },
-        null,
-      ],
-    })
-  }
-
-  addCacheScannedPaths(pathMap: object = {}) {
-    return invoke<GeneralCallResult>({
-      methodName: NTMethod.CACHE_ADD_SCANNED_PATH,
-      args: [
-        {
-          pathMap: { ...pathMap },
-        },
-        null,
-      ],
-    })
+    >(NTMethod.CACHE_PATH_SESSION, [], { className: NTClass.OS_API })
   }
 
   scanCache() {
-    invoke<GeneralCallResult>({
-      methodName: ReceiveCmdS.CACHE_SCAN_FINISH,
-      classNameIsRegister: true,
-    }).then()
-    return invoke<CacheScanResult>({
-      methodName: NTMethod.CACHE_SCAN,
-      args: [null, null],
-      timeout: 300 * Time.second,
-    })
+    invoke<GeneralCallResult>(ReceiveCmdS.CACHE_SCAN_FINISH, [], { classNameIsRegister: true })
+    return invoke<CacheScanResult>(NTMethod.CACHE_SCAN, [null, null], { timeout: 300 * Time.second })
   }
 
   getHotUpdateCachePath() {
-    return invoke<string>({
-      className: NTClass.HOTUPDATE_API,
-      methodName: NTMethod.CACHE_PATH_HOT_UPDATE,
-    })
+    return invoke<string>(NTMethod.CACHE_PATH_HOT_UPDATE, [], { className: NTClass.HOTUPDATE_API })
   }
 
   getDesktopTmpPath() {
-    return invoke<string>({
-      className: NTClass.BUSINESS_API,
-      methodName: NTMethod.CACHE_PATH_DESKTOP_TEMP,
-    })
-  }
-
-  getChatCacheList(type: ChatType, pageSize: number = 1000, pageIndex: number = 0) {
-    return new Promise<ChatCacheList>((res, rej) => {
-      invoke<ChatCacheList>({
-        methodName: NTMethod.CACHE_CHAT_GET,
-        args: [
-          {
-            chatType: type,
-            pageSize,
-            order: 1,
-            pageIndex,
-          },
-          null,
-        ],
-      })
-        .then((list) => res(list))
-        .catch((e) => rej(e))
-    })
+    return invoke<string>(NTMethod.CACHE_PATH_DESKTOP_TEMP, [], { className: NTClass.BUSINESS_API })
   }
 
   getFileCacheInfo(fileType: CacheFileType, pageSize: number = 1000, lastRecord?: CacheFileListItem) {
     const _lastRecord = lastRecord ? lastRecord : { fileType: fileType }
 
-    return invoke<CacheFileList>({
-      methodName: NTMethod.CACHE_FILE_GET,
-      args: [
-        {
-          fileType: fileType,
-          restart: true,
-          pageSize: pageSize,
-          order: 1,
-          lastRecord: _lastRecord,
-        },
-        null,
-      ],
-    })
+    return invoke<CacheFileList>(NTMethod.CACHE_FILE_GET, [{
+      fileType: fileType,
+      restart: true,
+      pageSize: pageSize,
+      order: 1,
+      lastRecord: _lastRecord,
+    }, null])
   }
 
   async clearChatCache(chats: ChatCacheListItemBasic[] = [], fileKeys: string[] = []) {
-    return await invoke<GeneralCallResult>({
-      methodName: NTMethod.CACHE_CHAT_CLEAR,
-      args: [
-        {
-          chats,
-          fileKeys,
-        },
-        null,
-      ],
-    })
+    return await invoke<GeneralCallResult>(NTMethod.CACHE_CHAT_CLEAR, [{
+      chats,
+      fileKeys,
+    }, null])
   }
 }
