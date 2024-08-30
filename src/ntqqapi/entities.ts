@@ -1,3 +1,5 @@
+import ffmpeg from 'fluent-ffmpeg'
+import faceConfig from './helper/face_config.json'
 import {
   AtType,
   ElementType,
@@ -13,22 +15,16 @@ import {
   SendTextElement,
   SendVideoElement,
 } from './types'
-import { promises as fs } from 'node:fs'
-import ffmpeg from 'fluent-ffmpeg'
+import { stat, writeFile, copyFile, unlink } from 'node:fs/promises'
 import { calculateFileMD5, isGIF } from '../common/utils/file'
 import { defaultVideoThumb, getVideoInfo } from '../common/utils/video'
 import { encodeSilk } from '../common/utils/audio'
-import faceConfig from './helper/face_config.json'
 import { Context } from 'cordis'
 import { isNullable } from 'cosmokit'
 
 export const mFaceCache = new Map<string, string>() // emojiId -> faceName
 
-export namespace SendMsgElementConstructor {
-  export function poke(groupCode: string, uin: string) {
-    return null
-  }
-
+export namespace SendElementEntities {
   export function text(content: string): SendTextElement {
     return {
       elementType: ElementType.TEXT,
@@ -123,7 +119,7 @@ export namespace SendMsgElementConstructor {
 
   export async function video(ctx: Context, filePath: string, fileName: string = '', diyThumbPath: string = ''): Promise<SendVideoElement> {
     try {
-      await fs.stat(filePath)
+      await stat(filePath)
     } catch (e) {
       throw `文件${filePath}异常，不存在`
     }
@@ -165,7 +161,7 @@ export namespace SendMsgElementConstructor {
       function useDefaultThumb() {
         if (completed) return
         ctx.logger.info('获取视频封面失败，使用默认封面')
-        fs.writeFile(thumbPath, defaultVideoThumb)
+        writeFile(thumbPath, defaultVideoThumb)
           .then(() => {
             resolve(thumbPath)
           })
@@ -176,7 +172,7 @@ export namespace SendMsgElementConstructor {
       ffmpeg(filePath)
         .on('error', (err) => {
           if (diyThumbPath) {
-            fs.copyFile(diyThumbPath, thumbPath)
+            copyFile(diyThumbPath, thumbPath)
               .then(() => {
                 completed = true
                 resolve(thumbPath)
@@ -201,7 +197,7 @@ export namespace SendMsgElementConstructor {
     let thumbPath = new Map()
     const _thumbPath = await createThumb
     ctx.logger.info('生成视频缩略图', _thumbPath)
-    const thumbSize = (await fs.stat(_thumbPath)).size
+    const thumbSize = (await stat(_thumbPath)).size
     // log("生成缩略图", _thumbPath)
     thumbPath.set(0, _thumbPath)
     const thumbMd5 = await calculateFileMD5(_thumbPath)
@@ -246,7 +242,7 @@ export namespace SendMsgElementConstructor {
       throw '文件异常，大小为0'
     }
     if (converted) {
-      fs.unlink(silkPath).then()
+      unlink(silkPath)
     }
     return {
       elementType: ElementType.PTT,

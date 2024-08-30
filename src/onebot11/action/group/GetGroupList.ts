@@ -1,5 +1,5 @@
 import { OB11Group } from '../../types'
-import { OB11Constructor } from '../../constructor'
+import { OB11Entities } from '../../entities'
 import BaseAction from '../BaseAction'
 import { ActionName } from '../types'
 
@@ -12,7 +12,7 @@ class GetGroupList extends BaseAction<Payload, OB11Group[]> {
 
   protected async _handle(payload: Payload) {
     const groupList = await this.ctx.ntGroupApi.getGroups(payload?.no_cache === true || payload?.no_cache === 'true')
-    return OB11Constructor.groups(groupList)
+    return OB11Entities.groups(groupList)
   }
 }
 

@@ -15,7 +15,7 @@ import {
 } from '../types'
 import { decodeCQCode } from '../cqcode'
 import { Peer } from '@/ntqqapi/types/msg'
-import { SendMsgElementConstructor } from '@/ntqqapi/constructor'
+import { SendElementEntities } from '@/ntqqapi/entities'
 import { MessageUnique } from '@/common/utils/messageUnique'
 import { selfInfo } from '@/common/globalVars'
 import { uri2local } from '@/common/utils'
@@ -37,7 +37,7 @@ export async function createSendElements(
       case OB11MessageDataType.text: {
         const text = sendMsg.data?.text
         if (text) {
-          sendElements.push(SendMsgElementConstructor.text(sendMsg.data!.text))
+          sendElements.push(SendElementEntities.text(sendMsg.data!.text))
         }
       }
         break
@@ -63,7 +63,7 @@ export async function createSendElements(
               }
             }
             if (isAdmin && remainAtAllCount > 0) {
-              sendElements.push(SendMsgElementConstructor.at(atQQ, atQQ, AtType.atAll, '@全体成员'))
+              sendElements.push(SendElementEntities.at(atQQ, atQQ, AtType.atAll, '@全体成员'))
             }
           }
           else if (peer.chatType === ChatType.group) {
@@ -71,14 +71,14 @@ export async function createSendElements(
             if (atMember) {
               const display = `@${atMember.cardName || atMember.nick}`
               sendElements.push(
-                SendMsgElementConstructor.at(atQQ, atMember.uid, AtType.atUser, display),
+                SendElementEntities.at(atQQ, atMember.uid, AtType.atUser, display),
               )
             } else {
               const atNmae = sendMsg.data?.name
               const uid = await ctx.ntUserApi.getUidByUin(atQQ) || ''
               const display = atNmae ? `@${atNmae}` : ''
               sendElements.push(
-                SendMsgElementConstructor.at(atQQ, uid, AtType.atUser, display),
+                SendElementEntities.at(atQQ, uid, AtType.atUser, display),
               )
             }
           }
@@ -98,7 +98,7 @@ export async function createSendElements(
           )).msgList[0]
           if (replyMsg) {
             sendElements.push(
-              SendMsgElementConstructor.reply(
+              SendElementEntities.reply(
                 replyMsg.msgSeq,
                 replyMsg.msgId,
                 replyMsg.senderUin!,
@@ -112,13 +112,13 @@ export async function createSendElements(
       case OB11MessageDataType.face: {
         const faceId = sendMsg.data?.id
         if (faceId) {
-          sendElements.push(SendMsgElementConstructor.face(parseInt(faceId)))
+          sendElements.push(SendElementEntities.face(parseInt(faceId)))
         }
       }
         break
       case OB11MessageDataType.mface: {
         sendElements.push(
-          SendMsgElementConstructor.mface(
+          SendElementEntities.mface(
             +sendMsg.data.emoji_package_id,
             sendMsg.data.emoji_id,
             sendMsg.data.key,
@@ -128,7 +128,7 @@ export async function createSendElements(
       }
         break
       case OB11MessageDataType.image: {
-        const res = await SendMsgElementConstructor.pic(
+        const res = await SendElementEntities.pic(
           ctx,
           (await handleOb11FileLikeMessage(ctx, sendMsg, { deleteAfterSentFiles })).path,
           sendMsg.data.summary || '',
@@ -140,7 +140,7 @@ export async function createSendElements(
         break
       case OB11MessageDataType.file: {
         const { path, fileName } = await handleOb11FileLikeMessage(ctx, sendMsg, { deleteAfterSentFiles })
-        sendElements.push(await SendMsgElementConstructor.file(ctx, path, fileName))
+        sendElements.push(await SendElementEntities.file(ctx, path, fileName))
       }
         break
       case OB11MessageDataType.video: {
@@ -150,18 +150,18 @@ export async function createSendElements(
           const uri2LocalRes = await uri2local(thumb)
           if (uri2LocalRes.success) thumb = uri2LocalRes.path
         }
-        const res = await SendMsgElementConstructor.video(ctx, path, fileName, thumb)
+        const res = await SendElementEntities.video(ctx, path, fileName, thumb)
         deleteAfterSentFiles.push(res.videoElement.filePath)
         sendElements.push(res)
       }
         break
       case OB11MessageDataType.voice: {
         const { path } = await handleOb11FileLikeMessage(ctx, sendMsg, { deleteAfterSentFiles })
-        sendElements.push(await SendMsgElementConstructor.ptt(ctx, path))
+        sendElements.push(await SendElementEntities.ptt(ctx, path))
       }
         break
       case OB11MessageDataType.json: {
-        sendElements.push(SendMsgElementConstructor.ark(sendMsg.data.data))
+        sendElements.push(SendElementEntities.ark(sendMsg.data.data))
       }
         break
       case OB11MessageDataType.poke: {
@@ -170,12 +170,12 @@ export async function createSendElements(
         break
       case OB11MessageDataType.dice: {
         const resultId = sendMsg.data?.result
-        sendElements.push(SendMsgElementConstructor.dice(resultId))
+        sendElements.push(SendElementEntities.dice(resultId))
       }
         break
       case OB11MessageDataType.RPS: {
         const resultId = sendMsg.data?.result
-        sendElements.push(SendMsgElementConstructor.rps(resultId))
+        sendElements.push(SendElementEntities.rps(resultId))
       }
         break
     }

@@ -2,7 +2,7 @@ import BaseAction from '../BaseAction'
 import { OB11Message } from '../../types'
 import { ActionName } from '../types'
 import { ChatType } from '@/ntqqapi/types'
-import { OB11Constructor } from '../../constructor'
+import { OB11Entities } from '../../entities'
 import { RawMessage } from '@/ntqqapi/types'
 import { MessageUnique } from '@/common/utils/messageUnique'
 
@@ -40,7 +40,7 @@ export default class GoCQHTTPGetGroupMsgHistory extends BaseAction<Payload, Resp
         msg.msgShortId = MessageUnique.createMsg({ chatType: msg.chatType, peerUid: msg.peerUid }, msg.msgId)
       })
     )
-    const ob11MsgList = await Promise.all(msgList.map((msg) => OB11Constructor.message(this.ctx, msg)))
+    const ob11MsgList = await Promise.all(msgList.map((msg) => OB11Entities.message(this.ctx, msg)))
     return { messages: ob11MsgList }
   }
 }
