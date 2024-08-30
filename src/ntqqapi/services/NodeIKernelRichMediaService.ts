@@ -177,8 +177,6 @@ export interface NodeIKernelRichMediaService {
 
   renameGroupFolder(arg1: unknown, arg2: unknown, arg3: unknown): unknown
 
-  deleteGroupFolder(arg1: unknown, arg2: unknown): unknown
-
   deleteTransferInfo(arg1: unknown, arg2: unknown): unknown
 
   cancelTransferTask(arg1: unknown, arg2: unknown, arg3: unknown): unknown
