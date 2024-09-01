@@ -160,6 +160,9 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
       }
     }
     const returnMsg = await sendMsg(this.ctx, peer, sendElements, deleteAfterSentFiles)
+    if (!returnMsg) {
+      throw new Error('消息发送失败')
+    }
     return { message_id: returnMsg.msgShortId! }
   }
 
@@ -251,9 +254,12 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
           // log("分割后的转发节点", sendElementsSplit)
           for (const eles of sendElementsSplit) {
             const nodeMsg = await sendMsg(this.ctx, selfPeer, eles, [], true)
+            if (!nodeMsg) {
+              this.ctx.logger.warn('转发节点生成失败', eles)
+              continue
+            }
             nodeMsgIds.push(nodeMsg.msgId)
             await this.ctx.sleep(400)
-            this.ctx.logger.info('转发节点生成成功', nodeMsg.msgId)
           }
           deleteAfterSentFiles.map((f) => fs.unlink(f, () => {
           }))
