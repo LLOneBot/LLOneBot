@@ -17,7 +17,11 @@ class DeleteMsg extends BaseAction<Payload, void> {
     if (!msg) {
       throw `消息${payload.message_id}不存在`
     }
-    await this.ctx.ntMsgApi.recallMsg(msg.Peer, [msg.MsgId])
+    const data = await this.ctx.ntMsgApi.recallMsg(msg.Peer, [msg.MsgId])
+    if (data.result !== 0) {
+      this.ctx.logger.error('delete_msg', payload.message_id, data)
+      throw `消息撤回失败`
+    }
   }
 }
 
