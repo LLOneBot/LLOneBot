@@ -48,16 +48,16 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
       }
     }
     if ((contextMode === ContextMode.Private || contextMode === ContextMode.Normal) && payload.user_id) {
-      const Uid = await this.ctx.ntUserApi.getUidByUin(payload.user_id.toString())
-      const isBuddy = await this.ctx.ntFriendApi.isBuddy(Uid!)
-      //console.log("[调试代码] UIN:", payload.user_id, " UID:", Uid, " IsBuddy:", isBuddy)
+      const uid = await this.ctx.ntUserApi.getUidByUin(payload.user_id.toString())
+      if (!uid) throw new Error('无法获取用户信息')
+      const isBuddy = await this.ctx.ntFriendApi.isBuddy(uid)
       return {
         chatType: isBuddy ? ChatType.friend : ChatType.temp,
-        peerUid: Uid!,
-        guildId: payload.group_id?.toString() || '' //临时主动发起时需要传入群号
+        peerUid: uid,
+        guildId: isBuddy ? '' : payload.group_id?.toString() || ''
       }
     }
-    throw '请指定 group_id 或 user_id'
+    throw new Error('请指定 group_id 或 user_id')
   }
 
   protected async check(payload: OB11PostSendMsg): Promise<BaseCheckResult> {
