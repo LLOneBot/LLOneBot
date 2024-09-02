@@ -295,7 +295,7 @@ export namespace SendElementEntities {
     }
   }
 
-  export function mface(emojiPackageId: number, emojiId: string, key: string, summary: string): SendMarketFaceElement {
+  export function mface(emojiPackageId: number, emojiId: string, key: string, summary?: string): SendMarketFaceElement {
     return {
       elementType: ElementType.MFACE,
       marketFaceElement: {
@@ -309,9 +309,8 @@ export namespace SendElementEntities {
     }
   }
 
-  export function dice(resultId: number | null): SendFaceElement {
+  export function dice(resultId?: string | number): SendFaceElement {
     // 实际测试并不能控制结果
-
     // 随机1到6
     if (isNullable(resultId)) resultId = Math.floor(Math.random() * 6) + 1
     return {
@@ -325,7 +324,7 @@ export namespace SendElementEntities {
         stickerId: '33',
         sourceType: 1,
         stickerType: 2,
-        resultId: resultId?.toString(),
+        resultId: resultId.toString(),
         surpriseId: '',
         // "randomType": 1,
       },
@@ -333,7 +332,7 @@ export namespace SendElementEntities {
   }
 
   // 猜拳(石头剪刀布)表情
-  export function rps(resultId: number | null): SendFaceElement {
+  export function rps(resultId?: string | number): SendFaceElement {
     // 实际测试并不能控制结果
     if (isNullable(resultId)) resultId = Math.floor(Math.random() * 3) + 1
     return {
@@ -347,7 +346,7 @@ export namespace SendElementEntities {
         stickerId: '34',
         sourceType: 1,
         stickerType: 2,
-        resultId: resultId?.toString(),
+        resultId: resultId.toString(),
         surpriseId: '',
         // "randomType": 1,
       },
