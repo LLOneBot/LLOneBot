@@ -15,10 +15,6 @@ TG 群：<https://t.me/+nLZEnpne-pQ1OWFl>
 
 <img src="./doc/image/setting.png" width="400px" alt="设置界面"/>
 
-## HTTP 调用示例
-
-<img src="./doc/image/example.jpg" width="500px" alt="HTTP调用示例"/>
-
 ## 支持的 API
 
 见 <https://llonebot.github.io/zh-CN/develop/api>
@@ -31,7 +27,7 @@ TG 群：<https://t.me/+nLZEnpne-pQ1OWFl>
 
 - [NapCatQQ](https://github.com/NapNeko/NapCatQQ)
 - [LiteLoaderQQNT](https://liteloaderqqnt.github.io/guide/install.html)
-- [chronocat](https://github.com/chrononeko/chronocat)
+- [Chronocat](https://github.com/chrononeko/chronocat)
 - [koishi-plugin-adapter-onebot](https://github.com/koishijs/koishi-plugin-adapter-onebot)
 - [silk-wasm](https://github.com/idranme/silk-wasm)
 
