@@ -8,8 +8,8 @@ import { MessageUnique } from '@/common/utils/messageUnique'
 
 interface Payload {
   group_id: number | string
-  message_seq?: number
-  count?: number
+  message_seq?: number | string
+  count?: number | string
   reverseOrder?: boolean
 }
 
@@ -27,13 +27,13 @@ export class GetGroupMsgHistory extends BaseAction<Payload, Response> {
     let msgList: RawMessage[] | undefined
     // 包含 message_seq 0
     if (!payload.message_seq) {
-      msgList = (await this.ctx.ntMsgApi.getLastestMsgByUids(peer, count))?.msgList
+      msgList = (await this.ctx.ntMsgApi.getAioFirstViewLatestMsgs(peer, +count)).msgList
     } else {
-      const startMsgId = (await MessageUnique.getMsgIdAndPeerByShortId(payload.message_seq))?.MsgId
-      if (!startMsgId) throw `消息${payload.message_seq}不存在`
-      msgList = (await this.ctx.ntMsgApi.getMsgHistory(peer, startMsgId, count)).msgList
+      const startMsgId = (await MessageUnique.getMsgIdAndPeerByShortId(+payload.message_seq))?.MsgId
+      if (!startMsgId) throw new Error(`消息${payload.message_seq}不存在`)
+      msgList = (await this.ctx.ntMsgApi.getMsgHistory(peer, startMsgId, +count)).msgList
     }
-    if (!msgList?.length) throw '未找到消息'
+    if (!msgList?.length) throw new Error('未找到消息')
     if (isReverseOrder) msgList.reverse()
     await Promise.all(
       msgList.map(async msg => {

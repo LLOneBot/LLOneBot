@@ -168,9 +168,10 @@ export interface NodeIKernelMsgService {
 
   getLastMessageList(peer: Peer[]): Promise<unknown>
 
-  getAioFirstViewLatestMsgs(peer: Peer, num: number): unknown
+  getAioFirstViewLatestMsgs(peer: Peer, num: number): Promise<GeneralCallResult & {
+    msgList: RawMessage[]
+  }>
 
-  //deprecated 从9.9.15-26702版本开始，该接口已经废弃，请使用getMsgsEx
   getMsgs(peer: Peer, msgId: string, count: unknown, queryOrder: boolean): Promise<unknown>
 
   getMsgsIncludeSelf(peer: Peer, msgId: string, count: number, queryOrder: boolean): Promise<GeneralCallResult & {
