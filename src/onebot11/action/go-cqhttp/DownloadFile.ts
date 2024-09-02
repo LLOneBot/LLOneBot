@@ -6,6 +6,7 @@ import { ActionName } from '../types'
 import { calculateFileMD5, fetchFile } from '@/common/utils'
 import { TEMP_DIR } from '@/common/globalVars'
 import { randomUUID } from 'node:crypto'
+import { Dict } from 'cosmokit'
 
 interface Payload {
   thread_count?: number
@@ -51,7 +52,7 @@ export class DownloadFile extends BaseAction<Payload, FileResponse> {
   }
 
   getHeaders(headersIn?: string | string[]): Record<string, string> {
-    const headers = {}
+    const headers: Dict = {}
     if (typeof headersIn == 'string') {
       headersIn = headersIn.split('[\\r\\n]')
     }

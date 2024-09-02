@@ -4,6 +4,7 @@
     "module": "CommonJS",
     "outDir": "./dist",
     "strict": true,
+    "isolatedModules": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
