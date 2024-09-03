@@ -60,6 +60,7 @@ import { CreateGroupFileFolder } from './go-cqhttp/CreateGroupFileFolder'
 import { DelGroupFolder } from './go-cqhttp/DelGroupFolder'
 import { GetGroupAtAllRemain } from './go-cqhttp/GetGroupAtAllRemain'
 import { GetGroupRootFiles } from './go-cqhttp/GetGroupRootFiles'
+import { SetOnlineStatus } from './llonebot/SetOnlineStatus'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -71,6 +72,7 @@ export function initActionMap(adapter: Adapter) {
     new SetQQAvatar(adapter),
     new GetFriendWithCategory(adapter),
     new GetEvent(adapter),
+    new SetOnlineStatus(adapter),
     // onebot11
     new SendLike(adapter),
     new GetMsg(adapter),
