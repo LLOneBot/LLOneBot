@@ -1,12 +1,12 @@
 import { OB11Message, OB11MessageAt, OB11MessageData, OB11MessageDataType } from '../types'
 import { OB11FriendRequestEvent } from '../event/request/OB11FriendRequest'
 import { OB11GroupRequestEvent } from '../event/request/OB11GroupRequest'
-import { ChatType, GroupRequestOperateTypes, Peer } from '@/ntqqapi/types'
-import { convertMessage2List, createSendElements, sendMsg } from '../helper/createMessage'
-import { getConfigUtil } from '@/common/config'
+import { GroupRequestOperateTypes } from '@/ntqqapi/types'
+import { convertMessage2List, createSendElements, sendMsg, createPeer, CreatePeerMode } from '../helper/createMessage'
 import { MessageUnique } from '@/common/utils/messageUnique'
 import { isNullable } from 'cosmokit'
 import { Context } from 'cordis'
+import { OB11Config } from '@/common/types'
 
 interface QuickOperationPrivateMessage {
   reply?: string
@@ -57,21 +57,14 @@ export async function handleQuickOperation(ctx: Context, event: QuickOperationEv
 
 async function handleMsg(ctx: Context, msg: OB11Message, quickAction: QuickOperationPrivateMessage | QuickOperationGroupMessage) {
   const reply = quickAction.reply
-  const ob11Config = getConfigUtil().getConfig().ob11
-  const peer: Peer = {
-    chatType: ChatType.friend,
-    peerUid: msg.user_id.toString(),
+  const ob11Config: OB11Config = ctx.config
+  let contextMode = CreatePeerMode.Normal
+  if (msg.message_type === 'group') {
+    contextMode = CreatePeerMode.Group
+  } else if (msg.message_type === 'private') {
+    contextMode = CreatePeerMode.Private
   }
-  if (msg.message_type == 'private') {
-    peer.peerUid = (await ctx.ntUserApi.getUidByUin(msg.user_id.toString()))!
-    if (msg.sub_type === 'group') {
-      peer.chatType = ChatType.temp
-    }
-  }
-  else {
-    peer.chatType = ChatType.group
-    peer.peerUid = msg.group_id?.toString()!
-  }
+  const peer = await createPeer(ctx, msg, contextMode)
   if (reply) {
     let replyMessage: OB11MessageData[] = []
     if (ob11Config.enableQOAutoQuote) {
