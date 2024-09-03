@@ -38,11 +38,9 @@ window.customElements.define(
 
       const buttonClick = () => {
         const isHidden = this._context.classList.toggle('hidden')
-        window[`${isHidden ? 'remove' : 'add'}EventListener`]('pointerdown', windowPointerDown)
-      }
-
-      const windowPointerDown = ({ target }) => {
-        if (!this.contains(target)) buttonClick()
+        window[`${isHidden ? 'remove' : 'add'}EventListener`]('pointerdown', ({ target }) => {
+          if (!this.contains(target as any)) buttonClick()
+        })
       }
 
       this._button.addEventListener('click', buttonClick)

@@ -1,4 +1,4 @@
-name: 'publish'
+name: Publish
 on:
   push:
     tags:
@@ -8,31 +8,36 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: setup node
+      - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: install dependenies
+      - name: Install dependenies
         run: |
           export ELECTRON_SKIP_BINARY_DOWNLOAD=1
           npm install
 
-      - name: build
+      - name: Build
         run: npm run build
 
-      - name: zip
+      - name: Compress
         run: |
           sudo apt install zip -y
           cd ./dist/
           zip -r ../LLOneBot.zip ./*
 
-      - name: publish
+      - name: Extract version from tag
+        id: get-version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Release
         uses: ncipollo/release-action@v1
         with:
           artifacts: 'LLOneBot.zip'
           draft: true
           token: ${{ secrets.RELEASE_TOKEN }}
+          name: LLOneBot v${{ steps.get-version.outputs.VERSION }}

@@ -77,5 +77,6 @@ export enum ActionName {
   GoCQHTTP_GetGroupSystemMsg = 'get_group_system_msg',
   GoCQHTTP_CreateGroupFileFolder = 'create_group_file_folder',
   GoCQHTTP_DelGroupFolder = 'delete_group_folder',
-  GoCQHTTP_GetGroupAtAllRemain = 'get_group_at_all_remain'
+  GoCQHTTP_GetGroupAtAllRemain = 'get_group_at_all_remain',
+  GoCQHTTP_GetGroupRootFiles = 'get_group_root_files'
 }
