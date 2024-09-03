@@ -14,7 +14,7 @@ import { version } from '../../version'
 
 class OB11WebSocket {
   private wsServer?: WebSocketServer
-  private wsClients: WebSocket[] = []
+  private wsClients: { socket: WebSocket; emitEvent: boolean }[] = []
 
   constructor(protected ctx: Context, public config: OB11WebSocket.Config) {
   }
@@ -31,7 +31,7 @@ class OB11WebSocket {
     }
     this.wsServer?.on('connection', (socket, req) => {
       this.authorize(socket, req)
-      this.connect(socket)
+      this.connect(socket, req)
     })
   }
 
@@ -53,8 +53,8 @@ class OB11WebSocket {
   }
 
   public async emitEvent(event: OB11BaseEvent | OB11Message) {
-    this.wsClients.forEach(socket => {
-      if (socket.readyState === WebSocket.OPEN) {
+    this.wsClients.forEach(({ socket, emitEvent }) => {
+      if (emitEvent && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify(event))
         this.ctx.logger.info('WebSocket 事件上报', socket.url ?? '', event.post_type)
       }
@@ -122,33 +122,40 @@ class OB11WebSocket {
     }
   }
 
-  private connect(socket: WebSocket) {
-    try {
-      this.reply(socket, new OB11LifeCycleEvent(LifeCycleSubType.CONNECT))
-    } catch (e) {
-      this.ctx.logger.error('发送生命周期失败', e)
+  private connect(socket: WebSocket, req: IncomingMessage) {
+    const url = req.url?.split('?').shift()
+    if (['/api', '/api/', '/', undefined].includes(url)) {
+      socket.on('message', msg => {
+        this.handleAction(socket, msg.toString())
+      })
+    }
+    if (['/event', '/event/', '/', undefined].includes(url)) {
+      try {
+        this.reply(socket, new OB11LifeCycleEvent(LifeCycleSubType.CONNECT))
+      } catch (e) {
+        this.ctx.logger.error('发送生命周期失败', e)
+      }
+
+      const disposeHeartBeat = this.ctx.setInterval(() => {
+        this.reply(socket, new OB11HeartbeatEvent(selfInfo.online!, true, this.config.heartInterval))
+      }, this.config.heartInterval)
+
+      socket.on('close', () => {
+        disposeHeartBeat()
+        this.ctx.logger.info('有一个 Websocket 连接断开')
+      })
     }
 
     socket.on('error', err => this.ctx.logger.error(err.message))
-
-    socket.on('message', msg => {
-      this.handleAction(socket, msg.toString())
-    })
 
     socket.on('ping', () => {
       socket.pong()
     })
 
-    const disposeHeartBeat = this.ctx.setInterval(() => {
-      this.reply(socket, new OB11HeartbeatEvent(selfInfo.online!, true, this.config.heartInterval))
-    }, this.config.heartInterval)
-
-    socket.on('close', () => {
-      disposeHeartBeat()
-      this.ctx.logger.info('有一个 Websocket 连接断开')
+    this.wsClients.push({
+      socket,
+      emitEvent: ['/event', '/event/', '/', undefined].includes(url)
     })
-
-    this.wsClients.push(socket)
   }
 }
 
