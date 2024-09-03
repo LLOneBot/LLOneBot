@@ -23,6 +23,7 @@ export enum ActionName {
   GetFile = 'get_file',
   GetFriendsWithCategory = 'get_friends_with_category',
   GetEvent = 'get_event',
+  SetOnlineStatus = 'set_online_status',
   // onebot 11
   SendLike = 'send_like',
   GetLoginInfo = 'get_login_info',

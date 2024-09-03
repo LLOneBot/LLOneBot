@@ -334,4 +334,14 @@ export class NTQQUserApi extends Service {
     }
     return selfInfo.nick
   }
+
+  async setSelfStatus(status: number, extStatus: number, batteryStatus: number) {
+    return await invoke('nodeIKernelMsgService/setStatus', [{
+      statusReq: {
+        status,
+        extStatus,
+        batteryStatus,
+      }
+    }, null])
+  }
 }
