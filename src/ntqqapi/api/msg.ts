@@ -68,6 +68,10 @@ export class NTQQMsgApi extends Service {
     return await invoke<GeneralCallResult>(NTMethod.ACTIVE_CHAT_HISTORY, [{ peer, cnt: 20 }, null])
   }
 
+  async getAioFirstViewLatestMsgs(peer: Peer, cnt: number) {
+    return await invoke('nodeIKernelMsgService/getAioFirstViewLatestMsgs', [{ peer, cnt }, null])
+  }
+
   async getMsgsByMsgId(peer: Peer | undefined, msgIds: string[] | undefined) {
     if (!peer) throw new Error('peer is not allowed')
     if (!msgIds) throw new Error('msgIds is not allowed')
@@ -258,22 +262,6 @@ export class NTQQMsgApi extends Service {
         queryOrder: desc
       }, null])
     }
-  }
-
-  /** 27187 TODO */
-  async getLastestMsgByUids(peer: Peer, count = 20, isReverseOrder = false) {
-    const session = getSession()
-    const ret = await session?.getMsgService().queryMsgsWithFilterEx('0', '0', '0', {
-      chatInfo: peer,
-      filterMsgType: [],
-      filterSendersUid: [],
-      filterMsgToTime: '0',
-      filterMsgFromTime: '0',
-      isReverseOrder: isReverseOrder, //此参数有点离谱 注意不是本次查询的排序 而是全部消历史信息的排序 默认false 从新消息拉取到旧消息
-      isIncludeCurrent: true,
-      pageLimit: count,
-    })
-    return ret
   }
 
   async getSingleMsg(peer: Peer, msgSeq: string) {
