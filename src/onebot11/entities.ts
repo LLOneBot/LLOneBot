@@ -171,7 +171,7 @@ export namespace OB11Entities {
             }
           }
         } catch (e: any) {
-          ctx.logger.error('获取不到引用的消息', replyElement.replayMsgSeq, e.stack)
+          ctx.logger.error('获取不到引用的消息', replyElement, e.stack)
           continue
         }
       }
