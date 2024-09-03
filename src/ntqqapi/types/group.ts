@@ -36,6 +36,7 @@ export interface Group {
     memberUid: string //"u_fbf8N7aeuZEnUiJAbQ9R8Q"
   }
   members: GroupMember[] // 原始数据是没有这个的，为了方便自己加了这个字段
+  createTime: string
 }
 
 export enum GroupMemberRole {

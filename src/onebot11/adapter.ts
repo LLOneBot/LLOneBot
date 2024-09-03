@@ -110,10 +110,10 @@ class OneBot11Adapter extends Service {
     for (const notify of notifies) {
       try {
         const notifyTime = parseInt(notify.seq) / 1000
-        const flag = notify.group.groupCode + '|' + notify.seq + '|' + notify.type
         if (notifyTime < this.startTime) {
           continue
         }
+        const flag = notify.group.groupCode + '|' + notify.seq + '|' + notify.type
         if ([GroupNotifyType.MEMBER_LEAVE_NOTIFY_ADMIN, GroupNotifyType.KICK_MEMBER_NOTIFY_ADMIN].includes(notify.type)) {
           this.ctx.logger.info('有成员退出通知', notify)
           const member1Uin = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)

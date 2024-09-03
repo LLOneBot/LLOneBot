@@ -768,6 +768,8 @@ export namespace OB11Entities {
     return {
       group_id: parseInt(group.groupCode),
       group_name: group.groupName,
+      group_memo: group.remarkName,
+      group_create_time: +group.createTime,
       member_count: group.memberCount,
       max_member_count: group.maxMember,
     }
