@@ -21,44 +21,14 @@ import { CustomMusicSignPostData, IdMusicSignPostData, MusicSign, MusicSignPostD
 import { Peer } from '@/ntqqapi/types/msg'
 import { MessageUnique } from '@/common/utils/messageUnique'
 import { selfInfo } from '@/common/globalVars'
-import { convertMessage2List, createSendElements, sendMsg } from '../../helper/createMessage'
+import { convertMessage2List, createSendElements, sendMsg, createPeer, CreatePeerMode } from '../../helper/createMessage'
 
-export interface ReturnDataType {
+interface ReturnData {
   message_id: number
 }
 
-export enum ContextMode {
-  Normal = 0,
-  Private = 1,
-  Group = 2
-}
-
-export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
+export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnData> {
   actionName = ActionName.SendMsg
-
-  private async createContext(payload: OB11PostSendMsg, contextMode: ContextMode): Promise<Peer> {
-    // This function determines the type of message by the existence of user_id / group_id,
-    // not message_type.
-    // This redundant design of Ob11 here should be blamed.
-
-    if ((contextMode === ContextMode.Group || contextMode === ContextMode.Normal) && payload.group_id) {
-      return {
-        chatType: ChatType.group,
-        peerUid: payload.group_id.toString(),
-      }
-    }
-    if ((contextMode === ContextMode.Private || contextMode === ContextMode.Normal) && payload.user_id) {
-      const uid = await this.ctx.ntUserApi.getUidByUin(payload.user_id.toString())
-      if (!uid) throw new Error('无法获取用户信息')
-      const isBuddy = await this.ctx.ntFriendApi.isBuddy(uid)
-      return {
-        chatType: isBuddy ? ChatType.friend : ChatType.temp,
-        peerUid: uid,
-        guildId: isBuddy ? '' : payload.group_id?.toString() || ''
-      }
-    }
-    throw new Error('请指定 group_id 或 user_id')
-  }
 
   protected async check(payload: OB11PostSendMsg): Promise<BaseCheckResult> {
     const messages = convertMessage2List(payload.message)
@@ -84,13 +54,13 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
   }
 
   protected async _handle(payload: OB11PostSendMsg) {
-    let contextMode = ContextMode.Normal
+    let contextMode = CreatePeerMode.Normal
     if (payload.message_type === 'group') {
-      contextMode = ContextMode.Group
+      contextMode = CreatePeerMode.Group
     } else if (payload.message_type === 'private') {
-      contextMode = ContextMode.Private
+      contextMode = CreatePeerMode.Private
     }
-    const peer = await this.createContext(payload, contextMode)
+    const peer = await createPeer(this.ctx, payload, contextMode)
     const messages = convertMessage2List(
       payload.message,
       payload.auto_escape === true || payload.auto_escape === 'true',
