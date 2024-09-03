@@ -59,6 +59,7 @@ import { GetGroupSystemMsg } from './go-cqhttp/GetGroupSystemMsg'
 import { CreateGroupFileFolder } from './go-cqhttp/CreateGroupFileFolder'
 import { DelGroupFolder } from './go-cqhttp/DelGroupFolder'
 import { GetGroupAtAllRemain } from './go-cqhttp/GetGroupAtAllRemain'
+import { GetGroupRootFiles } from './go-cqhttp/GetGroupRootFiles'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -124,7 +125,8 @@ export function initActionMap(adapter: Adapter) {
     new GetGroupSystemMsg(adapter),
     new CreateGroupFileFolder(adapter),
     new DelGroupFolder(adapter),
-    new GetGroupAtAllRemain(adapter)
+    new GetGroupAtAllRemain(adapter),
+    new GetGroupRootFiles(adapter)
   ]
   const actionMap = new Map<string, BaseAction<any, any>>()
   for (const action of actionHandlers) {
