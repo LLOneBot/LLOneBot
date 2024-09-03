@@ -102,7 +102,7 @@ interface InvokeOptions<ReturnType> {
   channel?: NTChannel
   classNameIsRegister?: boolean
   cbCmd?: string | string[]
-  cmdCB?: (payload: ReturnType) => boolean
+  cmdCB?: (payload: ReturnType, result: unknown) => boolean
   afterFirstCmd?: boolean // 是否在methodName调用完之后再去hook cbCmd
   timeout?: number
 }
@@ -132,12 +132,13 @@ export function invoke<
       }
     }
     else {
+      let result: unknown
       // 这里的callback比较特殊，QQ后端先返回是否调用成功，再返回一条结果数据
       const secondCallback = () => {
         const hookId = registerReceiveHook<R>(options.cbCmd!, (payload) => {
           // log(methodName, "second callback", cbCmd, payload, cmdCB);
           if (!!options.cmdCB) {
-            if (options.cmdCB(payload)) {
+            if (options.cmdCB(payload, result)) {
               removeReceiveHook(hookId)
               success = true
               resolve(payload)
@@ -151,14 +152,14 @@ export function invoke<
         })
       }
       !afterFirstCmd && secondCallback()
-      hookApiCallbacks[callbackId] = (result: GeneralCallResult) => {
-        if (result?.result === 0 || result === undefined) {
-          //log(`${params.methodName} callback`, result)
+      hookApiCallbacks[callbackId] = (res: GeneralCallResult) => {
+        result = res
+        if (res?.result === 0 || ['undefined', 'number'].includes(typeof res)) {
           afterFirstCmd && secondCallback()
         }
         else {
-          log('ntqq api call failed,', method, result)
-          reject(`ntqq api call failed, ${method}, ${result.errMsg}`)
+          log('ntqq api call failed,', method, res)
+          reject(`ntqq api call failed, ${method}, ${res.errMsg}`)
         }
       }
     }

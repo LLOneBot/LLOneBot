@@ -1,11 +1,11 @@
 import { ReceiveCmdS } from '../hook'
-import { Group, GroupMember, GroupMemberRole, GroupNotifies, GroupRequestOperateTypes, GroupNotify } from '../types'
+import { Group, GroupMember, GroupMemberRole, GroupNotifies, GroupRequestOperateTypes, GroupNotify, GetFileListParam } from '../types'
 import { invoke, NTClass, NTMethod } from '../ntcall'
 import { GeneralCallResult } from '../services'
 import { NTQQWindows } from './window'
 import { getSession } from '../wrapper'
 import { NTEventDispatch } from '@/common/utils/eventTask'
-import { NodeIKernelGroupListener } from '../listeners'
+import { NodeIKernelGroupListener, OnGroupFileInfoUpdateParams } from '../listeners'
 import { NodeIKernelGroupService } from '../services'
 import { Service, Context } from 'cordis'
 import { isNumeric } from '@/common/utils/misc'
@@ -300,5 +300,25 @@ export class NTQQGroupApi extends Service {
 
   async deleteGroupFile(groupId: string, fileIdList: string[]) {
     return await invoke('nodeIKernelRichMediaService/deleteGroupFile', [{ groupId, busIdList: [102], fileIdList }, null])
+  }
+
+  async getGroupFileList(groupId: string, fileListForm: GetFileListParam) {
+    invoke('nodeIKernelMsgListener/onGroupFileInfoUpdate', [], { classNameIsRegister: true })
+    const data = await invoke<{ fileInfo: OnGroupFileInfoUpdateParams }>(
+      'nodeIKernelRichMediaService/getGroupFileList',
+      [
+        {
+          groupId,
+          fileListForm
+        },
+        null,
+      ],
+      {
+        cbCmd: 'nodeIKernelMsgListener/onGroupFileInfoUpdate',
+        afterFirstCmd: false,
+        cmdCB: (payload, result) => payload.fileInfo.reqId === result
+      }
+    )
+    return data.fileInfo.item
   }
 }

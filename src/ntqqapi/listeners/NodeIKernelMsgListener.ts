@@ -23,15 +23,55 @@ export interface OnRichMediaDownloadCompleteParams {
   userUsedSpacePerDay: unknown | null
 }
 
-export interface onGroupFileInfoUpdateParamType {
+export interface OnGroupFileInfoUpdateParams {
   retCode: number
   retMsg: string
   clientWording: string
   isEnd: boolean
-  item: Array<any>
-  allFileCount: string
-  nextIndex: string
-  reqId: string
+  item: {
+    peerId: string
+    type: number
+    folderInfo?: {
+      folderId: string
+      parentFolderId: string
+      folderName: string
+      createTime: number
+      modifyTime: number
+      createUin: string
+      creatorName: string
+      totalFileCount: number
+      modifyUin: string
+      modifyName: string
+      usedSpace: string
+    }
+    fileInfo?: {
+      fileModelId: string
+      fileId: string
+      fileName: string
+      fileSize: string
+      busId: number
+      uploadedSize: string
+      uploadTime: number
+      deadTime: number
+      modifyTime: number
+      downloadTimes: number
+      sha: string
+      sha3: string
+      md5: string
+      uploaderLocalPath: string
+      uploaderName: string
+      uploaderUin: string
+      parentFolderId: string
+      localPath: string
+      transStatus: number
+      transType: number
+      elementId: string
+      isFolder: boolean
+    }
+  }[]
+  allFileCount: number
+  nextIndex: number
+  reqId: number
 }
 
 // {
@@ -82,7 +122,7 @@ export interface IKernelMsgListener {
 
   onGroupFileInfoAdd(groupItem: unknown): void
 
-  onGroupFileInfoUpdate(groupFileListResult: onGroupFileInfoUpdateParamType): void
+  onGroupFileInfoUpdate(groupFileListResult: OnGroupFileInfoUpdateParams): void
 
   onGroupGuildUpdate(groupGuildNotifyInfo: unknown): void
 
@@ -295,7 +335,7 @@ export class MsgListener implements IKernelMsgListener {
 
   }
 
-  onGroupFileInfoUpdate(groupFileListResult: onGroupFileInfoUpdateParamType) {
+  onGroupFileInfoUpdate(groupFileListResult: OnGroupFileInfoUpdateParams) {
 
   }
 
