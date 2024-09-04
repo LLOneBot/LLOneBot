@@ -43,7 +43,7 @@ import { OB11GroupRecallNoticeEvent } from './event/notice/OB11GroupRecallNotice
 import { OB11FriendPokeEvent, OB11GroupPokeEvent } from './event/notice/OB11PokeEvent'
 import { OB11BaseNoticeEvent } from './event/notice/OB11BaseNoticeEvent'
 import { OB11GroupEssenceEvent } from './event/notice/OB11GroupEssenceEvent'
-import { omit, isNullable } from 'cosmokit'
+import { omit, isNullable, pick } from 'cosmokit'
 import { Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
 import { pathToFileURL } from 'node:url'
@@ -154,15 +154,18 @@ export namespace OB11Entities {
           guildId: ''
         }
         try {
+          const { replayMsgSeq, replyMsgTime, senderUidStr } = replyElement
           const records = msg.records.find(msgRecord => msgRecord.msgId === replyElement.sourceMsgIdInRecords)
-          if (!records) throw new Error('找不到回复消息')
-          let replyMsg = (await ctx.ntMsgApi.getMsgsBySeqAndCount(peer, replyElement.replayMsgSeq, 1, true, true)).msgList[0]
-          if (!replyMsg || records.msgRandom !== replyMsg.msgRandom) {
-            replyMsg = (await ctx.ntMsgApi.getSingleMsg(peer, replyElement.replayMsgSeq)).msgList[0]
+          if (!records || !replyMsgTime || !senderUidStr) {
+            throw new Error('找不到回复消息')
           }
+          const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replayMsgSeq, replyMsgTime, [senderUidStr])
+          const replyMsg = msgList.find(msg => msg.msgRandom === records.msgRandom)
+
           // 284840486: 合并消息内侧 消息具体定位不到
-          if ((!replyMsg || records.msgRandom !== replyMsg.msgRandom) && msg.peerUin !== '284840486') {
-            throw new Error('回复消息消息验证失败')
+          if (!replyMsg && msg.peerUin !== '284840486') {
+            ctx.logger.info('queryMsgs', msgList.map(e => pick(e, ['msgSeq', 'msgRandom'])))
+            throw new Error('回复消息验证失败')
           }
           messageSegment = {
             type: OB11MessageDataType.reply,
@@ -171,7 +174,7 @@ export namespace OB11Entities {
             }
           }
         } catch (e: any) {
-          ctx.logger.error('获取不到引用的消息', replyElement.replayMsgSeq, e.stack)
+          ctx.logger.error('获取不到引用的消息', replyElement, e.stack)
           continue
         }
       }
@@ -518,29 +521,27 @@ export namespace OB11Entities {
           }).parse(xmlElement.content)
           ctx.logger.info('收到表情回应我的消息', emojiLikeData)
           try {
-            const senderUin = emojiLikeData.gtip.qq.jp
-            const msgSeq = emojiLikeData.gtip.url.msgseq
-            const emojiId = emojiLikeData.gtip.face.id
-            const replyMsgList = (await ctx.ntMsgApi.getMsgsBySeqAndCount({
+            const senderUin: string = emojiLikeData.gtip.qq.jp
+            const msgSeq: string = emojiLikeData.gtip.url.msgseq
+            const emojiId: string = emojiLikeData.gtip.face.id
+            const peer = {
               chatType: ChatType.group,
               guildId: '',
               peerUid: msg.peerUid,
-            }, msgSeq, 1, true, true))?.msgList
+            }
+            const replyMsgList = (await ctx.ntMsgApi.queryFirstMsgBySeq(peer, msgSeq)).msgList
             if (!replyMsgList?.length) {
               return
             }
-            const likes = [
-              {
-                emoji_id: emojiId,
-                count: 1,
-              },
-            ]
             const shortId = MessageUnique.getShortIdByMsgId(replyMsgList[0].msgId)
             return new OB11GroupMsgEmojiLikeEvent(
               parseInt(msg.peerUid),
               parseInt(senderUin),
               shortId!,
-              likes
+              [{
+                emoji_id: emojiId,
+                count: 1,
+              }]
             )
           } catch (e: any) {
             ctx.logger.error('解析表情回应消息失败', e.stack)
@@ -768,6 +769,8 @@ export namespace OB11Entities {
     return {
       group_id: parseInt(group.groupCode),
       group_name: group.groupName,
+      group_memo: group.remarkName,
+      group_create_time: +group.createTime,
       member_count: group.memberCount,
       max_member_count: group.maxMember,
     }

@@ -37,7 +37,7 @@ declare module 'cordis' {
 }
 
 class Core extends Service {
-  static inject = ['ntMsgApi', 'ntFileApi', 'ntFileCacheApi', 'ntFriendApi', 'ntGroupApi', 'ntUserApi', 'ntWindowApi']
+  static inject = ['ntMsgApi', 'ntFriendApi', 'ntGroupApi']
 
   constructor(protected ctx: Context, public config: Core.Config) {
     super(ctx, 'app', true)

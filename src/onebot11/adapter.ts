@@ -35,7 +35,7 @@ declare module 'cordis' {
 }
 
 class OneBot11Adapter extends Service {
-  static inject = ['ntMsgApi', 'ntFileApi', 'ntFileCacheApi', 'ntFriendApi', 'ntGroupApi', 'ntUserApi', 'ntWindowApi']
+  static inject = ['ntMsgApi', 'ntFileApi', 'ntFileCacheApi', 'ntFriendApi', 'ntGroupApi', 'ntUserApi', 'ntWindowApi', 'ntWebApi']
 
   public messages: Map<string, RawMessage> = new Map()
   public startTime = 0
@@ -50,7 +50,8 @@ class OneBot11Adapter extends Service {
     this.ob11Http = new OB11Http(ctx, {
       port: config.httpPort,
       token: config.token,
-      actionMap
+      actionMap,
+      listenLocalhost: config.listenLocalhost
     })
     this.ob11HttpPost = new OB11HttpPost(ctx, {
       hosts: config.httpHosts,
@@ -62,7 +63,8 @@ class OneBot11Adapter extends Service {
       port: config.wsPort,
       heartInterval: config.heartInterval,
       token: config.token,
-      actionMap
+      actionMap,
+      listenLocalhost: config.listenLocalhost
     })
     this.ob11WebSocketReverseManager = new OB11WebSocketReverseManager(ctx, {
       hosts: config.wsHosts,
@@ -110,10 +112,10 @@ class OneBot11Adapter extends Service {
     for (const notify of notifies) {
       try {
         const notifyTime = parseInt(notify.seq) / 1000
-        const flag = notify.group.groupCode + '|' + notify.seq + '|' + notify.type
         if (notifyTime < this.startTime) {
           continue
         }
+        const flag = notify.group.groupCode + '|' + notify.seq + '|' + notify.type
         if ([GroupNotifyType.MEMBER_LEAVE_NOTIFY_ADMIN, GroupNotifyType.KICK_MEMBER_NOTIFY_ADMIN].includes(notify.type)) {
           this.ctx.logger.info('有成员退出通知', notify)
           const member1Uin = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
@@ -292,7 +294,7 @@ class OneBot11Adapter extends Service {
       }
     }
     // HTTP 端口变化，重启服务
-    if (config.ob11.httpPort !== old.httpPort) {
+    if ((config.ob11.httpPort !== old.httpPort || config.ob11.listenLocalhost !== old.listenLocalhost) && config.ob11.enableHttp) {
       await this.ob11Http.stop()
       this.ob11Http.start()
     }
@@ -305,7 +307,7 @@ class OneBot11Adapter extends Service {
       }
     }
     // 正向 WebSocket 端口变化，重启服务
-    if (config.ob11.wsPort !== old.wsPort) {
+    if ((config.ob11.wsPort !== old.wsPort || config.ob11.listenLocalhost !== old.listenLocalhost) && config.ob11.enableWs) {
       await this.ob11WebSocket.stop()
       this.ob11WebSocket.start()
       llonebotError.wsServerError = ''
