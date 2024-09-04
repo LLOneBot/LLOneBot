@@ -61,6 +61,7 @@ import { DelGroupFolder } from './go-cqhttp/DelGroupFolder'
 import { GetGroupAtAllRemain } from './go-cqhttp/GetGroupAtAllRemain'
 import { GetGroupRootFiles } from './go-cqhttp/GetGroupRootFiles'
 import { SetOnlineStatus } from './llonebot/SetOnlineStatus'
+import { SendGroupNotice } from './go-cqhttp/SendGroupNotice'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -128,7 +129,8 @@ export function initActionMap(adapter: Adapter) {
     new CreateGroupFileFolder(adapter),
     new DelGroupFolder(adapter),
     new GetGroupAtAllRemain(adapter),
-    new GetGroupRootFiles(adapter)
+    new GetGroupRootFiles(adapter),
+    new SendGroupNotice(adapter)
   ]
   const actionMap = new Map<string, BaseAction<any, any>>()
   for (const action of actionHandlers) {
