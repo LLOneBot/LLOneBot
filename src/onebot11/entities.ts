@@ -43,7 +43,7 @@ import { OB11GroupRecallNoticeEvent } from './event/notice/OB11GroupRecallNotice
 import { OB11FriendPokeEvent, OB11GroupPokeEvent } from './event/notice/OB11PokeEvent'
 import { OB11BaseNoticeEvent } from './event/notice/OB11BaseNoticeEvent'
 import { OB11GroupEssenceEvent } from './event/notice/OB11GroupEssenceEvent'
-import { omit, isNullable } from 'cosmokit'
+import { omit, isNullable, pick } from 'cosmokit'
 import { Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
 import { pathToFileURL } from 'node:url'
@@ -154,16 +154,18 @@ export namespace OB11Entities {
           guildId: ''
         }
         try {
+          const { replayMsgSeq, replyMsgTime, senderUidStr } = replyElement
           const records = msg.records.find(msgRecord => msgRecord.msgId === replyElement.sourceMsgIdInRecords)
-          if (!records || !replyElement.replyMsgTime || !replyElement.senderUidStr) {
+          if (!records || !replyMsgTime || !senderUidStr) {
             throw new Error('找不到回复消息')
           }
-          const replyMsg = (await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replyElement.replayMsgSeq, replyElement.replyMsgTime, [replyElement.senderUidStr]))
-            .msgList.find(msg => msg.msgRandom === records.msgRandom)
+          const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replayMsgSeq, replyMsgTime, [senderUidStr])
+          const replyMsg = msgList.find(msg => msg.msgRandom === records.msgRandom)
 
           // 284840486: 合并消息内侧 消息具体定位不到
           if (!replyMsg && msg.peerUin !== '284840486') {
-            throw new Error('回复消息消息验证失败')
+            ctx.logger.info('queryMsgs', msgList.map(e => pick(e, ['msgSeq', 'msgRandom'])))
+            throw new Error('回复消息验证失败')
           }
           messageSegment = {
             type: OB11MessageDataType.reply,
