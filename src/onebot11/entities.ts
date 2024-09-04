@@ -155,13 +155,14 @@ export namespace OB11Entities {
         }
         try {
           const records = msg.records.find(msgRecord => msgRecord.msgId === replyElement.sourceMsgIdInRecords)
-          if (!records) throw new Error('找不到回复消息')
-          let replyMsg = (await ctx.ntMsgApi.getMsgsBySeqAndCount(peer, replyElement.replayMsgSeq, 1, true, true)).msgList[0]
-          if (!replyMsg || records.msgRandom !== replyMsg.msgRandom) {
-            replyMsg = (await ctx.ntMsgApi.getSingleMsg(peer, replyElement.replayMsgSeq)).msgList[0]
+          if (!records || !replyElement.replyMsgTime || !replyElement.senderUidStr) {
+            throw new Error('找不到回复消息')
           }
+          const replyMsg = (await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replyElement.replayMsgSeq, replyElement.replyMsgTime, [replyElement.senderUidStr]))
+            .msgList.find(msg => msg.msgRandom === records.msgRandom)
+
           // 284840486: 合并消息内侧 消息具体定位不到
-          if ((!replyMsg || records.msgRandom !== replyMsg.msgRandom) && msg.peerUin !== '284840486') {
+          if (!replyMsg && msg.peerUin !== '284840486') {
             throw new Error('回复消息消息验证失败')
           }
           messageSegment = {

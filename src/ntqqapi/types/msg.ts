@@ -480,6 +480,8 @@ export interface RawMessage {
       sourceMsgIsIncPic: boolean // 原消息是否有图片
       sourceMsgText: string
       replayMsgSeq: string // 源消息的msgSeq，可以通过这个找到源消息的msgId
+      senderUidStr: string
+      replyMsgTime: string
     }
     textElement: {
       atType: AtType

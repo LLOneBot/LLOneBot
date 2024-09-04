@@ -290,4 +290,22 @@ export class NTQQMsgApi extends Service {
       }
     }, null])
   }
+
+  async queryMsgsWithFilterExBySeq(peer: Peer, msgSeq: string, filterMsgTime: string, filterSendersUid: string[]) {
+    return await invoke('nodeIKernelMsgService/queryMsgsWithFilterEx', [{
+      msgId: '0',
+      msgTime: '0',
+      msgSeq,
+      params: {
+        chatInfo: peer,
+        filterMsgType: [],
+        filterSendersUid,
+        filterMsgToTime: filterMsgTime,
+        filterMsgFromTime: filterMsgTime,
+        isReverseOrder: true,
+        isIncludeCurrent: true,
+        pageLimit: 1,
+      }
+    }, null])
+  }
 }
