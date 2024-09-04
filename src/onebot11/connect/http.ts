@@ -51,8 +51,9 @@ class OB11Http {
       this.expressAPP.get('/', (req: Request, res: Response) => {
         res.send(`LLOneBot server 已启动`)
       })
-      this.server = this.expressAPP.listen(this.config.port, '0.0.0.0', () => {
-        this.ctx.logger.info(`HTTP server started 0.0.0.0:${this.config.port}`)
+      const host = this.config.listenLocalhost ? '127.0.0.1' : '0.0.0.0'
+      this.server = this.expressAPP.listen(this.config.port, host, () => {
+        this.ctx.logger.info(`HTTP server started ${host}:${this.config.port}`)
       })
       llonebotError.httpServerError = ''
     } catch (e: any) {
@@ -136,6 +137,7 @@ namespace OB11Http {
     port: number
     token?: string
     actionMap: Map<string, BaseAction<any, any>>
+    listenLocalhost: boolean
   }
 }
 

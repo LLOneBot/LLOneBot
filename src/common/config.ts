@@ -33,7 +33,8 @@ export class ConfigUtil {
       enableWsReverse: false,
       messagePostFormat: 'array',
       enableHttpHeart: false,
-      enableQOAutoQuote: false
+      enableQOAutoQuote: false,
+      listenLocalhost: false
     }
     const defaultConfig: Config = {
       enableLLOB: true,
