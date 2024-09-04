@@ -277,3 +277,33 @@ export async function sendMsg(
     return returnMsg
   }
 }
+
+export interface CreatePeerPayload {
+  group_id?: string | number
+  user_id?: string | number
+}
+
+export enum CreatePeerMode {
+  Normal = 0,
+  Private = 1,
+  Group = 2
+}
+
+export async function createPeer(ctx: Context, payload: CreatePeerPayload, mode: CreatePeerMode): Promise<Peer> {
+  if ((mode === CreatePeerMode.Group || mode === CreatePeerMode.Normal) && payload.group_id) {
+    return {
+      chatType: ChatType.group,
+      peerUid: payload.group_id.toString(),
+    }
+  }
+  if ((mode === CreatePeerMode.Private || mode === CreatePeerMode.Normal) && payload.user_id) {
+    const uid = await ctx.ntUserApi.getUidByUin(payload.user_id.toString())
+    if (!uid) throw new Error('无法获取用户信息')
+    const isBuddy = await ctx.ntFriendApi.isBuddy(uid)
+    return {
+      chatType: isBuddy ? ChatType.friend : ChatType.temp,
+      peerUid: uid,
+    }
+  }
+  throw new Error('请指定 group_id 或 user_id')
+}

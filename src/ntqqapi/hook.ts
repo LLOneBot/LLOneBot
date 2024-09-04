@@ -26,7 +26,7 @@ export const ReceiveCmdS = {
   CACHE_SCAN_FINISH: 'nodeIKernelStorageCleanListener/onFinishScan',
   MEDIA_UPLOAD_COMPLETE: 'nodeIKernelMsgListener/onRichMediaUploadComplete',
   SKEY_UPDATE: 'onSkeyUpdate',
-}
+} as const
 
 export type ReceiveCmd = string
 
