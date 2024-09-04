@@ -21,9 +21,14 @@ class OB11WebSocket {
 
   public start() {
     if (this.wsServer) return
-    this.ctx.logger.info(`WebSocket server started 0.0.0.0:${this.config.port}`)
+    const host = this.config.listenLocalhost ? '127.0.0.1' : '0.0.0.0'
+    this.ctx.logger.info(`WebSocket server started ${host}:${this.config.port}`)
     try {
-      this.wsServer = new WebSocketServer({ port: this.config.port, maxPayload: 1024 * 1024 * 1024 })
+      this.wsServer = new WebSocketServer({
+        host,
+        port: this.config.port,
+        maxPayload: 1024 * 1024 * 1024
+      })
       llonebotError.wsServerError = ''
     } catch (e: any) {
       llonebotError.wsServerError = '正向 WebSocket 服务启动失败, ' + e.toString()
@@ -165,6 +170,7 @@ namespace OB11WebSocket {
     heartInterval: number
     token?: string
     actionMap: Map<string, BaseAction<any, any>>
+    listenLocalhost: boolean
   }
 }
 
