@@ -35,7 +35,7 @@ declare module 'cordis' {
 }
 
 class OneBot11Adapter extends Service {
-  static inject = ['ntMsgApi', 'ntFileApi', 'ntFileCacheApi', 'ntFriendApi', 'ntGroupApi', 'ntUserApi', 'ntWindowApi']
+  static inject = ['ntMsgApi', 'ntFileApi', 'ntFileCacheApi', 'ntFriendApi', 'ntGroupApi', 'ntUserApi', 'ntWindowApi', 'ntWebApi']
 
   public messages: Map<string, RawMessage> = new Map()
   public startTime = 0
