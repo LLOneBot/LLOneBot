@@ -30,7 +30,6 @@ export interface TmpChatInfo {
 }
 
 export interface NodeIKernelMsgService {
-
   generateMsgUniqueId(chatType: number, time: string): string
 
   addKernelMsgListener(nodeIKernelMsgListener: NodeIKernelMsgListener): number
