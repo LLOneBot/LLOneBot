@@ -26,34 +26,19 @@ export class NTQQGroupApi extends Service {
   }
 
   async getGroups(forced = false): Promise<Group[]> {
-    if (NTEventDispatch.initialised) {
-      type ListenerType = NodeIKernelGroupListener['onGroupListUpdate']
-      const [, , groupList] = await NTEventDispatch.CallNormalEvent
-        <(force: boolean) => Promise<any>, ListenerType>
-        (
-          'NodeIKernelGroupService/getGroupList',
-          'NodeIKernelGroupListener/onGroupListUpdate',
-          1,
-          5000,
-          () => true,
-          forced
-        )
-      return groupList
-    } else {
-      const result = await invoke<{
-        updateType: number
-        groupList: Group[]
-      }>(
-        'getGroupList',
-        [],
-        {
-          className: NTClass.NODE_STORE_API,
-          cbCmd: ReceiveCmdS.GROUPS_STORE,
-          afterFirstCmd: false,
-        }
-      )
-      return result.groupList
-    }
+    const result = await invoke<{
+      updateType: number
+      groupList: Group[]
+    }>(
+      'getGroupList',
+      [],
+      {
+        className: NTClass.NODE_STORE_API,
+        cbCmd: ReceiveCmdS.GROUPS_STORE,
+        afterFirstCmd: false,
+      }
+    )
+    return result.groupList
   }
 
   async getGroupMembers(groupCode: string, num = 3000): Promise<Map<string, GroupMember>> {
@@ -114,32 +99,16 @@ export class NTQQGroupApi extends Service {
   }
 
   async getSingleScreenNotifies(num: number) {
-    if (NTEventDispatch.initialised) {
-      const [_retData, _doubt, _seq, notifies] = await NTEventDispatch.CallNormalEvent
-        <(arg1: boolean, arg2: string, arg3: number) => Promise<any>, (doubt: boolean, seq: string, notifies: GroupNotify[]) => void>
-        (
-          'NodeIKernelGroupService/getSingleScreenNotifies',
-          'NodeIKernelGroupListener/onGroupSingleScreenNotifies',
-          1,
-          5000,
-          () => true,
-          false,
-          '',
-          num,
-        )
-      return notifies
-    } else {
-      invoke(ReceiveCmdS.GROUP_NOTIFY, [], { classNameIsRegister: true })
-      return (await invoke<GroupNotifies>(
-        'nodeIKernelGroupService/getSingleScreenNotifies',
-        [{ doubt: false, startSeq: '', number: num }, null],
-        {
+    invoke(ReceiveCmdS.GROUP_NOTIFY, [], { classNameIsRegister: true })
+    return (await invoke<GroupNotifies>(
+      'nodeIKernelGroupService/getSingleScreenNotifies',
+      [{ doubt: false, startSeq: '', number: num }, null],
+      {
 
-          cbCmd: ReceiveCmdS.GROUP_NOTIFY,
-          afterFirstCmd: false,
-        }
-      )).notifies
-    }
+        cbCmd: ReceiveCmdS.GROUP_NOTIFY,
+        afterFirstCmd: false,
+      }
+    )).notifies
   }
 
   async handleGroupRequest(flag: string, operateType: GroupRequestOperateTypes, reason?: string) {
@@ -260,30 +229,30 @@ export class NTQQGroupApi extends Service {
   }
 
   /** 27187 TODO */
-  async removeGroupEssence(GroupCode: string, msgId: string) {
+  async removeGroupEssence(groupCode: string, msgId: string) {
     const session = getSession()
     // 代码没测过
     // 需要 ob11msgid->msgId + (peer) -> msgSeq + msgRandom
-    let MsgData = await session?.getMsgService().getMsgsIncludeSelf({ chatType: 2, guildId: '', peerUid: GroupCode }, msgId, 1, false)
-    let param = {
-      groupCode: GroupCode,
-      msgRandom: parseInt(MsgData?.msgList[0].msgRandom!),
-      msgSeq: parseInt(MsgData?.msgList[0].msgSeq!)
+    const data = await session?.getMsgService().getMsgsIncludeSelf({ chatType: 2, guildId: '', peerUid: groupCode }, msgId, 1, false)
+    const param = {
+      groupCode: groupCode,
+      msgRandom: Number(data?.msgList[0].msgRandom),
+      msgSeq: Number(data?.msgList[0].msgSeq)
     }
     // GetMsgByShoretID(ShoretID) -> MsgService.getMsgs(Peer,MsgId,1,false) -> 组出参数
     return session?.getGroupService().removeGroupEssence(param)
   }
 
   /** 27187 TODO */
-  async addGroupEssence(GroupCode: string, msgId: string) {
+  async addGroupEssence(groupCode: string, msgId: string) {
     const session = getSession()
     // 代码没测过
     // 需要 ob11msgid->msgId + (peer) -> msgSeq + msgRandom
-    let MsgData = await session?.getMsgService().getMsgsIncludeSelf({ chatType: 2, guildId: '', peerUid: GroupCode }, msgId, 1, false)
-    let param = {
-      groupCode: GroupCode,
-      msgRandom: parseInt(MsgData?.msgList[0].msgRandom!),
-      msgSeq: parseInt(MsgData?.msgList[0].msgSeq!)
+    const data = await session?.getMsgService().getMsgsIncludeSelf({ chatType: 2, guildId: '', peerUid: groupCode }, msgId, 1, false)
+    const param = {
+      groupCode: groupCode,
+      msgRandom: Number(data?.msgList[0].msgRandom),
+      msgSeq: Number(data?.msgList[0].msgSeq)
     }
     // GetMsgByShoretID(ShoretID) -> MsgService.getMsgs(Peer,MsgId,1,false) -> 组出参数
     return session?.getGroupService().addGroupEssence(param)
