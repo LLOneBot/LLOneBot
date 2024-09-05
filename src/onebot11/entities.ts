@@ -597,8 +597,8 @@ export namespace OB11Entities {
             if (poke_uid.length == 2) {
               return new OB11GroupPokeEvent(
                 parseInt(msg.peerUid),
-                parseInt(await ctx.ntUserApi.getUinByUid(poke_uid[0].uid)),
-                parseInt(await ctx.ntUserApi.getUinByUid(poke_uid[1].uid)),
+                parseInt(await ctx.ntUserApi.getUinByUid(poke_uid[0].uid) ?? 0),
+                parseInt(await ctx.ntUserApi.getUinByUid(poke_uid[1].uid) ?? 0),
                 pokedetail
               )
             }
