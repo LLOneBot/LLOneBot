@@ -102,62 +102,35 @@ export class NTQQMsgApi extends Service {
     }
   }
 
-  async sendMsg(peer: Peer, msgElements: SendMessageElement[], waitComplete = true, timeout = 10000) {
+  async sendMsg(peer: Peer, msgElements: SendMessageElement[], timeout = 10000) {
     const msgId = generateMsgId()
     peer.guildId = msgId
-    let msgList: RawMessage[]
-    if (NTEventDispatch.initialised) {
-      const data = await NTEventDispatch.CallNormalEvent<
-        (msgId: string, peer: Peer, msgElements: SendMessageElement[], map: Map<any, any>) => Promise<unknown>,
-        (msgList: RawMessage[]) => void
-      >(
-        'NodeIKernelMsgService/sendMsg',
-        'NodeIKernelMsgListener/onMsgInfoListUpdate',
-        1,
-        timeout,
-        (msgRecords: RawMessage[]) => {
-          for (const msgRecord of msgRecords) {
+    const data = await invoke<{ msgList: RawMessage[] }>(
+      'nodeIKernelMsgService/sendMsg',
+      [
+        {
+          msgId: '0',
+          peer,
+          msgElements,
+          msgAttributeInfos: new Map()
+        },
+        null
+      ],
+      {
+        cbCmd: 'nodeIKernelMsgListener/onMsgInfoListUpdate',
+        afterFirstCmd: false,
+        cmdCB: payload => {
+          for (const msgRecord of payload.msgList) {
             if (msgRecord.guildId === msgId && msgRecord.sendStatus === 2) {
               return true
             }
           }
           return false
         },
-        '0',
-        peer,
-        msgElements,
-        new Map()
-      )
-      msgList = data[1]
-    } else {
-      const data = await invoke<{ msgList: RawMessage[] }>(
-        'nodeIKernelMsgService/sendMsg',
-        [
-          {
-            msgId: '0',
-            peer,
-            msgElements,
-            msgAttributeInfos: new Map()
-          },
-          null
-        ],
-        {
-          cbCmd: 'nodeIKernelMsgListener/onMsgInfoListUpdate',
-          afterFirstCmd: false,
-          cmdCB: payload => {
-            for (const msgRecord of payload.msgList) {
-              if (msgRecord.guildId === msgId && msgRecord.sendStatus === 2) {
-                return true
-              }
-            }
-            return false
-          },
-          timeout
-        }
-      )
-      msgList = data.msgList
-    }
-    return msgList.find(msgRecord => msgRecord.guildId === msgId)
+        timeout
+      }
+    )
+    return data.msgList.find(msgRecord => msgRecord.guildId === msgId)
   }
 
   async forwardMsg(srcPeer: Peer, destPeer: Peer, msgIds: string[]) {
@@ -181,65 +154,37 @@ export class NTQQMsgApi extends Service {
       return { msgId: id, senderShowName }
     })
     const selfUid = selfInfo.uid
-    let msgList: RawMessage[]
-    if (NTEventDispatch.initialised) {
-      const data = await NTEventDispatch.CallNormalEvent<
-        (msgInfo: typeof msgInfos, srcPeer: Peer, destPeer: Peer, comment: Array<any>, attr: Map<any, any>,) => Promise<unknown>,
-        (msgList: RawMessage[]) => void
-      >(
-        'NodeIKernelMsgService/multiForwardMsgWithComment',
-        'NodeIKernelMsgListener/onMsgInfoListUpdate',
-        1,
-        5000,
-        (msgRecords: RawMessage[]) => {
-          for (let msgRecord of msgRecords) {
+    const data = await invoke<{ msgList: RawMessage[] }>(
+      'nodeIKernelMsgService/multiForwardMsgWithComment',
+      [
+        {
+          msgInfos,
+          srcContact: srcPeer,
+          dstContact: destPeer,
+          commentElements: [],
+          msgAttributeInfos: new Map(),
+        },
+        null,
+      ],
+      {
+        cbCmd: 'nodeIKernelMsgListener/onMsgInfoListUpdate',
+        afterFirstCmd: false,
+        cmdCB: payload => {
+          for (const msgRecord of payload.msgList) {
             if (msgRecord.peerUid == destPeer.peerUid && msgRecord.senderUid == selfUid) {
               return true
             }
           }
           return false
         },
-        msgInfos,
-        srcPeer,
-        destPeer,
-        [],
-        new Map()
-      )
-      msgList = data[1]
-    } else {
-      const data = await invoke<{ msgList: RawMessage[] }>(
-        'nodeIKernelMsgService/multiForwardMsgWithComment',
-        [
-          {
-            msgInfos,
-            srcContact: srcPeer,
-            dstContact: destPeer,
-            commentElements: [],
-            msgAttributeInfos: new Map(),
-          },
-          null,
-        ],
-        {
-          cbCmd: 'nodeIKernelMsgListener/onMsgInfoListUpdate',
-          afterFirstCmd: false,
-          cmdCB: payload => {
-            for (const msgRecord of payload.msgList) {
-              if (msgRecord.peerUid == destPeer.peerUid && msgRecord.senderUid == selfUid) {
-                return true
-              }
-            }
-            return false
-          },
-        }
-      )
-      msgList = data.msgList
-    }
-    for (const msg of msgList) {
+      }
+    )
+    for (const msg of data.msgList) {
       const arkElement = msg.elements.find(ele => ele.arkElement)
       if (!arkElement) {
         continue
       }
-      const forwardData: any = JSON.parse(arkElement.arkElement.bytesData)
+      const forwardData = JSON.parse(arkElement.arkElement.bytesData)
       if (forwardData.app != 'com.tencent.multimsg') {
         continue
       }
