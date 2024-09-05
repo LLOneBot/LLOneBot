@@ -3,7 +3,6 @@ import ffmpeg from 'fluent-ffmpeg'
 import fsPromise from 'node:fs/promises'
 import { decode, encode, getDuration, getWavFileInfo, isWav, isSilk, EncodeResult } from 'silk-wasm'
 import { TEMP_DIR } from '../globalVars'
-import { getConfigUtil } from '../config'
 import { randomUUID } from 'node:crypto'
 import { Readable } from 'node:stream'
 import { Context } from 'cordis'
@@ -38,7 +37,7 @@ function convert(ctx: Context, input: Input, options: FFmpegOptions, outputPath?
     if (options.output) {
       command = command.outputOptions(options.output)
     }
-    const ffmpegPath = getConfigUtil().getConfig().ffmpeg
+    const ffmpegPath: string | undefined = ctx.config.ffmpeg
     if (ffmpegPath) {
       command = command.setFfmpegPath(ffmpegPath)
     }

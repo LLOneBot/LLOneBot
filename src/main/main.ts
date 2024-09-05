@@ -175,6 +175,9 @@ function onLoad() {
       debug: config.debug!,
       reportSelfMessage: config.reportSelfMessage!,
       msgCacheExpire: config.msgCacheExpire!,
+      musicSignUrl: config.musicSignUrl,
+      enableLocalFile2Url: config.enableLocalFile2Url!,
+      ffmpeg: config.ffmpeg,
     })
     ctx.start()
     ipcMain.on(CHANNEL_SET_CONFIG_CONFIRMED, (event, config: LLOBConfig) => {

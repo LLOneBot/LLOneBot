@@ -342,10 +342,13 @@ class OneBot11Adapter extends Service {
     Object.assign(this.config, {
       ...config.ob11,
       heartInterval: config.heartInterval,
-      token: config.token!,
-      debug: config.debug!,
-      reportSelfMessage: config.reportSelfMessage!,
-      msgCacheExpire: config.msgCacheExpire!,
+      token: config.token,
+      debug: config.debug,
+      reportSelfMessage: config.reportSelfMessage,
+      msgCacheExpire: config.msgCacheExpire,
+      musicSignUrl: config.musicSignUrl,
+      enableLocalFile2Url: config.enableLocalFile2Url,
+      ffmpeg: config.ffmpeg
     })
   }
 
@@ -417,6 +420,9 @@ namespace OneBot11Adapter {
     debug: boolean
     reportSelfMessage: boolean
     msgCacheExpire: number
+    musicSignUrl?: string
+    enableLocalFile2Url: boolean
+    ffmpeg?: string
   }
 }
 
