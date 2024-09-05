@@ -2,7 +2,6 @@ import { invoke, NTMethod } from '../ntcall'
 import { GeneralCallResult } from '../services'
 import { RawMessage, SendMessageElement, Peer, ChatType2 } from '../types'
 import { getSession } from '@/ntqqapi/wrapper'
-import { NTEventDispatch } from '@/common/utils/eventTask'
 import { Service, Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
 
