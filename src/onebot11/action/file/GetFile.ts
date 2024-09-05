@@ -1,6 +1,5 @@
 import BaseAction from '../BaseAction'
 import fsPromise from 'node:fs/promises'
-import { getConfigUtil } from '@/common/config'
 import { ActionName } from '../types'
 import { Peer, ElementType } from '@/ntqqapi/types'
 import { MessageUnique } from '@/common/utils/messageUnique'
@@ -20,7 +19,7 @@ export interface GetFileResponse {
 export abstract class GetFileBase extends BaseAction<GetFilePayload, GetFileResponse> {
   // forked from https://github.com/NapNeko/NapCatQQ/blob/6f6b258f22d7563f15d84e7172c4d4cbb547f47e/src/onebot11/action/file/GetFile.ts#L44
   protected async _handle(payload: GetFilePayload): Promise<GetFileResponse> {
-    const { enableLocalFile2Url } = getConfigUtil().getConfig()
+    const { enableLocalFile2Url } = this.adapter.config
 
     let fileCache = await MessageUnique.getFileCacheById(String(payload.file))
     if (!fileCache?.length) {

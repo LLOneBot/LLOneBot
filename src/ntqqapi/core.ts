@@ -52,6 +52,9 @@ class Core extends Service {
     MessageUnique.init(selfInfo.uin)
     this.registerListener()
     this.ctx.logger.info(`LLOneBot/${version}`)
+    this.ctx.on('llonebot/config-updated', input => {
+      Object.assign(this.config, input)
+    })
   }
 
   private registerListener() {

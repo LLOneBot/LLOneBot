@@ -13,10 +13,9 @@ import {
   OB11MessageNode,
   OB11PostSendMsg,
 } from '../../types'
+import fs from 'node:fs'
 import BaseAction from '../BaseAction'
 import { ActionName, BaseCheckResult } from '../types'
-import fs from 'node:fs'
-import { getConfigUtil } from '@/common/config'
 import { CustomMusicSignPostData, IdMusicSignPostData, MusicSign, MusicSignPostData } from '@/common/utils/sign'
 import { Peer } from '@/ntqqapi/types/msg'
 import { MessageUnique } from '@/common/utils/messageUnique'
@@ -76,7 +75,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnData> {
     else if (this.getSpecialMsgNum(messages, OB11MessageDataType.music)) {
       const music = messages[0] as OB11MessageMusic
       if (music) {
-        const { musicSignUrl } = getConfigUtil().getConfig()
+        const { musicSignUrl } = this.adapter.config
         if (!musicSignUrl) {
           throw '音乐签名地址未配置'
         }

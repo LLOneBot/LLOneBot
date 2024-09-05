@@ -1,7 +1,6 @@
 import { GetFileBase, GetFilePayload, GetFileResponse } from './GetFile'
 import { ActionName } from '../types'
 import { decodeSilk } from '@/common/utils/audio'
-import { getConfigUtil } from '@/common/config'
 import path from 'node:path'
 import fs from 'node:fs'
 
@@ -17,7 +16,7 @@ export default class GetRecord extends GetFileBase {
     res.file = await decodeSilk(this.ctx, res.file!, payload.out_format)
     res.file_name = path.basename(res.file)
     res.file_size = fs.statSync(res.file).size.toString()
-    if (getConfigUtil().getConfig().enableLocalFile2Url) {
+    if (this.adapter.config.enableLocalFile2Url) {
       res.base64 = fs.readFileSync(res.file, 'base64')
     }
     return res
