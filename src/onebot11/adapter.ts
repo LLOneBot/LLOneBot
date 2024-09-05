@@ -172,14 +172,14 @@ class OneBot11Adapter extends Service {
           )
           this.dispatch(event)
         }
-      } catch (e: any) {
-        this.ctx.logger.error('解析群通知失败', e.stack)
+      } catch (e) {
+        this.ctx.logger.error('解析群通知失败', (e as Error).stack)
       }
     }
   }
 
   private handleMsg(msgList: RawMessage[]) {
-    for (let message of msgList) {
+    for (const message of msgList) {
       // 过滤启动之前的消息
       if (parseInt(message.msgTime) < this.startTime / 1000) {
         continue
