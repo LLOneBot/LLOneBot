@@ -66,7 +66,7 @@ export namespace OB11Entities {
       sender: {
         user_id: parseInt(msg.senderUin!),
         nickname: msg.sendNickName,
-        card: msg.sendMemberName || '',
+        card: msg.sendMemberName ?? '',
       },
       raw_message: '',
       font: 14,
@@ -78,28 +78,29 @@ export namespace OB11Entities {
     if (debug) {
       resMsg.raw = msg
     }
-    if (msg.chatType == ChatType.group) {
+    if (msg.chatType === ChatType.group) {
       resMsg.sub_type = 'normal'
       resMsg.group_id = parseInt(msg.peerUin)
       const member = await ctx.ntGroupApi.getGroupMember(msg.peerUin, msg.senderUin!)
       if (member) {
         resMsg.sender.role = groupMemberRole(member.role)
         resMsg.sender.nickname = member.nick
+        resMsg.sender.title = member.memberSpecialTitle ?? ''
       }
     }
-    else if (msg.chatType == ChatType.friend) {
+    else if (msg.chatType === ChatType.friend) {
       resMsg.sub_type = 'friend'
       resMsg.sender.nickname = (await ctx.ntUserApi.getUserDetailInfo(msg.senderUid)).nick
     }
-    else if (msg.chatType as unknown as ChatType2 == ChatType2.KCHATTYPETEMPC2CFROMGROUP) {
+    else if (msg.chatType as unknown as ChatType2 === ChatType2.KCHATTYPETEMPC2CFROMGROUP) {
       resMsg.sub_type = 'group'
+      resMsg.temp_source = 0 //群聊
+      resMsg.sender.nickname = (await ctx.ntUserApi.getUserDetailInfo(msg.senderUid)).nick
       const ret = await ctx.ntMsgApi.getTempChatInfo(ChatType2.KCHATTYPETEMPC2CFROMGROUP, msg.senderUid)
       if (ret?.result === 0) {
-        resMsg.temp_source = Number(ret.tmpChatInfo?.groupCode)
-        resMsg.sender.nickname = ret.tmpChatInfo!.fromNick
+        resMsg.sender.group_id = Number(ret.tmpChatInfo?.groupCode)
       } else {
-        resMsg.temp_source = 284840486 //兜底数据
-        resMsg.sender.nickname = '临时会话'
+        resMsg.sender.group_id = 284840486 //兜底数据
       }
     }
 
