@@ -1,5 +1,5 @@
 import { ReceiveCmdS } from '../hook'
-import { Group, GroupMember, GroupMemberRole, GroupNotifies, GroupRequestOperateTypes, GroupNotify, GetFileListParam } from '../types'
+import { Group, GroupMember, GroupMemberRole, GroupNotifies, GroupRequestOperateTypes, GetFileListParam } from '../types'
 import { invoke, NTClass, NTMethod } from '../ntcall'
 import { GeneralCallResult } from '../services'
 import { NTQQWindows } from './window'
