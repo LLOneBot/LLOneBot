@@ -2,8 +2,7 @@ import { Friend, FriendV2, SimpleInfo, CategoryFriend } from '../types'
 import { ReceiveCmdS } from '../hook'
 import { invoke, NTMethod, NTClass } from '../ntcall'
 import { getSession } from '@/ntqqapi/wrapper'
-import { BuddyListReqType, NodeIKernelProfileService } from '../services'
-import { NTEventDispatch } from '@/common/utils/eventTask'
+import { BuddyListReqType } from '../services'
 import { Dict, pick } from 'cosmokit'
 import { Service, Context } from 'cordis'
 
@@ -19,7 +18,7 @@ export class NTQQFriendApi extends Service {
   }
 
   /** 大于或等于 26702 应使用 getBuddyV2 */
-  async getFriends(_forced = false) {
+  async getFriends() {
     const data = await invoke<{
       data: {
         categoryId: number
@@ -75,9 +74,7 @@ export class NTQQFriendApi extends Service {
       const buddyService = session.getBuddyService()
       const buddyListV2 = await buddyService.getBuddyListV2('0', BuddyListReqType.KNOMAL)
       uids.push(...buddyListV2.data.flatMap(item => item.buddyUids))
-      const data = await NTEventDispatch.CallNoListenerEvent<NodeIKernelProfileService['getCoreAndBaseInfo']>(
-        'NodeIKernelProfileService/getCoreAndBaseInfo', 5000, 'nodeStore', uids
-      )
+      const data = await session.getProfileService().getCoreAndBaseInfo('nodeStore', uids)
       return Array.from(data.values())
     } else {
       const data = await invoke<{
@@ -92,11 +89,8 @@ export class NTQQFriendApi extends Service {
           afterFirstCmd: false,
         }
       )
-      const categoryUids: Map<number, string[]> = new Map()
-      for (const item of data.buddyCategory) {
-        categoryUids.set(item.categoryId, item.buddyUids)
-      }
-      return Object.values(data.userSimpleInfos).filter(v => v.baseInfo && categoryUids.get(v.baseInfo.categoryId)?.includes(v.uid!))
+      const uids = data.buddyCategory.flatMap(item => item.buddyUids)
+      return Object.values(data.userSimpleInfos).filter(v => uids.includes(v.uid!))
     }
   }
 
@@ -106,12 +100,10 @@ export class NTQQFriendApi extends Service {
     const session = getSession()
     if (session) {
       const uids: string[] = []
-      const buddyService = session?.getBuddyService()
+      const buddyService = session.getBuddyService()
       const buddyListV2 = await buddyService.getBuddyListV2('0', BuddyListReqType.KNOMAL)
       uids.push(...buddyListV2.data.flatMap(item => item.buddyUids))
-      const data = await NTEventDispatch.CallNoListenerEvent<NodeIKernelProfileService['getCoreAndBaseInfo']>(
-        'NodeIKernelProfileService/getCoreAndBaseInfo', 5000, 'nodeStore', uids
-      )
+      const data = await session.getProfileService().getCoreAndBaseInfo('nodeStore', uids)
       for (const [, item] of data) {
         if (retMap.size > 5000) {
           break
@@ -155,9 +147,7 @@ export class NTQQFriendApi extends Service {
           })
           return item.buddyUids
         }))
-      const data = await NTEventDispatch.CallNoListenerEvent<NodeIKernelProfileService['getCoreAndBaseInfo']>(
-        'NodeIKernelProfileService/getCoreAndBaseInfo', 5000, 'nodeStore', uids
-      )
+      const data = await session.getProfileService().getCoreAndBaseInfo('nodeStore', uids)
       return Array.from(data).map(([key, value]) => {
         const category = categoryMap.get(key)
         return category ? { ...value, categoryId: category.categoryId, categroyName: category.categroyName } : value

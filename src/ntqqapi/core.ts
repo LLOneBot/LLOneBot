@@ -2,8 +2,6 @@ import fs from 'node:fs'
 import { Service, Context } from 'cordis'
 import { registerCallHook, registerReceiveHook, ReceiveCmdS } from './hook'
 import { MessageUnique } from '../common/utils/messageUnique'
-import { NTEventDispatch } from '../common/utils/eventTask'
-import { wrapperConstructor, getSession } from './wrapper'
 import { Config as LLOBConfig } from '../common/types'
 import { llonebotError } from '../common/globalVars'
 import { isNumeric } from '../common/utils/misc'
@@ -45,10 +43,6 @@ class Core extends Service {
 
   public start() {
     llonebotError.otherError = ''
-    const WrapperSession = getSession()
-    if (WrapperSession) {
-      NTEventDispatch.init({ ListenerMap: wrapperConstructor, WrapperSession })
-    }
     MessageUnique.init(selfInfo.uin)
     this.registerListener()
     this.ctx.logger.info(`LLOneBot/${version}`)
