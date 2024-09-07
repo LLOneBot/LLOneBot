@@ -21,7 +21,6 @@ import { Peer } from '@/ntqqapi/types/msg'
 import { calculateFileMD5 } from '@/common/utils/file'
 import { fileTypeFromFile } from 'file-type'
 import fsPromise from 'node:fs/promises'
-import { NTEventDispatch } from '@/common/utils/eventTask'
 import { OnRichMediaDownloadCompleteParams } from '@/ntqqapi/listeners'
 import { Time } from 'cosmokit'
 import { Service, Context } from 'cordis'
@@ -143,76 +142,32 @@ export class NTQQFileApi extends Service {
         return sourcePath
       }
     }
-    let filePath: string
-    if (NTEventDispatch.initialised) {
-      const data = await NTEventDispatch.CallNormalEvent<
-        (
-          params: {
-            fileModelId: string,
-            downloadSourceType: number,
-            triggerType: number,
-            msgId: string,
-            chatType: ChatType,
-            peerUid: string,
-            elementId: string,
-            thumbSize: number,
-            downloadType: number,
-            filePath: string
-          }) => Promise<unknown>,
-        (fileTransNotifyInfo: OnRichMediaDownloadCompleteParams) => void
-      >(
-        'NodeIKernelMsgService/downloadRichMedia',
-        'NodeIKernelMsgListener/onRichMediaDownloadComplete',
-        1,
-        timeout,
-        (arg: OnRichMediaDownloadCompleteParams) => {
-          if (arg.msgId === msgId) {
-            return true
-          }
-          return false
-        },
+    const data = await invoke<{ notifyInfo: OnRichMediaDownloadCompleteParams }>(
+      'nodeIKernelMsgService/downloadRichMedia',
+      [
         {
-          fileModelId: '0',
-          downloadSourceType: 0,
-          triggerType: 1,
-          msgId: msgId,
-          chatType: chatType,
-          peerUid: peerUid,
-          elementId: elementId,
-          thumbSize: 0,
-          downloadType: 1,
-          filePath: thumbPath
-        }
-      )
-      filePath = data[1].filePath
-    } else {
-      const data = await invoke<{ notifyInfo: OnRichMediaDownloadCompleteParams }>(
-        'nodeIKernelMsgService/downloadRichMedia',
-        [
-          {
-            getReq: {
-              fileModelId: '0',
-              downloadSourceType: 0,
-              triggerType: 1,
-              msgId: msgId,
-              chatType: chatType,
-              peerUid: peerUid,
-              elementId: elementId,
-              thumbSize: 0,
-              downloadType: 1,
-              filePath: thumbPath,
-            },
+          getReq: {
+            fileModelId: '0',
+            downloadSourceType: 0,
+            triggerType: 1,
+            msgId: msgId,
+            chatType: chatType,
+            peerUid: peerUid,
+            elementId: elementId,
+            thumbSize: 0,
+            downloadType: 1,
+            filePath: thumbPath,
           },
-          null,
-        ],
-        {
-          cbCmd: ReceiveCmdS.MEDIA_DOWNLOAD_COMPLETE,
-          cmdCB: payload => payload.notifyInfo.msgId === msgId,
-          timeout
-        }
-      )
-      filePath = data.notifyInfo.filePath
-    }
+        },
+        null,
+      ],
+      {
+        cbCmd: ReceiveCmdS.MEDIA_DOWNLOAD_COMPLETE,
+        cmdCB: payload => payload.notifyInfo.msgId === msgId,
+        timeout
+      }
+    )
+    let filePath = data.notifyInfo.filePath
     if (filePath.startsWith('\\')) {
       const downloadPath = TEMP_DIR
       filePath = path.join(downloadPath, filePath)
@@ -238,7 +193,7 @@ export class NTQQFileApi extends Service {
     const url: string = element.originImageUrl!  // 没有域名
     const md5HexStr = element.md5HexStr
     const fileMd5 = element.md5HexStr
-    
+
     if (url) {
       const parsedUrl = new URL(IMAGE_HTTP_HOST + url) //临时解析拼接
       const imageAppid = parsedUrl.searchParams.get('appid')
