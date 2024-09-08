@@ -15,6 +15,9 @@ export class SendGroupNotice extends BaseAction<Payload, null> {
   actionName = ActionName.GoCQHTTP_SendGroupNotice
 
   async _handle(payload: Payload) {
+    if(!payload.content){
+      throw new Error('参数 content 不能为空')
+    }
     const groupCode = payload.group_id.toString()
     const pinned = Number(payload.pinned ?? 0)
     const confirmRequired = Number(payload.confirm_required ?? 1)
