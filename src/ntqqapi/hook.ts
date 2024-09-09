@@ -10,8 +10,8 @@ export enum ReceiveCmdS {
   RECENT_CONTACT = 'nodeIKernelRecentContactListener/onRecentContactListChangedVer2',
   UPDATE_MSG = 'nodeIKernelMsgListener/onMsgInfoListUpdate',
   UPDATE_ACTIVE_MSG = 'nodeIKernelMsgListener/onActiveMsgInfoUpdate',
-  NEW_MSG = `nodeIKernelMsgListener/onRecvMsg`,
-  NEW_ACTIVE_MSG = `nodeIKernelMsgListener/onRecvActiveMsg`,
+  NEW_MSG = 'nodeIKernelMsgListener/onRecvMsg',
+  NEW_ACTIVE_MSG = 'nodeIKernelMsgListener/onRecvActiveMsg',
   SELF_SEND_MSG = 'nodeIKernelMsgListener/onAddSendMsg',
   USER_INFO = 'nodeIKernelProfileListener/onProfileSimpleChanged',
   USER_DETAIL_INFO = 'nodeIKernelProfileListener/onProfileDetailInfoChanged',
@@ -60,7 +60,7 @@ export function hookNTQQApiReceive(window: BrowserWindow, onlyLog: boolean) {
     apply(target, thisArg, args: [channel: string, ...args: NTReturnData]) {
       try {
         if (logHook && !args[1]?.eventName?.startsWith('ns-LoggerApi')) {
-          log(`received ntqq api message: ${args[0]}`, args)
+          log('received ntqq api message', args)
         }
       } catch { }
       if (!onlyLog) {
@@ -102,7 +102,7 @@ export function hookNTQQApiCall(window: BrowserWindow, onlyLog: boolean) {
         if (!onlyLog) {
           try {
             const _args: unknown[] = args[3][1]
-            const cmdName: NTMethod = _args[0] as NTMethod
+            const cmdName = _args[0] as NTMethod
             const callParams = _args.slice(1)
             callHooks.forEach((hook) => {
               if (hook.method.includes(cmdName)) {
