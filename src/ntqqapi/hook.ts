@@ -82,8 +82,7 @@ export function hookNTQQApiReceive(window: BrowserWindow, onlyLog: boolean) {
           }
         }
       }
-      const ret = target.apply(thisArg, args)
-      return ret
+      return target.apply(thisArg, args)
     },
   })
 }
@@ -143,7 +142,7 @@ export function hookNTQQApiCall(window: BrowserWindow, onlyLog: boolean) {
 }
 
 export function registerReceiveHook<PayloadType>(
-  method: ReceiveCmdS | ReceiveCmdS[],
+  method: string | string[],
   hookFunc: (payload: PayloadType) => void,
 ): string {
   const id = randomUUID()
@@ -151,7 +150,7 @@ export function registerReceiveHook<PayloadType>(
     method = [method]
   }
   receiveHooks.push({
-    method,
+    method: method as ReceiveCmdS[],
     hookFunc,
     id,
   })
