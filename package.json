@@ -7,7 +7,7 @@
   "scripts": {
     "build": "electron-vite build",
     "build-mac": "npm run build && npm run deploy-mac",
-    "deploy-mac": "cp -r dist/* ~/Library/Containers/com.tencent.qq/Data/LiteLoaderQQNT/plugins/LLOneBot/",
+    "deploy-mac": "cp -r dist/* ~/Library/Containers/com.tencent.qq/Data/Documents/LiteLoaderQQNT/plugins/LLOneBot/",
     "build-win": "npm run build && npm run deploy-win",
     "deploy-win": "cmd /c \"xcopy /C /S /Y dist\\* %USERPROFILE%\\documents\\LiteLoaderQQNT\\plugins\\LLOneBot\\\"",
     "format": "prettier -cw .",
