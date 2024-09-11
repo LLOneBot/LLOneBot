@@ -61,13 +61,6 @@ export namespace SysMsg {
         public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): SysMsg.SystemMessage;
 
         /**
-         * Verifies a SystemMessage message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
          * Gets the default type url for SystemMessage
          * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns The default type url
@@ -137,13 +130,6 @@ export namespace SysMsg {
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): SysMsg.SystemMessageHeader;
-
-        /**
-         * Verifies a SystemMessageHeader message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
 
         /**
          * Gets the default type url for SystemMessageHeader
@@ -229,13 +215,6 @@ export namespace SysMsg {
         public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): SysMsg.SystemMessageMsgSpec;
 
         /**
-         * Verifies a SystemMessageMsgSpec message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
          * Gets the default type url for SystemMessageMsgSpec
          * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns The default type url
@@ -287,13 +266,6 @@ export namespace SysMsg {
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): SysMsg.SystemMessageBodyWrapper;
-
-        /**
-         * Verifies a SystemMessageBodyWrapper message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
 
         /**
          * Gets the default type url for SystemMessageBodyWrapper
@@ -361,13 +333,6 @@ export namespace SysMsg {
         public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): SysMsg.LikeDetail;
 
         /**
-         * Verifies a LikeDetail message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
          * Gets the default type url for LikeDetail
          * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns The default type url
@@ -433,13 +398,6 @@ export namespace SysMsg {
         public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): SysMsg.LikeMsg;
 
         /**
-         * Verifies a LikeMsg message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
          * Gets the default type url for LikeMsg
          * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns The default type url
@@ -491,13 +449,6 @@ export namespace SysMsg {
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): SysMsg.ProfileLikeTip;
-
-        /**
-         * Verifies a ProfileLikeTip message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
 
         /**
          * Gets the default type url for ProfileLikeTip
