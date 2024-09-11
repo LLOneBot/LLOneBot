@@ -27,6 +27,8 @@ import { initActionMap } from './action'
 import { llonebotError } from '../common/globalVars'
 import { OB11GroupCardEvent } from './event/notice/OB11GroupCardEvent'
 import { OB11GroupAdminNoticeEvent } from './event/notice/OB11GroupAdminNoticeEvent'
+import { OB11ProfileLikeEvent } from './event/notice/OB11ProfileLikeEvent'
+import { SysMsg } from '@/ntqqapi/proto/compiled'
 
 declare module 'cordis' {
   interface Context {
@@ -409,6 +411,18 @@ class OneBot11Adapter extends Service {
     })
     this.ctx.on('nt/group-member-info-updated', input => {
       this.handleGroupMemberInfoUpdated(input.groupCode, input.members)
+    })
+    this.ctx.on('nt/system-message-created', input => {
+      const sysMsg = SysMsg.SystemMessage.decode(input)
+      const { msgType, subType, subSubType } = sysMsg.msgSpec[0] ?? {}
+      if (msgType === 528 && subType === 39 && subSubType === 39) {
+        const tip = SysMsg.ProfileLikeTip.decode(sysMsg.bodyWrapper!.body!.slice(12))
+        const detail = tip.msg?.detail
+        if (!detail) return
+        const [times] = detail.txt?.match(/\d+/) ?? ['0']
+        const profileLikeEvent = new OB11ProfileLikeEvent(detail.uin!, detail.nickname!, +times)
+        this.dispatch(profileLikeEvent)
+      }
     })
   }
 }
