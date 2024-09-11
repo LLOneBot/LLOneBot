@@ -1,4 +1,4 @@
-import { selfInfo } from "@/common/globalVars"
+import { selfInfo } from '@/common/globalVars'
 
 export enum EventType {
   META = 'meta_event',

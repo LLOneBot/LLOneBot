@@ -24,11 +24,7 @@
     "noEmit": true
   },
   "include": [
-    "src/*",
-    "src/**/*",
-    "scripts/*"
-  ],
-  "exclude": [
-    "node_modules"
+    "src",
+    "scripts"
   ]
 }

@@ -1,4 +1,4 @@
-import { Context } from "cordis"
+import { Context } from 'cordis'
 
 interface ServerRkeyData {
   group_rkey: string
