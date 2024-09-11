@@ -42,22 +42,6 @@ export namespace SysMsg {
         public static create(properties?: SysMsg.ISystemMessage): SysMsg.SystemMessage;
 
         /**
-         * Encodes the specified SystemMessage message. Does not implicitly {@link SysMsg.SystemMessage.verify|verify} messages.
-         * @param message SystemMessage message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: SysMsg.ISystemMessage, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified SystemMessage message, length delimited. Does not implicitly {@link SysMsg.SystemMessage.verify|verify} messages.
-         * @param message SystemMessage message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: SysMsg.ISystemMessage, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a SystemMessage message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
          * @param [length] Message length if known beforehand
@@ -82,27 +66,6 @@ export namespace SysMsg {
          * @returns `null` if valid, otherwise the reason why it is not
          */
         public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a SystemMessage message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns SystemMessage
-         */
-        public static fromObject(object: { [k: string]: any }): SysMsg.SystemMessage;
-
-        /**
-         * Creates a plain object from a SystemMessage message. Also converts values to other types if specified.
-         * @param message SystemMessage
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: SysMsg.SystemMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this SystemMessage to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
 
         /**
          * Gets the default type url for SystemMessage
@@ -157,22 +120,6 @@ export namespace SysMsg {
         public static create(properties?: SysMsg.ISystemMessageHeader): SysMsg.SystemMessageHeader;
 
         /**
-         * Encodes the specified SystemMessageHeader message. Does not implicitly {@link SysMsg.SystemMessageHeader.verify|verify} messages.
-         * @param message SystemMessageHeader message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: SysMsg.ISystemMessageHeader, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified SystemMessageHeader message, length delimited. Does not implicitly {@link SysMsg.SystemMessageHeader.verify|verify} messages.
-         * @param message SystemMessageHeader message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: SysMsg.ISystemMessageHeader, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a SystemMessageHeader message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
          * @param [length] Message length if known beforehand
@@ -197,27 +144,6 @@ export namespace SysMsg {
          * @returns `null` if valid, otherwise the reason why it is not
          */
         public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a SystemMessageHeader message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns SystemMessageHeader
-         */
-        public static fromObject(object: { [k: string]: any }): SysMsg.SystemMessageHeader;
-
-        /**
-         * Creates a plain object from a SystemMessageHeader message. Also converts values to other types if specified.
-         * @param message SystemMessageHeader
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: SysMsg.SystemMessageHeader, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this SystemMessageHeader to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
 
         /**
          * Gets the default type url for SystemMessageHeader
@@ -284,22 +210,6 @@ export namespace SysMsg {
         public static create(properties?: SysMsg.ISystemMessageMsgSpec): SysMsg.SystemMessageMsgSpec;
 
         /**
-         * Encodes the specified SystemMessageMsgSpec message. Does not implicitly {@link SysMsg.SystemMessageMsgSpec.verify|verify} messages.
-         * @param message SystemMessageMsgSpec message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: SysMsg.ISystemMessageMsgSpec, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified SystemMessageMsgSpec message, length delimited. Does not implicitly {@link SysMsg.SystemMessageMsgSpec.verify|verify} messages.
-         * @param message SystemMessageMsgSpec message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: SysMsg.ISystemMessageMsgSpec, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a SystemMessageMsgSpec message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
          * @param [length] Message length if known beforehand
@@ -324,27 +234,6 @@ export namespace SysMsg {
          * @returns `null` if valid, otherwise the reason why it is not
          */
         public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a SystemMessageMsgSpec message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns SystemMessageMsgSpec
-         */
-        public static fromObject(object: { [k: string]: any }): SysMsg.SystemMessageMsgSpec;
-
-        /**
-         * Creates a plain object from a SystemMessageMsgSpec message. Also converts values to other types if specified.
-         * @param message SystemMessageMsgSpec
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: SysMsg.SystemMessageMsgSpec, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this SystemMessageMsgSpec to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
 
         /**
          * Gets the default type url for SystemMessageMsgSpec
@@ -381,22 +270,6 @@ export namespace SysMsg {
         public static create(properties?: SysMsg.ISystemMessageBodyWrapper): SysMsg.SystemMessageBodyWrapper;
 
         /**
-         * Encodes the specified SystemMessageBodyWrapper message. Does not implicitly {@link SysMsg.SystemMessageBodyWrapper.verify|verify} messages.
-         * @param message SystemMessageBodyWrapper message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: SysMsg.ISystemMessageBodyWrapper, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified SystemMessageBodyWrapper message, length delimited. Does not implicitly {@link SysMsg.SystemMessageBodyWrapper.verify|verify} messages.
-         * @param message SystemMessageBodyWrapper message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: SysMsg.ISystemMessageBodyWrapper, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a SystemMessageBodyWrapper message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
          * @param [length] Message length if known beforehand
@@ -421,27 +294,6 @@ export namespace SysMsg {
          * @returns `null` if valid, otherwise the reason why it is not
          */
         public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a SystemMessageBodyWrapper message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns SystemMessageBodyWrapper
-         */
-        public static fromObject(object: { [k: string]: any }): SysMsg.SystemMessageBodyWrapper;
-
-        /**
-         * Creates a plain object from a SystemMessageBodyWrapper message. Also converts values to other types if specified.
-         * @param message SystemMessageBodyWrapper
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: SysMsg.SystemMessageBodyWrapper, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this SystemMessageBodyWrapper to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
 
         /**
          * Gets the default type url for SystemMessageBodyWrapper
@@ -490,22 +342,6 @@ export namespace SysMsg {
         public static create(properties?: SysMsg.ILikeDetail): SysMsg.LikeDetail;
 
         /**
-         * Encodes the specified LikeDetail message. Does not implicitly {@link SysMsg.LikeDetail.verify|verify} messages.
-         * @param message LikeDetail message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: SysMsg.ILikeDetail, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified LikeDetail message, length delimited. Does not implicitly {@link SysMsg.LikeDetail.verify|verify} messages.
-         * @param message LikeDetail message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: SysMsg.ILikeDetail, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a LikeDetail message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
          * @param [length] Message length if known beforehand
@@ -530,27 +366,6 @@ export namespace SysMsg {
          * @returns `null` if valid, otherwise the reason why it is not
          */
         public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a LikeDetail message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns LikeDetail
-         */
-        public static fromObject(object: { [k: string]: any }): SysMsg.LikeDetail;
-
-        /**
-         * Creates a plain object from a LikeDetail message. Also converts values to other types if specified.
-         * @param message LikeDetail
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: SysMsg.LikeDetail, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this LikeDetail to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
 
         /**
          * Gets the default type url for LikeDetail
@@ -599,22 +414,6 @@ export namespace SysMsg {
         public static create(properties?: SysMsg.ILikeMsg): SysMsg.LikeMsg;
 
         /**
-         * Encodes the specified LikeMsg message. Does not implicitly {@link SysMsg.LikeMsg.verify|verify} messages.
-         * @param message LikeMsg message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: SysMsg.ILikeMsg, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified LikeMsg message, length delimited. Does not implicitly {@link SysMsg.LikeMsg.verify|verify} messages.
-         * @param message LikeMsg message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: SysMsg.ILikeMsg, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a LikeMsg message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
          * @param [length] Message length if known beforehand
@@ -639,27 +438,6 @@ export namespace SysMsg {
          * @returns `null` if valid, otherwise the reason why it is not
          */
         public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a LikeMsg message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns LikeMsg
-         */
-        public static fromObject(object: { [k: string]: any }): SysMsg.LikeMsg;
-
-        /**
-         * Creates a plain object from a LikeMsg message. Also converts values to other types if specified.
-         * @param message LikeMsg
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: SysMsg.LikeMsg, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this LikeMsg to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
 
         /**
          * Gets the default type url for LikeMsg
@@ -696,22 +474,6 @@ export namespace SysMsg {
         public static create(properties?: SysMsg.IProfileLikeTip): SysMsg.ProfileLikeTip;
 
         /**
-         * Encodes the specified ProfileLikeTip message. Does not implicitly {@link SysMsg.ProfileLikeTip.verify|verify} messages.
-         * @param message ProfileLikeTip message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: SysMsg.IProfileLikeTip, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified ProfileLikeTip message, length delimited. Does not implicitly {@link SysMsg.ProfileLikeTip.verify|verify} messages.
-         * @param message ProfileLikeTip message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: SysMsg.IProfileLikeTip, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a ProfileLikeTip message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
          * @param [length] Message length if known beforehand
@@ -736,27 +498,6 @@ export namespace SysMsg {
          * @returns `null` if valid, otherwise the reason why it is not
          */
         public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a ProfileLikeTip message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns ProfileLikeTip
-         */
-        public static fromObject(object: { [k: string]: any }): SysMsg.ProfileLikeTip;
-
-        /**
-         * Creates a plain object from a ProfileLikeTip message. Also converts values to other types if specified.
-         * @param message ProfileLikeTip
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: SysMsg.ProfileLikeTip, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this ProfileLikeTip to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
 
         /**
          * Gets the default type url for ProfileLikeTip
