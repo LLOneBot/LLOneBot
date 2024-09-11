@@ -9,9 +9,10 @@
     "build-mac": "npm run build && npm run deploy-mac",
     "deploy-mac": "cp -r dist/* ~/Library/Containers/com.tencent.qq/Data/Documents/LiteLoaderQQNT/plugins/LLOneBot/",
     "build-win": "npm run build && npm run deploy-win",
-    "deploy-win": "cmd /c \"xcopy /C /S /Y dist\\* %USERPROFILE%\\documents\\LiteLoaderQQNT\\plugins\\LLOneBot\\\"",
+    "deploy-win": "cmd /c \"xcopy /C /S /Y dist\\* %LITELOADERQQNT_PROFILE%\\plugins\\LLOneBot\\\"",
     "format": "prettier -cw .",
-    "check": "tsc"
+    "check": "tsc",
+    "compile:proto": "pbjs -t static-module -w es6 -p ./src/ntqqapi/proto -o ./src/ntqqapi/proto/compiled.js systemMessage.proto profileLikeTip.proto && pbts -o ./src/ntqqapi/proto/compiled.d.ts ./src/ntqqapi/proto/compiled.js"
   },
   "author": "",
   "license": "MIT",
@@ -21,11 +22,12 @@
     "cordis": "^3.18.0",
     "cors": "^2.8.5",
     "cosmokit": "^1.6.2",
-    "express": "^4.19.2",
+    "express": "^5.0.0",
     "fast-xml-parser": "^4.5.0",
     "file-type": "^19.5.0",
     "fluent-ffmpeg": "^2.1.3",
     "minato": "^3.5.1",
+    "protobufjs": "^7.4.0",
     "silk-wasm": "^3.6.1",
     "ws": "^8.18.0"
   },
@@ -37,8 +39,9 @@
     "@types/ws": "^8.5.12",
     "electron": "^31.4.0",
     "electron-vite": "^2.3.0",
-    "typescript": "^5.5.4",
-    "vite": "^5.4.3",
+    "protobufjs-cli": "^1.1.3",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.4",
     "vite-plugin-cp": "^4.0.8"
   },
   "packageManager": "yarn@4.4.1"

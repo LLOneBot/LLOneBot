@@ -16,12 +16,11 @@ export class LimitedHashTable<K, V> {
     this.keyToValue.set(key, value)
     this.valueToKey.set(value, key)
     while (this.keyToValue.size !== this.valueToKey.size) {
-      console.log('keyToValue.size !== valueToKey.size Error Atom')
       this.keyToValue.clear()
       this.valueToKey.clear()
     }
     while (this.keyToValue.size > this.maxSize || this.valueToKey.size > this.maxSize) {
-      const oldestKey = this.keyToValue.keys().next().value
+      const oldestKey = this.keyToValue.keys().next().value!
       this.valueToKey.delete(this.keyToValue.get(oldestKey)!)
       this.keyToValue.delete(oldestKey)
     }
@@ -56,7 +55,7 @@ export class LimitedHashTable<K, V> {
   }
 
   //获取最近刚写入的几个值
-  getHeads(size: number): { key: K; value: V }[] | undefined {
+  getHeads(size: number): { key: K, value: V }[] | undefined {
     const keyList = this.getKeyList()
     if (keyList.length === 0) {
       return undefined

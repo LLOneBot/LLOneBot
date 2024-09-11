@@ -133,7 +133,7 @@ export async function uri2local(uri: string, filename?: string, needExt?: boolea
 
   if (type === FileUriType.RemoteURL) {
     try {
-      const res = await fetchFile(uri, {'Referer': uri})
+      const res = await fetchFile(uri, { 'Referer': uri })
       const match = res.url.match(/.+\/([^/?]*)(?=\?)?/)
       if (match?.[1]) {
         filename ??= match[1].replace(/[/\\:*?"<>|]/g, '_')
