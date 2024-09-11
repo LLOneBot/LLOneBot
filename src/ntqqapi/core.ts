@@ -19,6 +19,7 @@ import {
 } from './types'
 import { selfInfo } from '../common/globalVars'
 import { version } from '../version'
+import { invoke } from './ntcall'
 
 declare module 'cordis' {
   interface Context {
@@ -31,6 +32,7 @@ declare module 'cordis' {
     'nt/group-notify': (input: GroupNotify[]) => void
     'nt/friend-request': (input: FriendRequest[]) => void
     'nt/group-member-info-updated': (input: { groupCode: string, members: GroupMember[] }) => void
+    'nt/system-message-created': (input: Uint8Array) => void
   }
 }
 
@@ -218,6 +220,14 @@ class Core extends Service {
 
     registerReceiveHook<FriendRequestNotify>(ReceiveCmdS.FRIEND_REQUEST, payload => {
       this.ctx.parallel('nt/friend-request', payload.data.buddyReqs)
+    })
+
+    invoke('nodeIKernelMsgListener/onRecvSysMsg', [], { classNameIsRegister: true })
+
+    registerReceiveHook<{
+      msgBuf: number[]
+    }>('nodeIKernelMsgListener/onRecvSysMsg', payload => {
+      this.ctx.parallel('nt/system-message-created', Uint8Array.from(payload.msgBuf))
     })
   }
 }
