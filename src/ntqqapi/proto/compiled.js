@@ -139,43 +139,6 @@ export const SysMsg = $root.SysMsg = (() => {
         };
 
         /**
-         * Verifies a SystemMessage message.
-         * @function verify
-         * @memberof SysMsg.SystemMessage
-         * @static
-         * @param {Object.<string,*>} message Plain object to verify
-         * @returns {string|null} `null` if valid, otherwise the reason why it is not
-         */
-        SystemMessage.verify = function verify(message) {
-            if (typeof message !== "object" || message === null)
-                return "object expected";
-            if (message.header != null && message.hasOwnProperty("header")) {
-                if (!Array.isArray(message.header))
-                    return "header: array expected";
-                for (let i = 0; i < message.header.length; ++i) {
-                    let error = $root.SysMsg.SystemMessageHeader.verify(message.header[i]);
-                    if (error)
-                        return "header." + error;
-                }
-            }
-            if (message.msgSpec != null && message.hasOwnProperty("msgSpec")) {
-                if (!Array.isArray(message.msgSpec))
-                    return "msgSpec: array expected";
-                for (let i = 0; i < message.msgSpec.length; ++i) {
-                    let error = $root.SysMsg.SystemMessageMsgSpec.verify(message.msgSpec[i]);
-                    if (error)
-                        return "msgSpec." + error;
-                }
-            }
-            if (message.bodyWrapper != null && message.hasOwnProperty("bodyWrapper")) {
-                let error = $root.SysMsg.SystemMessageBodyWrapper.verify(message.bodyWrapper);
-                if (error)
-                    return "bodyWrapper." + error;
-            }
-            return null;
-        };
-
-        /**
          * Gets the default type url for SystemMessage
          * @function getTypeUrl
          * @memberof SysMsg.SystemMessage
@@ -329,35 +292,6 @@ export const SysMsg = $root.SysMsg = (() => {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
-        };
-
-        /**
-         * Verifies a SystemMessageHeader message.
-         * @function verify
-         * @memberof SysMsg.SystemMessageHeader
-         * @static
-         * @param {Object.<string,*>} message Plain object to verify
-         * @returns {string|null} `null` if valid, otherwise the reason why it is not
-         */
-        SystemMessageHeader.verify = function verify(message) {
-            if (typeof message !== "object" || message === null)
-                return "object expected";
-            let properties = {};
-            if (message.peerNumber != null && message.hasOwnProperty("peerNumber"))
-                if (!$util.isInteger(message.peerNumber))
-                    return "peerNumber: integer expected";
-            if (message.peerString != null && message.hasOwnProperty("peerString"))
-                if (!$util.isString(message.peerString))
-                    return "peerString: string expected";
-            if (message.uin != null && message.hasOwnProperty("uin"))
-                if (!$util.isInteger(message.uin))
-                    return "uin: integer expected";
-            if (message.uid != null && message.hasOwnProperty("uid")) {
-                properties._uid = 1;
-                if (!$util.isString(message.uid))
-                    return "uid: string expected";
-            }
-            return null;
         };
 
         /**
@@ -534,38 +468,6 @@ export const SysMsg = $root.SysMsg = (() => {
         };
 
         /**
-         * Verifies a SystemMessageMsgSpec message.
-         * @function verify
-         * @memberof SysMsg.SystemMessageMsgSpec
-         * @static
-         * @param {Object.<string,*>} message Plain object to verify
-         * @returns {string|null} `null` if valid, otherwise the reason why it is not
-         */
-        SystemMessageMsgSpec.verify = function verify(message) {
-            if (typeof message !== "object" || message === null)
-                return "object expected";
-            if (message.msgType != null && message.hasOwnProperty("msgType"))
-                if (!$util.isInteger(message.msgType))
-                    return "msgType: integer expected";
-            if (message.subType != null && message.hasOwnProperty("subType"))
-                if (!$util.isInteger(message.subType))
-                    return "subType: integer expected";
-            if (message.subSubType != null && message.hasOwnProperty("subSubType"))
-                if (!$util.isInteger(message.subSubType))
-                    return "subSubType: integer expected";
-            if (message.msgSeq != null && message.hasOwnProperty("msgSeq"))
-                if (!$util.isInteger(message.msgSeq))
-                    return "msgSeq: integer expected";
-            if (message.time != null && message.hasOwnProperty("time"))
-                if (!$util.isInteger(message.time))
-                    return "time: integer expected";
-            if (message.other != null && message.hasOwnProperty("other"))
-                if (!$util.isInteger(message.other))
-                    return "other: integer expected";
-            return null;
-        };
-
-        /**
          * Gets the default type url for SystemMessageMsgSpec
          * @function getTypeUrl
          * @memberof SysMsg.SystemMessageMsgSpec
@@ -671,23 +573,6 @@ export const SysMsg = $root.SysMsg = (() => {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
-        };
-
-        /**
-         * Verifies a SystemMessageBodyWrapper message.
-         * @function verify
-         * @memberof SysMsg.SystemMessageBodyWrapper
-         * @static
-         * @param {Object.<string,*>} message Plain object to verify
-         * @returns {string|null} `null` if valid, otherwise the reason why it is not
-         */
-        SystemMessageBodyWrapper.verify = function verify(message) {
-            if (typeof message !== "object" || message === null)
-                return "object expected";
-            if (message.body != null && message.hasOwnProperty("body"))
-                if (!(message.body && typeof message.body.length === "number" || $util.isString(message.body)))
-                    return "body: buffer expected";
-            return null;
         };
 
         /**
@@ -825,29 +710,6 @@ export const SysMsg = $root.SysMsg = (() => {
         };
 
         /**
-         * Verifies a LikeDetail message.
-         * @function verify
-         * @memberof SysMsg.LikeDetail
-         * @static
-         * @param {Object.<string,*>} message Plain object to verify
-         * @returns {string|null} `null` if valid, otherwise the reason why it is not
-         */
-        LikeDetail.verify = function verify(message) {
-            if (typeof message !== "object" || message === null)
-                return "object expected";
-            if (message.txt != null && message.hasOwnProperty("txt"))
-                if (!$util.isString(message.txt))
-                    return "txt: string expected";
-            if (message.uin != null && message.hasOwnProperty("uin"))
-                if (!$util.isInteger(message.uin))
-                    return "uin: integer expected";
-            if (message.nickname != null && message.hasOwnProperty("nickname"))
-                if (!$util.isString(message.nickname))
-                    return "nickname: string expected";
-            return null;
-        };
-
-        /**
          * Gets the default type url for LikeDetail
          * @function getTypeUrl
          * @memberof SysMsg.LikeDetail
@@ -982,31 +844,6 @@ export const SysMsg = $root.SysMsg = (() => {
         };
 
         /**
-         * Verifies a LikeMsg message.
-         * @function verify
-         * @memberof SysMsg.LikeMsg
-         * @static
-         * @param {Object.<string,*>} message Plain object to verify
-         * @returns {string|null} `null` if valid, otherwise the reason why it is not
-         */
-        LikeMsg.verify = function verify(message) {
-            if (typeof message !== "object" || message === null)
-                return "object expected";
-            if (message.count != null && message.hasOwnProperty("count"))
-                if (!$util.isInteger(message.count))
-                    return "count: integer expected";
-            if (message.time != null && message.hasOwnProperty("time"))
-                if (!$util.isInteger(message.time))
-                    return "time: integer expected";
-            if (message.detail != null && message.hasOwnProperty("detail")) {
-                let error = $root.SysMsg.LikeDetail.verify(message.detail);
-                if (error)
-                    return "detail." + error;
-            }
-            return null;
-        };
-
-        /**
          * Gets the default type url for LikeMsg
          * @function getTypeUrl
          * @memberof SysMsg.LikeMsg
@@ -1112,25 +949,6 @@ export const SysMsg = $root.SysMsg = (() => {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
-        };
-
-        /**
-         * Verifies a ProfileLikeTip message.
-         * @function verify
-         * @memberof SysMsg.ProfileLikeTip
-         * @static
-         * @param {Object.<string,*>} message Plain object to verify
-         * @returns {string|null} `null` if valid, otherwise the reason why it is not
-         */
-        ProfileLikeTip.verify = function verify(message) {
-            if (typeof message !== "object" || message === null)
-                return "object expected";
-            if (message.msg != null && message.hasOwnProperty("msg")) {
-                let error = $root.SysMsg.LikeMsg.verify(message.msg);
-                if (error)
-                    return "msg." + error;
-            }
-            return null;
         };
 
         /**
