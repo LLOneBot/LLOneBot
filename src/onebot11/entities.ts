@@ -489,7 +489,7 @@ export namespace OB11Entities {
         }
       }
       else if (element.fileElement) {
-        return new OB11GroupUploadNoticeEvent(parseInt(msg.peerUid), parseInt(msg.senderUin!), {
+        return new OB11GroupUploadNoticeEvent(+msg.peerUid, +msg.senderUin!, {
           id: element.fileElement.fileUuid!,
           name: element.fileElement.fileName,
           size: parseInt(element.fileElement.fileSize),
@@ -587,7 +587,7 @@ export namespace OB11Entities {
               { txt: '头衔', type: 'nor' }
             ]
           }
-    
+
           * */
           if (grayTipElement.jsonGrayTipElement.busiId == 1061) {
             //判断业务类型
