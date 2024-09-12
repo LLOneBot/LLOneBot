@@ -373,11 +373,10 @@ export namespace OB11Entities {
     }
     for (const element of msg.elements) {
       if (element.grayTipElement) {
-        if (element.grayTipElement.subElementType == GrayTipElementSubType.MEMBER_NEW_TITLE) {
-          const json = JSON.parse(element.grayTipElement.jsonGrayTipElement.jsonStr)
-          if (element.grayTipElement.jsonGrayTipElement.busiId == 1061) {
-            //判断业务类型
-            //Poke事件
+        const { grayTipElement } = element
+        if (grayTipElement.subElementType === GrayTipElementSubType.JSON) {
+          const json = JSON.parse(grayTipElement.jsonGrayTipElement.jsonStr)
+          if (grayTipElement.jsonGrayTipElement.busiId === 1061) {
             const pokedetail: Dict[] = json.items
             //筛选item带有uid的元素
             const poke_uid = pokedetail.filter(item => item.uid)
@@ -389,7 +388,6 @@ export namespace OB11Entities {
               )
             }
           }
-          //下面得改 上面也是错的grayTipElement.subElementType == GrayTipElementSubType.MEMBER_NEW_TITLE
         }
       }
     }
@@ -543,7 +541,7 @@ export namespace OB11Entities {
         }
 
         if (
-          grayTipElement.subElementType == GrayTipElementSubType.INVITE_NEW_MEMBER &&
+          grayTipElement.subElementType == GrayTipElementSubType.XMLMSG &&
           xmlElement?.templId == '10179'
         ) {
           ctx.logger.info('收到新人被邀请进群消息', grayTipElement)
@@ -563,35 +561,9 @@ export namespace OB11Entities {
             }
           }
         }
-        else if (grayTipElement.subElementType == GrayTipElementSubType.MEMBER_NEW_TITLE) {
+        else if (grayTipElement.subElementType == GrayTipElementSubType.JSON) {
           const json = JSON.parse(grayTipElement.jsonGrayTipElement.jsonStr)
-          /*
-          {
-            align: 'center',
-            items: [
-              { txt: '恭喜', type: 'nor' },
-              {
-                col: '3',
-                jp: '5',
-                param: ["QQ号"],
-                txt: '林雨辰',
-                type: 'url'
-              },
-              { txt: '获得群主授予的', type: 'nor' },
-              {
-                col: '3',
-                jp: '',
-                txt: '好好好',
-                type: 'url'
-              },
-              { txt: '头衔', type: 'nor' }
-            ]
-          }
-
-          * */
           if (grayTipElement.jsonGrayTipElement.busiId == 1061) {
-            //判断业务类型
-            //Poke事件
             const pokedetail: Dict[] = json.items
             //筛选item带有uid的元素
             const poke_uid = pokedetail.filter(item => item.uid)
@@ -653,7 +625,7 @@ export namespace OB11Entities {
     shortId: number
   ): Promise<OB11FriendRecallNoticeEvent | OB11GroupRecallNoticeEvent | undefined> {
     const msgElement = msg.elements.find(
-      (element) => element.grayTipElement?.subElementType === GrayTipElementSubType.RECALL,
+      (element) => element.grayTipElement?.subElementType === GrayTipElementSubType.REVOKE,
     )
     if (!msgElement) {
       return
