@@ -20,9 +20,9 @@ export class UploadGroupFile extends BaseAction<UploadGroupFilePayload, null> {
     if (!success) {
       throw new Error(errMsg)
     }
-    const sendFileEle = await SendElementEntities.file(this.ctx, path, payload.name || fileName, payload.folder_id)
+    const file = await SendElementEntities.file(this.ctx, path, payload.name || fileName, payload.folder ?? payload.folder_id)
     const peer = await createPeer(this.ctx, payload, CreatePeerMode.Group)
-    await sendMsg(this.ctx, peer, [sendFileEle], [])
+    await sendMsg(this.ctx, peer, [file], [])
     return null
   }
 }
