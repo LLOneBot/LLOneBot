@@ -6,6 +6,7 @@ import { copyFolder, log, fetchFile } from '.'
 import { PLUGIN_DIR, TEMP_DIR } from '../globalVars'
 
 const downloadMirrorHosts = ['https://ghp.ci/']
+const releasesMirrorHosts = ['https://kkgithub.com']
 
 export async function checkNewVersion() {
   const latestVersionText = await getRemoteVersion()
@@ -74,16 +75,22 @@ export async function upgradeLLOneBot() {
 }
 
 export async function getRemoteVersion() {
-  let version = ''
-  const mirrorGithub = downloadMirrorHosts[0]
-  const tVersion = await getRemoteVersionByMirror(mirrorGithub)
-  if (tVersion) {
-    version = tVersion
+  for (const mirror of releasesMirrorHosts) {
+    const version = await getRemoteVersionByReleasesMirror(mirror)
+    if (version) {
+      return version
+    }
   }
-  return version
+  for (const mirror of downloadMirrorHosts) {
+    const version = await getRemoteVersionByDownloadMirror(mirror)
+    if (version) {
+      return version
+    }
+  }
+  return ''
 }
 
-export async function getRemoteVersionByMirror(mirrorGithub: string) {
+export async function getRemoteVersionByDownloadMirror(mirrorGithub: string) {
   try {
     const source = 'https://raw.githubusercontent.com/LLOneBot/LLOneBot/main/src/version.ts'
     const page = (await fetchFile(mirrorGithub + source)).data.toString()
@@ -91,4 +98,11 @@ export async function getRemoteVersionByMirror(mirrorGithub: string) {
   } catch (e) {
     log(e?.toString())
   }
+}
+
+export async function getRemoteVersionByReleasesMirror(mirrorGithub: string) {
+  try {
+    const page = (await fetchFile(mirrorGithub + '/LLOneBot/LLOneBot/releases')).data.toString()
+    return page.match(new RegExp('(?<=(tag/v)).*?(?=("))'))?.[0]
+  } catch { }
 }
