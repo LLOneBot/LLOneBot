@@ -265,8 +265,8 @@ export class NTQQGroupApi extends Service {
     return await invoke('nodeIKernelRichMediaService/deleteGroupFolder', [{ groupId, folderId }, null])
   }
 
-  async deleteGroupFile(groupId: string, fileIdList: string[]) {
-    return await invoke('nodeIKernelRichMediaService/deleteGroupFile', [{ groupId, busIdList: [102], fileIdList }, null])
+  async deleteGroupFile(groupId: string, fileIdList: string[], busIdList: number[]) {
+    return await invoke('nodeIKernelRichMediaService/deleteGroupFile', [{ groupId, busIdList, fileIdList }, null])
   }
 
   async getGroupFileList(groupId: string, fileListForm: GetFileListParam) {
