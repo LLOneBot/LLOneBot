@@ -49,7 +49,8 @@ import { pathToFileURL } from 'node:url'
 import OneBot11Adapter from './adapter'
 
 export namespace OB11Entities {
-  export async function message(ctx: Context, msg: RawMessage): Promise<OB11Message> {
+  export async function message(ctx: Context, msg: RawMessage): Promise<OB11Message | undefined> {
+    if (!msg.senderUin || msg.senderUin === '0') return //跳过空消息
     const {
       debug,
       messagePostFormat,
@@ -57,14 +58,14 @@ export namespace OB11Entities {
     const selfUin = selfInfo.uin
     const resMsg: OB11Message = {
       self_id: parseInt(selfUin),
-      user_id: parseInt(msg.senderUin!),
+      user_id: parseInt(msg.senderUin),
       time: parseInt(msg.msgTime) || Date.now(),
       message_id: msg.msgShortId!,
       real_id: msg.msgShortId!,
       message_seq: msg.msgShortId!,
       message_type: msg.chatType === ChatType.group ? 'group' : 'private',
       sender: {
-        user_id: parseInt(msg.senderUin!),
+        user_id: parseInt(msg.senderUin),
         nickname: msg.sendNickName,
         card: msg.sendMemberName ?? '',
       },
@@ -81,7 +82,7 @@ export namespace OB11Entities {
     if (msg.chatType === ChatType.group) {
       resMsg.sub_type = 'normal'
       resMsg.group_id = parseInt(msg.peerUin)
-      const member = await ctx.ntGroupApi.getGroupMember(msg.peerUin, msg.senderUin!)
+      const member = await ctx.ntGroupApi.getGroupMember(msg.peerUin, msg.senderUin)
       if (member) {
         resMsg.sender.role = groupMemberRole(member.role)
         resMsg.sender.nickname = member.nick
