@@ -300,4 +300,9 @@ export class NTQQGroupApi extends Service {
     const psKey = (await ntUserApi.getPSkey(['qun.qq.com'])).domainPskeyMap.get('qun.qq.com')!
     return await invoke('nodeIKernelGroupService/uploadGroupBulletinPic', [{ groupCode, psKey, path }, null])
   }
+
+  async getGroupRecommendContact(groupCode: string) {
+    const ret = await invoke('nodeIKernelGroupService/getGroupRecommendContactArkJson', [{ groupCode }, null])
+    return ret.arkJson
+  }
 }
