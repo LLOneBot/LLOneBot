@@ -394,7 +394,8 @@ export namespace OB11Entities {
     }
     // 好友增加事件
     if (msg.msgType === 5 && msg.subMsgType === 12) {
-      const event = new OB11FriendAddNoticeEvent(parseInt(msg.peerUin))
+      const uin = +msg.peerUin || +(await ctx.ntUserApi.getUinByUid(msg.peerUid))
+      const event = new OB11FriendAddNoticeEvent(uin)
       return event
     }
   }
