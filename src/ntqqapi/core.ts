@@ -96,7 +96,7 @@ class Core extends Service {
             }
             for (const path of pathList) {
               if (path) {
-                fs.unlink(picPath, () => {
+                fs.unlink(path, () => {
                   this.ctx.logger.info('删除文件成功', path)
                 })
               }

@@ -23,8 +23,7 @@ export default class Log {
           return
         }
         const dateTime = new Date(record.timestamp).toLocaleString()
-        const userInfo = selfInfo.uin ? `${selfInfo.nick}(${selfInfo.uin})` : ''
-        const content = `${dateTime} [${record.type}] ${userInfo} | ${record.name} ${record.content}\n\n`
+        const content = `${dateTime} [${record.type}] ${selfInfo.nick}(${selfInfo.uin}) | ${record.name} ${record.content}\n\n`
         appendFile(file, content, noop)
       },
     }

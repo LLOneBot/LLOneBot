@@ -59,7 +59,7 @@ export abstract class GetFileBase extends BaseAction<GetFilePayload, GetFileResp
         if (!findEle) {
           throw new Error('element not found')
         }
-        res.url = await this.ctx.ntFileApi.getImageUrl(findEle.picElement)
+        res.url = await this.ctx.ntFileApi.getImageUrl(findEle.picElement!)
       } else if (fileCache[0].elementType === ElementType.VIDEO) {
         res.url = await this.ctx.ntFileApi.getVideoUrl(peer, fileCache[0].msgId, fileCache[0].elementId)
       }
