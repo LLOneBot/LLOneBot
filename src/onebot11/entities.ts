@@ -375,28 +375,24 @@ export namespace OB11Entities {
     for (const element of msg.elements) {
       if (element.grayTipElement) {
         const { grayTipElement } = element
-        if (grayTipElement.subElementType === GrayTipElementSubType.JSON) {
+        if (grayTipElement.jsonGrayTipElement?.busiId === '1061') {
           const json = JSON.parse(grayTipElement.jsonGrayTipElement.jsonStr)
-          if (grayTipElement.jsonGrayTipElement.busiId === 1061) {
-            const pokedetail: Dict[] = json.items
-            //筛选item带有uid的元素
-            const poke_uid = pokedetail.filter(item => item.uid)
-            if (poke_uid.length == 2) {
-              return new OB11FriendPokeEvent(
-                parseInt(await ctx.ntUserApi.getUinByUid(poke_uid[0].uid)),
-                parseInt(await ctx.ntUserApi.getUinByUid(poke_uid[1].uid)),
-                pokedetail
-              )
-            }
+          const pokedetail: Dict[] = json.items
+          //筛选item带有uid的元素
+          const poke_uid = pokedetail.filter(item => item.uid)
+          if (poke_uid.length === 2) {
+            return new OB11FriendPokeEvent(
+              Number(await ctx.ntUserApi.getUinByUid(poke_uid[0].uid)),
+              Number(await ctx.ntUserApi.getUinByUid(poke_uid[1].uid)),
+              pokedetail
+            )
           }
         }
+        if (grayTipElement.xmlElement?.templId === '10229') {
+          const uin = +msg.peerUin || +(await ctx.ntUserApi.getUinByUid(msg.peerUid))
+          return new OB11FriendAddNoticeEvent(uin)
+        }
       }
-    }
-    // 好友增加事件
-    if (msg.msgType === 5 && msg.subMsgType === 12) {
-      const uin = +msg.peerUin || +(await ctx.ntUserApi.getUinByUid(msg.peerUid))
-      const event = new OB11FriendAddNoticeEvent(uin)
-      return event
     }
   }
 
@@ -564,8 +560,8 @@ export namespace OB11Entities {
           }
         }
         else if (grayTipElement.subElementType == GrayTipElementSubType.JSON) {
-          const json = JSON.parse(grayTipElement.jsonGrayTipElement.jsonStr)
-          if (grayTipElement.jsonGrayTipElement.busiId == 1061) {
+          const json = JSON.parse(grayTipElement.jsonGrayTipElement!.jsonStr)
+          if (grayTipElement.jsonGrayTipElement?.busiId === '1061') {
             const pokedetail: Dict[] = json.items
             //筛选item带有uid的元素
             const poke_uid = pokedetail.filter(item => item.uid)
@@ -578,7 +574,7 @@ export namespace OB11Entities {
               )
             }
           }
-          if (grayTipElement.jsonGrayTipElement.busiId == 2401) {
+          if (grayTipElement.jsonGrayTipElement?.busiId === '2401') {
             ctx.logger.info('收到群精华消息', json)
             const searchParams = new URL(json.items[0].jp).searchParams
             const msgSeq = searchParams.get('msgSeq')!
@@ -605,7 +601,7 @@ export namespace OB11Entities {
             )
             // 获取MsgSeq+Peer可获取具体消息
           }
-          if (grayTipElement.jsonGrayTipElement.busiId == 2407) {
+          if (grayTipElement.jsonGrayTipElement?.busiId === '2407') {
             const memberUin = json.items[1].param[0]
             const title = json.items[3].txt
             ctx.logger.info('收到群成员新头衔消息', json)
@@ -632,9 +628,9 @@ export namespace OB11Entities {
     if (!msgElement) {
       return
     }
-    const revokeElement = msgElement.grayTipElement.revokeElement
+    const revokeElement = msgElement.grayTipElement!.revokeElement
     if (msg.chatType === ChatType.group) {
-      const operator = await ctx.ntGroupApi.getGroupMember(msg.peerUid, revokeElement.operatorUid)
+      const operator = await ctx.ntGroupApi.getGroupMember(msg.peerUid, revokeElement!.operatorUid)
       return new OB11GroupRecallNoticeEvent(
         parseInt(msg.peerUid),
         parseInt(msg.senderUin!),

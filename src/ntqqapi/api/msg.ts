@@ -183,7 +183,7 @@ export class NTQQMsgApi extends Service {
       if (!arkElement) {
         continue
       }
-      const forwardData = JSON.parse(arkElement.arkElement.bytesData)
+      const forwardData = JSON.parse(arkElement.arkElement!.bytesData)
       if (forwardData.app != 'com.tencent.multimsg') {
         continue
       }

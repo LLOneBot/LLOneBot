@@ -102,7 +102,7 @@ export interface SendPicElement {
 export interface SendReplyElement {
   elementType: ElementType.REPLY
   elementId: ''
-  replyElement: ReplyElement
+  replyElement: Partial<ReplyElement>
 }
 
 export interface SendFaceElement {
@@ -129,6 +129,12 @@ export interface ReplyElement {
   replayMsgId: string
   senderUin: string
   senderUinStr: string
+  sourceMsgIdInRecords: string
+  senderUid: string
+  senderUidStr: string
+  sourceMsgIsIncPic: boolean // 原消息是否有图片
+  sourceMsgText: string
+  replyMsgTime: string
 }
 
 export interface FileElement {
@@ -303,7 +309,7 @@ export enum GrayTipElementSubType {
 
 export interface GrayTipElement {
   subElementType: GrayTipElementSubType
-  revokeElement: {
+  revokeElement?: {
     operatorRole: string
     operatorUid: string
     operatorNick: string
@@ -313,14 +319,14 @@ export interface GrayTipElement {
     isSelfOperate?: boolean
     wording: string // 自定义的撤回提示语
   }
-  aioOpGrayTipElement: TipAioOpGrayTipElement
-  groupElement: TipGroupElement
-  xmlElement: {
+  aioOpGrayTipElement?: TipAioOpGrayTipElement
+  groupElement?: TipGroupElement
+  xmlElement?: {
     templId: string
     content: string
   }
-  jsonGrayTipElement: {
-    busiId: number
+  jsonGrayTipElement?: {
+    busiId: string
     jsonStr: string
   }
 }
@@ -485,36 +491,7 @@ export interface RawMessage {
   sendStatus?: number // 消息状态，别人发的2是已撤回，自己发的2是已发送
   recallTime: string // 撤回时间, "0"是没有撤回
   records: RawMessage[]
-  elements: {
-    elementId: string
-    elementType: ElementType
-    replyElement: {
-      sourceMsgIdInRecords: string
-      senderUid: string // 原消息发送者QQ号
-      sourceMsgIsIncPic: boolean // 原消息是否有图片
-      sourceMsgText: string
-      replayMsgSeq: string // 源消息的msgSeq，可以通过这个找到源消息的msgId
-      senderUidStr: string
-      replyMsgTime: string
-    }
-    textElement: {
-      atType: AtType
-      atUid: string // QQ号
-      content: string
-      atNtUid: string // uid号
-    }
-    picElement: PicElement
-    pttElement: PttElement
-    arkElement: ArkElement
-    grayTipElement: GrayTipElement
-    faceElement: FaceElement
-    videoElement: VideoElement
-    fileElement: FileElement
-    marketFaceElement: MarketFaceElement
-    inlineKeyboardElement: InlineKeyboardElement
-    markdownElement: MarkdownElement
-    multiForwardMsgElement: MultiForwardMsgElement
-  }[]
+  elements: MessageElement[]
 }
 
 export interface Peer {
@@ -529,7 +506,7 @@ export interface MessageElement {
   extBufForUI: string //"0x"
   textElement?: TextElement
   faceElement?: FaceElement
-  marketFaceElement?: MarkdownElement
+  marketFaceElement?: MarketFaceElement
   replyElement?: ReplyElement
   picElement?: PicElement
   pttElement?: PttElement
