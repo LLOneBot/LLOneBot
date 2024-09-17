@@ -308,8 +308,8 @@ export type OB11MessageData =
 
 export interface OB11PostSendMsg {
   message_type?: 'private' | 'group'
-  user_id: string
-  group_id?: string
+  user_id?: string | number
+  group_id?: string | number
   message: OB11MessageMixType
   messages?: OB11MessageMixType // 兼容 go-cqhttp
   auto_escape?: boolean | string
