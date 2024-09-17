@@ -1,4 +1,4 @@
-import { BaseAction } from '../BaseAction'
+import { BaseAction, Schema } from '../BaseAction'
 import { OB11User } from '../../types'
 import { OB11Entities } from '../../entities'
 import { ActionName } from '../types'
@@ -12,6 +12,9 @@ interface Payload {
 
 export class GetStrangerInfo extends BaseAction<Payload, OB11User> {
   actionName = ActionName.GoCQHTTP_GetStrangerInfo
+  payloadSchema = Schema.object({
+    user_id: Schema.union([Number, String]).required()
+  })
 
   protected async _handle(payload: Payload): Promise<OB11User> {
     if (!(getBuildVersion() >= 26702)) {

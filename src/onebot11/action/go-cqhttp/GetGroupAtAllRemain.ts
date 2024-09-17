@@ -1,4 +1,4 @@
-import { BaseAction } from '../BaseAction'
+import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
 
 interface Payload {
@@ -13,6 +13,9 @@ interface Response {
 
 export class GetGroupAtAllRemain extends BaseAction<Payload, Response> {
   actionName = ActionName.GoCQHTTP_GetGroupAtAllRemain
+  payloadSchema = Schema.object({
+    group_id: Schema.union([Number, String]).required()
+  })
 
   async _handle(payload: Payload) {
     const data = await this.ctx.ntGroupApi.getGroupRemainAtTimes(payload.group_id.toString())

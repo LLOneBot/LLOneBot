@@ -1,4 +1,4 @@
-import { BaseAction } from '../BaseAction'
+import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
 import { OB11GroupFile, OB11GroupFileFolder } from '../../types'
 
@@ -14,18 +14,19 @@ interface Response {
 
 export class GetGroupRootFiles extends BaseAction<Payload, Response> {
   actionName = ActionName.GoCQHTTP_GetGroupRootFiles
+  payloadSchema = Schema.object({
+    group_id: Schema.union([Number, String]).required(),
+    file_count: Schema.union([Number, String]).default(50),
+  })
 
   async _handle(payload: Payload) {
     const data = await this.ctx.ntGroupApi.getGroupFileList(payload.group_id.toString(), {
       sortType: 1,
-      fileCount: +(payload.file_count ?? 50),
+      fileCount: +payload.file_count,
       startIndex: 0,
       sortOrder: 2,
       showOnlinedocFolder: 0,
     })
-
-    this.ctx.logger.info(data)
-
     return {
       files: data.filter(item => item.fileInfo)
         .map(item => {
