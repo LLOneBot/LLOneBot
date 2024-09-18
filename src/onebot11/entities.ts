@@ -155,13 +155,21 @@ export namespace OB11Entities {
           guildId: ''
         }
         try {
-          const { replayMsgSeq, replyMsgTime, senderUidStr } = replyElement
+          const { replayMsgSeq, replyMsgTime } = replyElement
           const records = msg.records.find(msgRecord => msgRecord.msgId === replyElement.sourceMsgIdInRecords)
-          if (!records || !replyMsgTime || !senderUidStr) {
+          const senderUid = replyElement.senderUidStr || records?.senderUid
+          if (!records || !replyMsgTime || !senderUid) {
             throw new Error('找不到回复消息')
           }
-          const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replayMsgSeq, replyMsgTime, [senderUidStr])
-          const replyMsg = msgList.find(msg => msg.msgRandom === records.msgRandom)
+          const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replayMsgSeq, replyMsgTime, [senderUid])
+
+          let replyMsg: RawMessage | undefined
+          if (records.msgRandom !== '0') {
+            replyMsg = msgList.find(msg => msg.msgRandom === records.msgRandom)
+          } else {
+            ctx.logger.info('msgRandom is missing', replyElement, records)
+            replyMsg = msgList[0]
+          }
 
           // 284840486: 合并消息内侧 消息具体定位不到
           if (!replyMsg && msg.peerUin !== '284840486') {
@@ -702,10 +710,10 @@ export namespace OB11Entities {
       sex: sex(member.sex!),
       age: 0,
       area: '',
-      level: '0',
+      level: String(member.memberLevel ?? 0),
       qq_level: (member.qqLevel && calcQQLevel(member.qqLevel)) || 0,
-      join_time: 0, // 暂时没法获取
-      last_sent_time: 0, // 暂时没法获取
+      join_time: member.joinTime,
+      last_sent_time: member.lastSpeakTime,
       title_expire_time: 0,
       unfriendly: false,
       card_changeable: true,

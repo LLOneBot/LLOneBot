@@ -1,4 +1,4 @@
-import { BaseAction } from '../BaseAction'
+import { BaseAction, Schema } from '../BaseAction'
 import { OB11ForwardMessage } from '../../types'
 import { OB11Entities } from '../../entities'
 import { ActionName } from '../types'
@@ -16,6 +16,11 @@ interface Response {
 
 export class GetForwardMsg extends BaseAction<Payload, Response> {
   actionName = ActionName.GoCQHTTP_GetForwardMsg
+  payloadSchema = Schema.object({
+    message_id: String,
+    id: String
+  })
+
   protected async _handle(payload: Payload) {
     const msgId = payload.id || payload.message_id
     if (!msgId) {

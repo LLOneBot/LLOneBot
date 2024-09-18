@@ -1,4 +1,4 @@
-import { BaseAction } from '../BaseAction'
+import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
 import { unlink } from 'fs/promises'
 import { checkFileReceived, uri2local } from '@/common/utils/file'
@@ -7,20 +7,24 @@ interface Payload {
   group_id: number | string
   content: string
   image?: string
-  pinned?: number | string //扩展
-  confirm_required?: number | string //扩展
+  pinned: number | string //扩展
+  confirm_required: number | string //扩展
 }
 
 export class SendGroupNotice extends BaseAction<Payload, null> {
   actionName = ActionName.GoCQHTTP_SendGroupNotice
+  payloadSchema = Schema.object({
+    group_id: Schema.union([Number, String]).required(),
+    content: Schema.string().required(),
+    image: Schema.string(),
+    pinned: Schema.union([Number, String]).default(0),
+    confirm_required: Schema.union([Number, String]).default(1)
+  })
 
   async _handle(payload: Payload) {
-    if (!payload.content) {
-      throw new Error('参数 content 不能为空')
-    }
     const groupCode = payload.group_id.toString()
-    const pinned = Number(payload.pinned ?? 0)
-    const confirmRequired = Number(payload.confirm_required ?? 1)
+    const pinned = +payload.pinned
+    const confirmRequired = +payload.confirm_required
 
     let picInfo: { id: string, width: number, height: number } | undefined
     if (payload.image) {

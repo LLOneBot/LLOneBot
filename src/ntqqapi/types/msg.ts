@@ -6,6 +6,7 @@ export interface GetFileListParam {
   startIndex: number
   sortOrder: number
   showOnlinedocFolder: number
+  folderId?: string
 }
 
 export enum ElementType {
@@ -532,4 +533,78 @@ export interface MessageElement {
   taskTopMsgElement?: unknown
   recommendedMsgElement?: unknown
   actionBarElement?: unknown
+}
+
+export interface OnRichMediaDownloadCompleteParams {
+  fileModelId: string
+  msgElementId: string
+  msgId: string
+  fileId: string
+  fileProgress: string  // '0'
+  fileSpeed: string  // '0'
+  fileErrCode: string  // '0'
+  fileErrMsg: string
+  fileDownType: number  // 暂时未知
+  thumbSize: number
+  filePath: string
+  totalSize: string
+  trasferStatus: number
+  step: number
+  commonFileInfo: unknown
+  fileSrvErrCode: string
+  clientMsg: string
+  businessId: number
+  userTotalSpacePerDay: unknown
+  userUsedSpacePerDay: unknown
+}
+
+export interface OnGroupFileInfoUpdateParams {
+  retCode: number
+  retMsg: string
+  clientWording: string
+  isEnd: boolean
+  item: {
+    peerId: string
+    type: number
+    folderInfo?: {
+      folderId: string
+      parentFolderId: string
+      folderName: string
+      createTime: number
+      modifyTime: number
+      createUin: string
+      creatorName: string
+      totalFileCount: number
+      modifyUin: string
+      modifyName: string
+      usedSpace: string
+    }
+    fileInfo?: {
+      fileModelId: string
+      fileId: string
+      fileName: string
+      fileSize: string
+      busId: number
+      uploadedSize: string
+      uploadTime: number
+      deadTime: number
+      modifyTime: number
+      downloadTimes: number
+      sha: string
+      sha3: string
+      md5: string
+      uploaderLocalPath: string
+      uploaderName: string
+      uploaderUin: string
+      parentFolderId: string
+      localPath: string
+      transStatus: number
+      transType: number
+      elementId: string
+      isFolder: boolean
+    }
+  }[]
+  allFileCount: number
+  nextIndex: number
+  reqId: number
 }

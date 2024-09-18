@@ -53,7 +53,7 @@ import { GetGroupHonorInfo } from './group/GetGroupHonorInfo'
 import { HandleQuickOperation } from './go-cqhttp/QuickOperation'
 import { SetEssenceMsg } from './go-cqhttp/SetEssenceMsg'
 import { DelEssenceMsg } from './go-cqhttp/DelEssenceMsg'
-import GetEvent from './llonebot/GetEvent'
+import { GetEvent } from './llonebot/GetEvent'
 import { DelGroupFile } from './go-cqhttp/DelGroupFile'
 import { GetGroupSystemMsg } from './go-cqhttp/GetGroupSystemMsg'
 import { CreateGroupFileFolder } from './go-cqhttp/CreateGroupFileFolder'
@@ -63,6 +63,10 @@ import { GetGroupRootFiles } from './go-cqhttp/GetGroupRootFiles'
 import { SetOnlineStatus } from './llonebot/SetOnlineStatus'
 import { SendGroupNotice } from './go-cqhttp/SendGroupNotice'
 import { GetProfileLike } from './llonebot/GetProfileLike'
+import { FetchEmojiLike } from './llonebot/FetchEmojiLike'
+import { FetchCustomFace } from './llonebot/FetchCustomFace'
+import { GetFriendMsgHistory } from './llonebot/GetFriendMsgHistory'
+import { GetGroupFilesByFolder } from './go-cqhttp/GetGroupFilesByFolder'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -76,6 +80,9 @@ export function initActionMap(adapter: Adapter) {
     new GetEvent(adapter),
     new SetOnlineStatus(adapter),
     new GetProfileLike(adapter),
+    new GetFriendMsgHistory(adapter),
+    new FetchEmojiLike(adapter),
+    new FetchCustomFace(adapter),
     // onebot11
     new SendLike(adapter),
     new GetMsg(adapter),
@@ -109,7 +116,7 @@ export function initActionMap(adapter: Adapter) {
     new SetMsgEmojiLike(adapter),
     new ForwardFriendSingleMsg(adapter),
     new ForwardGroupSingleMsg(adapter),
-    //以下为go-cqhttp api
+    // go-cqhttp
     new GetGroupEssence(adapter),
     new GetGroupHonorInfo(adapter),
     new SendForwardMsg(adapter),
@@ -132,7 +139,8 @@ export function initActionMap(adapter: Adapter) {
     new DelGroupFolder(adapter),
     new GetGroupAtAllRemain(adapter),
     new GetGroupRootFiles(adapter),
-    new SendGroupNotice(adapter)
+    new SendGroupNotice(adapter),
+    new GetGroupFilesByFolder(adapter),
   ]
   const actionMap = new Map<string, BaseAction<any, unknown>>()
   for (const action of actionHandlers) {

@@ -214,7 +214,7 @@ export interface NodeIKernelMsgService {
   getMsgByClientSeqAndTime(peer: Peer, clientSeq: string, time: string): unknown
 
   getSourceOfReplyMsgByClientSeqAndTime(peer: Peer, clientSeq: string, time: string): unknown
-  //cnt clientSeq?并不是吧
+
   getMsgsByTypeFilter(peer: Peer, msgId: string, cnt: unknown, queryOrder: boolean, typeFilter: { type: number, subtype: Array<number> }): unknown
 
   getMsgsByTypeFilters(peer: Peer, msgId: string, cnt: unknown, queryOrder: boolean, typeFilters: Array<{ type: number, subtype: Array<number> }>): unknown
@@ -223,31 +223,8 @@ export interface NodeIKernelMsgService {
 
   queryMsgsWithFilter(...args: unknown[]): unknown
 
-  /**
-   * @deprecated 该函数已被标记为废弃，请使用新的替代方法。
-   * 使用过滤条件查询消息列表的版本2接口。
-   * 
-   * 该函数通过一系列过滤条件来查询特定聊天中的消息列表。这些条件包括消息类型、发送者、时间范围等。
-   * 函数返回一个Promise，解析为查询结果的未知类型对象。
-   * 
-   * @param MsgId 消息ID，用于特定消息的查询。
-   * @param MsgTime 消息时间，用于指定消息的时间范围。
-   * @param param 查询参数对象，包含详细的过滤条件和分页信息。
-   * @param param.chatInfo 聊天信息，包括聊天类型和对方用户ID。
-   * @param param.filterMsgType 需要过滤的消息类型数组，留空表示不过滤。
-   * @param param.filterSendersUid 需要过滤的发送者用户ID数组。
-   * @param param.filterMsgFromTime 查询消息的起始时间。
-   * @param param.filterMsgToTime 查询消息的结束时间。
-   * @param param.pageLimit 每页的消息数量限制。
-   * @param param.isReverseOrder 是否按时间顺序倒序返回消息。
-   * @param param.isIncludeCurrent 是否包含当前页码。
-   * @returns 返回一个Promise，解析为查询结果的未知类型对象。
-   */
-  queryMsgsWithFilterVer2(MsgId: string, MsgTime: string, param: QueryMsgsParams): Promise<unknown>
-
   // this.chatType = i2
   // this.peerUid = str
-
   // this.chatInfo = new ChatInfo()
   // this.filterMsgType = new ArrayList<>()
   // this.filterSendersUid = new ArrayList<>()
@@ -495,16 +472,15 @@ export interface NodeIKernelMsgService {
   setMsgEmojiLikes(...args: unknown[]): unknown
 
   getMsgEmojiLikesList(peer: Peer, msgSeq: string, emojiId: string, emojiType: string, cookie: string, bForward: boolean, number: number): Promise<{
-    result: number,
-    errMsg: string,
-    emojiLikesList:
-    Array<{
-      tinyId: string,
-      nickName: string,
+    result: number
+    errMsg: string
+    emojiLikesList: {
+      tinyId: string
+      nickName: string
       headUrl: string
-    }>,
-    cookie: string,
-    isLastPage: boolean,
+    }[]
+    cookie: string
+    isLastPage: boolean
     isFirstPage: boolean
   }>
 
@@ -686,9 +662,8 @@ export interface NodeIKernelMsgService {
 
   dataMigrationStopOperation(...args: unknown[]): unknown
 
-  //新的希望
   dataMigrationImportMsgPbRecord(DataMigrationMsgInfo: Array<{
-    extensionData: string//"Hex" 
+    extensionData: string //"Hex"
     extraData: string //""
     chatType: number
     chatUin: string

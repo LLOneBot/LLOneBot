@@ -256,4 +256,23 @@ export class NTQQMsgApi extends Service {
   async setMsgRead(peer: Peer) {
     return await invoke('nodeIKernelMsgService/setMsgRead', [{ peer }, null])
   }
+
+  async getMsgEmojiLikesList(peer: Peer, msgSeq: string, emojiId: string, emojiType: string, count: number) {
+    return await invoke('nodeIKernelMsgService/getMsgEmojiLikesList', [{
+      peer,
+      msgSeq,
+      emojiId,
+      emojiType,
+      cnt: count
+    }, null])
+  }
+
+  async fetchFavEmojiList(count: number) {
+    return await invoke('nodeIKernelMsgService/fetchFavEmojiList', [{
+      resId: '',
+      count,
+      backwardFetch: true,
+      forceRefresh: true
+    }, null])
+  }
 }

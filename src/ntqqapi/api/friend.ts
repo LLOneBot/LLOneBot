@@ -42,13 +42,7 @@ export class NTQQFriendApi extends Service {
     return _friends
   }
 
-  async handleFriendRequest(flag: string, accept: boolean) {
-    const data = flag.split('|')
-    if (data.length < 2) {
-      return
-    }
-    const friendUid = data[0]
-    const reqTime = data[1]
+  async handleFriendRequest(friendUid: string, reqTime: string, accept: boolean) {
     const session = getSession()
     if (session) {
       return session.getBuddyService().approvalFriendRequest({
@@ -193,5 +187,11 @@ export class NTQQFriendApi extends Service {
   async getBuddyRecommendContact(uin: string) {
     const ret = await invoke('nodeIKernelBuddyService/getBuddyRecommendContactArkJson', [{ uin }, null])
     return ret.arkMsg
+  }
+
+  async setBuddyRemark(uid: string, remark: string) {
+    return await invoke('nodeIKernelBuddyService/setBuddyRemark', [{
+      remarkParams: { uid, remark }
+    }, null])
   }
 }

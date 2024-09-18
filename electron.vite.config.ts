@@ -31,7 +31,6 @@ const config: ElectronViteConfig = {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
-        './lib-cov/fluent-ffmpeg': './lib/fluent-ffmpeg',
       },
     },
     plugins: [
