@@ -710,10 +710,10 @@ export namespace OB11Entities {
       sex: sex(member.sex!),
       age: 0,
       area: '',
-      level: '0',
+      level: String(member.memberLevel ?? 0),
       qq_level: (member.qqLevel && calcQQLevel(member.qqLevel)) || 0,
-      join_time: 0, // 暂时没法获取
-      last_sent_time: 0, // 暂时没法获取
+      join_time: member.joinTime,
+      last_sent_time: member.lastSpeakTime,
       title_expire_time: 0,
       unfriendly: false,
       card_changeable: true,

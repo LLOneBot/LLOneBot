@@ -104,11 +104,20 @@ export interface NodeIKernelGroupService {
 
   createMemberListScene(groupCode: string, scene: string): string
 
-  destroyMemberListScene(SceneId: string): void
-  //About Arg (a) name: lastId 根据手Q来看为object {index:?(number),uid:string}
+  destroyMemberListScene(sceneId: string): void
+
   getNextMemberList(sceneId: string, a: undefined, num: number): Promise<{
-    errCode: number, errMsg: string,
-    result: { ids: string[], infos: Map<string, GroupMember>, finish: boolean, hasRobot: boolean }
+    errCode: number
+    errMsg: string
+    result: {
+      ids: {
+        uid: string
+        index: number
+      }[]
+      infos: Map<string, GroupMember>
+      finish: boolean
+      hasRobot: boolean
+    }
   }>
 
   getPrevMemberList(): unknown

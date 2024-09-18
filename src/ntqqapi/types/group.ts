@@ -62,8 +62,9 @@ export interface GroupMember {
   sex?: Sex
   qqLevel?: QQLevel
   isChangeRole: boolean
-  joinTime: string
-  lastSpeakTime: string
+  joinTime: number
+  lastSpeakTime: number
+  memberLevel: number
 }
 
 export interface PublishGroupBulletinReq {
