@@ -33,29 +33,7 @@ export interface WrapperApi {
   NodeIQQNTWrapperSession?: NodeIQQNTWrapperSession
 }
 
-export interface WrapperConstructor {
-  [key: string]: unknown
-}
-
 const wrapperApi: WrapperApi = {}
-
-export const wrapperConstructor: WrapperConstructor = {}
-
-const constructor = [
-  'NodeIKernelBuddyListener',
-  'NodeIKernelGroupListener',
-  'NodeQQNTWrapperUtil',
-  'NodeIKernelMsgListener',
-  'NodeIQQNTWrapperEngine',
-  'NodeIGlobalAdapter',
-  'NodeIDependsAdapter',
-  'NodeIDispatcherAdapter',
-  'NodeIKernelSessionListener',
-  'NodeIKernelLoginService',
-  'NodeIKernelLoginListener',
-  'NodeIKernelProfileService',
-  'NodeIKernelProfileListener',
-]
 
 Process.dlopenOrig = Process.dlopen
 
@@ -69,9 +47,6 @@ Process.dlopen = function (module: Dict, filename: string, flags = constants.dlo
         return ret
       }
     })
-    if (constructor.includes(export_name)) {
-      wrapperConstructor[export_name] = module.exports[export_name]
-    }
   }
   return dlopenRet
 }

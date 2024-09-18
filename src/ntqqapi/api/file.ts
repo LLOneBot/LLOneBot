@@ -13,15 +13,14 @@ import {
   PicElement,
 } from '../types'
 import path from 'node:path'
-import fs from 'node:fs'
+import { existsSync } from 'node:fs'
 import { ReceiveCmdS } from '../hook'
 import { RkeyManager } from '@/ntqqapi/helper/rkey'
 import { getSession } from '@/ntqqapi/wrapper'
-import { Peer } from '@/ntqqapi/types/msg'
+import { OnRichMediaDownloadCompleteParams, Peer } from '@/ntqqapi/types/msg'
 import { calculateFileMD5 } from '@/common/utils/file'
 import { fileTypeFromFile } from 'file-type'
-import fsPromise from 'node:fs/promises'
-import { OnRichMediaDownloadCompleteParams } from '@/ntqqapi/listeners'
+import { copyFile, stat, unlink } from 'node:fs/promises'
 import { Time } from 'cosmokit'
 import { Service, Context } from 'cordis'
 import { TEMP_DIR } from '@/common/globalVars'
@@ -111,8 +110,8 @@ export class NTQQFileApi extends Service {
         },
       }])
     }
-    await fsPromise.copyFile(filePath, mediaPath)
-    const fileSize = (await fsPromise.stat(filePath)).size
+    await copyFile(filePath, mediaPath)
+    const fileSize = (await stat(filePath)).size
     return {
       md5: fileMd5,
       fileName,
@@ -133,10 +132,10 @@ export class NTQQFileApi extends Service {
     force = false
   ) {
     // 用于下载收到的消息中的图片等
-    if (sourcePath && fs.existsSync(sourcePath)) {
+    if (sourcePath && existsSync(sourcePath)) {
       if (force) {
         try {
-          await fsPromise.unlink(sourcePath)
+          await unlink(sourcePath)
         } catch { }
       } else {
         return sourcePath

@@ -31,7 +31,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnData> {
       payload.auto_escape === true || payload.auto_escape === 'true',
     )
     if (this.getSpecialMsgNum(messages, OB11MessageDataType.node)) {
-      throw new Error('请使用 /send_group_forward_msg 或 /send_private_forward_msg 发送合并转发')
+      throw new Error('请使用 /send_group_forward_msg 或 /send_private_forward_msg 进行合并转发')
     }
     else if (this.getSpecialMsgNum(messages, OB11MessageDataType.music)) {
       const music = messages[0] as OB11MessageMusic
