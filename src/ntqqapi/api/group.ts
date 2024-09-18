@@ -1,10 +1,18 @@
 import { ReceiveCmdS } from '../hook'
-import { Group, GroupMember, GroupMemberRole, GroupNotifies, GroupRequestOperateTypes, GetFileListParam, PublishGroupBulletinReq } from '../types'
+import {
+  Group,
+  GroupMember,
+  GroupMemberRole,
+  GroupNotifies,
+  GroupRequestOperateTypes,
+  GetFileListParam,
+  OnGroupFileInfoUpdateParams,
+  PublishGroupBulletinReq
+} from '../types'
 import { invoke, NTClass, NTMethod } from '../ntcall'
 import { GeneralCallResult } from '../services'
 import { NTQQWindows } from './window'
 import { getSession } from '../wrapper'
-import { OnGroupFileInfoUpdateParams } from '../listeners'
 import { NodeIKernelGroupService } from '../services'
 import { Service, Context } from 'cordis'
 import { isNumeric } from '@/common/utils/misc'

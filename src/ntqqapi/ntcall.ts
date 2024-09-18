@@ -123,11 +123,15 @@ export function invoke<
   return new Promise<R>((resolve, reject) => {
     const apiArgs = [method, ...args]
     const callbackId = randomUUID()
-    let success = false
+    const timeoutId = setTimeout(() => {
+      log(`ntqq api timeout ${channel}, ${eventName}, ${method}`, apiArgs)
+      reject(`ntqq api timeout ${channel}, ${eventName}, ${method}, ${apiArgs}`)
+    }, timeout)
+
     if (!options.cbCmd) {
       // QQ后端会返回结果，并且可以根据uuid识别
       hookApiCallbacks[callbackId] = res => {
-        success = true
+        clearTimeout(timeoutId)
         resolve(res)
       }
     }
@@ -139,13 +143,13 @@ export function invoke<
           if (options.cmdCB) {
             if (options.cmdCB(payload, result)) {
               removeReceiveHook(hookId)
-              success = true
+              clearTimeout(timeoutId)
               resolve(payload)
             }
           }
           else {
             removeReceiveHook(hookId)
-            success = true
+            clearTimeout(timeoutId)
             resolve(payload)
           }
         })
@@ -158,16 +162,11 @@ export function invoke<
         }
         else {
           log('ntqq api call failed,', method, res)
+          clearTimeout(timeoutId)
           reject(`ntqq api call failed, ${method}, ${res.errMsg}`)
         }
       }
     }
-    setTimeout(() => {
-      if (!success) {
-        log(`ntqq api timeout ${channel}, ${eventName}, ${method}`, apiArgs)
-        reject(`ntqq api timeout ${channel}, ${eventName}, ${method}, ${apiArgs}`)
-      }
-    }, timeout)
 
     ipcMain.emit(
       channel,
