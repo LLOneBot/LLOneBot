@@ -21,6 +21,9 @@ export enum ActionName {
   GetEvent = 'get_event',
   SetOnlineStatus = 'set_online_status',
   GetProfileLike = 'get_profile_like',
+  FetchEmojiLike = 'fetch_emoji_like',
+  FetchCustomFace = 'fetch_custom_face',
+  GetFriendMsgHistory = 'get_friend_msg_history',
   // onebot 11
   SendLike = 'send_like',
   GetLoginInfo = 'get_login_info',
@@ -78,4 +81,5 @@ export enum ActionName {
   GoCQHTTP_GetGroupAtAllRemain = 'get_group_at_all_remain',
   GoCQHTTP_GetGroupRootFiles = 'get_group_root_files',
   GoCQHTTP_SendGroupNotice = '_send_group_notice',
+  GoCQHTTP_GetGroupFilesByFolder = 'get_group_files_by_folder'
 }

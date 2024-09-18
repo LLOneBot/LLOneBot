@@ -15,7 +15,7 @@
         "./src/common/*"
       ],
       "@/onebot11/*": [
-        "./src/onebot11"
+        "./src/onebot11/*"
       ],
       "@/ntqqapi/*": [
         "./src/ntqqapi/*"

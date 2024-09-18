@@ -1,9 +1,10 @@
 import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
-import { OB11GroupFile, OB11GroupFileFolder } from '../../types'
+import { OB11GroupFile, OB11GroupFileFolder } from '@/onebot11/types'
 
 interface Payload {
   group_id: string | number
+  folder_id: string
   file_count: string | number
 }
 
@@ -12,11 +13,12 @@ interface Response {
   folders: OB11GroupFileFolder[]
 }
 
-export class GetGroupRootFiles extends BaseAction<Payload, Response> {
-  actionName = ActionName.GoCQHTTP_GetGroupRootFiles
+export class GetGroupFilesByFolder extends BaseAction<Payload, Response> {
+  actionName = ActionName.GoCQHTTP_GetGroupFilesByFolder
   payloadSchema = Schema.object({
     group_id: Schema.union([Number, String]).required(),
-    file_count: Schema.union([Number, String]).default(50),
+    folder_id: Schema.string().required(),
+    file_count: Schema.union([Number, String]).default(50)
   })
 
   async _handle(payload: Payload) {
@@ -26,6 +28,7 @@ export class GetGroupRootFiles extends BaseAction<Payload, Response> {
       startIndex: 0,
       sortOrder: 2,
       showOnlinedocFolder: 0,
+      folderId: payload.folder_id
     })
     return {
       files: data.filter(item => item.fileInfo)
@@ -45,19 +48,7 @@ export class GetGroupRootFiles extends BaseAction<Payload, Response> {
             uploader_name: file.uploaderName
           }
         }),
-      folders: data.filter(item => item.folderInfo)
-        .map(item => {
-          const folder = item.folderInfo!
-          return {
-            group_id: +item.peerId,
-            folder_id: folder.folderId,
-            folder_name: folder.folderName,
-            create_time: folder.createTime,
-            creator: +folder.createUin,
-            creator_name: folder.creatorName,
-            total_file_count: folder.totalFileCount
-          }
-        })
+      folders: []
     }
   }
 }

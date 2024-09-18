@@ -1,4 +1,4 @@
-import { BaseAction } from '../BaseAction'
+import { BaseAction, Schema } from '../BaseAction'
 import { OB11Message } from '../../types'
 import { ActionName } from '../types'
 import { ChatType } from '@/ntqqapi/types'
@@ -10,8 +10,8 @@ import { filterNullable } from '@/common/utils/misc'
 interface Payload {
   group_id: number | string
   message_seq?: number | string
-  count?: number | string
-  reverseOrder?: boolean
+  count: number | string
+  reverseOrder: boolean
 }
 
 interface Response {
@@ -20,10 +20,15 @@ interface Response {
 
 export class GetGroupMsgHistory extends BaseAction<Payload, Response> {
   actionName = ActionName.GoCQHTTP_GetGroupMsgHistory
+  payloadSchema = Schema.object({
+    group_id: Schema.union([Number, String]).required(),
+    message_seq: Schema.union([Number, String]),
+    count: Schema.union([Number, String]).default(20),
+    reverseOrder: Schema.boolean().default(false),
+  })
 
   protected async _handle(payload: Payload): Promise<Response> {
-    const count = payload.count || 20
-    const isReverseOrder = payload.reverseOrder || true
+    const { count, reverseOrder } = payload
     const peer = { chatType: ChatType.group, peerUid: payload.group_id.toString() }
     let msgList: RawMessage[] | undefined
     // 包含 message_seq 0
@@ -35,7 +40,7 @@ export class GetGroupMsgHistory extends BaseAction<Payload, Response> {
       msgList = (await this.ctx.ntMsgApi.getMsgHistory(peer, startMsgId, +count)).msgList
     }
     if (!msgList?.length) throw new Error('未找到消息')
-    if (isReverseOrder) msgList.reverse()
+    if (reverseOrder) msgList.reverse()
     await Promise.all(
       msgList.map(async msg => {
         msg.msgShortId = MessageUnique.createMsg({ chatType: msg.chatType, peerUid: msg.peerUid }, msg.msgId)
