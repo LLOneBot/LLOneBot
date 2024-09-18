@@ -23,6 +23,7 @@ export enum ActionName {
   GetProfileLike = 'get_profile_like',
   FetchEmojiLike = 'fetch_emoji_like',
   FetchCustomFace = 'fetch_custom_face',
+  GetFriendMsgHistory = 'get_friend_msg_history',
   // onebot 11
   SendLike = 'send_like',
   GetLoginInfo = 'get_login_info',
