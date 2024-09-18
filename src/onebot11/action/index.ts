@@ -65,6 +65,7 @@ import { SendGroupNotice } from './go-cqhttp/SendGroupNotice'
 import { GetProfileLike } from './llonebot/GetProfileLike'
 import { FetchEmojiLike } from './llonebot/FetchEmojiLike'
 import { FetchCustomFace } from './llonebot/FetchCustomFace'
+import { GetFriendMsgHistory } from './llonebot/GetFriendMsgHistory'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -78,6 +79,7 @@ export function initActionMap(adapter: Adapter) {
     new GetEvent(adapter),
     new SetOnlineStatus(adapter),
     new GetProfileLike(adapter),
+    new GetFriendMsgHistory(adapter),
     // onebot11
     new SendLike(adapter),
     new GetMsg(adapter),
