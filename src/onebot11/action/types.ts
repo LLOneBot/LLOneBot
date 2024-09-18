@@ -22,6 +22,7 @@ export enum ActionName {
   SetOnlineStatus = 'set_online_status',
   GetProfileLike = 'get_profile_like',
   FetchEmojiLike = 'fetch_emoji_like',
+  FetchCustomFace = 'fetch_custom_face',
   // onebot 11
   SendLike = 'send_like',
   GetLoginInfo = 'get_login_info',

@@ -64,6 +64,7 @@ import { SetOnlineStatus } from './llonebot/SetOnlineStatus'
 import { SendGroupNotice } from './go-cqhttp/SendGroupNotice'
 import { GetProfileLike } from './llonebot/GetProfileLike'
 import { FetchEmojiLike } from './llonebot/FetchEmojiLike'
+import { FetchCustomFace } from './llonebot/FetchCustomFace'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -135,6 +136,7 @@ export function initActionMap(adapter: Adapter) {
     new GetGroupRootFiles(adapter),
     new SendGroupNotice(adapter),
     new FetchEmojiLike(adapter),
+    new FetchCustomFace(adapter),
   ]
   const actionMap = new Map<string, BaseAction<any, unknown>>()
   for (const action of actionHandlers) {
