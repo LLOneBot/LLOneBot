@@ -63,6 +63,7 @@ import { GetGroupRootFiles } from './go-cqhttp/GetGroupRootFiles'
 import { SetOnlineStatus } from './llonebot/SetOnlineStatus'
 import { SendGroupNotice } from './go-cqhttp/SendGroupNotice'
 import { GetProfileLike } from './llonebot/GetProfileLike'
+import { FetchEmojiLike } from './llonebot/FetchEmojiLike'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -109,7 +110,7 @@ export function initActionMap(adapter: Adapter) {
     new SetMsgEmojiLike(adapter),
     new ForwardFriendSingleMsg(adapter),
     new ForwardGroupSingleMsg(adapter),
-    //以下为go-cqhttp api
+    // go-cqhttp
     new GetGroupEssence(adapter),
     new GetGroupHonorInfo(adapter),
     new SendForwardMsg(adapter),
@@ -132,7 +133,8 @@ export function initActionMap(adapter: Adapter) {
     new DelGroupFolder(adapter),
     new GetGroupAtAllRemain(adapter),
     new GetGroupRootFiles(adapter),
-    new SendGroupNotice(adapter)
+    new SendGroupNotice(adapter),
+    new FetchEmojiLike(adapter),
   ]
   const actionMap = new Map<string, BaseAction<any, unknown>>()
   for (const action of actionHandlers) {

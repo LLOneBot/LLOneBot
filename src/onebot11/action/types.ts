@@ -21,6 +21,7 @@ export enum ActionName {
   GetEvent = 'get_event',
   SetOnlineStatus = 'set_online_status',
   GetProfileLike = 'get_profile_like',
+  FetchEmojiLike = 'fetch_emoji_like',
   // onebot 11
   SendLike = 'send_like',
   GetLoginInfo = 'get_login_info',
