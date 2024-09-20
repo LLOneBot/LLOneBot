@@ -395,7 +395,7 @@ export namespace OB11Entities {
             )
           }
         }
-        if (grayTipElement.xmlElement?.templId === '10229') {
+        if (grayTipElement.xmlElement?.templId === '10229' || grayTipElement.jsonGrayTipElement?.busiId === '19324') {
           const uin = +msg.peerUin || +(await ctx.ntUserApi.getUinByUid(msg.peerUid))
           return new OB11FriendAddNoticeEvent(uin)
         }
