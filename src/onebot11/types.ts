@@ -131,6 +131,7 @@ export enum OB11MessageDataType {
   dice = 'dice',
   RPS = 'rps',
   contact = 'contact',
+  shake = 'shake',
 }
 
 export interface OB11MessageMFace {
@@ -187,6 +188,7 @@ export interface OB11MessageImage extends OB11MessageFileBase {
   data: OB11MessageFileBase['data'] & {
     summary?: string // 图片摘要
     subType?: PicSubType
+    type?: 'flash' | 'show'
   }
 }
 
@@ -285,6 +287,11 @@ export interface OB11MessageContact {
   }
 }
 
+export interface OB11MessageShake {
+  type: OB11MessageDataType.shake
+  data: {}
+}
+
 export type OB11MessageData =
   | OB11MessageText
   | OB11MessageFace
@@ -305,6 +312,7 @@ export type OB11MessageData =
   | OB11MessageMarkdown
   | OB11MessageForward
   | OB11MessageContact
+  | OB11MessageShake
 
 export interface OB11PostSendMsg {
   message_type?: 'private' | 'group'

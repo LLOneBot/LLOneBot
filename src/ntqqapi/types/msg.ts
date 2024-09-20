@@ -349,6 +349,7 @@ export interface FaceElement {
   resultId?: string
   surpriseId?: string
   randomType?: number
+  pokeType?: number
 }
 
 export interface MarketFaceElement {
