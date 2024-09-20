@@ -16,7 +16,7 @@ import {
   SendVideoElement,
 } from './types'
 import { stat, writeFile, copyFile, unlink } from 'node:fs/promises'
-import { calculateFileMD5, isGIF } from '../common/utils/file'
+import { calculateFileMD5 } from '../common/utils/file'
 import { defaultVideoThumb, getVideoInfo } from '../common/utils/video'
 import { encodeSilk } from '../common/utils/audio'
 import { Context } from 'cordis'
@@ -66,14 +66,10 @@ export namespace SendElementEntities {
     }
   }
 
-  export async function pic(ctx: Context, picPath: string, summary: string = '', subType: 0 | 1 = 0): Promise<SendPicElement> {
+  export async function pic(ctx: Context, picPath: string, summary = '', subType: 0 | 1 = 0, isFlashPic?: boolean): Promise<SendPicElement> {
     const { md5, fileName, path, fileSize } = await ctx.ntFileApi.uploadFile(picPath, ElementType.PIC, subType)
     if (fileSize === 0) {
-      throw '文件异常，大小为0'
-    }
-    const maxMB = 30;
-    if (fileSize > 1024 * 1024 * 30) {
-      throw `图片过大，最大支持${maxMB}MB，当前文件大小${fileSize}B`
+      throw '文件异常，大小为 0'
     }
     const imageSize = await ctx.ntFileApi.getImageSize(picPath)
     const picElement = {
@@ -84,12 +80,13 @@ export namespace SendElementEntities {
       fileName: fileName,
       sourcePath: path,
       original: true,
-      picType: isGIF(picPath) ? PicType.gif : PicType.jpg,
+      picType: imageSize.type === 'gif' ? PicType.gif : PicType.jpg,
       picSubType: subType,
       fileUuid: '',
       fileSubId: '',
       thumbFileSize: 0,
       summary,
+      isFlashPic,
     }
     ctx.logger.info('图片信息', picElement)
     return {
@@ -362,6 +359,18 @@ export namespace SendElementEntities {
         bytesData: data,
         linkInfo: null,
         subElementType: null,
+      },
+    }
+  }
+
+  export function shake(): SendFaceElement {
+    return {
+      elementType: ElementType.FACE,
+      elementId: '',
+      faceElement: {
+        faceIndex: 1,
+        faceType: 5,
+        pokeType: 1,
       },
     }
   }

@@ -132,7 +132,8 @@ export async function createSendElements(
           ctx,
           (await handleOb11FileLikeMessage(ctx, sendMsg, { deleteAfterSentFiles })).path,
           sendMsg.data.summary || '',
-          sendMsg.data.subType || 0
+          sendMsg.data.subType || 0,
+          sendMsg.data.type === 'flash'
         )
         deleteAfterSentFiles.push(res.picElement.sourcePath)
         sendElements.push(res)
@@ -178,6 +179,10 @@ export async function createSendElements(
         const { type, id } = sendMsg.data
         const data = type === 'qq' ? ctx.ntFriendApi.getBuddyRecommendContact(id) : ctx.ntGroupApi.getGroupRecommendContact(id)
         sendElements.push(SendElementEntities.ark(await data))
+      }
+        break
+      case OB11MessageDataType.shake: {
+        sendElements.push(SendElementEntities.shake())
       }
         break
     }
