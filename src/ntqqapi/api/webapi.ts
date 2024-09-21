@@ -17,85 +17,11 @@ export enum WebHonorType {
   EMOTION = 'emotion'
 }
 
-export interface WebApiGroupMember {
-  uin: number
-  role: number
-  g: number
-  join_time: number
-  last_speak_time: number
-  lv: {
-    point: number
-    level: number
-  }
-  card: string
-  tags: string
-  flag: number
-  nick: string
-  qage: number
-  rm: number
-}
-
-interface WebApiGroupMemberRet {
-  ec: number
-  errcode: number
-  em: string
-  cache: number
-  adm_num: number
-  levelname: unknown
-  mems: WebApiGroupMember[]
-  count: number
-  svr_time: number
-  max_count: number
-  search_count: number
-  extmode: number
-}
-
 export class NTQQWebApi extends Service {
   static inject = ['ntUserApi']
 
   constructor(protected ctx: Context) {
     super(ctx, 'ntWebApi', true)
-  }
-
-  async getGroupMembers(groupCode: string): Promise<WebApiGroupMember[]> {
-    const memberData: Array<WebApiGroupMember> = new Array<WebApiGroupMember>()
-    const cookieObject = await this.ctx.ntUserApi.getCookies('qun.qq.com')
-    const cookieStr = this.cookieToString(cookieObject)
-    const retList: Promise<WebApiGroupMemberRet>[] = []
-    const params = new URLSearchParams({
-      st: '0',
-      end: '40',
-      sort: '1',
-      gc: groupCode,
-      bkn: this.genBkn(cookieObject.skey)
-    })
-    const fastRet = await RequestUtil.HttpGetJson<WebApiGroupMemberRet>(`https://qun.qq.com/cgi-bin/qun_mgr/search_group_members?${params}`, 'POST', '', { 'Cookie': cookieStr })
-    if (!fastRet?.count || fastRet?.errcode !== 0 || !fastRet?.mems) {
-      return []
-    } else {
-      for (const member of fastRet.mems) {
-        memberData.push(member)
-      }
-    }
-    const pageNum = Math.ceil(fastRet.count / 40)
-    //遍历批量请求
-    for (let i = 2; i <= pageNum; i++) {
-      params.set('st', String((i - 1) * 40))
-      params.set('end', String(i * 40))
-      const ret = RequestUtil.HttpGetJson<WebApiGroupMemberRet>(`https://qun.qq.com/cgi-bin/qun_mgr/search_group_members?${params}`, 'POST', '', { 'Cookie': cookieStr })
-      retList.push(ret)
-    }
-    //批量等待
-    for (let i = 1; i <= pageNum; i++) {
-      const ret = await (retList[i])
-      if (!ret?.count || ret?.errcode !== 0 || !ret?.mems) {
-        continue
-      }
-      for (const member of ret.mems) {
-        memberData.push(member)
-      }
-    }
-    return memberData
   }
 
   genBkn(sKey: string) {
