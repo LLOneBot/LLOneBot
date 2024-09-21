@@ -8,7 +8,7 @@ export enum BuddyListReqType {
 export interface NodeIKernelBuddyService {
   getBuddyListV2(callFrom: string, reqType: BuddyListReqType): Promise<GeneralCallResult & {
     data: {
-      categoryId: number  //9999疑似兜底数据
+      categoryId: number
       categorySortId: number
       categroyName: string
       categroyMbCount: number
