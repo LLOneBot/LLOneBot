@@ -1,6 +1,6 @@
 import { invoke, NTMethod } from '../ntcall'
 import { GeneralCallResult } from '../services'
-import { RawMessage, SendMessageElement, Peer, ChatType2 } from '../types'
+import { RawMessage, SendMessageElement, Peer, ChatType } from '../types'
 import { getSession } from '@/ntqqapi/wrapper'
 import { Service, Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
@@ -18,7 +18,7 @@ export class NTQQMsgApi extends Service {
     super(ctx, 'ntMsgApi', true)
   }
 
-  async getTempChatInfo(chatType: ChatType2, peerUid: string) {
+  async getTempChatInfo(chatType: ChatType, peerUid: string) {
     const session = getSession()
     if (session) {
       return session.getMsgService().getTempChatInfo(chatType, peerUid)

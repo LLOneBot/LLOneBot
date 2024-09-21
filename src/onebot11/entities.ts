@@ -20,8 +20,7 @@ import {
   Sex,
   TipGroupElementType,
   User,
-  FriendV2,
-  ChatType2
+  FriendV2
 } from '../ntqqapi/types'
 import { EventType } from './event/OB11BaseEvent'
 import { encodeCQCode } from './cqcode'
@@ -91,11 +90,11 @@ export namespace OB11Entities {
       resMsg.sub_type = 'friend'
       resMsg.sender.nickname = (await ctx.ntUserApi.getUserDetailInfo(msg.senderUid)).nick
     }
-    else if (msg.chatType as unknown as ChatType2 === ChatType2.KCHATTYPETEMPC2CFROMGROUP) {
+    else if (msg.chatType === ChatType.temp) {
       resMsg.sub_type = 'group'
       resMsg.temp_source = 0 //群聊
       resMsg.sender.nickname = (await ctx.ntUserApi.getUserDetailInfo(msg.senderUid)).nick
-      const ret = await ctx.ntMsgApi.getTempChatInfo(ChatType2.KCHATTYPETEMPC2CFROMGROUP, msg.senderUid)
+      const ret = await ctx.ntMsgApi.getTempChatInfo(ChatType.temp, msg.senderUid)
       if (ret?.result === 0) {
         resMsg.sender.group_id = Number(ret.tmpChatInfo?.groupCode)
       } else {
@@ -503,14 +502,6 @@ export namespace OB11Entities {
         const xmlElement = grayTipElement.xmlElement
 
         if (xmlElement?.templId === '10382') {
-          // 表情回应消息
-          // "content":
-          //  "<gtip align=\"center\">
-          //    <qq uin=\"u_snYxnEfja-Po_\" col=\"3\" jp=\"3794\"/>
-          //    <nor txt=\"回应了你的\"/>
-          //    <url jp= \"\" msgseq=\"74711\" col=\"3\" txt=\"消息:\"/>
-          //    <face type=\"1\" id=\"76\">  </face>
-          //  </gtip>",
           const emojiLikeData = new XMLParser({
             ignoreAttributes: false,
             attributeNamePrefix: '',
