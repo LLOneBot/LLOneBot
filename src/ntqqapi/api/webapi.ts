@@ -108,7 +108,6 @@ export class NTQQWebApi extends Service {
     return (hash & 0x7FFFFFFF).toString()
   }
 
-  //实现未缓存 考虑2h缓存
   async getGroupHonorInfo(groupCode: string, getType: string) {
     const getDataInternal = async (groupCode: string, type: number) => {
       const url = 'https://qun.qq.com/interactive/honorlist?gc=' + groupCode + '&type=' + type
