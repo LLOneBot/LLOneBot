@@ -26,7 +26,7 @@ export async function checkNewVersion() {
   return { result: false, version: version }
 }
 
-export async function upgradeLLOneBot() {
+export async function upgradeLLOneBot(): Promise<boolean> {
   const latestVersion = await getRemoteVersion()
   if (latestVersion && latestVersion != '') {
     const downloadUrl = `https://github.com/LLOneBot/LLOneBot/releases/download/v${latestVersion}/LLOneBot.zip`
