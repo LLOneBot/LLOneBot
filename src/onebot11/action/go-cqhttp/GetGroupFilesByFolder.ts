@@ -1,11 +1,11 @@
 import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
 import { OB11GroupFile, OB11GroupFileFolder } from '@/onebot11/types'
+import { OnGroupFileInfoUpdateParams } from '@/ntqqapi/types'
 
 interface Payload {
-  group_id: string | number
+  group_id: number | string
   folder_id: string
-  file_count: string | number
 }
 
 interface Response {
@@ -17,19 +17,27 @@ export class GetGroupFilesByFolder extends BaseAction<Payload, Response> {
   actionName = ActionName.GoCQHTTP_GetGroupFilesByFolder
   payloadSchema = Schema.object({
     group_id: Schema.union([Number, String]).required(),
-    folder_id: Schema.string().required(),
-    file_count: Schema.union([Number, String]).default(50)
+    folder_id: Schema.string().required()
   })
 
   async _handle(payload: Payload) {
-    const data = await this.ctx.ntGroupApi.getGroupFileList(payload.group_id.toString(), {
-      sortType: 1,
-      fileCount: +payload.file_count,
-      startIndex: 0,
-      sortOrder: 2,
-      showOnlinedocFolder: 0,
-      folderId: payload.folder_id
-    })
+    const groupId = payload.group_id.toString()
+    const data: OnGroupFileInfoUpdateParams['item'] = []
+
+    let nextIndex: number | undefined
+    while (nextIndex !== 0) {
+      const res = await this.ctx.ntGroupApi.getGroupFileList(groupId, {
+        sortType: 1,
+        fileCount: 100,
+        startIndex: nextIndex ?? 0,
+        sortOrder: 2,
+        showOnlinedocFolder: 0,
+        folderId: payload.folder_id
+      })
+      data.push(...res.item)
+      nextIndex = res.nextIndex
+    }
+
     return {
       files: data.filter(item => item.fileInfo)
         .map(item => {

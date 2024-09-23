@@ -109,25 +109,19 @@ export namespace OB11Entities {
         let name: string | undefined
         if (element.textElement.atType == AtType.atAll) {
           qq = 'all'
-        }
-        else {
-          const { atNtUid, content } = element.textElement
-          let atQQ = element.textElement.atUid
-          if (!atQQ || atQQ === '0') {
-            const atMember = await ctx.ntGroupApi.getGroupMember(msg.peerUin, atNtUid)
-            if (atMember) {
-              atQQ = atMember.uin
-            }
+        } else {
+          const { atNtUid, atUid, content } = element.textElement
+          if (atUid && atUid !== '0') {
+            qq = atUid
+          } else {
+            qq = await ctx.ntUserApi.getUinByUid(atNtUid)
           }
-          if (atQQ) {
-            qq = atQQ
-            name = content.replace('@', '')
-          }
+          name = content.replace('@', '')
         }
         messageSegment = {
           type: OB11MessageDataType.at,
           data: {
-            qq: qq!,
+            qq,
             name
           }
         }
