@@ -293,7 +293,7 @@ export class NTQQGroupApi extends Service {
         cmdCB: (payload, result) => payload.fileInfo.reqId === result
       }
     )
-    return data.fileInfo.item
+    return data.fileInfo
   }
 
   async publishGroupBulletin(groupCode: string, req: PublishGroupBulletinReq) {
