@@ -3,7 +3,7 @@ import { OB11Message } from '@/onebot11/types'
 import { ActionName } from '../types'
 import { ChatType, RawMessage } from '@/ntqqapi/types'
 import { OB11Entities } from '@/onebot11/entities'
-import { filterNullable } from '@/common/utils/misc'
+import { filterNullable, parseBool } from '@/common/utils/misc'
 
 interface Payload {
   user_id: number | string
@@ -24,7 +24,7 @@ export class GetFriendMsgHistory extends BaseAction<Payload, Response> {
     message_seq: Schema.union([Number, String]),
     message_id: Schema.union([Number, String]),
     count: Schema.union([Number, String]).default(20),
-    reverseOrder: Schema.boolean().default(false)
+    reverseOrder: Schema.union([Boolean, Schema.transform(String, parseBool)]).default(false)
   })
 
   async _handle(payload: Payload): Promise<Response> {

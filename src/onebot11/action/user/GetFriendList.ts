@@ -3,6 +3,7 @@ import { OB11User } from '../../types'
 import { OB11Entities } from '../../entities'
 import { ActionName } from '../types'
 import { getBuildVersion } from '@/common/utils'
+import { parseBool } from '@/common/utils/misc'
 
 interface Payload {
   no_cache: boolean
@@ -11,7 +12,7 @@ interface Payload {
 export class GetFriendList extends BaseAction<Payload, OB11User[]> {
   actionName = ActionName.GetFriendList
   payloadSchema = Schema.object({
-    no_cache: Schema.boolean().default(false)
+    no_cache: Schema.union([Boolean, Schema.transform(String, parseBool)]).default(false)
   })
 
   protected async _handle(payload: Payload) {

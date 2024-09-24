@@ -4,7 +4,7 @@ import { ActionName } from '../types'
 import { ChatType } from '@/ntqqapi/types'
 import { OB11Entities } from '../../entities'
 import { RawMessage } from '@/ntqqapi/types'
-import { filterNullable } from '@/common/utils/misc'
+import { filterNullable, parseBool } from '@/common/utils/misc'
 
 interface Payload {
   group_id: number | string
@@ -23,7 +23,7 @@ export class GetGroupMsgHistory extends BaseAction<Payload, Response> {
     group_id: Schema.union([Number, String]).required(),
     message_seq: Schema.union([Number, String]),
     count: Schema.union([Number, String]).default(20),
-    reverseOrder: Schema.boolean().default(false),
+    reverseOrder: Schema.union([Boolean, Schema.transform(String, parseBool)]).default(false)
   })
 
   protected async _handle(payload: Payload): Promise<Response> {
