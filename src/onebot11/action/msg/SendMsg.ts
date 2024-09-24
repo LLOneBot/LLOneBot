@@ -93,7 +93,11 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnData> {
     if (!returnMsg) {
       throw new Error('消息发送失败')
     }
-    return { message_id: returnMsg.msgShortId! }
+    const msgShortId = this.ctx.store.createMsgShortId({
+      chatType: returnMsg.chatType,
+      peerUid: returnMsg.peerUid
+    }, returnMsg.msgId)
+    return { message_id: msgShortId }
   }
 
   private getSpecialMsgNum(message: OB11MessageData[], msgType: OB11MessageDataType): number {

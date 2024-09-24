@@ -38,14 +38,11 @@ export class GetFriendMsgHistory extends BaseAction<Payload, Response> {
       const uid = await this.ctx.ntUserApi.getUidByUin(payload.user_id.toString())
       if (!uid) throw new Error(`记录${payload.user_id}不存在`)
       const isBuddy = await this.ctx.ntFriendApi.isBuddy(uid)
-      const peer = { chatType: isBuddy ? ChatType.friend : ChatType.temp, peerUid: uid }
+      const peer = { chatType: isBuddy ? ChatType.C2C : ChatType.TempC2CFromGroup, peerUid: uid }
       msgList = (await this.ctx.ntMsgApi.getAioFirstViewLatestMsgs(peer, +payload.count)).msgList
     }
     if (msgList.length === 0) throw new Error('未找到消息')
     if (payload.reverseOrder) msgList.reverse()
-    for (const msg of msgList) {
-      msg.msgShortId = this.ctx.store.createMsgShortId({ chatType: msg.chatType, peerUid: msg.peerUid }, msg.msgId)
-    }
     const ob11MsgList = await Promise.all(msgList.map(msg => OB11Entities.message(this.ctx, msg)))
     return { messages: filterNullable(ob11MsgList) }
   }

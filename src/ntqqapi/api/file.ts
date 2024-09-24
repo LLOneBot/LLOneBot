@@ -73,7 +73,7 @@ export class NTQQFileApi extends Service {
   }
 
   // 上传文件到QQ的文件夹
-  async uploadFile(filePath: string, elementType: ElementType = ElementType.PIC, elementSubType = 0) {
+  async uploadFile(filePath: string, elementType = ElementType.Pic, elementSubType = 0) {
     const fileMd5 = await calculateFileMD5(filePath)
     let fileName = path.basename(filePath)
     if (!fileName.includes('.')) {

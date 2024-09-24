@@ -62,22 +62,22 @@ export async function createSendElements(
               }
             }
             if (isAdmin && remainAtAllCount > 0) {
-              sendElements.push(SendElementEntities.at(atQQ, atQQ, AtType.atAll, '@全体成员'))
+              sendElements.push(SendElementEntities.at(atQQ, atQQ, AtType.All, '@全体成员'))
             }
           }
-          else if (peer.chatType === ChatType.group) {
+          else if (peer.chatType === ChatType.Group) {
             const atMember = await ctx.ntGroupApi.getGroupMember(peer.peerUid, atQQ)
             if (atMember) {
               const display = `@${atMember.cardName || atMember.nick}`
               sendElements.push(
-                SendElementEntities.at(atQQ, atMember.uid, AtType.atUser, display),
+                SendElementEntities.at(atQQ, atMember.uid, AtType.One, display),
               )
             } else {
               const atNmae = sendMsg.data?.name
               const uid = await ctx.ntUserApi.getUidByUin(atQQ) || ''
               const display = atNmae ? `@${atNmae}` : ''
               sendElements.push(
-                SendElementEntities.at(atQQ, uid, AtType.atUser, display),
+                SendElementEntities.at(atQQ, uid, AtType.One, display),
               )
             }
           }
@@ -134,7 +134,7 @@ export async function createSendElements(
           sendMsg.data.subType || 0,
           sendMsg.data.type === 'flash'
         )
-        deleteAfterSentFiles.push(res.picElement.sourcePath)
+        deleteAfterSentFiles.push(res.picElement.sourcePath!)
         sendElements.push(res)
       }
         break
@@ -255,17 +255,17 @@ export async function sendMsg(
   let totalSize = 0
   for (const fileElement of sendElements) {
     try {
-      if (fileElement.elementType === ElementType.PTT) {
-        totalSize += fs.statSync(fileElement.pttElement.filePath).size
+      if (fileElement.elementType === ElementType.Ptt) {
+        totalSize += fs.statSync(fileElement.pttElement.filePath!).size
       }
-      if (fileElement.elementType === ElementType.FILE) {
+      if (fileElement.elementType === ElementType.File) {
         totalSize += fs.statSync(fileElement.fileElement.filePath).size
       }
-      if (fileElement.elementType === ElementType.VIDEO) {
+      if (fileElement.elementType === ElementType.Video) {
         totalSize += fs.statSync(fileElement.videoElement.filePath).size
       }
-      if (fileElement.elementType === ElementType.PIC) {
-        totalSize += fs.statSync(fileElement.picElement.sourcePath).size
+      if (fileElement.elementType === ElementType.Pic) {
+        totalSize += fs.statSync(fileElement.picElement.sourcePath!).size
       }
     } catch (e) {
       ctx.logger.warn('文件大小计算失败', e, fileElement)
@@ -276,8 +276,7 @@ export async function sendMsg(
   //log('设置消息超时时间', timeout)
   const returnMsg = await ctx.ntMsgApi.sendMsg(peer, sendElements, timeout)
   if (returnMsg) {
-    returnMsg.msgShortId = ctx.store.createMsgShortId(peer, returnMsg.msgId)
-    ctx.logger.info('消息发送', returnMsg.msgShortId)
+    ctx.logger.info('消息发送', peer)
     deleteAfterSentFiles.map(path => fsPromise.unlink(path))
     return returnMsg
   }
@@ -294,10 +293,10 @@ export enum CreatePeerMode {
   Group = 2
 }
 
-export async function createPeer(ctx: Context, payload: CreatePeerPayload, mode: CreatePeerMode): Promise<Peer> {
+export async function createPeer(ctx: Context, payload: CreatePeerPayload, mode = CreatePeerMode.Normal): Promise<Peer> {
   if ((mode === CreatePeerMode.Group || mode === CreatePeerMode.Normal) && payload.group_id) {
     return {
-      chatType: ChatType.group,
+      chatType: ChatType.Group,
       peerUid: payload.group_id.toString(),
     }
   }
@@ -306,7 +305,7 @@ export async function createPeer(ctx: Context, payload: CreatePeerPayload, mode:
     if (!uid) throw new Error('无法获取用户信息')
     const isBuddy = await ctx.ntFriendApi.isBuddy(uid)
     return {
-      chatType: isBuddy ? ChatType.friend : ChatType.temp,
+      chatType: isBuddy ? ChatType.C2C : ChatType.TempC2CFromGroup,
       peerUid: uid,
     }
   }

@@ -48,7 +48,7 @@ export abstract class GetFileBase extends BaseAction<GetFilePayload, GetFileResp
         peerUid: fileCache[0].peerUid,
         guildId: ''
       }
-      if (fileCache[0].elementType === ElementType.PIC) {
+      if (fileCache[0].elementType === ElementType.Pic) {
         const msgList = await this.ctx.ntMsgApi.getMsgsByMsgId(peer, [fileCache[0].msgId])
         if (msgList.msgList.length === 0) {
           throw new Error('msg not found')
@@ -59,7 +59,7 @@ export abstract class GetFileBase extends BaseAction<GetFilePayload, GetFileResp
           throw new Error('element not found')
         }
         res.url = await this.ctx.ntFileApi.getImageUrl(findEle.picElement!)
-      } else if (fileCache[0].elementType === ElementType.VIDEO) {
+      } else if (fileCache[0].elementType === ElementType.Video) {
         res.url = await this.ctx.ntFileApi.getVideoUrl(peer, fileCache[0].msgId, fileCache[0].elementId)
       }
       if (enableLocalFile2Url && downloadPath && (res.file === res.url || res.url === undefined)) {
