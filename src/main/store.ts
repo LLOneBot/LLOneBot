@@ -30,7 +30,7 @@ export default class Store extends Service {
 
   constructor(protected ctx: Context) {
     super(ctx, 'store', true)
-    this.cache = new LimitedHashTable<string, number>(1000)
+    this.cache = new LimitedHashTable(1000)
     this.initDatabase()
   }
 

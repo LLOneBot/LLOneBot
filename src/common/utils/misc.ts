@@ -38,3 +38,10 @@ export function mergeNewProperties(newObj: Dict, oldObj: Dict) {
 export function filterNullable<T>(array: T[]) {
   return array.filter(e => !isNullable(e)) as NonNullable<T>[]
 }
+
+export function parseBool(value: string) {
+  if (['', 'true', '1'].includes(value)) {
+    return true
+  }
+  return false
+}

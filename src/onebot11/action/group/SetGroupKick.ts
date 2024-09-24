@@ -1,5 +1,6 @@
 import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
+import { parseBool } from '@/common/utils/misc'
 
 interface Payload {
   group_id: number | string
@@ -12,7 +13,7 @@ export default class SetGroupKick extends BaseAction<Payload, null> {
   payloadSchema = Schema.object({
     group_id: Schema.union([Number, String]).required(),
     user_id: Schema.union([Number, String]).required(),
-    reject_add_request: Schema.boolean().default(false)
+    reject_add_request: Schema.union([Boolean, Schema.transform(String, parseBool)]).default(false)
   })
 
   protected async _handle(payload: Payload): Promise<null> {

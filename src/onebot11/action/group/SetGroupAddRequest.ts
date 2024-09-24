@@ -1,6 +1,7 @@
 import { BaseAction, Schema } from '../BaseAction'
 import { GroupRequestOperateTypes } from '@/ntqqapi/types'
 import { ActionName } from '../types'
+import { parseBool } from '@/common/utils/misc'
 
 interface Payload {
   flag: string
@@ -12,7 +13,7 @@ export default class SetGroupAddRequest extends BaseAction<Payload, null> {
   actionName = ActionName.SetGroupAddRequest
   payloadSchema = Schema.object({
     flag: Schema.string().required(),
-    approve: Schema.boolean().default(true),
+    approve: Schema.union([Boolean, Schema.transform(String, parseBool)]).default(true),
     reason: Schema.string()
   })
 
