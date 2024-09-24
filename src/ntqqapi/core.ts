@@ -63,7 +63,7 @@ class Core extends Service {
         uids = payload.data.flatMap(item => item.buddyList.map(e => e.uid))
       }
       for (const uid of uids) {
-        this.ctx.ntMsgApi.activateChat({ peerUid: uid, chatType: ChatType.friend })
+        this.ctx.ntMsgApi.activateChat({ peerUid: uid, chatType: ChatType.C2C })
       }
       this.ctx.logger.info('好友列表变动', uids.length)
     })
@@ -116,7 +116,7 @@ class Core extends Service {
           if (activatedPeerUids.includes(contact.id)) continue
           activatedPeerUids.push(contact.id)
           const peer = { peerUid: contact.id, chatType: contact.chatType }
-          if (contact.chatType === ChatType.temp) {
+          if (contact.chatType === ChatType.TempC2CFromGroup) {
             this.ctx.ntMsgApi.activateChatAndGetHistory(peer).then(() => {
               this.ctx.ntMsgApi.getMsgHistory(peer, '', 20).then(({ msgList }) => {
                 const lastTempMsg = msgList.at(-1)
@@ -136,12 +136,12 @@ class Core extends Service {
     registerCallHook(NTMethod.DELETE_ACTIVE_CHAT, async (payload) => {
       const peerUid = payload[0] as string
       this.ctx.logger.info('激活的聊天窗口被删除，准备重新激活', peerUid)
-      let chatType = ChatType.friend
+      let chatType = ChatType.C2C
       if (isNumeric(peerUid)) {
-        chatType = ChatType.group
+        chatType = ChatType.Group
       }
       else if (!(await this.ctx.ntFriendApi.isBuddy(peerUid))) {
-        chatType = ChatType.temp
+        chatType = ChatType.TempC2CFromGroup
       }
       const peer = { peerUid, chatType }
       await this.ctx.sleep(1000)
