@@ -1,5 +1,6 @@
 import { BaseAction } from '../BaseAction'
 import { ActionName } from '../types'
+import { ChatType } from '@/ntqqapi/types'
 
 interface Payload {
   flag: string
@@ -22,6 +23,11 @@ export default class SetFriendAddRequest extends BaseAction<Payload, null> {
     if (payload.remark) {
       await this.ctx.ntFriendApi.setBuddyRemark(uid, payload.remark)
     }
+    await this.ctx.ntMsgApi.activateChat({
+      peerUid: uid,
+      chatType: ChatType.C2C,
+      guildId: ''
+    })
     return null
   }
 }

@@ -291,28 +291,31 @@ export namespace OB11Entities {
       }
       else if (element.faceElement) {
         const { faceElement } = element
-        const faceId = faceElement.faceIndex
-        if (faceId === FaceIndex.Dice) {
+        const { faceIndex, pokeType } = faceElement
+        if (faceIndex === FaceIndex.Dice) {
           messageSegment = {
             type: OB11MessageDataType.dice,
             data: {
               result: faceElement.resultId!
             }
           }
-        }
-        else if (faceId === FaceIndex.RPS) {
+        } else if (faceIndex === FaceIndex.RPS) {
           messageSegment = {
             type: OB11MessageDataType.RPS,
             data: {
               result: faceElement.resultId!
             }
           }
-        }
-        else {
+          /*} else if (faceIndex === 1 && pokeType === 1) {
+            messageSegment = {
+              type: OB11MessageDataType.shake,
+              data: {}
+            }*/
+        } else {
           messageSegment = {
             type: OB11MessageDataType.face,
             data: {
-              id: faceId.toString()
+              id: faceIndex.toString()
             }
           }
         }
