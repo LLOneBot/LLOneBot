@@ -101,52 +101,20 @@ export class NTQQFriendApi extends Service {
     return retMap
   }
 
-  async getBuddyV2ExWithCate(refresh = false) {
-    const session = getSession()
-    if (session) {
-      const uids: string[] = []
-      const categoryMap: Map<string, Dict> = new Map()
-      const buddyService = session.getBuddyService()
-      const buddyListV2 = (await buddyService.getBuddyListV2('0', BuddyListReqType.KNOMAL)).data
-      uids.push(
-        ...buddyListV2.flatMap(item => {
-          item.buddyUids.forEach(uid => {
-            categoryMap.set(uid, { categoryId: item.categoryId, categroyName: item.categroyName })
-          })
-          return item.buddyUids
-        }))
-      const data = await session.getProfileService().getCoreAndBaseInfo('nodeStore', uids)
-      return Array.from(data).map(([key, value]) => {
-        const category = categoryMap.get(key)
-        return category ? { ...value, categoryId: category.categoryId, categroyName: category.categroyName } : value
-      })
-    } else {
-      const data = await invoke<{
-        buddyCategory: CategoryFriend[]
-        userSimpleInfos: Record<string, SimpleInfo>
-      }>(
-        'getBuddyList',
-        [refresh],
-        {
-          className: NTClass.NODE_STORE_API,
-          cbCmd: ReceiveCmdS.FRIENDS,
-          afterFirstCmd: false,
-        }
-      )
-      const category: Map<number, Pick<CategoryFriend, 'buddyUids' | 'categroyName'>> = new Map()
-      for (const item of data.buddyCategory) {
-        category.set(item.categoryId, pick(item, ['buddyUids', 'categroyName']))
+  async getBuddyV2WithCate(refresh = false) {
+    const data = await invoke<{
+      buddyCategory: CategoryFriend[]
+      userSimpleInfos: Record<string, SimpleInfo>
+    }>(
+      'getBuddyList',
+      [refresh],
+      {
+        className: NTClass.NODE_STORE_API,
+        cbCmd: ReceiveCmdS.FRIENDS,
+        afterFirstCmd: false,
       }
-      return Object.values(data.userSimpleInfos)
-        .filter(v => v.baseInfo && category.get(v.baseInfo.categoryId)?.buddyUids.includes(v.uid!))
-        .map(value => {
-          return {
-            ...value,
-            categoryId: value.baseInfo.categoryId,
-            categroyName: category.get(value.baseInfo.categoryId)?.categroyName
-          }
-        })
-    }
+    )
+    return data
   }
 
   async isBuddy(uid: string): Promise<boolean> {
