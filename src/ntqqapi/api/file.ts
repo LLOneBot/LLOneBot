@@ -23,7 +23,6 @@ import { fileTypeFromFile } from 'file-type'
 import { copyFile, stat, unlink } from 'node:fs/promises'
 import { Time } from 'cosmokit'
 import { Service, Context } from 'cordis'
-import { TEMP_DIR } from '@/common/globalVars'
 
 declare module 'cordis' {
   interface Context {
@@ -107,8 +106,8 @@ export class NTQQFileApi extends Service {
     chatType: ChatType,
     peerUid: string,
     elementId: string,
-    thumbPath: string,
-    sourcePath: string,
+    thumbPath = '',
+    sourcePath = '',
     timeout = 1000 * 60 * 2,
     force = false
   ) {
@@ -147,13 +146,7 @@ export class NTQQFileApi extends Service {
         timeout
       }
     )
-    let filePath = data.notifyInfo.filePath
-    if (filePath.startsWith('\\')) {
-      const downloadPath = TEMP_DIR
-      filePath = path.join(downloadPath, filePath)
-      // 下载路径是下载文件夹的相对路径
-    }
-    return filePath
+    return data.notifyInfo.filePath
   }
 
   async getImageSize(filePath: string) {
@@ -200,6 +193,27 @@ export class NTQQFileApi extends Service {
     }
     this.ctx.logger.error('图片url获取失败', element)
     return ''
+  }
+
+  async downloadFileForModelId(peer: Peer, fileModelId: string, timeout = 2 * Time.minute) {
+    const data = await invoke<{ notifyInfo: OnRichMediaDownloadCompleteParams }>(
+      'nodeIKernelRichMediaService/downloadFileForModelId',
+      [
+        {
+          peer,
+          fileModelIdList: [fileModelId],
+          save_path: ''
+        },
+        null,
+      ],
+      {
+        cbCmd: ReceiveCmdS.MEDIA_DOWNLOAD_COMPLETE,
+        cmdCB: payload => payload.notifyInfo.fileModelId === fileModelId,
+        timeout,
+        afterFirstCmd: false
+      }
+    )
+    return data.notifyInfo.filePath
   }
 }
 
