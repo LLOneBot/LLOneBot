@@ -4,7 +4,7 @@ import { ActionName } from '../types'
 import { ChatType } from '@/ntqqapi/types'
 import { OB11Entities } from '../../entities'
 import { RawMessage } from '@/ntqqapi/types'
-import { filterNullable } from '@/common/utils/misc'
+import { filterNullable, parseBool } from '@/common/utils/misc'
 
 interface Payload {
   group_id: number | string
@@ -23,12 +23,12 @@ export class GetGroupMsgHistory extends BaseAction<Payload, Response> {
     group_id: Schema.union([Number, String]).required(),
     message_seq: Schema.union([Number, String]),
     count: Schema.union([Number, String]).default(20),
-    reverseOrder: Schema.boolean().default(false),
+    reverseOrder: Schema.union([Boolean, Schema.transform(String, parseBool)]).default(false)
   })
 
   protected async _handle(payload: Payload): Promise<Response> {
     const { count, reverseOrder } = payload
-    const peer = { chatType: ChatType.group, peerUid: payload.group_id.toString() }
+    const peer = { chatType: ChatType.Group, peerUid: payload.group_id.toString() }
     let msgList: RawMessage[]
     if (!payload.message_seq || payload.message_seq === '0') {
       msgList = (await this.ctx.ntMsgApi.getAioFirstViewLatestMsgs(peer, +count)).msgList
@@ -39,9 +39,6 @@ export class GetGroupMsgHistory extends BaseAction<Payload, Response> {
     }
     if (!msgList?.length) throw new Error('未找到消息')
     if (reverseOrder) msgList.reverse()
-    for (const msg of msgList) {
-      msg.msgShortId = this.ctx.store.createMsgShortId({ chatType: msg.chatType, peerUid: msg.peerUid }, msg.msgId)
-    }
     const ob11MsgList = await Promise.all(msgList.map(msg => OB11Entities.message(this.ctx, msg)))
     return { messages: filterNullable(ob11MsgList) }
   }

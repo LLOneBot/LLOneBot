@@ -156,12 +156,7 @@ export class NTQQGroupApi extends Service {
     }
   }
 
-  async kickMember(
-    groupCode: string,
-    kickUids: string[],
-    refuseForever = false,
-    kickReason = '',
-  ) {
+  async kickMember(groupCode: string, kickUids: string[], refuseForever = false, kickReason = '') {
     const session = getSession()
     if (session) {
       return session.getGroupService().kickMember(groupCode, kickUids, refuseForever, kickReason)

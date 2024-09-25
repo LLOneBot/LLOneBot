@@ -1,126 +1,108 @@
 import { GroupMemberRole } from './group'
 import { GeneralCallResult } from '../services'
 
-export interface GetFileListParam {
-  sortType: number
-  fileCount: number
-  startIndex: number
-  sortOrder: number
-  showOnlinedocFolder: number
-  folderId?: string
-}
-
 export enum ElementType {
-  UNKNOWN = 0,
-  TEXT = 1,
-  PIC = 2,
-  FILE = 3,
-  PTT = 4,
-  VIDEO = 5,
-  FACE = 6,
-  REPLY = 7,
-  WALLET = 9,
-  GreyTip = 8, //Poke别叫戳一搓了 官方名字拍一拍 戳一戳是另一个名字
-  ARK = 10,
-  MFACE = 11,
-  LIVEGIFT = 12,
-  STRUCTLONGMSG = 13,
-  MARKDOWN = 14,
-  GIPHY = 15,
-  MULTIFORWARD = 16,
-  INLINEKEYBOARD = 17,
-  INTEXTGIFT = 18,
-  CALENDAR = 19,
-  YOLOGAMERESULT = 20,
-  AVRECORD = 21,
-  FEED = 22,
-  TOFURECORD = 23,
-  ACEBUBBLE = 24,
-  ACTIVITY = 25,
-  TOFU = 26,
-  FACEBUBBLE = 27,
-  SHARELOCATION = 28,
-  TASKTOPMSG = 29,
-  RECOMMENDEDMSG = 43,
-  ACTIONBAR = 44
+  Text = 1,
+  Pic = 2,
+  File = 3,
+  Ptt = 4,
+  Video = 5,
+  Face = 6,
+  Reply = 7,
+  GrayTip = 8,
+  Ark = 10,
+  MarketFace = 11,
+  LiveGift = 12,
+  StructLongMsg = 13,
+  Markdown = 14,
+  Giphy = 15,
+  MultiForward = 16,
+  InlineKeyboard = 17,
+  Calendar = 19,
+  YoloGameResult = 20,
+  AvRecord = 21,
+  TofuRecord = 23,
+  FaceBubble = 27,
+  ShareLocation = 28,
+  TaskTopMsg = 29,
+  RecommendedMsg = 43,
+  ActionBar = 44
 }
 
 export interface SendTextElement {
-  elementType: ElementType.TEXT
+  elementType: ElementType.Text
   elementId: ''
   textElement: TextElement
 }
 
 export interface SendPttElement {
-  elementType: ElementType.PTT
+  elementType: ElementType.Ptt
   elementId: ''
-  pttElement: {
-    fileName: string
-    filePath: string
-    md5HexStr: string
-    fileSize: number
-    duration: number // 单位是秒
-    formatType: number
-    voiceType: number
-    voiceChangeType: number
-    canConvert2Text: boolean
-    waveAmplitudes: number[]
-    fileSubId: ''
-    playState: number
-    autoConvertText: number
-  }
-}
-
-export enum PicType {
-  gif = 2000,
-  jpg = 1000,
-}
-
-export enum PicSubType {
-  normal = 0, // 普通图片，大图
-  face = 1, // 表情包小图
+  pttElement: Partial<PttElement>
 }
 
 export interface SendPicElement {
-  elementType: ElementType.PIC
+  elementType: ElementType.Pic
   elementId: ''
-  picElement: {
-    md5HexStr: string
-    fileSize: number | string
-    picWidth: number
-    picHeight: number
-    fileName: string
-    sourcePath: string
-    original: boolean
-    picType: PicType
-    picSubType: PicSubType
-    fileUuid: string
-    fileSubId: string
-    thumbFileSize: number
-    summary: string
-  }
+  picElement: Partial<PicElement>
 }
 
 export interface SendReplyElement {
-  elementType: ElementType.REPLY
+  elementType: ElementType.Reply
   elementId: ''
   replyElement: Partial<ReplyElement>
 }
 
 export interface SendFaceElement {
-  elementType: ElementType.FACE
+  elementType: ElementType.Face
   elementId: ''
   faceElement: FaceElement
 }
 
 export interface SendMarketFaceElement {
-  elementType: ElementType.MFACE
+  elementType: ElementType.MarketFace
+  elementId: ''
   marketFaceElement: MarketFaceElement
+}
+
+export interface SendFileElement {
+  elementType: ElementType.File
+  elementId: ''
+  fileElement: FileElement
+}
+
+export interface SendVideoElement {
+  elementType: ElementType.Video
+  elementId: ''
+  videoElement: VideoElement
+}
+
+export interface SendArkElement {
+  elementType: ElementType.Ark
+  elementId: ''
+  arkElement: ArkElement
+}
+
+export type SendMessageElement =
+  | SendTextElement
+  | SendPttElement
+  | SendPicElement
+  | SendReplyElement
+  | SendFaceElement
+  | SendMarketFaceElement
+  | SendFileElement
+  | SendVideoElement
+  | SendArkElement
+
+export enum AtType {
+  Unknown,
+  All,
+  One,
 }
 
 export interface TextElement {
   content: string
-  atType: number
+  atType: AtType
   atUid: string
   atTinyId: string
   atNtUid: string
@@ -157,47 +139,6 @@ export interface FileElement {
   fileBizId?: number
 }
 
-export interface SendFileElement {
-  elementType: ElementType.FILE
-  elementId: ''
-  fileElement: FileElement
-}
-
-export interface SendVideoElement {
-  elementType: ElementType.VIDEO
-  elementId: ''
-  videoElement: VideoElement
-}
-
-export interface SendArkElement {
-  elementType: ElementType.ARK
-  elementId: ''
-  arkElement: ArkElement
-}
-
-export type SendMessageElement =
-  | SendTextElement
-  | SendPttElement
-  | SendPicElement
-  | SendReplyElement
-  | SendFaceElement
-  | SendMarketFaceElement
-  | SendFileElement
-  | SendVideoElement
-  | SendArkElement
-
-export enum AtType {
-  notAt = 0,
-  atAll = 1,
-  atUser = 2,
-}
-
-export enum ChatType {
-  friend = 1,
-  group = 2,
-  temp = 100,
-}
-
 export interface PttElement {
   canConvert2Text: boolean
   duration: number // 秒数
@@ -208,7 +149,7 @@ export interface PttElement {
   fileSize: string // "4261"
   fileSubId: string // "0"
   fileUuid: string // "90j3z7rmRphDPrdVgP9udFBaYar#oK0TWZIV"
-  formatType: string // 1
+  formatType: number // 1
   invalidState: number // 0
   md5HexStr: string // "e4d09c784d5a2abcb2f9980bdc7acfe6"
   playState: number // 0
@@ -219,6 +160,7 @@ export interface PttElement {
   voiceChangeType: number // 0
   voiceType: number // 0
   waveAmplitudes: number[]
+  autoConvertText: number
 }
 
 export interface ArkElement {
@@ -229,6 +171,16 @@ export interface ArkElement {
 
 export const IMAGE_HTTP_HOST = 'https://gchat.qpic.cn'
 export const IMAGE_HTTP_HOST_NT = 'https://multimedia.nt.qq.com.cn'
+
+export enum PicType {
+  GIF = 2000,
+  JPEG = 1000,
+}
+
+export enum PicSubType {
+  Normal = 0, // 普通图片，大图
+  Face = 1, // 表情包小图
+}
 
 export interface PicElement {
   picSubType: PicSubType
@@ -246,22 +198,22 @@ export interface PicElement {
 }
 
 export enum GrayTipElementSubType {
-  REVOKE = 1,
-  PROCLAMATION = 2,
-  EMOJIREPLY = 3,
-  GROUP = 4,
-  BUDDY = 5,
-  FEED = 6,
-  ESSENCE = 7,
-  GROUPNOTIFY = 8,
-  BUDDYNOTIFY = 9,
-  FILE = 10,
-  FEEDCHANNELMSG = 11,
-  XMLMSG = 12,
-  LOCALMSG = 13,
-  BLOCK = 14,
-  AIOOP = 15,
-  WALLET = 16,
+  Revoke = 1,
+  Proclamation = 2,
+  EmojiReply = 3,
+  Group = 4,
+  Buddy = 5,
+  Feed = 6,
+  Essence = 7,
+  GroupNotify = 8,
+  BuddyNotify = 9,
+  File = 10,
+  FeedChannelMsg = 11,
+  XmlMsg = 12,
+  LocalMsg = 13,
+  Block = 14,
+  AioOp = 15,
+  Wallet = 16,
   JSON = 17,
 }
 
@@ -291,7 +243,7 @@ export interface GrayTipElement {
 
 
 export enum FaceIndex {
-  dice = 358,
+  Dice = 358,
   RPS = 359, // 石头剪刀布
 }
 
@@ -365,6 +317,7 @@ export interface InlineKeyboardElementRowButton {
   enter: false
   subscribeDataTemplateIds: []
 }
+
 export interface InlineKeyboardElement {
   rows: [
     {
@@ -381,9 +334,9 @@ export interface TipAioOpGrayTipElement {
 }
 
 export enum TipGroupElementType {
-  memberIncrease = 1,
-  kicked = 3, // 被移出群
-  ban = 8,
+  MemberIncrease = 1,
+  Kicked = 3, // 被移出群
+  Ban = 8,
 }
 
 export interface TipGroupElement {
@@ -425,17 +378,27 @@ export interface TipGroupElement {
   }
 }
 
+export interface StructLongMsgElement {
+  xmlContent: string
+  resId: string
+}
+
 export interface MultiForwardMsgElement {
   xmlContent: string // xml格式的消息内容
   resId: string
   fileName: string
 }
 
+export enum ChatType {
+  C2C = 1,
+  Group = 2,
+  TempC2CFromGroup = 100,
+}
+
 export interface RawMessage {
   msgId: string
   msgType: number
   subMsgType: number
-  msgShortId?: number // 自己维护的消息id
   msgTime: string // 时间戳，秒
   msgSeq: string
   msgRandom: string
@@ -475,12 +438,11 @@ export interface MessageElement {
   fileElement?: FileElement
   liveGiftElement?: unknown
   markdownElement?: MarkdownElement
-  structLongMsgElement?: unknown
+  structLongMsgElement?: StructLongMsgElement
   multiForwardMsgElement?: MultiForwardMsgElement
   giphyElement?: unknown
-  walletElement?: unknown
   inlineKeyboardElement?: InlineKeyboardElement
-  textGiftElement?: unknown //????
+  textGiftElement?: unknown
   calendarElement?: unknown
   yoloGameResultElement?: unknown
   avRecordElement?: unknown
@@ -587,4 +549,13 @@ export interface TmpChatInfoApi extends GeneralCallResult {
     sessionType: number
     sig: string
   }
+}
+
+export interface GetFileListParam {
+  sortType: number
+  fileCount: number
+  startIndex: number
+  sortOrder: number
+  showOnlinedocFolder: number
+  folderId?: string
 }

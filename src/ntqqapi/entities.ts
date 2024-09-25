@@ -28,11 +28,11 @@ import { isNullable } from 'cosmokit'
 export namespace SendElementEntities {
   export function text(content: string): SendTextElement {
     return {
-      elementType: ElementType.TEXT,
+      elementType: ElementType.Text,
       elementId: '',
       textElement: {
         content,
-        atType: AtType.notAt,
+        atType: AtType.Unknown,
         atUid: '',
         atTinyId: '',
         atNtUid: '',
@@ -42,7 +42,7 @@ export namespace SendElementEntities {
 
   export function at(atUid: string, atNtUid: string, atType: AtType, display: string): SendTextElement {
     return {
-      elementType: ElementType.TEXT,
+      elementType: ElementType.Text,
       elementId: '',
       textElement: {
         content: display,
@@ -56,7 +56,7 @@ export namespace SendElementEntities {
 
   export function reply(msgSeq: string, msgId: string, senderUin: string, senderUinStr: string): SendReplyElement {
     return {
-      elementType: ElementType.REPLY,
+      elementType: ElementType.Reply,
       elementId: '',
       replyElement: {
         replayMsgSeq: msgSeq, // raw.msgSeq
@@ -68,7 +68,7 @@ export namespace SendElementEntities {
   }
 
   export async function pic(ctx: Context, picPath: string, summary = '', subType: 0 | 1 = 0, isFlashPic?: boolean): Promise<SendPicElement> {
-    const { md5, fileName, path, fileSize } = await ctx.ntFileApi.uploadFile(picPath, ElementType.PIC, subType)
+    const { md5, fileName, path, fileSize } = await ctx.ntFileApi.uploadFile(picPath, ElementType.Pic, subType)
     if (fileSize === 0) {
       throw '文件异常，大小为 0'
     }
@@ -81,7 +81,7 @@ export namespace SendElementEntities {
       fileName: fileName,
       sourcePath: path,
       original: true,
-      picType: imageSize.type === 'gif' ? PicType.gif : PicType.jpg,
+      picType: imageSize.type === 'gif' ? PicType.GIF : PicType.JPEG,
       picSubType: subType,
       fileUuid: '',
       fileSubId: '',
@@ -91,7 +91,7 @@ export namespace SendElementEntities {
     }
     ctx.logger.info('图片信息', picElement)
     return {
-      elementType: ElementType.PIC,
+      elementType: ElementType.Pic,
       elementId: '',
       picElement,
     }
@@ -104,7 +104,7 @@ export namespace SendElementEntities {
       throw new Error('文件异常，大小为 0')
     }
     const element: SendFileElement = {
-      elementType: ElementType.FILE,
+      elementType: ElementType.File,
       elementId: '',
       fileElement: {
         fileName,
@@ -123,7 +123,7 @@ export namespace SendElementEntities {
       throw `文件${filePath}异常，不存在`
     }
     ctx.logger.info('复制视频到QQ目录', filePath)
-    const { fileName: _fileName, path, fileSize, md5 } = await ctx.ntFileApi.uploadFile(filePath, ElementType.VIDEO)
+    const { fileName: _fileName, path, fileSize, md5 } = await ctx.ntFileApi.uploadFile(filePath, ElementType.Video)
 
     ctx.logger.info('复制视频到QQ目录完成', path)
     if (fileSize === 0) {
@@ -200,7 +200,7 @@ export namespace SendElementEntities {
     thumbPath.set(0, _thumbPath)
     const thumbMd5 = await calculateFileMD5(_thumbPath)
     const element: SendVideoElement = {
-      elementType: ElementType.VIDEO,
+      elementType: ElementType.Video,
       elementId: '',
       videoElement: {
         fileName: fileName || _fileName,
@@ -212,17 +212,7 @@ export namespace SendElementEntities {
         thumbSize,
         thumbWidth: videoInfo.width,
         thumbHeight: videoInfo.height,
-        fileSize: '' + fileSize,
-        // fileUuid: "",
-        // transferStatus: 0,
-        // progress: 0,
-        // invalidState: 0,
-        // fileSubId: "",
-        // fileBizId: null,
-        // originVideoMd5: "",
-        // fileFormat: 2,
-        // import_rich_media_context: null,
-        // sourceVideoCodecFormat: 2
+        fileSize: String(fileSize),
       },
     }
     ctx.logger.info('videoElement', element)
@@ -235,7 +225,7 @@ export namespace SendElementEntities {
       throw '语音转换失败, 请检查语音文件是否正常'
     }
     // log("生成语音", silkPath, duration);
-    const { md5, fileName, path, fileSize } = await ctx.ntFileApi.uploadFile(silkPath, ElementType.PTT)
+    const { md5, fileName, path, fileSize } = await ctx.ntFileApi.uploadFile(silkPath, ElementType.Ptt)
     if (fileSize === 0) {
       throw '文件异常，大小为0'
     }
@@ -243,14 +233,13 @@ export namespace SendElementEntities {
       unlink(silkPath)
     }
     return {
-      elementType: ElementType.PTT,
+      elementType: ElementType.Ptt,
       elementId: '',
       pttElement: {
         fileName: fileName,
         filePath: path,
         md5HexStr: md5,
-        fileSize: fileSize,
-        // duration: Math.max(1, Math.round(fileSize / 1024 / 3)), // 一秒钟大概是3kb大小, 小于1秒的按1秒算
+        fileSize: String(fileSize),
         duration: duration,
         formatType: 1,
         voiceType: 1,
@@ -279,7 +268,7 @@ export namespace SendElementEntities {
       faceType = 3;
     }
     return {
-      elementType: ElementType.FACE,
+      elementType: ElementType.Face,
       elementId: '',
       faceElement: {
         faceIndex: faceId,
@@ -295,7 +284,8 @@ export namespace SendElementEntities {
 
   export function mface(emojiPackageId: number, emojiId: string, key: string, summary?: string): SendMarketFaceElement {
     return {
-      elementType: ElementType.MFACE,
+      elementType: ElementType.MarketFace,
+      elementId: '',
       marketFaceElement: {
         imageWidth: 300,
         imageHeight: 300,
@@ -312,10 +302,10 @@ export namespace SendElementEntities {
     // 随机1到6
     if (isNullable(resultId)) resultId = Math.floor(Math.random() * 6) + 1
     return {
-      elementType: ElementType.FACE,
+      elementType: ElementType.Face,
       elementId: '',
       faceElement: {
-        faceIndex: FaceIndex.dice,
+        faceIndex: FaceIndex.Dice,
         faceType: 3,
         faceText: '[骰子]',
         packId: '1',
@@ -334,7 +324,7 @@ export namespace SendElementEntities {
     // 实际测试并不能控制结果
     if (isNullable(resultId)) resultId = Math.floor(Math.random() * 3) + 1
     return {
-      elementType: ElementType.FACE,
+      elementType: ElementType.Face,
       elementId: '',
       faceElement: {
         faceIndex: FaceIndex.RPS,
@@ -353,7 +343,7 @@ export namespace SendElementEntities {
 
   export function ark(data: string): SendArkElement {
     return {
-      elementType: ElementType.ARK,
+      elementType: ElementType.Ark,
       elementId: '',
       arkElement: {
         bytesData: data,
@@ -365,7 +355,7 @@ export namespace SendElementEntities {
 
   export function shake(): SendFaceElement {
     return {
-      elementType: ElementType.FACE,
+      elementType: ElementType.Face,
       elementId: '',
       faceElement: {
         faceIndex: 1,

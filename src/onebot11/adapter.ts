@@ -185,11 +185,6 @@ class OneBot11Adapter extends Service {
       if (parseInt(message.msgTime) < this.startTime / 1000) {
         continue
       }
-      const peer: Peer = {
-        chatType: message.chatType,
-        peerUid: message.peerUid
-      }
-      message.msgShortId = this.ctx.store.createMsgShortId(peer, message.msgId)
       this.addMsgCache(message)
 
       OB11Entities.message(this.ctx, message)
