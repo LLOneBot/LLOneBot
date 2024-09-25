@@ -649,23 +649,20 @@ export namespace OB11Entities {
     return friends.map(friend)
   }
 
-  export function friendsV2(friends: FriendV2[]): OB11User[] {
-    const data: OB11User[] = []
-    for (const friend of friends) {
-      const sexValue = sex(friend.baseInfo.sex!)
-      data.push({
-        ...omit(friend.baseInfo, ['richBuffer']),
-        ...friend.coreInfo,
-        user_id: parseInt(friend.coreInfo.uin),
-        nickname: friend.coreInfo.nick,
-        remark: friend.coreInfo.nick,
-        sex: sexValue,
-        level: 0,
-        categroyName: friend.categroyName,
-        categoryId: friend.categoryId
-      })
+  export function friendV2(raw: FriendV2): OB11User {
+    return {
+      ...omit(raw.baseInfo, ['richBuffer', 'phoneNum']),
+      ...omit(raw.coreInfo, ['nick']),
+      user_id: parseInt(raw.coreInfo.uin),
+      nickname: raw.coreInfo.nick,
+      remark: raw.coreInfo.remark || raw.coreInfo.nick,
+      sex: sex(raw.baseInfo.sex),
+      level: 0
     }
-    return data
+  }
+
+  export function friendsV2(raw: FriendV2[]): OB11User[] {
+    return raw.map(friendV2)
   }
 
   export function groupMemberRole(role: number): OB11GroupMemberRole | undefined {
