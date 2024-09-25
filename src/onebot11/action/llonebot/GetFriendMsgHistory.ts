@@ -3,7 +3,7 @@ import { OB11Message } from '@/onebot11/types'
 import { ActionName } from '../types'
 import { ChatType, RawMessage } from '@/ntqqapi/types'
 import { OB11Entities } from '@/onebot11/entities'
-import { filterNullable } from '@/common/utils/misc'
+import { filterNullable, parseBool } from '@/common/utils/misc'
 
 interface Payload {
   user_id: number | string
@@ -24,7 +24,7 @@ export class GetFriendMsgHistory extends BaseAction<Payload, Response> {
     message_seq: Schema.union([Number, String]),
     message_id: Schema.union([Number, String]),
     count: Schema.union([Number, String]).default(20),
-    reverseOrder: Schema.boolean().default(false)
+    reverseOrder: Schema.union([Boolean, Schema.transform(String, parseBool)]).default(false)
   })
 
   async _handle(payload: Payload): Promise<Response> {
@@ -38,14 +38,11 @@ export class GetFriendMsgHistory extends BaseAction<Payload, Response> {
       const uid = await this.ctx.ntUserApi.getUidByUin(payload.user_id.toString())
       if (!uid) throw new Error(`记录${payload.user_id}不存在`)
       const isBuddy = await this.ctx.ntFriendApi.isBuddy(uid)
-      const peer = { chatType: isBuddy ? ChatType.friend : ChatType.temp, peerUid: uid }
+      const peer = { chatType: isBuddy ? ChatType.C2C : ChatType.TempC2CFromGroup, peerUid: uid }
       msgList = (await this.ctx.ntMsgApi.getAioFirstViewLatestMsgs(peer, +payload.count)).msgList
     }
     if (msgList.length === 0) throw new Error('未找到消息')
     if (payload.reverseOrder) msgList.reverse()
-    for (const msg of msgList) {
-      msg.msgShortId = this.ctx.store.createMsgShortId({ chatType: msg.chatType, peerUid: msg.peerUid }, msg.msgId)
-    }
     const ob11MsgList = await Promise.all(msgList.map(msg => OB11Entities.message(this.ctx, msg)))
     return { messages: filterNullable(ob11MsgList) }
   }

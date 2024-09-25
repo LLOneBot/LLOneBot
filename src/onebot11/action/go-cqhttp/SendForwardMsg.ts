@@ -36,8 +36,9 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
       contextMode = CreatePeerMode.Private
     }
     const peer = await createPeer(this.ctx, payload, contextMode)
-    const returnMsg = await this.handleForwardNode(peer, payload.messages)
-    return { message_id: returnMsg.msgShortId! }
+    const msg = await this.handleForwardNode(peer, payload.messages)
+    const msgShortId = this.ctx.store.createMsgShortId({ chatType: msg.chatType, peerUid: msg.peerUid }, msg.msgId)
+    return { message_id: msgShortId }
   }
 
   private async cloneMsg(msg: RawMessage): Promise<RawMessage | undefined> {
@@ -52,7 +53,7 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
     this.ctx.logger.info('克隆消息', sendElements)
     try {
       const peer = {
-        chatType: ChatType.friend,
+        chatType: ChatType.C2C,
         peerUid: selfInfo.uid
       }
       const nodeMsg = await this.ctx.ntMsgApi.sendMsg(peer, sendElements)
@@ -66,7 +67,7 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
   // 返回一个合并转发的消息id
   private async handleForwardNode(destPeer: Peer, messageNodes: OB11MessageNode[]) {
     const selfPeer = {
-      chatType: ChatType.friend,
+      chatType: ChatType.C2C,
       peerUid: selfInfo.uid,
     }
     const nodeMsgIds: { msgId: string, peer: Peer }[] = []
@@ -100,7 +101,7 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
               sendElementsSplit[splitIndex] = []
             }
 
-            if (ele.elementType === ElementType.FILE || ele.elementType === ElementType.VIDEO) {
+            if (ele.elementType === ElementType.File || ele.elementType === ElementType.Video) {
               if (sendElementsSplit[splitIndex].length > 0) {
                 splitIndex++
               }
@@ -157,7 +158,6 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
       throw Error('转发消息失败，节点为空')
     }
     const returnMsg = await this.ctx.ntMsgApi.multiForwardMsg(srcPeer!, destPeer, retMsgIds)
-    returnMsg.msgShortId = this.ctx.store.createMsgShortId(destPeer, returnMsg.msgId)
     return returnMsg
   }
 }

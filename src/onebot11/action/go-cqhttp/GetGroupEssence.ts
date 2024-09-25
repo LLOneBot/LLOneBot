@@ -26,7 +26,7 @@ export class GetEssenceMsgList extends BaseAction<Payload, EssenceMsg[]> {
     const groupCode = payload.group_id.toString()
     const peer = {
       guildId: '',
-      chatType: ChatType.group,
+      chatType: ChatType.Group,
       peerUid: groupCode
     }
     const essence = await this.ctx.ntGroupApi.queryCachedEssenceMsg(groupCode)
