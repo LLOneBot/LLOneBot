@@ -436,7 +436,7 @@ export namespace OB11Entities {
           }
         }
         else if (groupElement.type === TipGroupElementType.Ban) {
-          ctx.logger.info('收到群群员禁言提示', groupElement)
+          ctx.logger.info('收到群成员禁言提示', groupElement)
           const memberUid = groupElement.shutUp?.member.uid
           const adminUid = groupElement.shutUp?.admin.uid
           let memberUin: string = ''

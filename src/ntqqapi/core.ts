@@ -215,7 +215,7 @@ class Core extends Service {
       this.ctx.parallel('nt/friend-request', payload.data.buddyReqs)
     })
 
-    invoke('nodeIKernelMsgListener/onRecvSysMsg', [], { classNameIsRegister: true })
+    invoke('nodeIKernelMsgListener/onRecvSysMsg', [], { registerEvent: true })
 
     registerReceiveHook<{
       msgBuf: number[]
