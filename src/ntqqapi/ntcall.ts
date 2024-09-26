@@ -98,7 +98,7 @@ interface NTService {
 interface InvokeOptions<ReturnType> {
   className?: NTClass
   channel?: NTChannel
-  classNameIsRegister?: boolean
+  registerEvent?: boolean
   cbCmd?: string | string[]
   cmdCB?: (payload: ReturnType, result: unknown) => boolean
   afterFirstCmd?: boolean // 是否在methodName调用完之后再去hook cbCmd
@@ -115,7 +115,7 @@ export function invoke<
   const timeout = options.timeout ?? 5000
   const afterFirstCmd = options.afterFirstCmd ?? true
   let eventName = className + '-' + channel[channel.length - 1]
-  if (options.classNameIsRegister) {
+  if (options.registerEvent) {
     eventName += '-register'
   }
   return new Promise<R>((resolve, reject) => {
