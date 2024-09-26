@@ -236,7 +236,7 @@ export class NTQQFileCacheApi extends Service {
   }
 
   scanCache() {
-    invoke<GeneralCallResult>(ReceiveCmdS.CACHE_SCAN_FINISH, [], { classNameIsRegister: true })
+    invoke<GeneralCallResult>(ReceiveCmdS.CACHE_SCAN_FINISH, [], { registerEvent: true })
     return invoke<CacheScanResult>(NTMethod.CACHE_SCAN, [null, null], { timeout: 300 * Time.second })
   }
 

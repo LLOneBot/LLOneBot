@@ -78,3 +78,45 @@ export interface PublishGroupBulletinReq {
   pinned: number
   confirmRequired: number
 }
+
+export interface GroupAllInfo {
+  groupCode: string
+  ownerUid: string
+  groupFlag: number
+  groupFlagExt: number
+  maxMemberNum: number
+  memberNum: number
+  groupOption: number
+  classExt: number
+  groupName: string
+  fingerMemo: string
+  groupQuestion: string
+  certType: number
+  shutUpAllTimestamp: number
+  shutUpMeTimestamp: number //解除禁言时间
+  groupTypeFlag: number
+  privilegeFlag: number
+  groupSecLevel: number
+  groupFlagExt3: number
+  isConfGroup: number
+  isModifyConfGroupFace: number
+  isModifyConfGroupName: number
+  noFigerOpenFlag: number
+  noCodeFingerOpenFlag: number
+  groupFlagExt4: number
+  groupMemo: string
+  cmdUinMsgSeq: number
+  cmdUinJoinTime: number
+  cmdUinUinFlag: number
+  cmdUinMsgMask: number
+  groupSecLevelInfo: number
+  cmdUinPrivilege: number
+  cmdUinFlagEx2: number
+  appealDeadline: number
+  remarkName: number
+  isTop: boolean
+  richFingerMemo: string
+  groupAnswer: string
+  joinGroupAuth: string
+  isAllowModifyConfGroupName: number
+}

@@ -248,8 +248,16 @@ export async function sendMsg(
   sendElements: SendMessageElement[],
   deleteAfterSentFiles: string[]
 ) {
+  if (peer.chatType === ChatType.Group) {
+    const info = await ctx.ntGroupApi.getGroupAllInfo(peer.peerUid)
+      .catch(() => undefined)
+    const shutUpMeTimestamp = info?.groupAll.shutUpMeTimestamp
+    if (shutUpMeTimestamp && shutUpMeTimestamp * 1000 > Date.now()) {
+      throw new Error('当前处于被禁言状态')
+    }
+  }
   if (!sendElements.length) {
-    throw '消息体无法解析，请检查是否发送了不支持的消息类型'
+    throw new Error('消息体无法解析，请检查是否发送了不支持的消息类型')
   }
   // 计算发送的文件大小
   let totalSize = 0

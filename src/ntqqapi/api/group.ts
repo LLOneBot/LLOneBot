@@ -7,7 +7,8 @@ import {
   GroupRequestOperateTypes,
   GetFileListParam,
   OnGroupFileInfoUpdateParams,
-  PublishGroupBulletinReq
+  PublishGroupBulletinReq,
+  GroupAllInfo
 } from '../types'
 import { invoke, NTClass, NTMethod } from '../ntcall'
 import { GeneralCallResult } from '../services'
@@ -104,7 +105,7 @@ export class NTQQGroupApi extends Service {
   }
 
   async getSingleScreenNotifies(num: number) {
-    invoke(ReceiveCmdS.GROUP_NOTIFY, [], { classNameIsRegister: true })
+    invoke(ReceiveCmdS.GROUP_NOTIFY, [], { registerEvent: true })
     return (await invoke<GroupNotifies>(
       'nodeIKernelGroupService/getSingleScreenNotifies',
       [{ doubt: false, startSeq: '', number: num }, null],
@@ -272,7 +273,7 @@ export class NTQQGroupApi extends Service {
   }
 
   async getGroupFileList(groupId: string, fileListForm: GetFileListParam) {
-    invoke('nodeIKernelMsgListener/onGroupFileInfoUpdate', [], { classNameIsRegister: true })
+    invoke('nodeIKernelMsgListener/onGroupFileInfoUpdate', [], { registerEvent: true })
     const data = await invoke<{ fileInfo: OnGroupFileInfoUpdateParams }>(
       'nodeIKernelRichMediaService/getGroupFileList',
       [
@@ -325,5 +326,25 @@ export class NTQQGroupApi extends Service {
         groupCode: [+groupCode]
       }
     }, null])
+  }
+
+  async getGroupAllInfo(groupCode: string, timeout = 1000) {
+    invoke('nodeIKernelGroupListener/onGroupAllInfoChange', [], { registerEvent: true })
+    return await invoke<{ groupAll: GroupAllInfo }>(
+      'nodeIKernelGroupService/getGroupAllInfo',
+      [
+        {
+          groupCode,
+          source: 4
+        },
+        null
+      ],
+      {
+        cbCmd: 'nodeIKernelGroupListener/onGroupAllInfoChange',
+        afterFirstCmd: false,
+        cmdCB: payload => payload.groupAll.groupCode === groupCode,
+        timeout
+      }
+    )
   }
 }
