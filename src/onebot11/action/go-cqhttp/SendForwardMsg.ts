@@ -10,7 +10,8 @@ import { convertMessage2List, createSendElements, sendMsg, createPeer, CreatePee
 interface Payload {
   user_id?: string | number
   group_id?: string | number
-  messages: OB11MessageNode[]
+  messages?: OB11MessageNode[]
+  message?: OB11MessageNode[]
   message_type?: 'group' | 'private'
 }
 
@@ -20,15 +21,20 @@ interface Response {
 }
 
 export class SendForwardMsg extends BaseAction<Payload, Response> {
-  actionName = ActionName.GoCQHTTP_SendForwardMsg
+  actionName = ActionName.SendForwardMsg
   payloadSchema = Schema.object({
     user_id: Schema.union([Number, String]),
     group_id: Schema.union([Number, String]),
-    messages: Schema.array(Schema.any()).required(),
+    messages: Schema.array(Schema.any()),
+    message: Schema.array(Schema.any()),
     message_type: Schema.union(['group', 'private'])
   })
 
   protected async _handle(payload: Payload) {
+    const messages = payload.messages ?? payload.message
+    if (!messages) {
+      throw new Error('未指定消息内容')
+    }
     let contextMode = CreatePeerMode.Normal
     if (payload.message_type === 'group') {
       contextMode = CreatePeerMode.Group
@@ -36,7 +42,7 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
       contextMode = CreatePeerMode.Private
     }
     const peer = await createPeer(this.ctx, payload, contextMode)
-    const msg = await this.handleForwardNode(peer, payload.messages)
+    const msg = await this.handleForwardNode(peer, messages)
     const msgShortId = this.ctx.store.createMsgShortId({ chatType: msg.chatType, peerUid: msg.peerUid }, msg.msgId)
     return { message_id: msgShortId }
   }
