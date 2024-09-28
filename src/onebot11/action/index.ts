@@ -70,6 +70,7 @@ import { GetFriendWithCategory } from './llonebot/GetFriendWithCategory'
 import { UploadGroupFile } from './go-cqhttp/UploadGroupFile'
 import { UploadPrivateFile } from './go-cqhttp/UploadPrivateFile'
 import { GetGroupFileUrl } from './go-cqhttp/GetGroupFileUrl'
+import { GetGroupNotice } from './go-cqhttp/GetGroupNotice'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -144,7 +145,8 @@ export function initActionMap(adapter: Adapter) {
     new GetGroupRootFiles(adapter),
     new SendGroupNotice(adapter),
     new GetGroupFilesByFolder(adapter),
-    new GetGroupFileUrl(adapter)
+    new GetGroupFileUrl(adapter),
+    new GetGroupNotice(adapter),
   ]
   const actionMap = new Map<string, BaseAction<any, unknown>>()
   for (const action of actionHandlers) {

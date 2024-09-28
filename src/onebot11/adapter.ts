@@ -5,7 +5,6 @@ import {
   GroupNotifyType,
   RawMessage,
   BuddyReqType,
-  Peer,
   FriendRequest,
   GroupMember,
   GroupMemberRole,
