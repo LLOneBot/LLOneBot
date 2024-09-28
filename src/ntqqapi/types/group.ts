@@ -22,9 +22,9 @@ export interface Group {
   hasModifyConfGroupName: boolean
   remarkName: string
   hasMemo: boolean
-  groupShutupExpireTime: string //"0",
-  personShutupExpireTime: string //"0",
-  discussToGroupUin: string //"0",
+  groupShutupExpireTime: string
+  personShutupExpireTime: string
+  discussToGroupUin: string
   discussToGroupMaxMsgSeq: number
   discussToGroupTime: number
   groupFlagExt: number //1073938496,
@@ -32,8 +32,8 @@ export interface Group {
   groupCreditLevel: number //0,
   groupFlagExt3: number //0,
   groupOwnerId: {
-    memberUin: string //"0",
-    memberUid: string //"u_fbf8N7aeuZEnUiJAbQ9R8Q"
+    memberUin: string
+    memberUid: string
   }
   members: GroupMember[] // 原始数据是没有这个的，为了方便自己加了这个字段
   createTime: string
@@ -119,4 +119,56 @@ export interface GroupAllInfo {
   groupAnswer: string
   joinGroupAuth: string
   isAllowModifyConfGroupName: number
+}
+
+export interface GroupBulletinListResult {
+  groupCode: string
+  srvCode: number
+  readOnly: number
+  role: number
+  inst: unknown[]
+  feeds: {
+    uin: string
+    feedId: string
+    publishTime: string
+    msg: {
+      text: string
+      textFace: string
+      pics: {
+        id: string
+        width: number
+        height: number
+      }[]
+      title: string
+    }
+    type: number
+    fn: number
+    cn: number
+    vn: number
+    settings: {
+      isShowEditCard: number
+      remindTs: number
+      tipWindowType: number
+      confirmRequired: number
+    }
+    pinned: number
+    readNum: number
+    is_read: number
+    is_all_confirm: number
+  }[]
+  groupInfo: {
+    groupCode: string
+    classId: number
+  }
+  gln: number
+  tst: number
+  publisherInfos: {
+    uin: string
+    nick: string
+    avatar: string
+  }[]
+  server_time: string
+  svrt: string
+  nextIndex: number
+  jointime: string
 }

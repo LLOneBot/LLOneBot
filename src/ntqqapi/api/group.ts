@@ -8,7 +8,8 @@ import {
   GetFileListParam,
   PublishGroupBulletinReq,
   GroupAllInfo,
-  GroupFileInfo
+  GroupFileInfo,
+  GroupBulletinListResult
 } from '../types'
 import { invoke, NTClass, NTMethod } from '../ntcall'
 import { GeneralCallResult } from '../services'
@@ -344,6 +345,35 @@ export class NTQQGroupApi extends Service {
         afterFirstCmd: false,
         cmdCB: payload => payload.groupAll.groupCode === groupCode,
         timeout
+      }
+    )
+  }
+
+  async getGroupBulletinList(groupCode: string) {
+    invoke('nodeIKernelGroupListener/onGetGroupBulletinListResult', [], { registerEvent: true })
+    const ntUserApi = this.ctx.get('ntUserApi')!
+    const psKey = (await ntUserApi.getPSkey(['qun.qq.com'])).domainPskeyMap.get('qun.qq.com')!
+    return await invoke<{
+      groupCode: string
+      context: string
+      result: GroupBulletinListResult
+    }>(
+      'nodeIKernelGroupService/getGroupBulletinList',
+      [{
+        groupCode,
+        psKey,
+        context: '',
+        req: {
+          startIndex: -1,
+          num: 20,
+          needInstructionsForJoinGroup: 1,
+          needPublisherInfo: 1
+        }
+      }],
+      {
+        cbCmd: 'nodeIKernelGroupListener/onGetGroupBulletinListResult',
+        cmdCB: payload => payload.groupCode === groupCode,
+        afterFirstCmd: false
       }
     )
   }
