@@ -338,7 +338,6 @@ export namespace OB11Entities {
             key: marketFaceElement.key
           }
         }
-        //mFaceCache.set(emojiId, element.marketFaceElement.faceName!)
       }
       else if (element.markdownElement) {
         const { markdownElement } = element

@@ -56,20 +56,8 @@ export enum GroupRequestOperateTypes {
 }
 
 export enum BuddyReqType {
-  KMEINITIATOR,
-  KPEERINITIATOR,
-  KMEAGREED,
-  KMEAGREEDANDADDED,
-  KPEERAGREED,
-  KPEERAGREEDANDADDED,
-  KPEERREFUSED,
-  KMEREFUSED,
-  KMEIGNORED,
-  KMEAGREEANYONE,
-  KMESETQUESTION,
-  KMEAGREEANDADDFAILED,
-  KMSGINFO,
-  KMEINITIATORWAITPEERCONFIRM
+  MsgInfo = 12,
+  MeInitiatorWaitPeerConfirm = 13,
 }
 
 export interface FriendRequest {

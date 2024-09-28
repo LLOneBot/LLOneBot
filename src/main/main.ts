@@ -191,7 +191,9 @@ function onLoad() {
     ctx.plugin(SQLiteDriver, {
       path: path.join(dbDir, `${selfInfo.uin}.db`)
     })
-    ctx.plugin(Store)
+    ctx.plugin(Store, {
+      msgCacheExpire: config.msgCacheExpire! * 1000
+    })
     ctx.start()
     ipcMain.on(CHANNEL_SET_CONFIG_CONFIRMED, (event, config: LLOBConfig) => {
       ctx.parallel('llonebot/config-updated', config)
