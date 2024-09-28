@@ -24,6 +24,7 @@ export enum ActionName {
   FetchEmojiLike = 'fetch_emoji_like',
   FetchCustomFace = 'fetch_custom_face',
   GetFriendMsgHistory = 'get_friend_msg_history',
+  SendForwardMsg = 'send_forward_msg',
   // onebot 11
   SendLike = 'send_like',
   GetLoginInfo = 'get_login_info',
@@ -58,7 +59,6 @@ export enum ActionName {
   ForwardFriendSingleMsg = 'forward_friend_single_msg',
   ForwardGroupSingleMsg = 'forward_group_single_msg',
   // 以下为go-cqhttp api
-  GoCQHTTP_SendForwardMsg = 'send_forward_msg',
   GoCQHTTP_SendGroupForwardMsg = 'send_group_forward_msg',
   GoCQHTTP_SendPrivateForwardMsg = 'send_private_forward_msg',
   GoCQHTTP_GetStrangerInfo = 'get_stranger_info',
@@ -82,5 +82,6 @@ export enum ActionName {
   GoCQHTTP_GetGroupRootFiles = 'get_group_root_files',
   GoCQHTTP_SendGroupNotice = '_send_group_notice',
   GoCQHTTP_GetGroupFilesByFolder = 'get_group_files_by_folder',
-  GoCQHTTP_GetGroupFileUrl = 'get_group_file_url'
+  GoCQHTTP_GetGroupFileUrl = 'get_group_file_url',
+  GoCQHTTP_GetGroupNotice = '_get_group_notice',
 }
