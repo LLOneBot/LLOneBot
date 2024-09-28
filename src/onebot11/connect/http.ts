@@ -1,7 +1,7 @@
 import http from 'node:http'
 import cors from 'cors'
 import crypto from 'node:crypto'
-import express, { Express, Request, Response } from 'express'
+import express, { Express, Request, Response, NextFunction } from 'express'
 import { BaseAction } from '../action/BaseAction'
 import { Context } from 'cordis'
 import { llonebotError, selfInfo } from '@/common/globalVars'
@@ -76,7 +76,7 @@ class OB11Http {
     Object.assign(this.config, config)
   }
 
-  private authorize(req: Request, res: Response, next: () => void) {
+  private authorize(req: Request, res: Response, next: NextFunction) {
     const serverToken = this.config.token
     if (!serverToken) return next()
 
@@ -95,12 +95,13 @@ class OB11Http {
     }
 
     if (clientToken !== serverToken) {
-      return res.status(403).json({ message: 'token verify failed!' })
+      res.status(403).json({ message: 'token verify failed!' })
+    } else {
+      next()
     }
-    next()
   }
 
-  private async handleRequest(req: Request, res: Response, next: () => void) {
+  private async handleRequest(req: Request, res: Response, next: NextFunction) {
     if (req.path === '/') return next()
     let payload = req.body
     if (req.method === 'GET') {

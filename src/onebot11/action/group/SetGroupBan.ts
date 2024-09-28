@@ -4,7 +4,7 @@ import { ActionName } from '../types'
 interface Payload {
   group_id: number | string
   user_id: number | string
-  duration: number
+  duration: number | string
 }
 
 export default class SetGroupBan extends BaseAction<Payload, null> {
@@ -12,7 +12,7 @@ export default class SetGroupBan extends BaseAction<Payload, null> {
   payloadSchema = Schema.object({
     group_id: Schema.union([Number, String]).required(),
     user_id: Schema.union([Number, String]).required(),
-    duration: Schema.number().default(30 * 60)
+    duration: Schema.union([Number, String]).default(30 * 60)
   })
 
   protected async _handle(payload: Payload): Promise<null> {
@@ -21,7 +21,7 @@ export default class SetGroupBan extends BaseAction<Payload, null> {
     const uid = await this.ctx.ntUserApi.getUidByUin(uin, groupCode)
     if (!uid) throw new Error('无法获取用户信息')
     await this.ctx.ntGroupApi.banMember(groupCode, [
-      { uid, timeStamp: payload.duration },
+      { uid, timeStamp: +payload.duration },
     ])
     return null
   }
