@@ -1,4 +1,4 @@
-import { Peer } from '@/ntqqapi/types'
+import { Peer, RawMessage } from '@/ntqqapi/types'
 import { createHash } from 'node:crypto'
 import { LimitedHashTable } from '@/common/utils/table'
 import { FileCacheV2 } from '@/common/types'
@@ -24,13 +24,15 @@ interface MsgInfo {
   peer: Peer
 }
 
-export default class Store extends Service {
+class Store extends Service {
   static inject = ['database', 'model']
   private cache: LimitedHashTable<string, number>
+  private messages: Map<string, RawMessage>
 
-  constructor(protected ctx: Context) {
+  constructor(protected ctx: Context, public config: Store.Config) {
     super(ctx, 'store', true)
     this.cache = new LimitedHashTable(1000)
+    this.messages = new Map()
     this.initDatabase()
   }
 
@@ -123,4 +125,29 @@ export default class Store extends Service {
   getFileCacheById(fileUuid: string) {
     return this.ctx.database.get('file_v2', { fileUuid })
   }
+
+  async addMsgCache(msg: RawMessage) {
+    const expire = this.config.msgCacheExpire
+    if (expire === 0) {
+      return
+    }
+    const id = msg.msgId
+    this.messages.set(id, msg)
+    setTimeout(() => {
+      this.messages.delete(id)
+    }, expire)
+  }
+
+  getMsgCache(msgId: string) {
+    return this.messages.get(msgId)
+  }
 }
+
+namespace Store {
+  export interface Config {
+    /** 单位为毫秒 */
+    msgCacheExpire: number
+  }
+}
+
+export default Store
