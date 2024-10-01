@@ -25,6 +25,8 @@ export enum ActionName {
   FetchCustomFace = 'fetch_custom_face',
   GetFriendMsgHistory = 'get_friend_msg_history',
   SendForwardMsg = 'send_forward_msg',
+  SetMsgEmojiLike = 'set_msg_emoji_like',
+  GetRobotUinRange = 'get_robot_uin_range',
   // onebot 11
   SendLike = 'send_like',
   GetLoginInfo = 'get_login_info',
@@ -38,7 +40,6 @@ export enum ActionName {
   SendGroupMsg = 'send_group_msg',
   SendPrivateMsg = 'send_private_msg',
   DeleteMsg = 'delete_msg',
-  SetMsgEmojiLike = 'set_msg_emoji_like',
   SetGroupAddRequest = 'set_group_add_request',
   SetFriendAddRequest = 'set_friend_add_request',
   SetGroupLeave = 'set_group_leave',

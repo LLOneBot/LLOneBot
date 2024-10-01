@@ -45,7 +45,7 @@ import { GetGroupMsgHistory } from './go-cqhttp/GetGroupMsgHistory'
 import GetFile from './file/GetFile'
 import { GetForwardMsg } from './go-cqhttp/GetForwardMsg'
 import { GetCookies } from './user/GetCookie'
-import { SetMsgEmojiLike } from './msg/SetMsgEmojiLike'
+import { SetMsgEmojiLike } from './llonebot/SetMsgEmojiLike'
 import { ForwardFriendSingleMsg, ForwardGroupSingleMsg } from './msg/ForwardSingleMsg'
 import { GetEssenceMsgList } from './go-cqhttp/GetGroupEssence'
 import { GetGroupHonorInfo } from './group/GetGroupHonorInfo'
@@ -71,6 +71,7 @@ import { UploadGroupFile } from './go-cqhttp/UploadGroupFile'
 import { UploadPrivateFile } from './go-cqhttp/UploadPrivateFile'
 import { GetGroupFileUrl } from './go-cqhttp/GetGroupFileUrl'
 import { GetGroupNotice } from './go-cqhttp/GetGroupNotice'
+import { GetRobotUinRange } from './llonebot/GetRobotUinRange'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -87,6 +88,8 @@ export function initActionMap(adapter: Adapter) {
     new GetFriendMsgHistory(adapter),
     new FetchEmojiLike(adapter),
     new FetchCustomFace(adapter),
+    new SetMsgEmojiLike(adapter),
+    new GetRobotUinRange(adapter),
     // onebot11
     new SendLike(adapter),
     new GetMsg(adapter),
@@ -117,7 +120,6 @@ export function initActionMap(adapter: Adapter) {
     new GetRecord(adapter),
     new CleanCache(adapter),
     new GetCookies(adapter),
-    new SetMsgEmojiLike(adapter),
     new ForwardFriendSingleMsg(adapter),
     new ForwardGroupSingleMsg(adapter),
     // go-cqhttp
