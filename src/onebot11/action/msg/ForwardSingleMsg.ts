@@ -19,8 +19,8 @@ abstract class ForwardSingleMsg extends BaseAction<Payload, null> {
     }
     const peer = await createPeer(this.ctx, payload)
     const ret = await this.ctx.ntMsgApi.forwardMsg(msg.peer, peer, [msg.msgId])
-    if (ret.result !== 0) {
-      throw new Error(`转发消息失败 ${ret.errMsg}`)
+    if (ret.length === 0) {
+      throw new Error(`转发消息失败`)
     }
     return null
   }

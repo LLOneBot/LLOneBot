@@ -13,7 +13,8 @@ import {
   NodeIKernelUixConvertService,
   NodeIKernelRichMediaService,
   NodeIKernelTicketService,
-  NodeIKernelTipOffService
+  NodeIKernelTipOffService,
+  NodeIKernelRobotService
 } from './services'
 
 export enum NTClass {
@@ -39,7 +40,6 @@ export enum NTMethod {
   MEDIA_FILE_PATH = 'nodeIKernelMsgService/getRichMediaFilePathForGuild',
   RECALL_MSG = 'nodeIKernelMsgService/recallMsg',
   EMOJI_LIKE = 'nodeIKernelMsgService/setMsgEmojiLikes',
-  FORWARD_MSG = 'nodeIKernelMsgService/forwardMsgWithComment',
 
   SELF_INFO = 'fetchAuthData',
   FILE_TYPE = 'getFileType',
@@ -93,6 +93,7 @@ interface NTService {
   nodeIKernelRichMediaService: NodeIKernelRichMediaService
   nodeIKernelTicketService: NodeIKernelTicketService
   nodeIKernelTipOffService: NodeIKernelTipOffService
+  nodeIKernelRobotService: NodeIKernelRobotService
 }
 
 interface InvokeOptions<ReturnType> {

@@ -30,9 +30,6 @@ class GetMsg extends BaseAction<PayloadType, OB11Message> {
     if (!retMsg) {
       throw new Error('消息为空')
     }
-    retMsg.message_id = this.ctx.store.createMsgShortId(peer, msg.msgId)
-    retMsg.message_seq = retMsg.message_id
-    retMsg.real_id = retMsg.message_id
     return retMsg
   }
 }

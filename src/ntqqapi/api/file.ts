@@ -16,7 +16,6 @@ import path from 'node:path'
 import { existsSync } from 'node:fs'
 import { ReceiveCmdS } from '../hook'
 import { RkeyManager } from '@/ntqqapi/helper/rkey'
-import { getSession } from '@/ntqqapi/wrapper'
 import { OnRichMediaDownloadCompleteParams, Peer } from '@/ntqqapi/types/msg'
 import { calculateFileMD5 } from '@/common/utils/file'
 import { fileTypeFromFile } from 'file-type'
@@ -39,39 +38,28 @@ export class NTQQFileApi extends Service {
     this.rkeyManager = new RkeyManager(ctx, 'https://llob.linyuchen.net/rkey')
   }
 
-  async getVideoUrl(peer: Peer, msgId: string, elementId: string) {
-    const session = getSession()
-    if (session) {
-      return (await session.getRichMediaService().getVideoPlayUrlV2(
-        peer,
-        msgId,
-        elementId,
-        0,
-        { downSourceType: 1, triggerType: 1 }
-      )).urlResult.domainUrl[0]?.url
-    } else {
-      const data = await invoke('nodeIKernelRichMediaService/getVideoPlayUrlV2', [{
-        peer,
-        msgId,
-        elemId: elementId,
-        videoCodecFormat: 0,
-        exParams: {
-          downSourceType: 1,
-          triggerType: 1
-        },
-      }, null])
-      if (data.result !== 0) {
-        this.ctx.logger.warn('getVideoUrl', data)
+  async getVideoUrl(peer: Peer, msgId: string, elementId: string): Promise<string | undefined> {
+    const data = await invoke('nodeIKernelRichMediaService/getVideoPlayUrlV2', [{
+      peer,
+      msgId,
+      elemId: elementId,
+      videoCodecFormat: 0,
+      params: {
+        downSourceType: 1,
+        triggerType: 1
       }
-      return data.urlResult.domainUrl[0]?.url
+    }])
+    if (data.result !== 0) {
+      this.ctx.logger.warn('getVideoUrl', data)
     }
+    return data.urlResult.domainUrl[0]?.url
   }
 
   async getFileType(filePath: string) {
     return fileTypeFromFile(filePath)
   }
 
-  // 上传文件到QQ的文件夹
+  /** 上传文件到 QQ 的文件夹 */
   async uploadFile(filePath: string, elementType = ElementType.Pic, elementSubType = 0) {
     const fileMd5 = await calculateFileMD5(filePath)
     let fileName = path.basename(filePath)
@@ -174,8 +162,8 @@ export class NTQQFileApi extends Service {
     if (url) {
       const parsedUrl = new URL(IMAGE_HTTP_HOST + url) //临时解析拼接
       const imageAppid = parsedUrl.searchParams.get('appid')
-      const isNewPic = imageAppid && ['1406', '1407'].includes(imageAppid)
-      if (isNewPic) {
+      const isNTPic = imageAppid && ['1406', '1407'].includes(imageAppid)
+      if (isNTPic) {
         let rkey = parsedUrl.searchParams.get('rkey')
         if (rkey) {
           return IMAGE_HTTP_HOST_NT + url

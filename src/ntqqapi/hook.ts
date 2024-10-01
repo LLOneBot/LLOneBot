@@ -26,7 +26,6 @@ export enum ReceiveCmdS {
   SELF_STATUS = 'nodeIKernelProfileListener/onSelfStatusChanged',
   CACHE_SCAN_FINISH = 'nodeIKernelStorageCleanListener/onFinishScan',
   MEDIA_UPLOAD_COMPLETE = 'nodeIKernelMsgListener/onRichMediaUploadComplete',
-  SKEY_UPDATE = 'onSkeyUpdate',
 }
 
 type NTReturnData = [
@@ -96,7 +95,7 @@ export function hookNTQQApiCall(window: BrowserWindow, onlyLog: boolean) {
       const isLogger = args[3]?.[0]?.eventName?.startsWith('ns-LoggerApi')
       if (!isLogger) {
         try {
-          logHook && log('call NTQQ api', thisArg, args)
+          logHook && log('call NTQQ api', args)
         } catch (e) { }
         if (!onlyLog) {
           try {
