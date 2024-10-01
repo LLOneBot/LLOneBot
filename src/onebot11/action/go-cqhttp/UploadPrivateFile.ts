@@ -1,6 +1,6 @@
 import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
-import { SendElementEntities } from '@/ntqqapi/entities'
+import { SendElement } from '@/ntqqapi/entities'
 import { uri2local } from '@/common/utils'
 import { sendMsg, createPeer, CreatePeerMode } from '../../helper/createMessage'
 
@@ -23,7 +23,7 @@ export class UploadPrivateFile extends BaseAction<UploadPrivateFilePayload, null
     if (!success) {
       throw new Error(errMsg)
     }
-    const sendFileEle = await SendElementEntities.file(this.ctx, path, payload.name || fileName)
+    const sendFileEle = await SendElement.file(this.ctx, path, payload.name || fileName)
     const peer = await createPeer(this.ctx, payload, CreatePeerMode.Private)
     await sendMsg(this.ctx, peer, [sendFileEle], [])
     return null

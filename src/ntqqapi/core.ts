@@ -2,7 +2,6 @@ import { unlink } from 'node:fs/promises'
 import { Service, Context } from 'cordis'
 import { registerCallHook, registerReceiveHook, ReceiveCmdS } from './hook'
 import { Config as LLOBConfig } from '../common/types'
-import { llonebotError } from '../common/globalVars'
 import { isNumeric } from '../common/utils/misc'
 import { NTMethod } from './ntcall'
 import {
@@ -13,7 +12,8 @@ import {
   GroupMember,
   CategoryFriend,
   SimpleInfo,
-  ChatType
+  ChatType,
+  BuddyReqType
 } from './types'
 import { selfInfo } from '../common/globalVars'
 import { version } from '../version'
@@ -24,25 +24,26 @@ declare module 'cordis' {
     app: Core
   }
   interface Events {
-    'nt/message-created': (input: RawMessage[]) => void
+    'nt/message-created': (input: RawMessage) => void
     'nt/message-deleted': (input: RawMessage) => void
     'nt/message-sent': (input: RawMessage) => void
-    'nt/group-notify': (input: GroupNotify[]) => void
-    'nt/friend-request': (input: FriendRequest[]) => void
+    'nt/group-notify': (input: GroupNotify) => void
+    'nt/friend-request': (input: FriendRequest) => void
     'nt/group-member-info-updated': (input: { groupCode: string, members: GroupMember[] }) => void
     'nt/system-message-created': (input: Uint8Array) => void
   }
 }
 
 class Core extends Service {
-  static inject = ['ntMsgApi', 'ntFriendApi', 'ntGroupApi']
+  static inject = ['ntMsgApi', 'ntFriendApi', 'ntGroupApi', 'store']
+  public startTime = 0
 
   constructor(protected ctx: Context, public config: Core.Config) {
     super(ctx, 'app', true)
   }
 
   public start() {
-    llonebotError.otherError = ''
+    this.startTime = Date.now()
     this.registerListener()
     this.ctx.logger.info(`LLOneBot/${version}`)
     this.ctx.on('llonebot/config-updated', input => {
@@ -121,7 +122,7 @@ class Core extends Service {
               this.ctx.ntMsgApi.getMsgHistory(peer, '', 20).then(({ msgList }) => {
                 const lastTempMsg = msgList.at(-1)
                 if (Date.now() / 1000 - Number(lastTempMsg?.msgTime) < 5) {
-                  this.ctx.parallel('nt/message-created', [lastTempMsg!])
+                  this.ctx.parallel('nt/message-created', lastTempMsg!)
                 }
               })
             })
@@ -161,7 +162,16 @@ class Core extends Service {
     })
 
     registerReceiveHook<{ msgList: RawMessage[] }>([ReceiveCmdS.NEW_MSG, ReceiveCmdS.NEW_ACTIVE_MSG], payload => {
-      this.ctx.parallel('nt/message-created', payload.msgList)
+      for (const message of payload.msgList) {
+        // 过滤启动之前的消息
+        if (parseInt(message.msgTime) < this.startTime / 1000) {
+          continue
+        }
+        if (message.senderUin && message.senderUin !== '0') {
+          this.ctx.store.addMsgCache(message)
+        }
+        this.ctx.parallel('nt/message-created', message)
+      }
     })
 
     const sentMsgIds = new Map<string, boolean>()
@@ -199,20 +209,28 @@ class Core extends Service {
         } catch (e) {
           return
         }
-        const list = notifies.filter(v => {
-          const flag = v.group.groupCode + '|' + v.seq + '|' + v.type
-          if (groupNotifyFlags.includes(flag)) {
-            return false
+        for (const notify of notifies) {
+          const flag = notify.group.groupCode + '|' + notify.seq + '|' + notify.type
+          const notifyTime = parseInt(notify.seq) / 1000
+          if (groupNotifyFlags.includes(flag) || notifyTime < this.startTime) {
+            continue
           }
           groupNotifyFlags.push(flag)
-          return true
-        })
-        this.ctx.parallel('nt/group-notify', list)
+          this.ctx.parallel('nt/group-notify', notify)
+        }
       }
     })
 
     registerReceiveHook<FriendRequestNotify>(ReceiveCmdS.FRIEND_REQUEST, payload => {
-      this.ctx.parallel('nt/friend-request', payload.data.buddyReqs)
+      for (const req of payload.data.buddyReqs) {
+        if (!!req.isInitiator || (req.isDecide && req.reqType !== BuddyReqType.MeInitiatorWaitPeerConfirm)) {
+          continue
+        }
+        if (+req.reqTime < this.startTime / 1000) {
+          continue
+        }
+        this.ctx.parallel('nt/friend-request', req)
+      }
     })
 
     invoke('nodeIKernelMsgListener/onRecvSysMsg', [], { registerEvent: true })

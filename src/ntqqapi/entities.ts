@@ -23,9 +23,7 @@ import { encodeSilk } from '../common/utils/audio'
 import { Context } from 'cordis'
 import { isNullable } from 'cosmokit'
 
-//export const mFaceCache = new Map<string, string>() // emojiId -> faceName
-
-export namespace SendElementEntities {
+export namespace SendElement {
   export function text(content: string): SendTextElement {
     return {
       elementType: ElementType.Text,

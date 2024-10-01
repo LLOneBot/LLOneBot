@@ -31,30 +31,18 @@ export class RkeyManager {
 
   isExpired(): boolean {
     const now = new Date().getTime() / 1000
-    // console.log(`now: ${now}, expired_time: ${this.rkeyData.expired_time}`)
     return now > this.rkeyData.expired_time
   }
 
   async refreshRkey() {
-    //刷新rkey
     this.rkeyData = await this.fetchServerRkey()
   }
 
-  async fetchServerRkey() {
-    return new Promise<ServerRkeyData>((resolve, reject) => {
-      fetch(this.serverUrl)
-        .then(response => {
-          if (!response.ok) {
-            return reject(response.statusText) // 请求失败，返回错误信息
-          }
-          return response.json() // 解析 JSON 格式的响应体
-        })
-        .then(data => {
-          resolve(data)
-        })
-        .catch(error => {
-          reject(error)
-        })
-    })
+  async fetchServerRkey(): Promise<ServerRkeyData> {
+    const response = await fetch(this.serverUrl)
+    if (!response.ok) {
+      throw new Error(response.statusText)
+    }
+    return response.json()
   }
 }

@@ -25,14 +25,11 @@ class GetMsg extends BaseAction<PayloadType, OB11Message> {
       peerUid: msgInfo.peer.peerUid,
       chatType: msgInfo.peer.chatType
     }
-    const msg = this.adapter.getMsgCache(msgInfo.msgId) ?? (await this.ctx.ntMsgApi.getMsgsByMsgId(peer, [msgInfo.msgId])).msgList[0]
+    const msg = this.ctx.store.getMsgCache(msgInfo.msgId) ?? (await this.ctx.ntMsgApi.getMsgsByMsgId(peer, [msgInfo.msgId])).msgList[0]
     const retMsg = await OB11Entities.message(this.ctx, msg)
     if (!retMsg) {
       throw new Error('消息为空')
     }
-    retMsg.message_id = this.ctx.store.createMsgShortId(peer, msg.msgId)
-    retMsg.message_seq = retMsg.message_id
-    retMsg.real_id = retMsg.message_id
     return retMsg
   }
 }
