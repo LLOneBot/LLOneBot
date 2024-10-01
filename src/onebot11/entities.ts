@@ -20,7 +20,7 @@ import {
   Sex,
   TipGroupElementType,
   User,
-  FriendV2
+  SimpleInfo
 } from '../ntqqapi/types'
 import { EventType } from './event/OB11BaseEvent'
 import { encodeCQCode } from './cqcode'
@@ -338,7 +338,6 @@ export namespace OB11Entities {
             key: marketFaceElement.key
           }
         }
-        //mFaceCache.set(emojiId, element.marketFaceElement.faceName!)
       }
       else if (element.markdownElement) {
         const { markdownElement } = element
@@ -519,11 +518,11 @@ export namespace OB11Entities {
             if (!replyMsgList?.length) {
               return
             }
-            const shortId = ctx.store.getShortIdByMsgInfo(peer, replyMsgList[0].msgId)
+            const shortId = ctx.store.createMsgShortId(peer, replyMsgList[0].msgId)
             return new OB11GroupMsgEmojiLikeEvent(
               parseInt(msg.peerUid),
               parseInt(senderUin),
-              shortId!,
+              shortId,
               [{
                 emoji_id: emojiId,
                 count: 1,
@@ -569,8 +568,7 @@ export namespace OB11Entities {
                 pokedetail
               )
             }
-          }
-          if (grayTipElement.jsonGrayTipElement?.busiId === '2401' && json.items[2]) {
+          } else if (grayTipElement.jsonGrayTipElement?.busiId === '2401' && json.items[2]) {
             ctx.logger.info('收到群精华消息', json)
             const searchParams = new URL(json.items[2].jp).searchParams
             const msgSeq = searchParams.get('seq')
@@ -592,8 +590,7 @@ export namespace OB11Entities {
               parseInt(essence.items[0]?.msgSenderUin ?? sourceMsg.senderUin),
               parseInt(essence.items[0]?.opUin ?? '0'),
             )
-          }
-          if (grayTipElement.jsonGrayTipElement?.busiId === '2407') {
+          } else if (grayTipElement.jsonGrayTipElement?.busiId === '2407') {
             const memberUin = json.items[1].param[0]
             const title = json.items[3].txt
             ctx.logger.info('收到群成员新头衔消息', json)
@@ -603,6 +600,11 @@ export namespace OB11Entities {
               }
             })
             return new OB11GroupTitleEvent(parseInt(msg.peerUid), parseInt(memberUin), title)
+          } else if (grayTipElement.jsonGrayTipElement?.busiId === '19217') {
+            ctx.logger.info('收到新人被邀请进群消息', grayTipElement)
+            const userId = new URL(json.items[2].jp).searchParams.get('robot_uin')
+            const operatorId = new URL(json.items[0].jp).searchParams.get('uin')
+            return new OB11GroupIncreaseEvent(Number(msg.peerUid), Number(userId), Number(operatorId), 'invite')
           }
         }
       }
@@ -649,7 +651,7 @@ export namespace OB11Entities {
     return friends.map(friend)
   }
 
-  export function friendV2(raw: FriendV2): OB11User {
+  export function friendV2(raw: SimpleInfo): OB11User {
     return {
       ...omit(raw.baseInfo, ['richBuffer', 'phoneNum']),
       ...omit(raw.coreInfo, ['nick']),
@@ -661,7 +663,7 @@ export namespace OB11Entities {
     }
   }
 
-  export function friendsV2(raw: FriendV2[]): OB11User[] {
+  export function friendsV2(raw: SimpleInfo[]): OB11User[] {
     return raw.map(friendV2)
   }
 

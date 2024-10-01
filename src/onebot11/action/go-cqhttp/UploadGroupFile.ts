@@ -1,6 +1,6 @@
 import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
-import { SendElementEntities } from '@/ntqqapi/entities'
+import { SendElement } from '@/ntqqapi/entities'
 import { uri2local } from '@/common/utils'
 import { sendMsg, createPeer, CreatePeerMode } from '../../helper/createMessage'
 
@@ -27,7 +27,7 @@ export class UploadGroupFile extends BaseAction<Payload, null> {
     if (!success) {
       throw new Error(errMsg)
     }
-    const file = await SendElementEntities.file(this.ctx, path, payload.name || fileName, payload.folder ?? payload.folder_id)
+    const file = await SendElement.file(this.ctx, path, payload.name || fileName, payload.folder ?? payload.folder_id)
     const peer = await createPeer(this.ctx, payload, CreatePeerMode.Group)
     await sendMsg(this.ctx, peer, [file], [])
     return null

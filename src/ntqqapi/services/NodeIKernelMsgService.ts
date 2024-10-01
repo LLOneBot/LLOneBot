@@ -10,7 +10,9 @@ export interface NodeIKernelMsgService {
 
   setStatus(args: { status: number, extStatus: number, batteryStatus: number }): Promise<GeneralCallResult>
 
-  forwardMsg(msgIds: string[], srcContact: Peer, dstContacts: Peer[], commentElements: MessageElement[]): Promise<GeneralCallResult>
+  forwardMsg(msgIds: string[], srcContact: Peer, dstContacts: Peer[], commentElements: MessageElement[]): Promise<GeneralCallResult & {
+    detailErr: Map<unknown, unknown>
+  }>
 
   forwardMsgWithComment(...args: unknown[]): Promise<GeneralCallResult>
 
@@ -71,7 +73,7 @@ export interface NodeIKernelMsgService {
 
   downloadRichMedia(...args: unknown[]): unknown
 
-  setMsgEmojiLikes(...args: unknown[]): unknown
+  setMsgEmojiLikes(...args: unknown[]): Promise<GeneralCallResult>
 
   getMsgEmojiLikesList(peer: Peer, msgSeq: string, emojiId: string, emojiType: string, cookie: string, bForward: boolean, number: number): Promise<{
     result: number

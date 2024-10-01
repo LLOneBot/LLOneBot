@@ -1,8 +1,7 @@
-import { Friend, FriendV2, SimpleInfo, CategoryFriend, BuddyListReqType } from '../types'
+import { Friend, SimpleInfo, CategoryFriend } from '../types'
 import { ReceiveCmdS } from '../hook'
 import { invoke, NTMethod, NTClass } from '../ntcall'
 import { getSession } from '@/ntqqapi/wrapper'
-import { Dict, pick } from 'cosmokit'
 import { Service, Context } from 'cordis'
 
 declare module 'cordis' {
@@ -60,7 +59,7 @@ export class NTQQFriendApi extends Service {
     }
   }
 
-  async getBuddyV2(refresh = false): Promise<FriendV2[]> {
+  async getBuddyV2(refresh = false): Promise<SimpleInfo[]> {
     const data = await invoke<{
       buddyCategory: CategoryFriend[]
       userSimpleInfos: Record<string, SimpleInfo>
@@ -118,12 +117,7 @@ export class NTQQFriendApi extends Service {
   }
 
   async isBuddy(uid: string): Promise<boolean> {
-    const session = getSession()
-    if (session) {
-      return session.getBuddyService().isBuddy(uid)
-    } else {
-      return await invoke('nodeIKernelBuddyService/isBuddy', [{ uid }, null])
-    }
+    return await invoke('nodeIKernelBuddyService/isBuddy', [{ uid }])
   }
 
   async getBuddyRecommendContact(uin: string) {

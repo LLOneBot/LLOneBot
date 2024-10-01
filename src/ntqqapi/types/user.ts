@@ -221,11 +221,6 @@ interface RelationFlags {
   isHidePrivilegeIcon: number
 }
 
-export interface FriendV2 extends SimpleInfo {
-  categoryId?: number
-  categroyName?: string
-}
-
 interface CommonExt {
   constellation: number
   shengXiao: number
@@ -255,7 +250,7 @@ interface PhotoWall {
   picList: Pic[]
 }
 
-export interface UserDetailInfoListenerArg {
+export interface UserDetailInfo {
   uid: string
   uin: string
   simpleInfo: SimpleInfo
