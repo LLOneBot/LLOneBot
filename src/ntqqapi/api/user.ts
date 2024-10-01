@@ -1,9 +1,9 @@
-import { User, UserDetailInfoByUin, UserDetailInfoByUinV2, UserDetailInfoListenerArg, UserDetailSource, ProfileBizType } from '../types'
+import { User, UserDetailInfoByUin, UserDetailInfoByUinV2, UserDetailInfo, UserDetailSource, ProfileBizType, SimpleInfo } from '../types'
 import { invoke } from '../ntcall'
 import { getBuildVersion } from '@/common/utils'
 import { getSession } from '@/ntqqapi/wrapper'
 import { RequestUtil } from '@/common/utils/request'
-import { Time } from 'cosmokit'
+import { isNullable, Time } from 'cosmokit'
 import { Service, Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
 
@@ -34,17 +34,14 @@ export class NTQQUserApi extends Service {
   }
 
   async fetchUserDetailInfo(uid: string) {
-    const result = await invoke<{ info: UserDetailInfoListenerArg }>(
+    const result = await invoke<{ info: UserDetailInfo }>(
       'nodeIKernelProfileService/fetchUserDetailInfo',
-      [
-        {
-          callFrom: 'BuddyProfileStore',
-          uid: [uid],
-          source: UserDetailSource.KSERVER,
-          bizList: [ProfileBizType.KALL]
-        },
-        null
-      ],
+      [{
+        callFrom: 'BuddyProfileStore',
+        uid: [uid],
+        source: UserDetailSource.KSERVER,
+        bizList: [ProfileBizType.KALL]
+      }],
       {
         cbCmd: 'nodeIKernelProfileListener/onUserDetailInfoChanged',
         afterFirstCmd: false,
@@ -70,13 +67,10 @@ export class NTQQUserApi extends Service {
     }
     const result = await invoke<{ info: User }>(
       'nodeIKernelProfileService/getUserDetailInfoWithBizInfo',
-      [
-        {
-          uid,
-          bizList: [0]
-        },
-        null,
-      ],
+      [{
+        uid,
+        bizList: [0]
+      }],
       {
         cbCmd: 'nodeIKernelProfileListener/onProfileDetailInfoChanged',
         afterFirstCmd: false,
@@ -129,9 +123,7 @@ export class NTQQUserApi extends Service {
   }
 
   async getUidByUinV1(uin: string) {
-    const session = getSession()
-    // 通用转换开始尝试
-    let uid = (await session?.getUixConvertService().getUid([uin]))?.uidInfo.get(uin)
+    let uid = (await invoke('nodeIKernelUixConvertService/getUid', [{ uins: [uin] }])).uidInfo.get(uin)
     if (!uid) {
       for (const membersList of this.ctx.ntGroupApi.groupMembers.values()) { //从群友列表转
         for (const member of membersList.values()) {
@@ -181,20 +173,14 @@ export class NTQQUserApi extends Service {
   async getUserDetailInfoByUinV2(uin: string) {
     return await invoke<UserDetailInfoByUinV2>(
       'nodeIKernelProfileService/getUserDetailInfoByUin',
-      [
-        { uin },
-        null,
-      ],
+      [{ uin }]
     )
   }
 
   async getUserDetailInfoByUin(uin: string) {
     return await invoke<UserDetailInfoByUin>(
       'nodeIKernelProfileService/getUserDetailInfoByUin',
-      [
-        { uin },
-        null,
-      ],
+      [{ uin }]
     )
   }
 
@@ -202,31 +188,21 @@ export class NTQQUserApi extends Service {
     const ret = await invoke('nodeIKernelUixConvertService/getUin', [{ uids: [uid] }])
     let uin = ret.uinInfo.get(uid)
     if (!uin) {
-      uin = (await this.getUserDetailInfo(uid)).uin //从QQ Native 转换
+      uin = (await this.getUserDetailInfo(uid)).uin
     }
     return uin
   }
 
   async getUinByUidV2(uid: string) {
-    const session = getSession()
-    if (session) {
-      let uin = (await session.getGroupService().getUinByUids([uid])).uins.get(uid)
-      if (uin) return uin
-      uin = (await session.getProfileService().getUinByUid('FriendsServiceImpl', [uid])).get(uid)
-      if (uin) return uin
-      uin = (await session.getUixConvertService().getUin([uid])).uinInfo.get(uid)
-      if (uin) return uin
-    } else {
-      let uin = (await invoke('nodeIKernelGroupService/getUinByUids', [{ uid: [uid] }])).uins.get(uid)
-      if (uin) return uin
-      uin = (await invoke('nodeIKernelProfileService/getUinByUid', [{ callFrom: 'FriendsServiceImpl', uid: [uid] }])).get(uid)
-      if (uin) return uin
-      uin = (await invoke('nodeIKernelUixConvertService/getUin', [{ uids: [uid] }])).uinInfo.get(uid)
-      if (uin) return uin
-    }
-    let uin = (await this.ctx.ntFriendApi.getBuddyIdMap(true)).get(uid)
+    let uin = (await invoke('nodeIKernelGroupService/getUinByUids', [{ uid: [uid] }])).uins.get(uid)
     if (uin) return uin
-    uin = (await this.getUserDetailInfo(uid)).uin //从QQ Native 转换
+    uin = (await invoke('nodeIKernelProfileService/getUinByUid', [{ callFrom: 'FriendsServiceImpl', uid: [uid] }])).get(uid)
+    if (uin) return uin
+    uin = (await invoke('nodeIKernelUixConvertService/getUin', [{ uids: [uid] }])).uinInfo.get(uid)
+    if (uin) return uin
+    uin = (await this.ctx.ntFriendApi.getBuddyIdMap(true)).get(uid)
+    if (uin) return uin
+    uin = (await this.getUserDetailInfo(uid)).uin
     return uin
   }
 
@@ -246,13 +222,10 @@ export class NTQQUserApi extends Service {
     }
   }
 
-  async getSelfNick(refresh = false) {
+  async getSelfNick(refresh = true) {
     if ((refresh || !selfInfo.nick) && selfInfo.uid) {
-      const userInfo = await this.getUserDetailInfo(selfInfo.uid)
-      if (userInfo) {
-        Object.assign(selfInfo, { nick: userInfo.nick })
-        return userInfo.nick
-      }
+      const { profiles } = await this.getUserSimpleInfo(selfInfo.uid)
+      selfInfo.nick = profiles[selfInfo.uid].coreInfo.nick
     }
     return selfInfo.nick
   }
@@ -280,5 +253,45 @@ export class NTQQUserApi extends Service {
         limit: 20,
       }
     }, null])
+  }
+
+  async getUserSimpleInfo(uid: string, force = true) {
+    return await invoke<{ profiles: Record<string, SimpleInfo> }>(
+      'nodeIKernelProfileService/getUserSimpleInfo',
+      [{
+        uids: [uid],
+        force
+      }],
+      {
+        cbCmd: 'onProfileSimpleChanged',
+        afterFirstCmd: false,
+        cmdCB: payload => !isNullable(payload.profiles[uid]),
+      }
+    )
+  }
+
+  async getCoreAndBaseInfo(uids: string[]) {
+    return await invoke(
+      'nodeIKernelProfileService/getCoreAndBaseInfo',
+      [{
+        uids,
+        callFrom: 'nodeStore'
+      }]
+    )
+  }
+
+  async getRobotUinRange() {
+    const data = await invoke(
+      'nodeIKernelRobotService/getRobotUinRange',
+      [{
+        req: {
+          justFetchMsgConfig: '1',
+          type: 1,
+          version: 0,
+          aioKeywordVersion: 0
+        }
+      }]
+    )
+    return data.response.robotUinRanges
   }
 }
