@@ -2,6 +2,9 @@ import path from 'node:path'
 import Log from './log'
 import Core from '../ntqqapi/core'
 import OneBot11Adapter from '../onebot11/adapter'
+import Database from 'minato'
+import SQLiteDriver from '@minatojs/driver-sqlite'
+import Store from './store'
 import { BrowserWindow, dialog, ipcMain } from 'electron'
 import { Config as LLOBConfig } from '../common/types'
 import {
@@ -35,9 +38,6 @@ import {
 } from '../ntqqapi/api'
 import { mkdir } from 'node:fs/promises'
 import { existsSync, mkdirSync } from 'node:fs'
-import Database from 'minato'
-import SQLiteDriver from '@minatojs/driver-sqlite'
-import Store from './store'
 
 declare module 'cordis' {
   interface Events {
@@ -176,17 +176,6 @@ function onLoad() {
     ctx.plugin(NTQQWebApi)
     ctx.plugin(NTQQWindowApi)
     ctx.plugin(Core, config)
-    ctx.plugin(OneBot11Adapter, {
-      ...config.ob11,
-      heartInterval: config.heartInterval,
-      token: config.token!,
-      debug: config.debug!,
-      reportSelfMessage: config.reportSelfMessage!,
-      msgCacheExpire: config.msgCacheExpire!,
-      musicSignUrl: config.musicSignUrl,
-      enableLocalFile2Url: config.enableLocalFile2Url!,
-      ffmpeg: config.ffmpeg,
-    })
     ctx.plugin(Database)
     ctx.plugin(SQLiteDriver, {
       path: path.join(dbDir, `${selfInfo.uin}.db`)
@@ -194,7 +183,18 @@ function onLoad() {
     ctx.plugin(Store, {
       msgCacheExpire: config.msgCacheExpire! * 1000
     })
+    ctx.plugin(OneBot11Adapter, {
+      ...config.ob11,
+      heartInterval: config.heartInterval,
+      token: config.token!,
+      debug: config.debug!,
+      reportSelfMessage: config.reportSelfMessage!,
+      musicSignUrl: config.musicSignUrl,
+      enableLocalFile2Url: config.enableLocalFile2Url!,
+      ffmpeg: config.ffmpeg,
+    })
     ctx.start()
+    llonebotError.otherError = ''
     ipcMain.on(CHANNEL_SET_CONFIG_CONFIRMED, (event, config: LLOBConfig) => {
       ctx.parallel('llonebot/config-updated', config)
     })
