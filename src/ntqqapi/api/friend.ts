@@ -24,15 +24,11 @@ export class NTQQFriendApi extends Service {
         categroyMbCount: number
         buddyList: Friend[]
       }[]
-    }>(
-      'getBuddyList',
-      [],
-      {
-        className: NTClass.NODE_STORE_API,
-        cbCmd: ReceiveCmdS.FRIENDS,
-        afterFirstCmd: false,
-      }
-    )
+    }>('getBuddyList', [], {
+      className: NTClass.NODE_STORE_API,
+      cbCmd: ReceiveCmdS.FRIENDS,
+      afterFirstCmd: false
+    })
     const _friends: Friend[] = []
     for (const item of data.data) {
       _friends.push(...item.buddyList)
@@ -121,13 +117,13 @@ export class NTQQFriendApi extends Service {
   }
 
   async getBuddyRecommendContact(uin: string) {
-    const ret = await invoke('nodeIKernelBuddyService/getBuddyRecommendContactArkJson', [{ uin }, null])
+    const ret = await invoke('nodeIKernelBuddyService/getBuddyRecommendContactArkJson', [{ uin }])
     return ret.arkMsg
   }
 
   async setBuddyRemark(uid: string, remark: string) {
     return await invoke('nodeIKernelBuddyService/setBuddyRemark', [{
       remarkParams: { uid, remark }
-    }, null])
+    }])
   }
 }
