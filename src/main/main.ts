@@ -2,6 +2,7 @@ import path from 'node:path'
 import Log from './log'
 import Core from '../ntqqapi/core'
 import OneBot11Adapter from '../onebot11/adapter'
+import SatoriAdapter from '../satori/adapter'
 import Database from 'minato'
 import SQLiteDriver from '@minatojs/driver-sqlite'
 import Store from './store'
@@ -41,7 +42,7 @@ import { existsSync, mkdirSync } from 'node:fs'
 
 declare module 'cordis' {
   interface Events {
-    'llonebot/config-updated': (input: LLOBConfig) => void
+    'llob/config-updated': (input: LLOBConfig) => void
   }
 }
 
@@ -150,11 +151,6 @@ function onLoad() {
   async function start() {
     log('process pid', process.pid)
     const config = getConfigUtil().getConfig()
-    if (!config.enableLLOB) {
-      llonebotError.otherError = 'LLOneBot 未启动'
-      log('LLOneBot 开关设置为关闭，不启动LLOneBot')
-      return
-    }
     if (!existsSync(TEMP_DIR)) {
       await mkdir(TEMP_DIR)
     }
@@ -183,20 +179,28 @@ function onLoad() {
     ctx.plugin(Store, {
       msgCacheExpire: config.msgCacheExpire! * 1000
     })
-    ctx.plugin(OneBot11Adapter, {
-      ...config.ob11,
-      heartInterval: config.heartInterval,
-      token: config.token!,
-      debug: config.debug!,
-      reportSelfMessage: config.reportSelfMessage!,
-      musicSignUrl: config.musicSignUrl,
-      enableLocalFile2Url: config.enableLocalFile2Url!,
-      ffmpeg: config.ffmpeg,
-    })
+    if (config.ob11.enable) {
+      ctx.plugin(OneBot11Adapter, {
+        ...config.ob11,
+        heartInterval: config.heartInterval,
+        token: config.token!,
+        debug: config.debug!,
+        reportSelfMessage: config.reportSelfMessage!,
+        musicSignUrl: config.musicSignUrl,
+        enableLocalFile2Url: config.enableLocalFile2Url!,
+        ffmpeg: config.ffmpeg,
+      })
+    }
+    if (config.satori.enable) {
+      ctx.plugin(SatoriAdapter, {
+        ...config.satori,
+        ffmpeg: config.ffmpeg,
+      })
+    }
     ctx.start()
     llonebotError.otherError = ''
     ipcMain.on(CHANNEL_SET_CONFIG_CONFIRMED, (event, config: LLOBConfig) => {
-      ctx.parallel('llonebot/config-updated', config)
+      ctx.parallel('llob/config-updated', config)
     })
   }
 

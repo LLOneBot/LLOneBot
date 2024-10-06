@@ -331,7 +331,7 @@ class OneBot11Adapter extends Service {
     if (this.config.enableHttpPost) {
       this.ob11HttpPost.start()
     }
-    this.ctx.on('llonebot/config-updated', input => {
+    this.ctx.on('llob/config-updated', input => {
       this.handleConfigUpdated(input)
     })
     this.ctx.on('nt/message-created', input => {
