@@ -65,7 +65,7 @@ export class SatoriServer {
     this.wsServer.on('connection', (socket, req) => {
       const url = req.url?.split('?').shift()
       if (!['/v1/events', '/v1/events/'].includes(url!)) {
-        return socket.close()
+        return socket.close(1008, 'invalid address')
       }
 
       socket.addEventListener('message', async (event) => {
