@@ -171,7 +171,7 @@ export async function decodeMessage(
     }
     message.member = {
       user: message.user,
-      nick: data.sendMemberName || data.sendNickName || message.user.name
+      nick: data.sendMemberName || message.user.name
     }
   }
 
