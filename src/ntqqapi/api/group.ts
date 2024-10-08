@@ -55,7 +55,7 @@ export class NTQQGroupApi extends Service {
   }
 
   async getGroupMember(groupCode: string, uid: string, forceUpdate = false) {
-    invoke('nodeIKernelGroupListener/onMemberInfoChange', [], {
+    await invoke('nodeIKernelGroupListener/onMemberInfoChange', [], {
       registerEvent: true
     })
 
