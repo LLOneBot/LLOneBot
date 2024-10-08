@@ -124,10 +124,15 @@ class Core extends Service {
           activatedPeerUids.push(contact.id)
           const peer = { peerUid: contact.id, chatType: contact.chatType }
           if (contact.chatType === ChatType.TempC2CFromGroup) {
-            this.ctx.ntMsgApi.activateChatAndGetHistory(peer, 1).then(res => {
-              const lastTempMsg = res.msgList[0]
-              if (Date.now() / 1000 - Number(lastTempMsg?.msgTime) < 5) {
-                this.ctx.parallel('nt/message-created', lastTempMsg!)
+            this.ctx.ntMsgApi.activateChatAndGetHistory(peer, 2).then(res => {
+              for (const msg of res.msgList) {
+                if (Date.now() / 1000 - Number(msg.msgTime) > 3) {
+                  continue
+                }
+                if (msg.senderUin && msg.senderUin !== '0') {
+                  this.ctx.store.addMsgCache(msg)
+                }
+                this.ctx.parallel('nt/message-created', msg)
               }
             })
           } else {

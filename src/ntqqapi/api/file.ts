@@ -16,7 +16,7 @@ import path from 'node:path'
 import { existsSync } from 'node:fs'
 import { ReceiveCmdS } from '../hook'
 import { RkeyManager } from '@/ntqqapi/helper/rkey'
-import { OnRichMediaDownloadCompleteParams, Peer } from '@/ntqqapi/types/msg'
+import { RichMediaDownloadCompleteNotify, Peer } from '@/ntqqapi/types/msg'
 import { calculateFileMD5 } from '@/common/utils/file'
 import { copyFile, stat, unlink } from 'node:fs/promises'
 import { Time } from 'cosmokit'
@@ -113,7 +113,7 @@ export class NTQQFileApi extends Service {
         return sourcePath
       }
     }
-    const data = await invoke<{ notifyInfo: OnRichMediaDownloadCompleteParams }>(
+    const data = await invoke<{ notifyInfo: RichMediaDownloadCompleteNotify }>(
       'nodeIKernelMsgService/downloadRichMedia',
       [{
         getReq: {
@@ -185,7 +185,7 @@ export class NTQQFileApi extends Service {
   }
 
   async downloadFileForModelId(peer: Peer, fileModelId: string, timeout = 2 * Time.minute) {
-    const data = await invoke<{ notifyInfo: OnRichMediaDownloadCompleteParams }>(
+    const data = await invoke<{ notifyInfo: RichMediaDownloadCompleteNotify }>(
       'nodeIKernelRichMediaService/downloadFileForModelId',
       [{
         peer,

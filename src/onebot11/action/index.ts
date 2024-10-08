@@ -72,6 +72,7 @@ import { UploadPrivateFile } from './go-cqhttp/UploadPrivateFile'
 import { GetGroupFileUrl } from './go-cqhttp/GetGroupFileUrl'
 import { GetGroupNotice } from './go-cqhttp/GetGroupNotice'
 import { GetRobotUinRange } from './llonebot/GetRobotUinRange'
+import { DeleteFriend } from './go-cqhttp/DeleteFriend'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -149,6 +150,7 @@ export function initActionMap(adapter: Adapter) {
     new GetGroupFilesByFolder(adapter),
     new GetGroupFileUrl(adapter),
     new GetGroupNotice(adapter),
+    new DeleteFriend(adapter),
   ]
   const actionMap = new Map<string, BaseAction<any, unknown>>()
   for (const action of actionHandlers) {
