@@ -476,7 +476,7 @@ export interface MessageElement {
   actionBarElement?: unknown
 }
 
-export interface OnRichMediaDownloadCompleteParams {
+export interface RichMediaDownloadCompleteNotify {
   fileModelId: string
   msgElementId: string
   msgId: string

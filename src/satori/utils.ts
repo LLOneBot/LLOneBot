@@ -33,13 +33,6 @@ function decodeMessageUser(data: NT.RawMessage) {
   }
 }
 
-function decodeMessageMember(user: Universal.User, data: NT.RawMessage) {
-  return {
-    user: user,
-    nick: data.sendMemberName || data.sendNickName
-  }
-}
-
 async function decodeElement(ctx: Context, data: NT.RawMessage, quoted = false) {
   const buffer: h[] = []
   for (const v of data.elements) {
@@ -169,12 +162,22 @@ export async function decodeMessage(
     message.user.nick = info.remark || info.nick
   }
   if (guildId) {
+    let nick = data.sendMemberName || data.sendNickName
+    if (!data.sendNickName) {
+      const info = await ctx.ntGroupApi.getGroupMember(guildId, data.senderUid)
+      message.user.name = info.nick
+      message.user.nick = info.remark || info.nick
+      nick = info.cardName || info.nick
+    }
     message.guild = {
       id: guildId,
       name: data.peerName,
       avatar: `https://p.qlogo.cn/gh/${guildId}/${guildId}/640`
     }
-    message.member = decodeMessageMember(message.user, data)
+    message.member = {
+      user: message.user,
+      nick
+    }
   }
 
   return message
