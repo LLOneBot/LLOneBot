@@ -85,4 +85,5 @@ export enum ActionName {
   GoCQHTTP_GetGroupFilesByFolder = 'get_group_files_by_folder',
   GoCQHTTP_GetGroupFileUrl = 'get_group_file_url',
   GoCQHTTP_GetGroupNotice = '_get_group_notice',
+  GoCQHTTP_DeleteFriend = 'delete_friend',
 }

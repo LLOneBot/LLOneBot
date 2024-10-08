@@ -116,4 +116,14 @@ export class NTQQFriendApi extends Service {
       remarkParams: { uid, remark }
     }])
   }
+
+  async delBuddy(friendUid: string) {
+    return await invoke('nodeIKernelBuddyService/delBuddy', [{
+      delInfo: {
+        friendUid,
+        tempBlock: false,
+        tempBothDel: true
+      }
+    }])
+  }
 }
