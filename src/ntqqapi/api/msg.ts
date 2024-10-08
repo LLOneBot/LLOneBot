@@ -37,6 +37,7 @@ export class NTQQMsgApi extends Service {
   }
 
   async activateChatAndGetHistory(peer: Peer, cnt: number) {
+    // 消息从旧到新
     return await invoke(NTMethod.ACTIVE_CHAT_HISTORY, [{ peer, cnt, msgId: '0', queryOrder: true }])
   }
 
