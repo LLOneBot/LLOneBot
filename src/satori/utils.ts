@@ -155,20 +155,15 @@ export async function decodeMessage(
   }
   message.user = decodeMessageUser(data)
   message.created_at = +data.msgTime * 1000
-  if (message.channel.type === Universal.Channel.Type.DIRECT) {
+  if (!message.user.name) {
     const info = await ctx.ntUserApi.getUserSimpleInfo(data.senderUid)
-    message.channel.name = info.nick
     message.user.name = info.nick
     message.user.nick = info.remark || info.nick
+    if (message.channel.type === Universal.Channel.Type.DIRECT) {
+      message.channel.name = info.nick
+    }
   }
   if (guildId) {
-    let nick = data.sendMemberName || data.sendNickName
-    if (!data.sendNickName) {
-      const info = await ctx.ntGroupApi.getGroupMember(guildId, data.senderUid)
-      message.user.name = info.nick
-      message.user.nick = info.remark || info.nick
-      nick = info.cardName || info.nick
-    }
     message.guild = {
       id: guildId,
       name: data.peerName,
@@ -176,7 +171,7 @@ export async function decodeMessage(
     }
     message.member = {
       user: message.user,
-      nick
+      nick: data.sendMemberName || data.sendNickName || message.user.name
     }
   }
 
