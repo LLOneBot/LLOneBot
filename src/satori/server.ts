@@ -56,7 +56,7 @@ export class SatoriServer {
 
     const { listen, port } = this.config
     this.httpServer = this.express.listen(port, listen, () => {
-      this.ctx.logger.info(`HTTP server started ${listen}:${port}`)
+      this.ctx.logger.info(`server started ${listen}:${port}`)
     })
     this.wsServer = new WebSocketServer({
       server: this.httpServer
