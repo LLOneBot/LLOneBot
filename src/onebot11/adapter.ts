@@ -173,9 +173,6 @@ class OneBot11Adapter extends Service {
         return
       }
       const isSelfMsg = msg.user_id.toString() === selfInfo.uin
-      if (isSelfMsg && !this.config.reportSelfMessage) {
-        return
-      }
       if (isSelfMsg) {
         msg.target_id = parseInt(message.peerUin)
       }
@@ -310,7 +307,6 @@ class OneBot11Adapter extends Service {
       heartInterval: config.heartInterval,
       token: config.token,
       debug: config.debug,
-      reportSelfMessage: config.reportSelfMessage,
       msgCacheExpire: config.msgCacheExpire,
       musicSignUrl: config.musicSignUrl,
       enableLocalFile2Url: config.enableLocalFile2Url,
@@ -341,6 +337,9 @@ class OneBot11Adapter extends Service {
       this.handleRecallMsg(input)
     })
     this.ctx.on('nt/message-sent', input => {
+      if (!this.config.reportSelfMessage) {
+        return
+      }
       this.handleMsg(input)
     })
     this.ctx.on('nt/group-notify', input => {
@@ -370,7 +369,6 @@ namespace OneBot11Adapter {
     heartInterval: number
     token: string
     debug: boolean
-    reportSelfMessage: boolean
     musicSignUrl?: string
     enableLocalFile2Url: boolean
     ffmpeg?: string
