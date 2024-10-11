@@ -183,7 +183,6 @@ function onLoad() {
         heartInterval: config.heartInterval,
         token: config.token!,
         debug: config.debug!,
-        reportSelfMessage: config.reportSelfMessage!,
         musicSignUrl: config.musicSignUrl,
         enableLocalFile2Url: config.enableLocalFile2Url!,
         ffmpeg: config.ffmpeg,
