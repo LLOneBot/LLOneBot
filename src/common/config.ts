@@ -34,7 +34,8 @@ export class ConfigUtil {
       enableWsReverse: false,
       messagePostFormat: 'array',
       enableHttpHeart: false,
-      listenLocalhost: false
+      listenLocalhost: false,
+      reportSelfMessage: false
     }
     const satoriDefault: SatoriConfig = {
       enable: true,
@@ -50,7 +51,6 @@ export class ConfigUtil {
       enableLocalFile2Url: false,
       debug: false,
       log: false,
-      reportSelfMessage: false,
       autoDeleteFile: false,
       autoDeleteFileSecond: 60,
       musicSignUrl: '',
@@ -73,6 +73,7 @@ export class ConfigUtil {
       this.checkOldConfig(jsonData.ob11, jsonData, 'httpPort', 'http')
       this.checkOldConfig(jsonData.ob11, jsonData, 'httpHosts', 'hosts')
       this.checkOldConfig(jsonData.ob11, jsonData, 'wsPort', 'wsPort')
+      this.checkOldConfig(jsonData.ob11, jsonData, 'reportSelfMessage', 'reportSelfMessage')
       this.config = jsonData
       return this.config
     }
@@ -86,8 +87,8 @@ export class ConfigUtil {
   private checkOldConfig(
     currentConfig: OB11Config,
     oldConfig: Config,
-    currentKey: 'httpPort' | 'httpHosts' | 'wsPort',
-    oldKey: 'http' | 'hosts' | 'wsPort',
+    currentKey: 'httpPort' | 'httpHosts' | 'wsPort' | 'reportSelfMessage',
+    oldKey: 'http' | 'hosts' | 'wsPort' | 'reportSelfMessage',
   ) {
     // 迁移旧的配置到新配置，避免用户重新填写配置
     const oldValue = oldConfig[oldKey]

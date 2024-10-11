@@ -205,9 +205,6 @@ class Core extends Service {
     })
 
     registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmdS.SELF_SEND_MSG, payload => {
-      if (!this.config.reportSelfMessage) {
-        return
-      }
       sentMsgIds.set(payload.msgRecord.msgId, true)
     })
 
