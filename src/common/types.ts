@@ -17,6 +17,7 @@ export interface OB11Config {
    */
   enableQOAutoQuote?: boolean
   listenLocalhost: boolean
+  reportSelfMessage: boolean
 }
 
 export interface SatoriConfig {
@@ -33,7 +34,6 @@ export interface Config {
   heartInterval: number // ms
   enableLocalFile2Url?: boolean // 开启后，本地文件路径图片会转成http链接, 语音会转成base64
   debug?: boolean
-  reportSelfMessage?: boolean
   log?: boolean
   autoDeleteFile?: boolean
   autoDeleteFileSecond?: number
@@ -50,6 +50,8 @@ export interface Config {
   wsPort?: string
   /** @deprecated */
   enableLLOB?: boolean
+  /** @deprecated */
+  reportSelfMessage?: boolean
 }
 
 export interface CheckVersion {

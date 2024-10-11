@@ -201,6 +201,16 @@ export class NTQQFileApi extends Service {
     )
     return data.notifyInfo.filePath
   }
+
+  async ocrImage(path: string) {
+    return await invoke(
+      'nodeIKernelNodeMiscService/wantWinScreenOCR',
+      [
+        { url: path },
+        { timeout: 5000 }
+      ]
+    )
+  }
 }
 
 export class NTQQFileCacheApi extends Service {
