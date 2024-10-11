@@ -73,6 +73,7 @@ import { GetGroupFileUrl } from './go-cqhttp/GetGroupFileUrl'
 import { GetGroupNotice } from './go-cqhttp/GetGroupNotice'
 import { GetRobotUinRange } from './llonebot/GetRobotUinRange'
 import { DeleteFriend } from './go-cqhttp/DeleteFriend'
+import { OCRImage } from './go-cqhttp/OCRImage'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -151,6 +152,7 @@ export function initActionMap(adapter: Adapter) {
     new GetGroupFileUrl(adapter),
     new GetGroupNotice(adapter),
     new DeleteFriend(adapter),
+    new OCRImage(adapter),
   ]
   const actionMap = new Map<string, BaseAction<any, unknown>>()
   for (const action of actionHandlers) {
