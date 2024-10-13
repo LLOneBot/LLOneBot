@@ -124,7 +124,12 @@ export function invoke<
   return new Promise<R>((resolve, reject) => {
     const apiArgs = [method, ...args]
     const callbackId = randomUUID()
+    let eventId: string
+
     const timeoutId = setTimeout(() => {
+      if (eventId) {
+        removeReceiveHook(eventId)
+      }
       log(`ntqq api timeout ${channel}, ${eventName}, ${method}`, args)
       reject(`ntqq api timeout ${channel}, ${eventName}, ${method}, ${JSON.stringify(args)}`)
     }, timeout)
@@ -140,16 +145,16 @@ export function invoke<
       let result: unknown
       // 这里的callback比较特殊，QQ后端先返回是否调用成功，再返回一条结果数据
       const secondCallback = () => {
-        const hookId = registerReceiveHook<R>(options.cbCmd!, (payload) => {
+        eventId = registerReceiveHook<R>(options.cbCmd!, (payload) => {
           if (options.cmdCB) {
             if (options.cmdCB(payload, result)) {
-              removeReceiveHook(hookId)
+              removeReceiveHook(eventId)
               clearTimeout(timeoutId)
               resolve(payload)
             }
           }
           else {
-            removeReceiveHook(hookId)
+            removeReceiveHook(eventId)
             clearTimeout(timeoutId)
             resolve(payload)
           }

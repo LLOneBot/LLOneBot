@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2023",
     "module": "CommonJS",
     "outDir": "./dist",
     "strict": true,
@@ -20,7 +20,10 @@
         "./src/ntqqapi/*"
       ]
     },
-    "noEmit": true
+    "noEmit": true,
+    "types": [
+      "electron-vite/node"
+    ]
   },
   "include": [
     "src",
