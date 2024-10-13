@@ -45,8 +45,11 @@ export class NTQQGroupApi extends Service {
     return result.groupList
   }
 
-  async getGroupMembers(groupCode: string, num = 3000): Promise<Map<string, GroupMember>> {
-    const sceneId = await invoke(NTMethod.GROUP_MEMBER_SCENE, [{ groupCode, scene: 'groupMemberList_MainWindow' }])
+  async getGroupMembers(groupCode: string, num = 3000) {
+    const sceneId = await invoke(NTMethod.GROUP_MEMBER_SCENE, [{
+      groupCode,
+      scene: 'groupMemberList_MainWindow'
+    }])
     const data = await invoke(NTMethod.GROUP_MEMBERS, [{ sceneId, num }])
     if (data.errCode !== 0) {
       throw new Error('获取群成员列表出错,' + data.errMsg)

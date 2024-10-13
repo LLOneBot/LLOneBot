@@ -1,7 +1,6 @@
 import { Context } from 'cordis'
 import { Dict } from 'cosmokit'
 import { getBuildVersion } from '@/common/utils/misc'
-// @ts-expect-error: Unreachable code error
 import addon from './external/crychic-win32-x64.node?asset'
 
 export class Native {
@@ -35,7 +34,7 @@ export class Native {
     }
     try {
       this.crychic = require(addon)
-      this.crychic.init()
+      this.crychic!.init()
     } catch (e) {
       this.ctx.logger.warn('crychic 加载失败', e)
     }

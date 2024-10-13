@@ -118,7 +118,7 @@ export class NTQQUserApi extends Service {
         await this.ctx.sleep(30)
         member = await this.ctx.ntGroupApi.searchMember(groupCode, uin)
       }
-      uid = member.values().find(e => e.uin === uin)?.uid
+      uid = Array.from(member.values()).find(e => e.uin === uin)?.uid
     }
     if (!uid) {
       const unveifyUid = (await this.getUserDetailInfoByUin(uin)).info.uid
