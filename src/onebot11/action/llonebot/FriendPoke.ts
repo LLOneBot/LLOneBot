@@ -17,7 +17,7 @@ export class FriendPoke extends BaseAction<Payload, null> {
       throw new Error('当前系统平台或架构不支持')
     }
     if (!this.ctx.app.native.checkVersion()) {
-      throw new Error(`当前 QQ 版本 ${getBuildVersion()} 不支持，可尝试其他版本 27187—27597`)
+      throw new Error(`当前 QQ 版本 ${getBuildVersion()} 不支持，可尝试其他版本 27333—27597`)
     }
     await this.ctx.app.native.sendFriendPoke(+payload.user_id)
     return null
