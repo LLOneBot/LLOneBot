@@ -79,11 +79,14 @@ export namespace OB11Entities {
     if (msg.chatType === ChatType.Group) {
       resMsg.sub_type = 'normal'
       resMsg.group_id = parseInt(msg.peerUin)
-      const member = await ctx.ntGroupApi.getGroupMember(msg.peerUin, msg.senderUid)
-      if (member) {
-        resMsg.sender.role = groupMemberRole(member.role)
-        resMsg.sender.nickname = member.nick
-        resMsg.sender.title = member.memberSpecialTitle ?? ''
+      // 284840486: 合并转发内部
+      if (msg.peerUin !== '284840486') {
+        const member = await ctx.ntGroupApi.getGroupMember(msg.peerUin, msg.senderUid)
+        if (member) {
+          resMsg.sender.role = groupMemberRole(member.role)
+          resMsg.sender.nickname = member.nick
+          resMsg.sender.title = member.memberSpecialTitle ?? ''
+        }
       }
     }
     else if (msg.chatType === ChatType.C2C) {

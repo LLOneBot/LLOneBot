@@ -178,7 +178,7 @@ export class NTQQUserApi extends Service {
     if (uin) return uin
     uin = (await invoke('nodeIKernelUixConvertService/getUin', [{ uids: [uid] }])).uinInfo.get(uid)
     if (uin) return uin
-    uin = (await this.ctx.ntFriendApi.getBuddyIdMap(true)).get(uid)
+    uin = (await this.ctx.ntFriendApi.getBuddyIdMap()).get(uid)
     if (uin) return uin
     uin = (await this.getUserDetailInfo(uid)).uin
     return uin

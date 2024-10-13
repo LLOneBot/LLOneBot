@@ -1,6 +1,9 @@
 import { Context } from 'cordis'
 import { Dict } from 'cosmokit'
 import { getBuildVersion } from '@/common/utils/misc'
+import { TEMP_DIR } from '@/common/globalVars'
+import { copyFile } from 'fs/promises'
+import path from 'node:path'
 import addon from './external/crychic-win32-x64.node?asset'
 
 export class Native {
@@ -18,11 +21,11 @@ export class Native {
 
   checkVersion() {
     const version = getBuildVersion()
-    // 27187—27597
-    return version >= 27187 && version < 28060
+    // 27333—27597
+    return version >= 27333 && version < 28060
   }
 
-  start() {
+  async start() {
     if (this.crychic) {
       return
     }
@@ -33,7 +36,10 @@ export class Native {
       return
     }
     try {
-      this.crychic = require(addon)
+      const fileName = path.basename(addon)
+      const dest = path.join(TEMP_DIR, fileName)
+      await copyFile(addon, dest)
+      this.crychic = require(dest)
       this.crychic!.init()
     } catch (e) {
       this.ctx.logger.warn('crychic 加载失败', e)
