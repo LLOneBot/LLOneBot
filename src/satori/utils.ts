@@ -129,6 +129,11 @@ async function decodeElement(ctx: Context, data: NT.RawMessage, quoted = false) 
         type: String(faceType),
         platform: 'llonebot'
       }))
+    } else if (v.arkElement) {
+      // llonebot:ark
+      buffer.push(h('llonebot:ark', {
+        data: v.arkElement.bytesData
+      }))
     }
   }
   return buffer
