@@ -58,7 +58,7 @@ export class NTQQFriendApi extends Service {
     return Object.values(data.userSimpleInfos).filter(v => uids.includes(v.uid!))
   }
 
-  /** uid => uin */
+  /** uid -> uin */
   async getBuddyIdMap(refresh = false): Promise<Map<string, string>> {
     const retMap: Map<string, string> = new Map()
     const data = await invoke<{

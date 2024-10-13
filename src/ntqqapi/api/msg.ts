@@ -52,7 +52,7 @@ export class NTQQMsgApi extends Service {
   }
 
   async getMsgHistory(peer: Peer, msgId: string, cnt: number, queryOrder = false) {
-    // 默认情况下消息时间从旧到新
+    // 默认情况下消息时间从新到旧
     return await invoke(NTMethod.HISTORY_MSG, [{ peer, msgId, cnt, queryOrder }])
   }
 
@@ -93,7 +93,7 @@ export class NTQQMsgApi extends Service {
     const uniqueId = await this.generateMsgUniqueId(destPeer.chatType)
     destPeer.guildId = uniqueId
     const data = await invoke<{ msgList: RawMessage[] }>(
-      'nodeIKernelMsgService/forwardMsg',
+      'nodeIKernelMsgService/forwardMsgWithComment',
       [{
         msgIds,
         srcContact: srcPeer,
@@ -111,7 +111,8 @@ export class NTQQMsgApi extends Service {
             }
           }
           return false
-        }
+        },
+        timeout: 3000
       }
     )
     delete destPeer.guildId
