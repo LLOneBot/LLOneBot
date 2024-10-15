@@ -7,11 +7,8 @@ import {
   CHANNEL_SELECT_FILE,
   CHANNEL_SET_CONFIG,
   CHANNEL_UPDATE,
-  CHANNEL_SET_CONFIG_CONFIRMED,
 } from './common/channels'
-
-const { contextBridge } = require('electron')
-const { ipcRenderer } = require('electron')
+import { contextBridge, ipcRenderer } from 'electron'
 
 const llonebot = {
   log: (data: unknown) => {
@@ -24,8 +21,7 @@ const llonebot = {
     return ipcRenderer.invoke(CHANNEL_UPDATE)
   },
   setConfig: async (ask: boolean, config: Config) => {
-    const isSuccess = await ipcRenderer.invoke(CHANNEL_SET_CONFIG, ask, config)
-    if (isSuccess) ipcRenderer.send(CHANNEL_SET_CONFIG_CONFIRMED, config)
+    return ipcRenderer.invoke(CHANNEL_SET_CONFIG, ask, config)
   },
   getConfig: async (): Promise<Config> => {
     return ipcRenderer.invoke(CHANNEL_GET_CONFIG)

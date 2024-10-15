@@ -15,8 +15,7 @@ import {
   CHANNEL_LOG,
   CHANNEL_SELECT_FILE,
   CHANNEL_SET_CONFIG,
-  CHANNEL_UPDATE,
-  CHANNEL_SET_CONFIG_CONFIRMED
+  CHANNEL_UPDATE
 } from '../common/channels'
 import { startHook } from '../ntqqapi/hook'
 import { checkNewVersion, upgradeLLOneBot } from '../common/utils/upgrade'
@@ -35,7 +34,6 @@ import {
   NTQQWebApi,
   NTQQWindowApi
 } from '../ntqqapi/api'
-import { mkdir } from 'node:fs/promises'
 import { existsSync, mkdirSync } from 'node:fs'
 
 declare module 'cordis' {
@@ -55,6 +53,29 @@ function onLoad() {
   if (!existsSync(LOG_DIR)) {
     mkdirSync(LOG_DIR)
   }
+
+  if (!existsSync(TEMP_DIR)) {
+    mkdirSync(TEMP_DIR)
+  }
+
+  const dbDir = path.join(DATA_DIR, 'database')
+  if (!existsSync(dbDir)) {
+    mkdirSync(dbDir)
+  }
+
+  const ctx = new Context()
+
+  ctx.plugin(NTQQFileApi)
+  ctx.plugin(NTQQFileCacheApi)
+  ctx.plugin(NTQQFriendApi)
+  ctx.plugin(NTQQGroupApi)
+  ctx.plugin(NTQQMsgApi)
+  ctx.plugin(NTQQUserApi)
+  ctx.plugin(NTQQWebApi)
+  ctx.plugin(NTQQWindowApi)
+  ctx.plugin(Database)
+
+  let started = false
 
   ipcMain.handle(CHANNEL_CHECK_VERSION, async () => {
     return checkNewVersion()
@@ -114,7 +135,9 @@ function onLoad() {
       if (!ask) {
         getConfigUtil().setConfig(config)
         log('配置已更新', config)
-        checkFfmpeg(config.ffmpeg).then()
+        if (started) {
+          ctx.parallel('llob/config-updated', config)
+        }
         resolve(true)
         return
       }
@@ -131,7 +154,9 @@ function onLoad() {
           if (result.response === 0) {
             getConfigUtil().setConfig(config)
             log('配置已更新', config)
-            checkFfmpeg(config.ffmpeg).then()
+            if (started) {
+              ctx.parallel('llob/config-updated', config)
+            }
             resolve(true)
           }
         })
@@ -146,61 +171,6 @@ function onLoad() {
     log(arg)
   })
 
-  async function start() {
-    log('process pid', process.pid)
-    const config = getConfigUtil().getConfig()
-    if (!existsSync(TEMP_DIR)) {
-      await mkdir(TEMP_DIR)
-    }
-    const dbDir = path.join(DATA_DIR, 'database')
-    if (!existsSync(dbDir)) {
-      await mkdir(dbDir)
-    }
-    const ctx = new Context()
-    ctx.plugin(Log, {
-      enable: config.log!,
-      filename: logFileName
-    })
-    ctx.plugin(NTQQFileApi)
-    ctx.plugin(NTQQFileCacheApi)
-    ctx.plugin(NTQQFriendApi)
-    ctx.plugin(NTQQGroupApi)
-    ctx.plugin(NTQQMsgApi)
-    ctx.plugin(NTQQUserApi)
-    ctx.plugin(NTQQWebApi)
-    ctx.plugin(NTQQWindowApi)
-    ctx.plugin(Core, config)
-    ctx.plugin(Database)
-    ctx.plugin(SQLiteDriver, {
-      path: path.join(dbDir, `${selfInfo.uin}.db`)
-    })
-    ctx.plugin(Store, {
-      msgCacheExpire: config.msgCacheExpire! * 1000
-    })
-    if (config.ob11.enable) {
-      ctx.plugin(OneBot11Adapter, {
-        ...config.ob11,
-        heartInterval: config.heartInterval,
-        token: config.token!,
-        debug: config.debug!,
-        musicSignUrl: config.musicSignUrl,
-        enableLocalFile2Url: config.enableLocalFile2Url!,
-        ffmpeg: config.ffmpeg,
-      })
-    }
-    if (config.satori.enable) {
-      ctx.plugin(SatoriAdapter, {
-        ...config.satori,
-        ffmpeg: config.ffmpeg,
-      })
-    }
-    ctx.start()
-    llonebotError.otherError = ''
-    ipcMain.on(CHANNEL_SET_CONFIG_CONFIRMED, (event, config: LLOBConfig) => {
-      ctx.parallel('llob/config-updated', config)
-    })
-  }
-
   const intervalId = setInterval(() => {
     const self = Object.assign(selfInfo, {
       uin: globalThis.authData?.uin,
@@ -209,7 +179,41 @@ function onLoad() {
     })
     if (self.uin) {
       clearInterval(intervalId)
-      start()
+      log('process pid', process.pid)
+
+      const config = getConfigUtil().getConfig()
+      ctx.plugin(Log, {
+        enable: config.log!,
+        filename: logFileName
+      })
+      ctx.plugin(SQLiteDriver, {
+        path: path.join(dbDir, `${selfInfo.uin}.db`)
+      })
+      ctx.plugin(Store, {
+        msgCacheExpire: config.msgCacheExpire! * 1000
+      })
+      ctx.plugin(Core, config)
+      if (config.ob11.enable) {
+        ctx.plugin(OneBot11Adapter, {
+          ...config.ob11,
+          heartInterval: config.heartInterval,
+          token: config.token!,
+          debug: config.debug!,
+          musicSignUrl: config.musicSignUrl,
+          enableLocalFile2Url: config.enableLocalFile2Url!,
+          ffmpeg: config.ffmpeg,
+        })
+      }
+      if (config.satori.enable) {
+        ctx.plugin(SatoriAdapter, {
+          ...config.satori,
+          ffmpeg: config.ffmpeg,
+        })
+      }
+
+      ctx.start()
+      started = true
+      llonebotError.otherError = ''
     }
   }, 600)
 }
