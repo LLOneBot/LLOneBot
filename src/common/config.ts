@@ -50,7 +50,7 @@ export class ConfigUtil {
       token: '',
       enableLocalFile2Url: false,
       debug: false,
-      log: false,
+      log: true,
       autoDeleteFile: false,
       autoDeleteFileSecond: 60,
       musicSignUrl: '',
