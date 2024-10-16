@@ -175,6 +175,7 @@ async function onSettingWindowCreated(view: Element) {
           '调用 /get_image、/get_record、/get_file 时，没有 url 时添加 Base64 字段',
           SettingSwitch('enableLocalFile2Url', config.enableLocalFile2Url),
         ),
+        SettingItem('', null, SettingButton('保存', 'config-ob11-save-2', 'primary')),
       ]),
       SettingList([
         SettingItem(
@@ -214,6 +215,7 @@ async function onSettingWindowCreated(view: Element) {
           '单位为秒，可用于获取撤回的消息',
           `<div class="q-input"><input class="q-input__inner" data-config-key="msgCacheExpire" type="number" min="1" value="${config.msgCacheExpire}" placeholder="${config.msgCacheExpire}" /></div>`,
         ),
+        SettingItem('', null, SettingButton('保存', 'config-ob11-save-3', 'primary')),
       ]),
       SettingList([
         SettingItem('GitHub 仓库', `https://github.com/LLOneBot/LLOneBot`, SettingButton('点个星星', 'open-github')),
@@ -388,6 +390,22 @@ async function onSettingWindowCreated(view: Element) {
 
     window.llonebot.setConfig(false, config)
     // window.location.reload();
+    showError().then()
+    alert('保存成功')
+  })
+
+  doc.querySelector('#config-ob11-save-2')?.addEventListener('click', () => {
+    config.ob11 = ob11Config
+
+    window.llonebot.setConfig(false, config)
+    showError().then()
+    alert('保存成功')
+  })
+
+  doc.querySelector('#config-ob11-save-3')?.addEventListener('click', () => {
+    config.ob11 = ob11Config
+
+    window.llonebot.setConfig(false, config)
     showError().then()
     alert('保存成功')
   })
