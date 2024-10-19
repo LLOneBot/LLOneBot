@@ -461,64 +461,64 @@ export namespace SysMsg {
         public static getTypeUrl(typeUrlPrefix?: string): string;
     }
 
-    /** Properties of a GroupMemberIncrease. */
-    interface IGroupMemberIncrease {
+    /** Properties of a GroupMemberChange. */
+    interface IGroupMemberChange {
 
-        /** GroupMemberIncrease groupCode */
+        /** GroupMemberChange groupCode */
         groupCode?: (number|null);
 
-        /** GroupMemberIncrease memberUid */
+        /** GroupMemberChange memberUid */
         memberUid?: (string|null);
 
-        /** GroupMemberIncrease type */
+        /** GroupMemberChange type */
         type?: (number|null);
 
-        /** GroupMemberIncrease adminUid */
+        /** GroupMemberChange adminUid */
         adminUid?: (string|null);
     }
 
-    /** Represents a GroupMemberIncrease. */
-    class GroupMemberIncrease implements IGroupMemberIncrease {
+    /** Represents a GroupMemberChange. */
+    class GroupMemberChange implements IGroupMemberChange {
 
         /**
-         * Constructs a new GroupMemberIncrease.
+         * Constructs a new GroupMemberChange.
          * @param [properties] Properties to set
          */
-        constructor(properties?: SysMsg.IGroupMemberIncrease);
+        constructor(properties?: SysMsg.IGroupMemberChange);
 
-        /** GroupMemberIncrease groupCode. */
+        /** GroupMemberChange groupCode. */
         public groupCode: number;
 
-        /** GroupMemberIncrease memberUid. */
+        /** GroupMemberChange memberUid. */
         public memberUid: string;
 
-        /** GroupMemberIncrease type. */
+        /** GroupMemberChange type. */
         public type: number;
 
-        /** GroupMemberIncrease adminUid. */
+        /** GroupMemberChange adminUid. */
         public adminUid: string;
 
         /**
-         * Decodes a GroupMemberIncrease message from the specified reader or buffer.
+         * Decodes a GroupMemberChange message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
          * @param [length] Message length if known beforehand
-         * @returns GroupMemberIncrease
+         * @returns GroupMemberChange
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): SysMsg.GroupMemberIncrease;
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): SysMsg.GroupMemberChange;
 
         /**
-         * Decodes a GroupMemberIncrease message from the specified reader or buffer, length delimited.
+         * Decodes a GroupMemberChange message from the specified reader or buffer, length delimited.
          * @param reader Reader or buffer to decode from
-         * @returns GroupMemberIncrease
+         * @returns GroupMemberChange
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): SysMsg.GroupMemberIncrease;
+        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): SysMsg.GroupMemberChange;
 
         /**
-         * Gets the default type url for GroupMemberIncrease
+         * Gets the default type url for GroupMemberChange
          * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns The default type url
          */
