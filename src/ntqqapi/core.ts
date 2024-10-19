@@ -47,11 +47,6 @@ class Core extends Service {
   }
 
   public start() {
-    if (!this.config.ob11.enable && !this.config.satori.enable) {
-      llonebotError.otherError = 'LLOneBot 未启动'
-      this.ctx.logger.info('LLOneBot 开关设置为关闭，不启动 LLOneBot')
-      return
-    }
     this.startTime = Date.now()
     this.registerListener()
     this.ctx.logger.info(`LLOneBot/${version}`)
