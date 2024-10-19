@@ -44,6 +44,7 @@ export class ConfigUtil {
       token: ''
     }
     const defaultConfig: Config = {
+      enableLLOB: true,
       satori: satoriDefault,
       ob11: ob11Default,
       heartInterval: 60000,

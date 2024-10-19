@@ -28,6 +28,7 @@ export interface SatoriConfig {
 }
 
 export interface Config {
+  enableLLOB: boolean
   satori: SatoriConfig
   ob11: OB11Config
   token?: string
@@ -48,8 +49,6 @@ export interface Config {
   hosts?: string[]
   /** @deprecated */
   wsPort?: string
-  /** @deprecated */
-  enableLLOB?: boolean
   /** @deprecated */
   reportSelfMessage?: boolean
 }

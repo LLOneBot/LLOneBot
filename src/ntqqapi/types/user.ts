@@ -1,7 +1,8 @@
 export enum Sex {
-  male = 0,
-  female = 2,
-  unknown = 255,
+  Unknown = 0,
+  Male = 1,
+  Female = 2,
+  Hidden = 255
 }
 
 export interface QQLevel {
@@ -101,7 +102,7 @@ export interface BaseInfo {
   birthday_month: number
   birthday_day: number
   age: number
-  sex: number
+  sex: Sex
   eMail: string
   phoneNum: string
   categoryId: number

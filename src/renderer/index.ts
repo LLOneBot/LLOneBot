@@ -45,6 +45,13 @@ async function onSettingWindowCreated(view: Element) {
       ]),
       SettingList([
         SettingItem(
+          '是否启用 LLOneBot，重启 QQ 后生效',
+          null,
+          SettingSwitch('enableLLOB', config.enableLLOB, { 'control-display-id': 'config-enableLLOB' }),
+        )
+      ]),
+      SettingList([
+        SettingItem(
           '是否启用 Satori 协议',
           '重启 QQ 后生效',
           SettingSwitch('satori.enable', config.satori.enable),

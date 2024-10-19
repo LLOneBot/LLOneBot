@@ -76,6 +76,7 @@ import { DeleteFriend } from './go-cqhttp/DeleteFriend'
 import { OCRImage } from './go-cqhttp/OCRImage'
 import { GroupPoke } from './llonebot/GroupPoke'
 import { FriendPoke } from './llonebot/FriendPoke'
+import { GetGroupFileSystemInfo } from './go-cqhttp/GetGroupFileSystemInfo'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -157,6 +158,7 @@ export function initActionMap(adapter: Adapter) {
     new GetGroupNotice(adapter),
     new DeleteFriend(adapter),
     new OCRImage(adapter),
+    new GetGroupFileSystemInfo(adapter),
   ]
   const actionMap = new Map<string, BaseAction<any, unknown>>()
   for (const action of actionHandlers) {

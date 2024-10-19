@@ -39,5 +39,21 @@ export interface NodeIKernelRichMediaService {
       failFileIdList: Array<unknown>
     }
   }>
+
+  batchGetGroupFileCount(groupIds: string[]): Promise<GeneralCallResult & {
+    groupCodes: string[]
+    groupFileCounts: number[]
+  }>
+
+  getGroupSpace(groupId: string): Promise<GeneralCallResult & {
+    groupSpaceResult: {
+      retCode: number
+      retMsg: string
+      clientWording: string
+      totalSpace: string
+      usedSpace: string
+      allUpload: boolean
+    }
+  }>
 }
 
