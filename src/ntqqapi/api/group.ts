@@ -325,4 +325,18 @@ export class NTQQGroupApi extends Service {
     )
     return data.infos
   }
+
+  async getGroupFileCount(groupId: string) {
+    return await invoke(
+      'nodeIKernelRichMediaService/batchGetGroupFileCount',
+      [{ groupIds: [groupId] }]
+    )
+  }
+
+  async getGroupFileSpace(groupId: string) {
+    return await invoke(
+      'nodeIKernelRichMediaService/getGroupSpace',
+      [{ groupId }]
+    )
+  }
 }

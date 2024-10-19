@@ -89,4 +89,5 @@ export enum ActionName {
   GoCQHTTP_GetGroupNotice = '_get_group_notice',
   GoCQHTTP_DeleteFriend = 'delete_friend',
   GoCQHTTP_OCRImage = 'ocr_image',
+  GoCQHTTP_GetGroupFileSystemInfo = 'get_group_file_system_info',
 }
