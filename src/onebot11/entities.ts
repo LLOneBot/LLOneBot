@@ -665,9 +665,10 @@ export namespace OB11Entities {
 
   export function sex(sex: Sex): OB11UserSex {
     const sexMap = {
-      [Sex.male]: OB11UserSex.Male,
-      [Sex.female]: OB11UserSex.Female,
-      [Sex.unknown]: OB11UserSex.Unknown,
+      [Sex.Unknown]: OB11UserSex.Unknown,
+      [Sex.Male]: OB11UserSex.Male,
+      [Sex.Female]: OB11UserSex.Female,
+      [Sex.Hidden]: OB11UserSex.Unknown
     }
     return sexMap[sex] ?? OB11UserSex.Unknown
   }
@@ -694,19 +695,6 @@ export namespace OB11Entities {
       shut_up_timestamp: member.shutUpTime,
       role: groupMemberRole(member.role),
       title: member.memberSpecialTitle,
-    }
-  }
-
-  export function stranger(user: User): OB11User {
-    return {
-      ...user,
-      user_id: parseInt(user.uin),
-      nickname: user.nick,
-      sex: sex(user.sex!),
-      age: 0,
-      qid: user.qid,
-      login_days: 0,
-      level: (user.qqLevel && calcQQLevel(user.qqLevel)) || 0,
     }
   }
 
