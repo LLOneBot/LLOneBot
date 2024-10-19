@@ -171,7 +171,7 @@ function onLoad() {
     log(arg)
   })
 
-  const intervalId = setInterval(() => {
+  const intervalId = setInterval(async () => {
     const self = Object.assign(selfInfo, {
       uin: globalThis.authData?.uin,
       uid: globalThis.authData?.uid,
@@ -182,6 +182,16 @@ function onLoad() {
       log('process pid', process.pid)
 
       const config = getConfigUtil().getConfig()
+
+      if (config.enableLLOB && (config.satori.enable || config.ob11.enable)) {
+        startHook()
+        await ctx.sleep(300)
+      } else {
+        llonebotError.otherError = 'LLOneBot 未启动'
+        log('LLOneBot 开关设置为关闭，不启动 LLOneBot')
+        return
+      }
+
       ctx.plugin(Log, {
         enable: config.log!,
         filename: logFileName
@@ -224,7 +234,6 @@ function onBrowserWindowCreated(window: BrowserWindow) {
 
 try {
   onLoad()
-  startHook()
 } catch (e) {
   console.log(e)
 }

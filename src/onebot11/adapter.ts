@@ -362,14 +362,22 @@ class OneBot11Adapter extends Service {
         const event = new OB11ProfileLikeEvent(detail.uin!, detail.nickname!, +times)
         this.dispatch(event)
       } else if (msgType === 33) {
-        const tip = SysMsg.GroupMemberIncrease.decode(sysMsg.bodyWrapper!.body!)
+        const tip = SysMsg.GroupMemberChange.decode(sysMsg.bodyWrapper!.body!)
         if (tip.type !== 130) return
         this.ctx.logger.info('群成员增加', tip)
         const memberUin = await this.ctx.ntUserApi.getUinByUid(tip.memberUid)
         const operatorUin = await this.ctx.ntUserApi.getUinByUid(tip.adminUid)
         const event = new OB11GroupIncreaseEvent(tip.groupCode, +memberUin, +operatorUin)
         this.dispatch(event)
-      }
+      }/* else if (msgType === 34) {
+        const tip = SysMsg.GroupMemberChange.decode(sysMsg.bodyWrapper!.body!)
+        this.ctx.logger.info('群成员减少', tip)
+        const memberUin = await this.ctx.ntUserApi.getUinByUid(tip.memberUid)
+        const operatorUin = await this.ctx.ntUserApi.getUinByUid(tip.adminUid) //0
+        const subType = tip.type === 130 ? 'leave' : 'kick'
+        const event = new OB11GroupDecreaseEvent(tip.groupCode, +memberUin, +operatorUin, subType)
+        this.dispatch(event)
+      }*/
     })
   }
 }

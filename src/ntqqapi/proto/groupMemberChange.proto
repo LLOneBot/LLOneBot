@@ -1,10 +1,9 @@
 syntax = "proto3";
 package SysMsg;
 
-// GroupChange?
-message GroupMemberIncrease {
+message GroupMemberChange {
   uint32 groupCode = 1;
   string memberUid = 3;
-  uint32 type = 4;  // 130:主动 131:被邀请
+  uint32 type = 4;  // 130:主动 131:被动
   string adminUid = 5;
 }

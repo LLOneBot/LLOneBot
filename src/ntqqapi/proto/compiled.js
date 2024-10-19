@@ -1015,27 +1015,27 @@ export const SysMsg = $root.SysMsg = (() => {
         return ProfileLikeTip;
     })();
 
-    SysMsg.GroupMemberIncrease = (function() {
+    SysMsg.GroupMemberChange = (function() {
 
         /**
-         * Properties of a GroupMemberIncrease.
+         * Properties of a GroupMemberChange.
          * @memberof SysMsg
-         * @interface IGroupMemberIncrease
-         * @property {number|null} [groupCode] GroupMemberIncrease groupCode
-         * @property {string|null} [memberUid] GroupMemberIncrease memberUid
-         * @property {number|null} [type] GroupMemberIncrease type
-         * @property {string|null} [adminUid] GroupMemberIncrease adminUid
+         * @interface IGroupMemberChange
+         * @property {number|null} [groupCode] GroupMemberChange groupCode
+         * @property {string|null} [memberUid] GroupMemberChange memberUid
+         * @property {number|null} [type] GroupMemberChange type
+         * @property {string|null} [adminUid] GroupMemberChange adminUid
          */
 
         /**
-         * Constructs a new GroupMemberIncrease.
+         * Constructs a new GroupMemberChange.
          * @memberof SysMsg
-         * @classdesc Represents a GroupMemberIncrease.
-         * @implements IGroupMemberIncrease
+         * @classdesc Represents a GroupMemberChange.
+         * @implements IGroupMemberChange
          * @constructor
-         * @param {SysMsg.IGroupMemberIncrease=} [properties] Properties to set
+         * @param {SysMsg.IGroupMemberChange=} [properties] Properties to set
          */
-        function GroupMemberIncrease(properties) {
+        function GroupMemberChange(properties) {
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -1043,52 +1043,52 @@ export const SysMsg = $root.SysMsg = (() => {
         }
 
         /**
-         * GroupMemberIncrease groupCode.
+         * GroupMemberChange groupCode.
          * @member {number} groupCode
-         * @memberof SysMsg.GroupMemberIncrease
+         * @memberof SysMsg.GroupMemberChange
          * @instance
          */
-        GroupMemberIncrease.prototype.groupCode = 0;
+        GroupMemberChange.prototype.groupCode = 0;
 
         /**
-         * GroupMemberIncrease memberUid.
+         * GroupMemberChange memberUid.
          * @member {string} memberUid
-         * @memberof SysMsg.GroupMemberIncrease
+         * @memberof SysMsg.GroupMemberChange
          * @instance
          */
-        GroupMemberIncrease.prototype.memberUid = "";
+        GroupMemberChange.prototype.memberUid = "";
 
         /**
-         * GroupMemberIncrease type.
+         * GroupMemberChange type.
          * @member {number} type
-         * @memberof SysMsg.GroupMemberIncrease
+         * @memberof SysMsg.GroupMemberChange
          * @instance
          */
-        GroupMemberIncrease.prototype.type = 0;
+        GroupMemberChange.prototype.type = 0;
 
         /**
-         * GroupMemberIncrease adminUid.
+         * GroupMemberChange adminUid.
          * @member {string} adminUid
-         * @memberof SysMsg.GroupMemberIncrease
+         * @memberof SysMsg.GroupMemberChange
          * @instance
          */
-        GroupMemberIncrease.prototype.adminUid = "";
+        GroupMemberChange.prototype.adminUid = "";
 
         /**
-         * Decodes a GroupMemberIncrease message from the specified reader or buffer.
+         * Decodes a GroupMemberChange message from the specified reader or buffer.
          * @function decode
-         * @memberof SysMsg.GroupMemberIncrease
+         * @memberof SysMsg.GroupMemberChange
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {SysMsg.GroupMemberIncrease} GroupMemberIncrease
+         * @returns {SysMsg.GroupMemberChange} GroupMemberChange
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        GroupMemberIncrease.decode = function decode(reader, length) {
+        GroupMemberChange.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.SysMsg.GroupMemberIncrease();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.SysMsg.GroupMemberChange();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 switch (tag >>> 3) {
@@ -1117,37 +1117,37 @@ export const SysMsg = $root.SysMsg = (() => {
         };
 
         /**
-         * Decodes a GroupMemberIncrease message from the specified reader or buffer, length delimited.
+         * Decodes a GroupMemberChange message from the specified reader or buffer, length delimited.
          * @function decodeDelimited
-         * @memberof SysMsg.GroupMemberIncrease
+         * @memberof SysMsg.GroupMemberChange
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {SysMsg.GroupMemberIncrease} GroupMemberIncrease
+         * @returns {SysMsg.GroupMemberChange} GroupMemberChange
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        GroupMemberIncrease.decodeDelimited = function decodeDelimited(reader) {
+        GroupMemberChange.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
-         * Gets the default type url for GroupMemberIncrease
+         * Gets the default type url for GroupMemberChange
          * @function getTypeUrl
-         * @memberof SysMsg.GroupMemberIncrease
+         * @memberof SysMsg.GroupMemberChange
          * @static
          * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns {string} The default type url
          */
-        GroupMemberIncrease.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        GroupMemberChange.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
             if (typeUrlPrefix === undefined) {
                 typeUrlPrefix = "type.googleapis.com";
             }
-            return typeUrlPrefix + "/SysMsg.GroupMemberIncrease";
+            return typeUrlPrefix + "/SysMsg.GroupMemberChange";
         };
 
-        return GroupMemberIncrease;
+        return GroupMemberChange;
     })();
 
     return SysMsg;

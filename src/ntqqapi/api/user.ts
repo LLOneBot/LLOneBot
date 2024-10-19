@@ -173,7 +173,7 @@ export class NTQQUserApi extends Service {
 
   async getUinByUidV2(uid: string) {
     let uin = (await invoke('nodeIKernelGroupService/getUinByUids', [{ uidList: [uid] }])).uins.get(uid)
-    if (uin) return uin
+    if (uin && uin !== '0') return uin
     uin = (await invoke('nodeIKernelProfileService/getUinByUid', [{ callFrom: 'FriendsServiceImpl', uid: [uid] }])).get(uid)
     if (uin) return uin
     uin = (await invoke('nodeIKernelUixConvertService/getUin', [{ uids: [uid] }])).uinInfo.get(uid)

@@ -38,7 +38,12 @@ export class Native {
     try {
       const fileName = path.basename(addon)
       const dest = path.join(TEMP_DIR, fileName)
-      await copyFile(addon, dest)
+      try {
+        await copyFile(addon, dest)
+      } catch (e) {
+        // resource busy or locked?
+        this.ctx.logger.warn(e)
+      }
       this.crychic = require(dest)
       this.crychic!.init()
     } catch (e) {
