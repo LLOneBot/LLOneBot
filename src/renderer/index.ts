@@ -456,9 +456,11 @@ async function onSettingWindowCreated(view: Element) {
   }
   window.llonebot.checkVersion().then(checkVersionFunc)
   window.addEventListener('beforeunload', () => {
-    if (JSON.stringify(ob11Config) === JSON.stringify(config.ob11)) return
-    config.ob11 = ob11Config
-    window.llonebot.setConfig(true, config)
+    window.llonebot.getConfig().then(oldConfig=>{
+      if(JSON.stringify(oldConfig) !== JSON.stringify(config)){
+        window.llonebot.setConfig(true, config)
+      }
+    })
   })
 }
 
