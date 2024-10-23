@@ -1,4 +1,3 @@
-import { XMLParser } from 'fast-xml-parser'
 import {
   OB11Group,
   OB11GroupMember,
@@ -122,7 +121,7 @@ export namespace OB11Entities {
           name = content.replace('@', '')
         }
         messageSegment = {
-          type: OB11MessageDataType.at,
+          type: OB11MessageDataType.At,
           data: {
             qq,
             name
@@ -135,7 +134,7 @@ export namespace OB11Entities {
           continue
         }
         messageSegment = {
-          type: OB11MessageDataType.text,
+          type: OB11MessageDataType.Text,
           data: {
             text
           }
@@ -171,7 +170,7 @@ export namespace OB11Entities {
             throw new Error('回复消息验证失败')
           }
           messageSegment = {
-            type: OB11MessageDataType.reply,
+            type: OB11MessageDataType.Reply,
             data: {
               id: ctx.store.createMsgShortId(peer, replyMsg ? replyMsg.msgId : records.msgId).toString()
             }
@@ -185,7 +184,7 @@ export namespace OB11Entities {
         const { picElement } = element
         const fileSize = picElement.fileSize ?? '0'
         messageSegment = {
-          type: OB11MessageDataType.image,
+          type: OB11MessageDataType.Image,
           data: {
             file: picElement.fileName,
             subType: picElement.picSubType,
@@ -213,7 +212,7 @@ export namespace OB11Entities {
         }, msg.msgId, element.elementId)
         const fileSize = videoElement.fileSize ?? '0'
         messageSegment = {
-          type: OB11MessageDataType.video,
+          type: OB11MessageDataType.Video,
           data: {
             file: videoElement.fileName,
             url: videoUrl || pathToFileURL(videoElement.filePath).href,
@@ -237,7 +236,7 @@ export namespace OB11Entities {
         const { fileElement } = element
         const fileSize = fileElement.fileSize ?? '0'
         messageSegment = {
-          type: OB11MessageDataType.file,
+          type: OB11MessageDataType.File,
           data: {
             file: fileElement.fileName,
             url: pathToFileURL(fileElement.filePath).href,
@@ -262,7 +261,7 @@ export namespace OB11Entities {
         const { pttElement } = element
         const fileSize = pttElement.fileSize ?? '0'
         messageSegment = {
-          type: OB11MessageDataType.voice,
+          type: OB11MessageDataType.Record,
           data: {
             file: pttElement.fileName,
             url: pathToFileURL(pttElement.filePath).href,
@@ -285,7 +284,7 @@ export namespace OB11Entities {
       else if (element.arkElement) {
         const { arkElement } = element
         messageSegment = {
-          type: OB11MessageDataType.json,
+          type: OB11MessageDataType.Json,
           data: {
             data: arkElement.bytesData
           }
@@ -296,14 +295,14 @@ export namespace OB11Entities {
         const { faceIndex, pokeType } = faceElement
         if (faceIndex === FaceIndex.Dice) {
           messageSegment = {
-            type: OB11MessageDataType.dice,
+            type: OB11MessageDataType.Dice,
             data: {
               result: faceElement.resultId!
             }
           }
         } else if (faceIndex === FaceIndex.RPS) {
           messageSegment = {
-            type: OB11MessageDataType.RPS,
+            type: OB11MessageDataType.Rps,
             data: {
               result: faceElement.resultId!
             }
@@ -315,7 +314,7 @@ export namespace OB11Entities {
             }*/
         } else {
           messageSegment = {
-            type: OB11MessageDataType.face,
+            type: OB11MessageDataType.Face,
             data: {
               id: faceIndex.toString()
             }
@@ -331,7 +330,7 @@ export namespace OB11Entities {
         // const url = `https://p.qpic.cn/CDN_STATIC/0/data/imgcache/htdocs/club/item/parcel/item/${dir}/${md5}/300x300.gif?max_age=31536000`
         const url = `https://gxh.vip.qq.com/club/item/parcel/item/${dir}/${emojiId}/raw300.gif`
         messageSegment = {
-          type: OB11MessageDataType.mface,
+          type: OB11MessageDataType.Mface,
           data: {
             summary: marketFaceElement.faceName!,
             url,
@@ -344,15 +343,15 @@ export namespace OB11Entities {
       else if (element.markdownElement) {
         const { markdownElement } = element
         messageSegment = {
-          type: OB11MessageDataType.markdown,
+          type: OB11MessageDataType.Markdown,
           data: {
-            data: markdownElement.content
+            content: markdownElement.content
           }
         }
       }
       else if (element.multiForwardMsgElement) {
         messageSegment = {
-          type: OB11MessageDataType.forward,
+          type: OB11MessageDataType.Forward,
           data: {
             id: msg.msgId
           }
@@ -491,31 +490,27 @@ export namespace OB11Entities {
         const xmlElement = grayTipElement.xmlElement
 
         if (xmlElement?.templId === '10382') {
-          const emojiLikeData = new XMLParser({
-            ignoreAttributes: false,
-            attributeNamePrefix: '',
-          }).parse(xmlElement.content)
-          ctx.logger.info('收到表情回应我的消息', emojiLikeData)
+          ctx.logger.info('收到表情回应我的消息', xmlElement.templParam)
           try {
-            const senderUin: string = emojiLikeData.gtip.qq.jp
-            const msgSeq: string = emojiLikeData.gtip.url.msgseq
-            const emojiId: string = emojiLikeData.gtip.face.id
+            const senderUin = xmlElement.templParam.get('jp_uin')
+            const msgSeq = xmlElement.templParam.get('msg_seq')
+            const emojiId = xmlElement.templParam.get('face_id')
             const peer = {
               chatType: ChatType.Group,
               guildId: '',
               peerUid: msg.peerUid,
             }
-            const replyMsgList = (await ctx.ntMsgApi.queryFirstMsgBySeq(peer, msgSeq)).msgList
+            const replyMsgList = (await ctx.ntMsgApi.queryFirstMsgBySeq(peer, msgSeq!)).msgList
             if (!replyMsgList?.length) {
               return
             }
             const shortId = ctx.store.createMsgShortId(peer, replyMsgList[0].msgId)
             return new OB11GroupMsgEmojiLikeEvent(
               parseInt(msg.peerUid),
-              parseInt(senderUin),
+              parseInt(senderUin!),
               shortId,
               [{
-                emoji_id: emojiId,
+                emoji_id: emojiId!,
                 count: 1,
               }]
             )

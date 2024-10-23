@@ -1,0 +1,76 @@
+syntax = "proto3";
+package RichMedia;
+
+message MsgInfo {
+  repeated MsgInfoBody msgInfoBody = 1;
+  ExtBizInfo extBizInfo = 2;
+}
+
+message MsgInfoBody {
+  IndexNode index = 1;
+  PicInfo pic = 2;
+  bool fileExist = 5;
+}
+
+message IndexNode {
+  FileInfo info = 1;
+  string fileUuid = 2;
+  uint32 storeID = 3;
+  uint32 uploadTime = 4;
+  uint32 expire = 5;
+  uint32 type = 6; //0
+}
+
+message FileInfo {
+  uint32 fileSize = 1;
+  string md5HexStr = 2;
+  string sha1HexStr = 3;
+  string fileName = 4;
+  FileType fileType = 5;
+  uint32 width = 6;
+  uint32 height = 7;
+  uint32 time = 8;
+  uint32 original = 9;
+}
+
+message FileType {
+  uint32 type = 1;
+  uint32 picFormat = 2;
+  uint32 videoFormat = 3;
+  uint32 pttFormat = 4;
+}
+
+message PicInfo {
+  string urlPath = 1;
+  PicUrlExtParams ext = 2;
+  string domain = 3;
+}
+
+message PicUrlExtParams {
+  string originalParam = 1;
+  string bigParam = 2;
+  string thumbParam = 3;
+}
+
+message ExtBizInfo {
+  PicExtBizInfo pic = 1;
+  VideoExtBizInfo video = 2;
+  uint32 busiType = 10;
+}
+
+message PicExtBizInfo {
+  uint32 bizType = 1;
+  string summary = 2;
+}
+
+message VideoExtBizInfo {
+  bytes pbReserve = 3;
+}
+
+message PicFileIdInfo {
+  bytes sha1 = 2;
+  uint32 size = 3;
+  uint32 appid = 4;
+  uint32 time = 5;
+  uint32 expire = 10;
+}

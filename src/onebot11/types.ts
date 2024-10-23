@@ -117,30 +117,30 @@ export interface OB11Return<DataType> {
 }
 
 export enum OB11MessageDataType {
-  text = 'text',
-  image = 'image',
-  music = 'music',
-  video = 'video',
-  voice = 'record',
-  file = 'file',
-  at = 'at',
-  reply = 'reply',
-  json = 'json',
-  face = 'face',
-  mface = 'mface', // 商城表情
-  markdown = 'markdown',
-  node = 'node', // 合并转发消息节点
-  forward = 'forward', // 合并转发消息，用于上报
-  xml = 'xml',
-  poke = 'poke',
-  dice = 'dice',
-  RPS = 'rps',
-  contact = 'contact',
-  shake = 'shake',
+  Text = 'text',
+  Image = 'image',
+  Music = 'music',
+  Video = 'video',
+  Record = 'record',
+  File = 'file',
+  At = 'at',
+  Reply = 'reply',
+  Json = 'json',
+  Face = 'face',
+  Mface = 'mface', // 商城表情
+  Markdown = 'markdown',
+  Node = 'node', // 合并转发消息节点
+  Forward = 'forward', // 合并转发消息，用于上报
+  Xml = 'xml',
+  Poke = 'poke',
+  Dice = 'dice',
+  Rps = 'rps',
+  Contact = 'contact',
+  Shake = 'shake',
 }
 
 export interface OB11MessageMFace {
-  type: OB11MessageDataType.mface
+  type: OB11MessageDataType.Mface
   data: {
     emoji_package_id: number
     emoji_id: string
@@ -151,27 +151,27 @@ export interface OB11MessageMFace {
 }
 
 export interface OB11MessageDice {
-  type: OB11MessageDataType.dice
+  type: OB11MessageDataType.Dice
   data: {
     result: number /* intended */ | string /* in fact */
   }
 }
 export interface OB11MessageRPS {
-  type: OB11MessageDataType.RPS
+  type: OB11MessageDataType.Rps
   data: {
     result: number | string
   }
 }
 
 export interface OB11MessageText {
-  type: OB11MessageDataType.text
+  type: OB11MessageDataType.Text
   data: {
     text: string // 纯文本
   }
 }
 
 export interface OB11MessagePoke {
-  type: OB11MessageDataType.poke
+  type: OB11MessageDataType.Poke
   data: {
     qq?: number
     id?: number
@@ -189,7 +189,7 @@ export interface OB11MessageFileBase {
 }
 
 export interface OB11MessageImage extends OB11MessageFileBase {
-  type: OB11MessageDataType.image
+  type: OB11MessageDataType.Image
   data: OB11MessageFileBase['data'] & {
     summary?: string // 图片摘要
     subType?: PicSubType
@@ -198,14 +198,14 @@ export interface OB11MessageImage extends OB11MessageFileBase {
 }
 
 export interface OB11MessageRecord extends OB11MessageFileBase {
-  type: OB11MessageDataType.voice
+  type: OB11MessageDataType.Record
   data: OB11MessageFileBase['data'] & {
     path?: string //扩展
   }
 }
 
 export interface OB11MessageFile extends OB11MessageFileBase {
-  type: OB11MessageDataType.file
+  type: OB11MessageDataType.File
   data: OB11MessageFileBase['data'] & {
     file_id?: string
     path?: string
@@ -213,14 +213,14 @@ export interface OB11MessageFile extends OB11MessageFileBase {
 }
 
 export interface OB11MessageVideo extends OB11MessageFileBase {
-  type: OB11MessageDataType.video
+  type: OB11MessageDataType.Video
   data: OB11MessageFileBase['data'] & {
     path?: string //扩展
   }
 }
 
 export interface OB11MessageAt {
-  type: OB11MessageDataType.at
+  type: OB11MessageDataType.At
   data: {
     qq: string | 'all'
     name?: string
@@ -228,14 +228,14 @@ export interface OB11MessageAt {
 }
 
 export interface OB11MessageReply {
-  type: OB11MessageDataType.reply
+  type: OB11MessageDataType.Reply
   data: {
     id: string
   }
 }
 
 export interface OB11MessageFace {
-  type: OB11MessageDataType.face
+  type: OB11MessageDataType.Face
   data: {
     id: string
   }
@@ -244,48 +244,50 @@ export interface OB11MessageFace {
 export type OB11MessageMixType = OB11MessageData[] | string | OB11MessageData
 
 export interface OB11MessageNode {
-  type: OB11MessageDataType.node
+  type: OB11MessageDataType.Node
   data: {
-    id?: string
-    user_id?: number
-    nickname: string
-    content: OB11MessageMixType
+    id?: number | string
+    content?: OB11MessageMixType
+    user_id?: number // ob11
+    nickname?: string // ob11
+    name?: string // gocq
+    uin?: number | string // gocq
   }
 }
 
 export interface OB11MessageIdMusic {
-  type: OB11MessageDataType.music
+  type: OB11MessageDataType.Music
   data: IdMusicSignPostData
 }
 
 export interface OB11MessageCustomMusic {
-  type: OB11MessageDataType.music
+  type: OB11MessageDataType.Music
   data: Omit<CustomMusicSignPostData, 'singer'> & { content?: string }
 }
 
 export type OB11MessageMusic = OB11MessageIdMusic | OB11MessageCustomMusic
 
 export interface OB11MessageJson {
-  type: OB11MessageDataType.json
+  type: OB11MessageDataType.Json
   data: { data: string /* , config: { token: string } */ }
 }
 
 export interface OB11MessageMarkdown {
-  type: OB11MessageDataType.markdown
+  type: OB11MessageDataType.Markdown
   data: {
-    data: string
+    content: string
   }
 }
 
 export interface OB11MessageForward {
-  type: OB11MessageDataType.forward
+  type: OB11MessageDataType.Forward
   data: {
     id: string
   }
 }
 
 export interface OB11MessageContact {
-  type: OB11MessageDataType.contact
+  type: OB11MessageDataType.Contact
   data: {
     type: 'qq' | 'group'
     id: string
@@ -293,7 +295,7 @@ export interface OB11MessageContact {
 }
 
 export interface OB11MessageShake {
-  type: OB11MessageDataType.shake
+  type: OB11MessageDataType.Shake
   data: Record<string, never>
 }
 
