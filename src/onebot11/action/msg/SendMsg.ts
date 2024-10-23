@@ -9,7 +9,7 @@ import {
 import { BaseAction } from '../BaseAction'
 import { ActionName } from '../types'
 import { CustomMusicSignPostData, IdMusicSignPostData, MusicSign, MusicSignPostData } from '@/common/utils/sign'
-import { convertMessage2List, createSendElements, sendMsg, createPeer, CreatePeerMode } from '../../helper/createMessage'
+import { message2List, createSendElements, sendMsg, createPeer, CreatePeerMode } from '../../helper/createMessage'
 
 interface ReturnData {
   message_id: number
@@ -26,14 +26,14 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnData> {
       contextMode = CreatePeerMode.Private
     }
     const peer = await createPeer(this.ctx, payload, contextMode)
-    const messages = convertMessage2List(
+    const messages = message2List(
       payload.message,
       payload.auto_escape === true || payload.auto_escape === 'true',
     )
-    if (this.getSpecialMsgNum(messages, OB11MessageDataType.node)) {
+    if (this.getSpecialMsgNum(messages, OB11MessageDataType.Node)) {
       throw new Error('请使用 /send_group_forward_msg 或 /send_private_forward_msg 进行合并转发')
     }
-    else if (this.getSpecialMsgNum(messages, OB11MessageDataType.music)) {
+    else if (this.getSpecialMsgNum(messages, OB11MessageDataType.Music)) {
       const music = messages[0] as OB11MessageMusic
       if (music) {
         const { musicSignUrl } = this.adapter.config
@@ -78,7 +78,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnData> {
           throw `签名音乐消息失败：${e}`
         }
         messages[0] = {
-          type: OB11MessageDataType.json,
+          type: OB11MessageDataType.Json,
           data: { data: jsonContent },
         } as OB11MessageJson
       }

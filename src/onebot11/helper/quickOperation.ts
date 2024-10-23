@@ -2,7 +2,7 @@ import { OB11Message, OB11MessageData, OB11MessageDataType } from '../types'
 import { OB11FriendRequestEvent } from '../event/request/OB11FriendRequest'
 import { OB11GroupRequestEvent } from '../event/request/OB11GroupRequest'
 import { GroupRequestOperateTypes } from '@/ntqqapi/types'
-import { convertMessage2List, createSendElements, sendMsg, createPeer, CreatePeerMode } from '../helper/createMessage'
+import { message2List, createSendElements, sendMsg, createPeer, CreatePeerMode } from '../helper/createMessage'
 import { isNullable } from 'cosmokit'
 import { Context } from 'cordis'
 
@@ -65,7 +65,7 @@ async function handleMsg(ctx: Context, msg: OB11Message, quickAction: QuickOpera
   if (reply) {
     let replyMessage: OB11MessageData[] = []
     replyMessage.push({
-      type: OB11MessageDataType.reply,
+      type: OB11MessageDataType.Reply,
       data: {
         id: msg.message_id.toString(),
       },
@@ -74,14 +74,14 @@ async function handleMsg(ctx: Context, msg: OB11Message, quickAction: QuickOpera
     if (msg.message_type == 'group') {
       if ((quickAction as QuickOperationGroupMessage).at_sender) {
         replyMessage.push({
-          type: OB11MessageDataType.at,
+          type: OB11MessageDataType.At,
           data: {
             qq: msg.user_id.toString(),
           },
         })
       }
     }
-    replyMessage = replyMessage.concat(convertMessage2List(reply, quickAction.auto_escape))
+    replyMessage = replyMessage.concat(message2List(reply, quickAction.auto_escape))
     const { sendElements, deleteAfterSentFiles } = await createSendElements(ctx, replyMessage, peer)
     sendMsg(ctx, peer, sendElements, deleteAfterSentFiles).catch(e => ctx.logger.error(e))
   }
