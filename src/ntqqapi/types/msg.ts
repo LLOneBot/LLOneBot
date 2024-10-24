@@ -80,7 +80,7 @@ export interface SendVideoElement {
 export interface SendArkElement {
   elementType: ElementType.Ark
   elementId: ''
-  arkElement: ArkElement
+  arkElement: Partial<ArkElement>
 }
 
 export type SendMessageElement =
@@ -586,4 +586,32 @@ export interface GetFileListParam {
   sortOrder: number
   showOnlinedocFolder: number
   folderId?: string
+}
+
+export interface RichMediaUploadCompleteNotify {
+  fileId: string
+  fileDownType: number
+  filePath: string
+  totalSize: string
+  trasferStatus: number
+  commonFileInfo: {
+    uuid: string
+    fileName: string
+    fileSize: string
+    md5: string
+    sha: string
+  }
+}
+
+export enum RMBizType {
+  Unknown,
+  C2CFile,
+  GroupFile,
+  C2CPic,
+  GroupPic,
+  DiscPic,
+  C2CVideo,
+  GroupVideo,
+  C2CPtt,
+  GroupPtt,
 }
