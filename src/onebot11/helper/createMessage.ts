@@ -33,14 +33,14 @@ export async function createSendElements(
       continue
     }
     switch (sendMsg.type) {
-      case OB11MessageDataType.text: {
+      case OB11MessageDataType.Text: {
         const text = sendMsg.data?.text
         if (text) {
           sendElements.push(SendElement.text(sendMsg.data!.text))
         }
       }
         break
-      case OB11MessageDataType.at: {
+      case OB11MessageDataType.At: {
         if (!peer) {
           continue
         }
@@ -76,7 +76,7 @@ export async function createSendElements(
         }
       }
         break
-      case OB11MessageDataType.reply: {
+      case OB11MessageDataType.Reply: {
         if (sendMsg.data?.id) {
           const info = await ctx.store.getMsgInfoByShortId(+sendMsg.data.id)
           if (!info) {
@@ -90,14 +90,14 @@ export async function createSendElements(
         }
       }
         break
-      case OB11MessageDataType.face: {
+      case OB11MessageDataType.Face: {
         const faceId = sendMsg.data?.id
         if (faceId) {
           sendElements.push(SendElement.face(parseInt(faceId)))
         }
       }
         break
-      case OB11MessageDataType.mface: {
+      case OB11MessageDataType.Mface: {
         sendElements.push(
           SendElement.mface(
             +sendMsg.data.emoji_package_id,
@@ -108,10 +108,10 @@ export async function createSendElements(
         )
       }
         break
-      case OB11MessageDataType.image: {
+      case OB11MessageDataType.Image: {
         const res = await SendElement.pic(
           ctx,
-          (await handleOb11FileLikeMessage(ctx, sendMsg, { deleteAfterSentFiles })).path,
+          (await handleOb11RichMedia(ctx, sendMsg, deleteAfterSentFiles)).path,
           sendMsg.data.summary || '',
           sendMsg.data.subType || 0,
           sendMsg.data.type === 'flash'
@@ -120,13 +120,13 @@ export async function createSendElements(
         sendElements.push(res)
       }
         break
-      case OB11MessageDataType.file: {
-        const { path, fileName } = await handleOb11FileLikeMessage(ctx, sendMsg, { deleteAfterSentFiles })
+      case OB11MessageDataType.File: {
+        const { path, fileName } = await handleOb11RichMedia(ctx, sendMsg, deleteAfterSentFiles)
         sendElements.push(await SendElement.file(ctx, path, fileName))
       }
         break
-      case OB11MessageDataType.video: {
-        const { path, fileName } = await handleOb11FileLikeMessage(ctx, sendMsg, { deleteAfterSentFiles })
+      case OB11MessageDataType.Video: {
+        const { path, fileName } = await handleOb11RichMedia(ctx, sendMsg, deleteAfterSentFiles)
         let thumb = sendMsg.data.thumb
         if (thumb) {
           const uri2LocalRes = await uri2local(ctx, thumb)
@@ -137,32 +137,32 @@ export async function createSendElements(
         sendElements.push(res)
       }
         break
-      case OB11MessageDataType.voice: {
-        const { path } = await handleOb11FileLikeMessage(ctx, sendMsg, { deleteAfterSentFiles })
+      case OB11MessageDataType.Record: {
+        const { path } = await handleOb11RichMedia(ctx, sendMsg, deleteAfterSentFiles)
         sendElements.push(await SendElement.ptt(ctx, path))
       }
         break
-      case OB11MessageDataType.json: {
+      case OB11MessageDataType.Json: {
         sendElements.push(SendElement.ark(sendMsg.data.data))
       }
         break
-      case OB11MessageDataType.dice: {
+      case OB11MessageDataType.Dice: {
         const resultId = sendMsg.data?.result
         sendElements.push(SendElement.dice(resultId))
       }
         break
-      case OB11MessageDataType.RPS: {
+      case OB11MessageDataType.Rps: {
         const resultId = sendMsg.data?.result
         sendElements.push(SendElement.rps(resultId))
       }
         break
-      case OB11MessageDataType.contact: {
+      case OB11MessageDataType.Contact: {
         const { type, id } = sendMsg.data
         const data = type === 'qq' ? ctx.ntFriendApi.getBuddyRecommendContact(id) : ctx.ntGroupApi.getGroupRecommendContact(id)
         sendElements.push(SendElement.ark(await data))
       }
         break
-      case OB11MessageDataType.shake: {
+      case OB11MessageDataType.Shake: {
         sendElements.push(SendElement.shake())
       }
         break
@@ -175,51 +175,22 @@ export async function createSendElements(
   }
 }
 
-// forked from https://github.com/NapNeko/NapCatQQ/blob/6f6b258f22d7563f15d84e7172c4d4cbb547f47e/src/onebot11/action/msg/SendMsg/create-send-elements.ts#L26
-async function handleOb11FileLikeMessage(
-  ctx: Context,
-  { data: inputdata }: OB11MessageFileBase,
-  { deleteAfterSentFiles }: { deleteAfterSentFiles: string[] },
-) {
-  //有的奇怪的框架将url作为参数 而不是file 此时优先url 同时注意可能传入的是非file://开头的目录 By Mlikiowa
-  const {
-    path,
-    isLocal,
-    fileName,
-    errMsg,
-    success,
-  } = (await uri2local(ctx, inputdata.url || inputdata.file))
-
-  if (!success) {
-    ctx.logger.error(errMsg)
-    throw Error(errMsg)
-  }
-
-  if (!isLocal) { // 只删除http和base64转过来的文件
-    deleteAfterSentFiles.push(path)
-  }
-
-  return { path, fileName: inputdata.name || fileName }
-}
-
-export function convertMessage2List(message: OB11MessageMixType, autoEscape = false) {
+export function message2List(message: OB11MessageMixType, autoEscape = false) {
   if (typeof message === 'string') {
     if (autoEscape === true) {
-      message = [
+      return [
         {
-          type: OB11MessageDataType.text,
+          type: OB11MessageDataType.Text,
           data: {
             text: message,
           },
         },
-      ]
+      ] as OB11MessageData[]
+    } else {
+      return decodeCQCode(message)
     }
-    else {
-      message = decodeCQCode(message.toString())
-    }
-  }
-  else if (!Array.isArray(message)) {
-    message = [message]
+  } else if (!Array.isArray(message)) {
+    return [message]
   }
   return message
 }
@@ -300,4 +271,19 @@ export async function createPeer(ctx: Context, payload: CreatePeerPayload, mode 
     }
   }
   throw new Error('请指定 group_id 或 user_id')
+}
+
+export async function handleOb11RichMedia(ctx: Context, segment: OB11MessageFileBase, deleteAfterSentFiles: string[]) {
+  const res = await uri2local(ctx, segment.data.url || segment.data.file)
+
+  if (!res.success) {
+    ctx.logger.error(res.errMsg)
+    throw Error(res.errMsg)
+  }
+
+  if (!res.isLocal) {
+    deleteAfterSentFiles.push(res.path)
+  }
+
+  return { path: res.path, fileName: segment.data.name || res.fileName }
 }

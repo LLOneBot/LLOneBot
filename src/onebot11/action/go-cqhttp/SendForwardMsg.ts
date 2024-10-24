@@ -1,11 +1,13 @@
 import { unlink } from 'node:fs/promises'
-import { OB11MessageNode } from '../../types'
+import { OB11MessageData, OB11MessageNode } from '../../types'
 import { ActionName } from '../types'
 import { BaseAction, Schema } from '../BaseAction'
 import { Peer } from '@/ntqqapi/types/msg'
 import { ChatType, ElementType, RawMessage, SendMessageElement } from '@/ntqqapi/types'
 import { selfInfo } from '@/common/globalVars'
-import { convertMessage2List, createSendElements, sendMsg, createPeer, CreatePeerMode } from '../../helper/createMessage'
+import { message2List, createSendElements, sendMsg, createPeer, CreatePeerMode } from '../../helper/createMessage'
+import { MessageEncoder } from '@/onebot11/helper/createMultiMessage'
+import { Msg } from '@/ntqqapi/proto/compiled'
 
 interface Payload {
   user_id?: string | number
@@ -42,9 +44,89 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
       contextMode = CreatePeerMode.Private
     }
     const peer = await createPeer(this.ctx, payload, contextMode)
-    const msg = await this.handleForwardNode(peer, messages)
+
+    const nodes = this.parseNodeContent(messages)
+    let fake = true
+    for (const node of nodes) {
+      if (node.data.id) {
+        fake = false
+        break
+      }
+      if (node.data.content?.some(e => {
+        return !MessageEncoder.support.includes(e.type)
+      })) {
+        fake = false
+        break
+      }
+    }
+
+    let msg: RawMessage
+    if (fake && this.ctx.app.native.activated) {
+      msg = await this.handleFakeForwardNode(peer, nodes)
+    } else {
+      msg = await this.handleForwardNode(peer, nodes)
+    }
     const msgShortId = this.ctx.store.createMsgShortId({ chatType: msg.chatType, peerUid: msg.peerUid }, msg.msgId)
     return { message_id: msgShortId }
+  }
+
+  private parseNodeContent(nodes: OB11MessageNode[]) {
+    return nodes.map(e => {
+      return {
+        type: e.type,
+        data: {
+          ...e.data,
+          content: e.data.content ? message2List(e.data.content) : undefined
+        }
+      }
+    })
+  }
+
+  private async handleFakeForwardNode(peer: Peer, nodes: OB11MessageNode[]) {
+    const encoder = new MessageEncoder(this.ctx, peer)
+    const raw = await encoder.generate(nodes)
+    const transmit = Msg.PbMultiMsgTransmit.encode({ pbItemList: raw.multiMsgItems }).finish()
+    const resid = await this.ctx.app.native.uploadForward(peer, transmit.subarray(1))
+    const uuid = crypto.randomUUID()
+    try {
+      const msg = await this.ctx.ntMsgApi.sendMsg(peer, [{
+        elementType: 10,
+        elementId: '',
+        arkElement: {
+          bytesData: JSON.stringify({
+            app: 'com.tencent.multimsg',
+            config: {
+              autosize: 1,
+              forward: 1,
+              round: 1,
+              type: 'normal',
+              width: 300
+            },
+            desc: '[聊天记录]',
+            extra: JSON.stringify({
+              filename: uuid,
+              tsum: raw.tsum,
+            }),
+            meta: {
+              detail: {
+                news: raw.news,
+                resid,
+                source: raw.source,
+                summary: raw.summary,
+                uniseq: uuid,
+              }
+            },
+            prompt: '[聊天记录]',
+            ver: '0.0.0.5',
+            view: 'contact'
+          })
+        }
+      }], 1800)
+      return msg!
+    } catch (e) {
+      this.ctx.logger.error('合并转发失败', e)
+      throw new Error(`发送伪造合并转发消息失败 (res_id: ${resid} `)
+    }
   }
 
   private async cloneMsg(msg: RawMessage): Promise<RawMessage | undefined> {
@@ -96,7 +178,7 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
         try {
           const { sendElements, deleteAfterSentFiles } = await createSendElements(
             this.ctx,
-            convertMessage2List(messageNode.data.content),
+            messageNode.data.content as OB11MessageData[],
             destPeer
           )
           this.ctx.logger.info('开始生成转发节点', sendElements)

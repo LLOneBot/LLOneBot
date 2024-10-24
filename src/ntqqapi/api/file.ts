@@ -16,7 +16,7 @@ import path from 'node:path'
 import { existsSync } from 'node:fs'
 import { ReceiveCmdS } from '../hook'
 import { RkeyManager } from '@/ntqqapi/helper/rkey'
-import { RichMediaDownloadCompleteNotify, Peer } from '@/ntqqapi/types/msg'
+import { RichMediaDownloadCompleteNotify, RichMediaUploadCompleteNotify, RMBizType, Peer } from '@/ntqqapi/types/msg'
 import { calculateFileMD5 } from '@/common/utils/file'
 import { copyFile, stat, unlink } from 'node:fs/promises'
 import { Time } from 'cosmokit'
@@ -210,6 +210,28 @@ export class NTQQFileApi extends Service {
         { timeout: 5000 }
       ]
     )
+  }
+
+  async uploadRMFileWithoutMsg(filePath: string, bizType: RMBizType, peerUid: string) {
+    const data = await invoke<{
+      notifyInfo: RichMediaUploadCompleteNotify
+    }>(
+      'nodeIKernelRichMediaService/uploadRMFileWithoutMsg',
+      [{
+        params: {
+          filePath,
+          bizType,
+          peerUid,
+          useNTV2: true
+        }
+      }],
+      {
+        cbCmd: ReceiveCmdS.MEDIA_UPLOAD_COMPLETE,
+        cmdCB: payload => payload.notifyInfo.filePath === filePath,
+        timeout: 10 * Time.second,
+      }
+    )
+    return data.notifyInfo
   }
 }
 
