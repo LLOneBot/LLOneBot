@@ -478,6 +478,13 @@ export namespace OB11Entities {
             )
           }
         }
+        else if (groupElement.type === TipGroupElementType.MemberIncrease) {
+          const { memberUid, adminUid } = groupElement
+          if (memberUid !== selfInfo.uid) return
+          ctx.logger.info('收到群成员增加消息', groupElement)
+          const adminUin = adminUid ? await ctx.ntUserApi.getUinByUid(adminUid) : selfInfo.uin
+          return new OB11GroupIncreaseEvent(+msg.peerUid, +selfInfo.uin, +adminUin)
+        }
       }
       else if (element.fileElement) {
         return new OB11GroupUploadNoticeEvent(+msg.peerUid, +msg.senderUin!, {
