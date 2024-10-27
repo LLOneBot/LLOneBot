@@ -43,7 +43,7 @@ export class NTQQFileApi extends Service {
       msgId,
       elemId: elementId,
       videoCodecFormat: 0,
-      params: {
+      exParams: {
         downSourceType: 1,
         triggerType: 1
       }

@@ -70,10 +70,12 @@ export function startHook() {
                 delete hookApiCallbacks[callbackId]
               }
             } else if (args[2]) {
-              for (const receiveData of args[2]) {
-                for (const hook of receiveHooks.values()) {
-                  if (hook.method.includes(receiveData.cmdName)) {
-                    Promise.resolve(hook.hookFunc(receiveData.payload))
+              if (['IPC_DOWN_2', 'IPC_DOWN_3'].includes(args[0])) {
+                for (const receiveData of args[2]) {
+                  for (const hook of receiveHooks.values()) {
+                    if (hook.method.includes(receiveData.cmdName)) {
+                      Promise.resolve(hook.hookFunc(receiveData.payload))
+                    }
                   }
                 }
               }
