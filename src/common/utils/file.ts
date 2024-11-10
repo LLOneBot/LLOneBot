@@ -27,9 +27,10 @@ export function checkFileReceived(path: string, timeout: number = 3000): Promise
 
 export function calculateFileMD5(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
+    const hash = createHash('md5')
+
     // 创建一个流式读取器
     const stream = fs.createReadStream(filePath)
-    const hash = createHash('md5')
 
     stream.on('data', (data: Buffer) => {
       // 当读取到数据时，更新哈希对象的状态
