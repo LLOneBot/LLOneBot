@@ -7,6 +7,7 @@ export declare class NTQQPacketApi {
     private readonly wrapperSession;
     constructor(wrapperSession: WrapperSession);
     get available(): boolean;
+    private checkQQVersion;
     private InitSendPacket;
     private sendPacket;
     private sendOidbPacket;
