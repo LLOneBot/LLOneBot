@@ -12,6 +12,7 @@ interface Payload {
 interface Response extends OB11User {
   reg_time: number
   long_nick: string
+  city: string
 }
 
 export class GetStrangerInfo extends BaseAction<Payload, Response> {
@@ -33,7 +34,8 @@ export class GetStrangerInfo extends BaseAction<Payload, Response> {
         level: data.detail.commonExt.qqLevel && calcQQLevel(data.detail.commonExt.qqLevel) || 0,
         login_days: 0,
         reg_time: data.detail.commonExt.regTime,
-        long_nick: data.detail.simpleInfo.baseInfo.longNick
+        long_nick: data.detail.simpleInfo.baseInfo.longNick,
+        city: data.detail.commonExt.city
       }
     } else {
       const data = await this.ctx.ntUserApi.getUserDetailInfoByUin(uin)
@@ -46,7 +48,8 @@ export class GetStrangerInfo extends BaseAction<Payload, Response> {
         level: data.info.qqLevel && calcQQLevel(data.info.qqLevel) || 0,
         login_days: 0,
         reg_time: data.info.regTime,
-        long_nick: data.info.longNick
+        long_nick: data.info.longNick,
+        city: data.info.city
       }
     }
   }
