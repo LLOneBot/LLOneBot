@@ -11,6 +11,10 @@ function isEmpty(value: unknown) {
 }
 
 async function onSettingWindowCreated(view: Element) {
+  console.log(view)
+  if (!view){
+    return
+  }
   const config = await window.llonebot.getConfig()
   const ob11Config = { ...config.ob11 }
 

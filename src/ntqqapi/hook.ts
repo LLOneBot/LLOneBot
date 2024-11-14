@@ -46,7 +46,7 @@ export function startHook() {
 
   ipcMain.emit = new Proxy(ipcMain.emit, {
     apply(target, thisArg, args: [eventName: string, ...args: any]) {
-      if (args[2]?.eventName.startsWith('ns-LoggerApi')) {
+      if (args[2]?.eventName?.startsWith('ns-LoggerApi')) {
         return target.apply(thisArg, args)
       }
       if (logHook) {
