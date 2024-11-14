@@ -36,9 +36,6 @@ import {
 } from '../ntqqapi/api'
 import { existsSync, mkdirSync } from 'node:fs'
 
-import { initWrapperSession} from '@/ntqqapi/native/napcat-protocol-packet'
-initWrapperSession().then()
-
 declare module 'cordis' {
   interface Events {
     'llob/config-updated': (input: LLOBConfig) => void
