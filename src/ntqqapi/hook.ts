@@ -58,14 +58,14 @@ export function startHook() {
         event.sender[senderExclude] = true
         event.sender.send = new Proxy(event.sender.send, {
           apply(target, thisArg, args: [channel: string, meta: Dict, data: Dict[]]) {
-            if (args[1].eventName?.startsWith('ns-LoggerApi')) {
+            if (args[1]?.eventName?.startsWith('ns-LoggerApi')) {
               return target.apply(thisArg, args)
             }
             if (logHook) {
               log('received', args)
             }
 
-            const callbackId = args[1].callbackId
+            const callbackId = args[1]?.callbackId
             if (callbackId) {
               if (hookApiCallbacks[callbackId]) {
                 Promise.resolve(hookApiCallbacks[callbackId](args[2]))
@@ -97,7 +97,7 @@ export function startHook() {
         }
       }
       return target.apply(thisArg, args)
-    }
+    },
   })
 }
 
