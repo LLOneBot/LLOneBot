@@ -13,7 +13,7 @@ export class SendGroupSign extends BaseAction<Payload, null> {
   })
 
   async _handle(payload: Payload) {
-    await this.ctx.app.packet.sendGroupSignPacket(selfInfo.uin, payload.group_id.toString())
+    throw new Error('暂未实现群签到功能')
     return null
   }
 }

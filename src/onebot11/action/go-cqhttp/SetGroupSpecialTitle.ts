@@ -24,7 +24,7 @@ export class SetGroupSpecialTitle extends BaseAction<Payload, null> {
     if (self.role !== GroupMemberRole.Owner){
       throw new Error(`不是群${payload.group_id}的群主，无法设置群头衔`)
     }
-    await this.ctx.app.packet.sendSetSpecialTittlePacket(payload.group_id.toString(), uid, payload.special_title || "")
+    throw new Error('暂未实现设置群头衔功能')
     return null
   }
 }
