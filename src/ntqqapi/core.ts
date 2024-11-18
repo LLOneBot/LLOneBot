@@ -20,7 +20,6 @@ import { selfInfo } from '../common/globalVars'
 import { version } from '../version'
 import { invoke } from './ntcall'
 import { Native } from './native/crychic'
-import { initWrapperSession, NTQQPacketApi } from './native/napcat-protocol-packet'
 
 declare module 'cordis' {
   interface Context {
@@ -41,14 +40,10 @@ class Core extends Service {
   static inject = ['ntMsgApi', 'ntFriendApi', 'ntGroupApi', 'store']
   public startTime = 0
   public native
-  public packet!: NTQQPacketApi
 
   constructor(protected ctx: Context, public config: Core.Config) {
     super(ctx, 'app', true)
     this.native = new Native(ctx)
-    initWrapperSession().then(session => {
-      this.packet = new NTQQPacketApi(session)
-    })
   }
 
   public start() {
