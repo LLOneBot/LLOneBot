@@ -123,8 +123,7 @@ export async function uri2local(ctx: Context, uri: string, needExt?: boolean): P
   const { type } = checkUriType(uri)
 
   if (type === FileUriType.FileURL) {
-    const fileUri = uri.replace(/%/g, '%25').replace(/#/g, '%23')
-    const filePath = fileURLToPath(fileUri)
+    const filePath = fileURLToPath(uri)
     const fileName = path.basename(filePath)
     // console.log('fileURLToPath', filePath)
     // console.log('fileName', fileName)
