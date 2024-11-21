@@ -15,8 +15,16 @@ class GetGroupInfo extends BaseAction<Payload, OB11Group> {
 
   protected async _handle(payload: Payload) {
     const groupCode = payload.group_id.toString()
-    const group = (await this.ctx.ntGroupApi.getGroups()).find(e => e.groupCode === groupCode)
+    let group = (await this.ctx.ntGroupApi.getGroups()).find(e => e.groupCode === groupCode)
     if (group) {
+      try{
+        const groupAllInfo = await this.ctx.ntGroupApi.getGroupAllInfo(groupCode)
+        this.ctx.logger.info(groupAllInfo)
+        return {...OB11Entities.group(group), ...groupAllInfo}
+      }
+      catch (e) {
+        this.ctx.logger.error('获取群完整详细信息失败', e)
+      }
       return OB11Entities.group(group)
     }
     throw new Error(`群${payload.group_id}不存在`)
