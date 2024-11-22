@@ -35,6 +35,12 @@ TG 群：<https://t.me/+nLZEnpne-pQ1OWFl>
 - [koishi-plugin-adapter-onebot](https://github.com/koishijs/koishi-plugin-adapter-onebot)
 - [silk-wasm](https://github.com/idranme/silk-wasm)
 
+## 特殊感谢曾经在LLOneBot贡献的人员
+
+- [MliKiowa(拾雪)](https://github.com/MliKiowa)
+
+- [MisaLiu](https://github.com/MisaLiu)
+
 ## 友链
 
 - [Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core): An Implementation of NTQQ Protocol
