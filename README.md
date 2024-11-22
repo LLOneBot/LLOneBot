@@ -35,7 +35,7 @@ TG 群：<https://t.me/+nLZEnpne-pQ1OWFl>
 - [koishi-plugin-adapter-onebot](https://github.com/koishijs/koishi-plugin-adapter-onebot)
 - [silk-wasm](https://github.com/idranme/silk-wasm)
 
-## 特殊感谢曾经在LLOneBot贡献的人员
+## 特别感谢曾经在LLOneBot贡献的人员
 
 - [MliKiowa(拾雪)](https://github.com/MliKiowa)
 
