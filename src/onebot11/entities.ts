@@ -149,30 +149,30 @@ export namespace OB11Entities {
         }
         try {
           const { replayMsgSeq, replyMsgTime } = replyElement
-          const records = msg.records.find(msgRecord => msgRecord.msgId === replyElement.sourceMsgIdInRecords)
-          const senderUid = replyElement.senderUidStr || records?.senderUid
-          if (!records || !replyMsgTime || !senderUid) {
+          const record = msg.records.find(msgRecord => msgRecord.msgId === replyElement.sourceMsgIdInRecords)
+          const senderUid = replyElement.senderUidStr || record?.senderUid
+          if (!record || !replyMsgTime || !senderUid) {
             throw new Error('找不到回复消息')
           }
           const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replayMsgSeq, replyMsgTime, [senderUid])
 
           let replyMsg: RawMessage | undefined
-          if (records.msgRandom !== '0') {
-            replyMsg = msgList.find(msg => msg.msgRandom === records.msgRandom)
+          if (record.msgRandom !== '0') {
+            replyMsg = msgList.find(msg => msg.msgRandom === record.msgRandom)
           } else {
-            ctx.logger.info('msgRandom is missing', replyElement, records)
+            ctx.logger.info('msgRandom is missing', replyElement, record)
             replyMsg = msgList[0]
           }
 
           // 284840486: 合并消息内侧 消息具体定位不到
           if (!replyMsg && msg.peerUin !== '284840486') {
-            ctx.logger.info('queryMsgs', msgList.map(e => pick(e, ['msgSeq', 'msgRandom'])), records.msgRandom)
+            ctx.logger.info('queryMsgs', msgList.map(e => pick(e, ['msgSeq', 'msgRandom'])), record.msgRandom)
             throw new Error('回复消息验证失败')
           }
           messageSegment = {
             type: OB11MessageDataType.Reply,
             data: {
-              id: ctx.store.createMsgShortId(peer, replyMsg ? replyMsg.msgId : records.msgId).toString()
+              id: ctx.store.createMsgShortId(peer, replyMsg ? replyMsg.msgId : record.msgId).toString()
             }
           }
         } catch (e) {

@@ -109,16 +109,28 @@ export interface TextElement {
 }
 
 export interface ReplyElement {
-  replayMsgSeq: string
   replayMsgId: string
-  senderUin: string
-  senderUinStr: string
+  replayMsgSeq: string
+  replayMsgRootSeq: string
+  replayMsgRootMsgId: string
+  replayMsgRootCommentCnt: string
   sourceMsgIdInRecords: string
+  sourceMsgText: string
+  sourceMsgTextElems: {
+    replyAbsElemType: number
+    textElemContent: string
+    faceElem: unknown
+    picElem: unknown
+  }[]
   senderUid: string
   senderUidStr: string
-  sourceMsgIsIncPic: boolean // 原消息是否有图片
-  sourceMsgText: string
+  replyMsgClientSeq: string
   replyMsgTime: string
+  replyMsgRevokeType: number
+  sourceMsgIsIncPic: boolean
+  sourceMsgExpired: boolean
+  anonymousNickName: unknown
+  originalMsgState: unknown
 }
 
 export interface FileElement {
