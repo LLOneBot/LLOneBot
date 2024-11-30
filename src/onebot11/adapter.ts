@@ -32,9 +32,9 @@ declare module 'cordis' {
 
 class OneBot11Adapter extends Service {
   static inject = [
-    'ntMsgApi', 'ntFileApi', 'ntFileCacheApi', 'ntFriendApi',
-    'ntGroupApi', 'ntUserApi', 'ntWindowApi', 'ntWebApi',
-    'store', 'app'
+    'ntMsgApi', 'ntFileApi', 'ntFileCacheApi',
+    'ntFriendApi', 'ntGroupApi', 'ntUserApi',
+    'ntWebApi', 'ntSystemApi', 'store', 'app'
   ]
   private ob11WebSocket
   private ob11WebSocketReverseManager
@@ -326,8 +326,7 @@ class OneBot11Adapter extends Service {
     })
     this.ctx.on('nt/message-created', (input: RawMessage) => {
       // 其他终端自己发送的消息会进入这里
-
-      if (input.senderUid === selfInfo.uid){
+      if (input.senderUid === selfInfo.uid) {
         if (!this.config.reportSelfMessage) {
           return
         }

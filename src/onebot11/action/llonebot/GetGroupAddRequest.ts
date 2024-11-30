@@ -1,5 +1,4 @@
 import { BaseAction } from '../BaseAction'
-import { GroupNotifyStatus } from '@/ntqqapi/types'
 import { ActionName } from '../types'
 
 interface OB11GroupRequestNotify {
@@ -12,17 +11,6 @@ export default class GetGroupAddRequest extends BaseAction<null, OB11GroupReques
   actionName = ActionName.GetGroupIgnoreAddRequest
 
   protected async _handle(): Promise<OB11GroupRequestNotify[]> {
-    const data = await this.ctx.ntGroupApi.getGroupIgnoreNotifies()
-    const notifies = data.notifies.filter(notify => notify.status === GroupNotifyStatus.Unhandle)
-    const returnData: OB11GroupRequestNotify[] = []
-    for (const notify of notifies) {
-      const uin = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
-      returnData.push({
-        group_id: parseInt(notify.group.groupCode),
-        user_id: parseInt(uin),
-        flag: notify.seq,
-      })
-    }
-    return returnData
+    throw new Error('请使用 get_group_system_msg API, 可获取被过滤的加群通知')
   }
 }

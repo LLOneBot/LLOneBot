@@ -1,6 +1,6 @@
 import { BaseAction } from '../BaseAction'
-import { GroupNotifyStatus } from '@/ntqqapi/types'
 import { ActionName } from '../types'
+import { GroupNotify, GroupNotifyStatus, GroupNotifyType } from '@/ntqqapi/types'
 
 interface Response {
   invited_requests: {
@@ -27,11 +27,10 @@ interface Response {
 export class GetGroupSystemMsg extends BaseAction<void, Response> {
   actionName = ActionName.GoCQHTTP_GetGroupSystemMsg
 
-  async _handle() {
-    const singleScreenNotifies = await this.ctx.ntGroupApi.getSingleScreenNotifies(false, 10)
+  private async parse(notifies: GroupNotify[]) {
     const data: Response = { invited_requests: [], join_requests: [] }
-    for (const notify of singleScreenNotifies) {
-      if (notify.type == 1) {
+    for (const notify of notifies) {
+      if (notify.type === GroupNotifyType.InvitedByMember) {
         data.invited_requests.push({
           request_id: +notify.seq,
           invitor_uin: Number(await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)),
@@ -41,7 +40,7 @@ export class GetGroupSystemMsg extends BaseAction<void, Response> {
           checked: notify.status !== GroupNotifyStatus.Unhandle,
           actor: notify.user2?.uid ? Number(await this.ctx.ntUserApi.getUinByUid(notify.user2.uid)) : 0
         })
-      } else if (notify.type == 7) {
+      } else if (notify.type === GroupNotifyType.RequestJoinNeedAdminiStratorPass) {
         data.join_requests.push({
           request_id: +notify.seq,
           requester_uin: Number(await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)),
@@ -54,6 +53,16 @@ export class GetGroupSystemMsg extends BaseAction<void, Response> {
         })
       }
     }
+    return data
+  }
+
+  async _handle() {
+    const notifies = await this.ctx.ntGroupApi.getSingleScreenNotifies(false, 50)
+    const data = await this.parse(notifies)
+    const doubtNotifies = await this.ctx.ntGroupApi.getSingleScreenNotifies(true, 50)
+    const doubtData = await this.parse(doubtNotifies)
+    data.invited_requests.push(...doubtData.invited_requests)
+    data.join_requests.push(...doubtData.join_requests)
     return data
   }
 }

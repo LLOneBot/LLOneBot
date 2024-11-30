@@ -127,4 +127,6 @@ export interface NodeIKernelGroupService {
   setHeader(args: unknown[]): Promise<GeneralCallResult>
 
   searchMember(sceneId: string, keyword: string): Promise<void>
+
+  getGroupNotifiesUnreadCount(doubt: boolean): Promise<GeneralCallResult>
 }

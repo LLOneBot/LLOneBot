@@ -13,8 +13,6 @@ import {
   GroupMsgMask
 } from '../types'
 import { invoke, NTClass, NTMethod } from '../ntcall'
-import { GeneralCallResult } from '../services'
-import { NTQQWindows } from './window'
 import { Service, Context } from 'cordis'
 
 declare module 'cordis' {
@@ -24,8 +22,6 @@ declare module 'cordis' {
 }
 
 export class NTQQGroupApi extends Service {
-  static inject = ['ntWindowApi']
-
   constructor(protected ctx: Context) {
     super(ctx, 'ntGroupApi', true)
   }
@@ -81,15 +77,6 @@ export class NTQQGroupApi extends Service {
       }
     )
     return data.members.get(uid)!
-  }
-
-  async getGroupIgnoreNotifies() {
-    await this.getSingleScreenNotifies(false, 14)
-    return await this.ctx.ntWindowApi.openWindow<GeneralCallResult & GroupNotifies>(
-      NTQQWindows.GroupNotifyFilterWindow,
-      [],
-      ReceiveCmdS.GROUP_NOTIFY,
-    )
   }
 
   async getSingleScreenNotifies(doubt: boolean, number: number, startSeq = '') {

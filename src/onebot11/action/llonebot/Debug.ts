@@ -11,8 +11,8 @@ export default class Debug extends BaseAction<Payload, unknown> {
 
   protected async _handle(payload: Payload) {
     this.ctx.logger.info('debug call ntqq api', payload)
-    const { ntMsgApi, ntFileApi, ntFileCacheApi, ntFriendApi, ntGroupApi, ntUserApi, ntWindowApi } = this.ctx
-    const ntqqApi = [ntMsgApi, ntFriendApi, ntGroupApi, ntUserApi, ntFileApi, ntFileCacheApi, ntWindowApi]
+    const { ntMsgApi, ntFileApi, ntFileCacheApi, ntFriendApi, ntGroupApi, ntUserApi } = this.ctx
+    const ntqqApi = [ntMsgApi, ntFriendApi, ntGroupApi, ntUserApi, ntFileApi, ntFileCacheApi]
     for (const ntqqApiClass of ntqqApi) {
       const method = ntqqApiClass[payload.method as keyof typeof ntqqApiClass]
       if (method && method instanceof Function) {

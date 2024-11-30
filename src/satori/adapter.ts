@@ -22,7 +22,7 @@ class SatoriAdapter extends Service {
   static inject = [
     'ntMsgApi', 'ntFileApi', 'ntFileCacheApi',
     'ntFriendApi', 'ntGroupApi', 'ntUserApi',
-    'ntWindowApi', 'ntWebApi', 'store',
+    'ntWebApi', 'store',
   ]
   private counter: number
   private selfId: string
