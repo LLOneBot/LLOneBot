@@ -1,4 +1,4 @@
-export interface Group {
+export interface GroupSimpleInfo {
   groupCode: string
   maxMember: number
   memberCount: number

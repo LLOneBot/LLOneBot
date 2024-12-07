@@ -52,7 +52,7 @@ export interface OB11GroupMember {
 export interface OB11Group {
   group_id: number
   group_name: string
-  group_memo: string
+  group_memo: string // 群介绍
   group_create_time: number
   member_count: number
   max_member_count: number

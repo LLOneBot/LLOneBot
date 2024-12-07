@@ -13,7 +13,7 @@ import {
   ChatType,
   FaceIndex,
   GrayTipElementSubType,
-  Group,
+  GroupSimpleInfo,
   GroupMember,
   RawMessage,
   Sex,
@@ -688,18 +688,18 @@ export namespace OB11Entities {
     }
   }
 
-  export function group(group: Group): OB11Group {
+  export function group(group: GroupSimpleInfo): OB11Group {
     return {
       group_id: parseInt(group.groupCode),
       group_name: group.groupName,
-      group_memo: group.remarkName,
+      group_memo: '',
       group_create_time: +group.createTime,
       member_count: group.memberCount,
       max_member_count: group.maxMember,
     }
   }
 
-  export function groups(groups: Group[]): OB11Group[] {
+  export function groups(groups: GroupSimpleInfo[]): OB11Group[] {
     return groups.map(group)
   }
 }

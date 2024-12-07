@@ -1,5 +1,4 @@
 import { OB11Group } from '../../types'
-import { OB11Entities } from '../../entities'
 import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
 
@@ -15,19 +14,21 @@ class GetGroupInfo extends BaseAction<Payload, OB11Group> {
 
   protected async _handle(payload: Payload) {
     const groupCode = payload.group_id.toString()
-    let group = (await this.ctx.ntGroupApi.getGroups()).find(e => e.groupCode === groupCode)
-    if (group) {
-      try{
-        const groupAllInfo = await this.ctx.ntGroupApi.getGroupAllInfo(groupCode)
-        this.ctx.logger.info(groupAllInfo)
-        return {...OB11Entities.group(group), ...groupAllInfo}
-      }
-      catch (e) {
-        this.ctx.logger.error('获取群完整详细信息失败', e)
-      }
-      return OB11Entities.group(group)
+    const { groupAll } = await this.ctx.ntGroupApi.getGroupAllInfo(groupCode)
+    const data = {
+      group_id: +groupAll.groupCode,
+      group_name: groupAll.groupName,
+      group_memo: groupAll.richFingerMemo,
+      group_create_time: 0,
+      member_count: groupAll.memberNum,
+      max_member_count: groupAll.maxMemberNum,
+      groupAll
     }
-    throw new Error(`群${payload.group_id}不存在`)
+    const group = (await this.ctx.ntGroupApi.getGroups()).find(e => e.groupCode === groupCode)
+    if (group) {
+      data.group_create_time = +group.createTime
+    }
+    return data
   }
 }
 

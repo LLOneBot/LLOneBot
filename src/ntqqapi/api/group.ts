@@ -1,6 +1,6 @@
 import { ReceiveCmdS } from '../hook'
 import {
-  Group,
+  GroupSimpleInfo,
   GroupMember,
   GroupMemberRole,
   GroupNotifies,
@@ -27,10 +27,10 @@ export class NTQQGroupApi extends Service {
     super(ctx, 'ntGroupApi', true)
   }
 
-  async getGroups(): Promise<Group[]> {
+  async getGroups(): Promise<GroupSimpleInfo[]> {
     const result = await invoke<{
       updateType: number
-      groupList: Group[]
+      groupList: GroupSimpleInfo[]
     }>(
       'getGroupList',
       [],
