@@ -13,6 +13,10 @@ interface Response extends OB11User {
   reg_time: number
   long_nick: string
   city: string
+  country: string
+  birthday_year: number
+  birthday_month: number
+  birthday_day: number
 }
 
 export class GetStrangerInfo extends BaseAction<Payload, Response> {
@@ -35,7 +39,11 @@ export class GetStrangerInfo extends BaseAction<Payload, Response> {
         login_days: 0,
         reg_time: data.detail.commonExt.regTime,
         long_nick: data.detail.simpleInfo.baseInfo.longNick,
-        city: data.detail.commonExt.city
+        city: data.detail.commonExt.city,
+        country: data.detail.commonExt.country,
+        birthday_year: data.detail.simpleInfo.baseInfo.birthday_year,
+        birthday_month: data.detail.simpleInfo.baseInfo.birthday_month,
+        birthday_day: data.detail.simpleInfo.baseInfo.birthday_day
       }
     } else {
       const data = await this.ctx.ntUserApi.getUserDetailInfoByUin(uin)
@@ -49,7 +57,11 @@ export class GetStrangerInfo extends BaseAction<Payload, Response> {
         login_days: 0,
         reg_time: data.info.regTime,
         long_nick: data.info.longNick,
-        city: data.info.city
+        city: data.info.city,
+        country: data.info.country,
+        birthday_year: data.info.birthday_year,
+        birthday_month: data.info.birthday_month,
+        birthday_day: data.info.birthday_day
       }
     }
   }
