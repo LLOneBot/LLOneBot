@@ -686,8 +686,6 @@ export namespace OB11Entities {
   }
 
   export function groupMember(groupId: number, member: GroupMember): OB11GroupMember {
-    const titleExpireTime = +member.specialTitleExpireTime
-    const int32Max = 2147483647
     return {
       group_id: groupId,
       user_id: parseInt(member.uin),
@@ -700,7 +698,7 @@ export namespace OB11Entities {
       qq_level: 0,
       join_time: member.joinTime,
       last_sent_time: member.lastSpeakTime,
-      title_expire_time: titleExpireTime > int32Max ? 0 : titleExpireTime,
+      title_expire_time: 0,
       unfriendly: false,
       card_changeable: true,
       is_robot: member.isRobot,
