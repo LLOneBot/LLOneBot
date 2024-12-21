@@ -1,4 +1,4 @@
-import { SimpleInfo } from '../types'
+import { SimpleInfo, UserDetailInfoV2, UserDetailInfo } from '../types'
 import { GeneralCallResult } from './common'
 
 export interface NodeIKernelProfileService {
@@ -14,5 +14,7 @@ export interface NodeIKernelProfileService {
 
   getUserDetailInfoWithBizInfo(uid: string, biz: unknown[]): Promise<GeneralCallResult>
 
-  getUserDetailInfoByUin(uin: string): Promise<unknown>
+  getUserDetailInfoByUin(uin: string): Promise<GeneralCallResult & { detail?: UserDetailInfoV2, info?: UserDetailInfo }>
+
+  modifyDesktopMiniProfile(profile: unknown): Promise<GeneralCallResult>
 }

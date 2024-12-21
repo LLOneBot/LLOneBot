@@ -252,12 +252,68 @@ interface PhotoWall {
   picList: Pic[]
 }
 
-export interface UserDetailInfo {
+export interface UserDetailInfoV2 {
   uid: string
   uin: string
   simpleInfo: SimpleInfo
   commonExt: CommonExt
   photoWall: PhotoWall
+}
+
+export interface UserDetailInfo {
+  uid: string
+  qid: string
+  uin: string
+  nick: string
+  remark: string
+  longNick: string
+  //avatarUrl: string
+  birthday_year: number
+  birthday_month: number
+  birthday_day: number
+  sex: number
+  topTime: string
+  constellation: number
+  shengXiao: number
+  kBloodType: number
+  homeTown: string
+  makeFriendCareer: number
+  pos: string
+  eMail: string
+  phoneNum: string
+  college: string
+  country: string
+  province: string
+  city: string
+  postCode: string
+  address: string
+  isBlock: boolean
+  isSpecialCareOpen: boolean
+  isSpecialCareZone: boolean
+  ringId: string
+  regTime: number
+  interest: string
+  termType: number
+  labels: unknown[]
+  qqLevel: { crownNum: number, sunNum: number, moonNum: number, starNum: number }
+  isHideQQLevel: number
+  privilegeIcon: { jumpUrl: string, openIconList: unknown[], closeIconList: unknown[] }
+  isHidePrivilegeIcon: number
+  photoWall: { picList: unknown[] }
+  vipFlag: boolean
+  yearVipFlag: boolean
+  svipFlag: boolean
+  vipLevel: number
+  status: number
+  qidianMasterFlag: number
+  qidianCrewFlag: number
+  qidianCrewFlag2: number
+  extStatus: number
+  recommendImgFlag: number
+  disableEmojiShortCuts: number
+  pendantId: string
+  vipNameColorId: string
+  age?: number
 }
 
 export interface BuddyProfileLikeReq {
@@ -269,77 +325,6 @@ export interface BuddyProfileLikeReq {
   type: number
   start: number
   limit: number
-}
-
-export interface UserDetailInfoByUinV2 {
-  result: number
-  errMsg: string
-  detail: {
-    uid: string
-    uin: string
-    simpleInfo: SimpleInfo
-    commonExt: CommonExt
-    photoWall: null
-  }
-}
-
-export interface UserDetailInfoByUin {
-  result: number
-  errMsg: string
-  info: {
-    uid: string //这个没办法用
-    qid: string
-    uin: string
-    nick: string
-    remark: string
-    longNick: string
-    avatarUrl: string
-    birthday_year: number
-    birthday_month: number
-    birthday_day: number
-    sex: number
-    topTime: string
-    constellation: number
-    shengXiao: number
-    kBloodType: number
-    homeTown: string
-    makeFriendCareer: number
-    pos: string
-    eMail: string
-    phoneNum: string
-    college: string
-    country: string
-    province: string
-    city: string
-    postCode: string
-    address: string
-    isBlock: boolean
-    isSpecialCareOpen: boolean
-    isSpecialCareZone: boolean
-    ringId: string
-    regTime: number
-    interest: string
-    termType: number
-    labels: unknown[]
-    qqLevel: { crownNum: number, sunNum: number, moonNum: number, starNum: number }
-    isHideQQLevel: number
-    privilegeIcon: { jumpUrl: string, openIconList: unknown[], closeIconList: unknown[] }
-    isHidePrivilegeIcon: number
-    photoWall: { picList: unknown[] }
-    vipFlag: boolean
-    yearVipFlag: boolean
-    svipFlag: boolean
-    vipLevel: number
-    status: number
-    qidianMasterFlag: number
-    qidianCrewFlag: number
-    qidianCrewFlag2: number
-    extStatus: number
-    recommendImgFlag: number
-    disableEmojiShortCuts: number
-    pendantId: string
-    vipNameColorId: string
-  }
 }
 
 export enum BuddyListReqType {
@@ -358,4 +343,21 @@ export enum ProfileBizType {
   KVAS,
   KQZONE,
   KOTHER
+}
+
+export interface MiniProfile {
+  nick: string
+  longNick: string
+  sex: number
+  birthday: {
+    birthday_year: number
+    birthday_month: number
+    birthday_day: number
+  }
+  location: {
+    country: string
+    province: string
+    city: string
+    zone: string
+  }
 }

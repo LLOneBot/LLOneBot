@@ -98,4 +98,5 @@ export enum ActionName {
   GoCQHTTP_GetGroupFileSystemInfo = 'get_group_file_system_info',
   GoCQHTTP_SetGroupSpecialTitle = 'set_group_special_title',
   GoCQHTTP_SendGroupSign = 'send_group_sign',
+  GoCQHTTP_SetQQProfile = 'set_qq_profile',
 }

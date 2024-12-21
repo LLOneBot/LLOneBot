@@ -10,7 +10,6 @@ import SendGroupMsg from './group/SendGroupMsg'
 import SendPrivateMsg from './msg/SendPrivateMsg'
 import SendMsg from './msg/SendMsg'
 import DeleteMsg from './msg/DeleteMsg'
-import { BaseAction } from './BaseAction'
 import GetVersionInfo from './system/GetVersionInfo'
 import CanSendRecord from './system/CanSendRecord'
 import CanSendImage from './system/CanSendImage'
@@ -78,13 +77,14 @@ import { GroupPoke } from './llonebot/GroupPoke'
 import { FriendPoke } from './llonebot/FriendPoke'
 import { GetGroupFileSystemInfo } from './go-cqhttp/GetGroupFileSystemInfo'
 import { GetCredentials } from './system/GetCredentials'
-import { SetGroupSpecialTitle } from '@/onebot11/action/go-cqhttp/SetGroupSpecialTitle'
-import { SendGroupSign } from '@/onebot11/action/go-cqhttp/SendGroupSign'
-import { SetRestart } from '@/onebot11/action/system/SetRestart'
-import { SetFriendCategory } from '@/onebot11/action/llonebot/SetFriendCategory'
-import { SetFriendRemark } from '@/onebot11/action/llonebot/SetFriendRemark'
-import { SetGroupMsgMask } from '@/onebot11/action/llonebot/SetGroupMsgMask'
-import { SetGroupRemark } from '@/onebot11/action/llonebot/SetGroupRemark'
+import { SetGroupSpecialTitle } from './go-cqhttp/SetGroupSpecialTitle'
+import { SendGroupSign } from './go-cqhttp/SendGroupSign'
+import { SetRestart } from './system/SetRestart'
+import { SetFriendCategory } from './llonebot/SetFriendCategory'
+import { SetFriendRemark } from './llonebot/SetFriendRemark'
+import { SetGroupMsgMask } from './llonebot/SetGroupMsgMask'
+import { SetGroupRemark } from './llonebot/SetGroupRemark'
+import { SetQQProfile } from './go-cqhttp/SetQQProfile'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -175,6 +175,7 @@ export function initActionMap(adapter: Adapter) {
     new GetGroupFileSystemInfo(adapter),
     new SetGroupSpecialTitle(adapter),
     new SendGroupSign(adapter),
+    new SetQQProfile(adapter),
   ]
   const actionMap = new Map()
   for (const action of actionHandlers) {

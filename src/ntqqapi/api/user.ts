@@ -1,4 +1,4 @@
-import { User, UserDetailInfoByUin, UserDetailInfoByUinV2, UserDetailInfo, UserDetailSource, ProfileBizType, SimpleInfo } from '../types'
+import { MiniProfile, ProfileBizType, SimpleInfo, User, UserDetailInfoV2, UserDetailSource, UserDetailInfo } from '../types'
 import { invoke, NTClass } from '../ntcall'
 import { getBuildVersion } from '@/common/utils'
 import { RequestUtil } from '@/common/utils/request'
@@ -30,7 +30,7 @@ export class NTQQUserApi extends Service {
   }
 
   async fetchUserDetailInfo(uid: string) {
-    const result = await invoke<{ info: UserDetailInfo }>(
+    const result = await invoke<{ info: UserDetailInfoV2 }>(
       'nodeIKernelProfileService/fetchUserDetailInfo',
       [{
         callFrom: 'BuddyProfileStore',
@@ -44,24 +44,24 @@ export class NTQQUserApi extends Service {
         cmdCB: payload => payload.info.uid === uid,
       }
     )
-    const { info } = result
-    const ret: User = {
-      ...info.simpleInfo.coreInfo,
-      ...info.simpleInfo.status,
-      ...info.simpleInfo.vasInfo,
-      ...info.commonExt,
-      ...info.simpleInfo.baseInfo,
-      qqLevel: info.commonExt?.qqLevel,
-      pendantId: ''
-    }
-    return ret
+    return result.info
   }
 
   async getUserDetailInfo(uid: string) {
     if (getBuildVersion() >= 26702) {
-      return this.fetchUserDetailInfo(uid)
+      const info = await this.fetchUserDetailInfo(uid)
+      return {
+        ...info.simpleInfo.coreInfo,
+        ...info.simpleInfo.status,
+        ...info.simpleInfo.vasInfo,
+        ...info.commonExt,
+        ...info.simpleInfo.baseInfo,
+        ...info.simpleInfo.relationFlags,
+        photoWall: info.photoWall,
+        pendantId: ''
+      } as UserDetailInfo
     }
-    const result = await invoke<{ info: User }>(
+    const result = await invoke<{ info: UserDetailInfo }>(
       'nodeIKernelProfileService/getUserDetailInfoWithBizInfo',
       [{
         uid,
@@ -121,7 +121,7 @@ export class NTQQUserApi extends Service {
       uid = Array.from(member.values()).find(e => e.uin === uin)?.uid
     }
     if (!uid) {
-      const unveifyUid = (await this.getUserDetailInfoByUin(uin)).info.uid
+      const unveifyUid = (await this.getUserDetailInfoByUin(uin)).info!.uid
       if (!unveifyUid.includes('*')) {
         uid = unveifyUid
       }
@@ -136,7 +136,7 @@ export class NTQQUserApi extends Service {
     if (uid) return uid
     uid = (await invoke('nodeIKernelUixConvertService/getUid', [{ uins: [uin] }])).uidInfo.get(uin)
     if (uid) return uid
-    const unveifyUid = (await this.getUserDetailInfoByUinV2(uin)).detail.uid
+    const unveifyUid = (await this.getUserDetailInfoByUin(uin)).detail!.uid
     //if (!unveifyUid.includes('*')) return unveifyUid
     return unveifyUid
   }
@@ -148,18 +148,8 @@ export class NTQQUserApi extends Service {
     return this.getUidByUinV1(uin, groupCode)
   }
 
-  async getUserDetailInfoByUinV2(uin: string) {
-    return await invoke<UserDetailInfoByUinV2>(
-      'nodeIKernelProfileService/getUserDetailInfoByUin',
-      [{ uin }]
-    )
-  }
-
   async getUserDetailInfoByUin(uin: string) {
-    return await invoke<UserDetailInfoByUin>(
-      'nodeIKernelProfileService/getUserDetailInfoByUin',
-      [{ uin }]
-    )
+    return await invoke('nodeIKernelProfileService/getUserDetailInfoByUin', [{ uin }])
   }
 
   async getUinByUidV1(uid: string) {
@@ -297,5 +287,9 @@ export class NTQQUserApi extends Service {
         className: NTClass.BUSINESS_API,
       }
     )
+  }
+
+  async modifySelfProfile(profile: MiniProfile) {
+    return await invoke('nodeIKernelProfileService/modifyDesktopMiniProfile', [{ profile }])
   }
 }

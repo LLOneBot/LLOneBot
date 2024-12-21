@@ -27,8 +27,8 @@ export class GetStrangerInfo extends BaseAction<Payload, Response> {
 
   protected async _handle(payload: Payload) {
     const uin = payload.user_id.toString()
-    if (getBuildVersion() >= 26702) {
-      const data = await this.ctx.ntUserApi.getUserDetailInfoByUinV2(uin)
+    const data = await this.ctx.ntUserApi.getUserDetailInfoByUin(uin)
+    if (data.detail) {
       return {
         user_id: parseInt(data.detail.uin) || 0,
         nickname: data.detail.simpleInfo.coreInfo.nick,
@@ -46,22 +46,21 @@ export class GetStrangerInfo extends BaseAction<Payload, Response> {
         birthday_day: data.detail.simpleInfo.baseInfo.birthday_day
       }
     } else {
-      const data = await this.ctx.ntUserApi.getUserDetailInfoByUin(uin)
       return {
-        user_id: parseInt(data.info.uin) || 0,
-        nickname: data.info.nick,
-        sex: OB11Entities.sex(data.info.sex),
-        age: data.info.birthday_year === 0 ? 0 : new Date().getFullYear() - data.info.birthday_year,
-        qid: data.info.qid,
-        level: data.info.qqLevel && calcQQLevel(data.info.qqLevel) || 0,
+        user_id: parseInt(data.info!.uin) || 0,
+        nickname: data.info!.nick,
+        sex: OB11Entities.sex(data.info!.sex),
+        age: data.info!.birthday_year === 0 ? 0 : new Date().getFullYear() - data.info!.birthday_year,
+        qid: data.info!.qid,
+        level: data.info!.qqLevel && calcQQLevel(data.info!.qqLevel) || 0,
         login_days: 0,
-        reg_time: data.info.regTime,
-        long_nick: data.info.longNick,
-        city: data.info.city,
-        country: data.info.country,
-        birthday_year: data.info.birthday_year,
-        birthday_month: data.info.birthday_month,
-        birthday_day: data.info.birthday_day
+        reg_time: data.info!.regTime,
+        long_nick: data.info!.longNick,
+        city: data.info!.city,
+        country: data.info!.country,
+        birthday_year: data.info!.birthday_year,
+        birthday_month: data.info!.birthday_month,
+        birthday_day: data.info!.birthday_day
       }
     }
   }
