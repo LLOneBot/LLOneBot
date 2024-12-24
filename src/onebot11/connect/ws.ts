@@ -119,13 +119,8 @@ class OB11WebSocket {
     if (!action) {
       return this.reply(socket, OB11Response.error('不支持的api ' + receive.action, 1404, receive.echo))
     }
-    try {
-      const handleResult = await action.websocketHandle(receive.params, receive.echo)
-      handleResult.echo = receive.echo
-      this.reply(socket, handleResult)
-    } catch (e) {
-      this.reply(socket, OB11Response.error(`api处理出错:${(e as Error).stack}`, 1200, receive.echo))
-    }
+    const handleResult = await action.websocketHandle(receive.params, receive.echo)
+    this.reply(socket, handleResult)
   }
 
   private connect(socket: WebSocket, req: IncomingMessage) {
@@ -224,12 +219,8 @@ class OB11WebSocketReverse {
     if (!action) {
       return this.reply(this.wsClient!, OB11Response.error('不支持的api ' + receive.action, 1404, receive.echo))
     }
-    try {
-      const handleResult = await action.websocketHandle(receive.params, receive.echo)
-      this.reply(this.wsClient!, handleResult)
-    } catch (e) {
-      this.reply(this.wsClient!, OB11Response.error(`api处理出错:${e}`, 1200, receive.echo))
-    }
+    const handleResult = await action.websocketHandle(receive.params, receive.echo)
+    this.reply(this.wsClient!, handleResult)
   }
 
   private tryConnect() {

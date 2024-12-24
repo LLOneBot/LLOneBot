@@ -25,7 +25,7 @@ abstract class BaseAction<PayloadType, ReturnDataType> {
       return OB11Response.ok(resData)
     } catch (e) {
       this.ctx.logger.error('发生错误', e)
-      return OB11Response.error((e as Error)?.toString() || (e as Error)?.stack?.toString() || '未知错误，可能操作超时', 200)
+      return OB11Response.error((e as Error)?.toString() ?? String(e), 200)
     }
   }
 
@@ -41,7 +41,7 @@ abstract class BaseAction<PayloadType, ReturnDataType> {
       return OB11Response.ok(resData, echo)
     } catch (e) {
       this.ctx.logger.error('发生错误', e)
-      return OB11Response.error((e as Error)?.stack?.toString() || String(e), 1200, echo)
+      return OB11Response.error((e as Error)?.toString() ?? String(e), 1200, echo)
     }
   }
 

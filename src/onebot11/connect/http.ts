@@ -111,11 +111,7 @@ class OB11Http {
     this.ctx.logger.info('收到 HTTP 请求', req.url, payload)
     const action = this.config.actionMap.get(req.path.replaceAll('/', ''))
     if (action) {
-      try {
-        res.json(await action.handle(payload))
-      } catch (e) {
-        res.json(OB11Response.error((e as Error).stack!.toString(), 200))
-      }
+      res.json(await action.handle(payload))
     } else {
       res.status(404).json(OB11Response.error('API 不存在', 404))
     }
