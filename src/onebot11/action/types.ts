@@ -21,6 +21,7 @@ export enum ActionName {
   GetEvent = 'get_event',
   SetOnlineStatus = 'set_online_status',
   GetProfileLike = 'get_profile_like',
+  GetProfileLikeMe = 'get_profile_like_me',
   FetchEmojiLike = 'fetch_emoji_like',
   FetchCustomFace = 'fetch_custom_face',
   GetFriendMsgHistory = 'get_friend_msg_history',
