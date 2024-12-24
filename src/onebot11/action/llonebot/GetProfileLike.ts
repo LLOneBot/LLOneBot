@@ -16,8 +16,8 @@ interface Response {
 export class GetProfileLike extends BaseAction<Payload, Response> {
   actionName = ActionName.GetProfileLike
   payloadSchema = Schema.object({
-    start: Schema.union([Number, String]).default(-1),
-    count: Schema.union([Number, String]).default(20)
+    start: Schema.union([Number, String]).default(-1), // 从0开始，-1表示获取全部
+    count: Schema.union([Number, String]).default(20)  // 最多30一页
   })
   async _handle(payload) {
     const ret = await this.ctx.ntUserApi.getProfileLike(selfInfo.uid, +payload.start, +payload.count)

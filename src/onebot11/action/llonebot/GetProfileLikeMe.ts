@@ -16,8 +16,8 @@ interface Response {
 export class GetProfileLikeMe extends BaseAction<Payload, Response> {
   actionName = ActionName.GetProfileLikeMe
   payloadSchema = Schema.object({
-    start: Schema.union([Number, String]).default(-1),
-    count: Schema.union([Number, String]).default(20)
+    start: Schema.union([Number, String]).default(-1), // 从0开始，-1表示获取全部
+    count: Schema.union([Number, String]).default(20) // 最多30一页
   })
 
   async _handle(payload: Payload): Promise<Response> {
