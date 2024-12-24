@@ -84,9 +84,10 @@ export class SatoriServer {
           socket.send(JSON.stringify({
             op: Universal.Opcode.READY,
             body: {
-              logins: [await handlers.getLogin(this.ctx, {})]
+              logins: [await handlers.getLogin(this.ctx, {}) as Universal.Login],
+              proxy_urls: []
             }
-          } as Universal.ServerPayload))
+          } as ObjectToSnake<Universal.ServerPayload>))
           this.wsClients.push(socket)
         } else if (payload.op === Universal.Opcode.PING) {
           socket.send(JSON.stringify({

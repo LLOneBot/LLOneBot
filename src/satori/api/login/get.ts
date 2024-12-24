@@ -14,6 +14,7 @@ export const getLogin: Handler<Login> = async (ctx) => {
   features.push('guild.plain')
   await ctx.ntUserApi.getSelfNick()
   return {
+    sn: ctx.satori._loginSeq,
     user: decodeUser(selfInfo),
     adapter: 'llonebot',
     platform: 'llonebot',

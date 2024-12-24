@@ -24,15 +24,17 @@ class SatoriAdapter extends Service {
     'ntFriendApi', 'ntGroupApi', 'ntUserApi',
     'ntWebApi', 'store',
   ]
-  private counter: number
   private selfId: string
   private server: SatoriServer
+  private _eventSeq: number
+  public _loginSeq: number
 
   constructor(public ctx: Context, public config: SatoriAdapter.Config) {
     super(ctx, 'satori', true)
-    this.counter = 0
     this.selfId = selfInfo.uin
     this.server = new SatoriServer(ctx, config)
+    this._eventSeq = 0
+    this._loginSeq = 1
   }
 
   async handleMessage(input: NT.RawMessage) {
@@ -173,8 +175,11 @@ class SatoriAdapter extends Service {
   }
 
   event(type: string, data: Partial<ObjectToSnake<Event>>): ObjectToSnake<Event> {
+    const sn = ++this._eventSeq
     return {
-      id: ++this.counter,
+      // @ts-expect-error: For backward compatibility
+      id: sn,
+      sn,
       type,
       self_id: this.selfId,
       platform: 'llonebot',
