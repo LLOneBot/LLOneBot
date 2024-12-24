@@ -1,8 +1,7 @@
-import { BaseAction } from '../BaseAction'
+import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
 import { selfInfo } from '@/common/globalVars'
 import { Dict } from 'cosmokit'
-import { Schema } from '@/onebot11/action/BaseAction'
 
 interface Payload {
   start: number | string,
@@ -13,15 +12,19 @@ interface Response {
   users: Dict[]
   nextStart: number
 }
-export class GetProfileLike extends BaseAction<Payload, Response> {
-  actionName = ActionName.GetProfileLike
+
+export class GetProfileLikeMe extends BaseAction<Payload, Response> {
+  actionName = ActionName.GetProfileLikeMe
   payloadSchema = Schema.object({
     start: Schema.union([Number, String]).default(-1),
     count: Schema.union([Number, String]).default(20)
   })
-  async _handle(payload) {
-    const ret = await this.ctx.ntUserApi.getProfileLike(selfInfo.uid, +payload.start, +payload.count)
-    const users = ret.info.userLikeInfos[0].favoriteInfo.userInfos
+
+  async _handle(payload: Payload): Promise<Response> {
+
+    const ret = await this.ctx.ntUserApi.getProfileLikeMe(selfInfo.uid, +payload.start, +payload.count)
+    const {voteInfo} = ret.info.userLikeInfos[0]
+    const users = voteInfo.userInfos
     for (const item of users) {
       try {
         item.uin = Number(await this.ctx.ntUserApi.getUinByUid(item.uid)) || 0
@@ -29,6 +32,6 @@ export class GetProfileLike extends BaseAction<Payload, Response> {
         item.uin = 0
       }
     }
-    return {users, nextStart: ret.info.start}
+    return {users: likeMeUsers, nextStart: ret.info.start}
   }
 }

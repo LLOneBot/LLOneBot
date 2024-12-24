@@ -60,7 +60,7 @@ import { GetGroupAtAllRemain } from './go-cqhttp/GetGroupAtAllRemain'
 import { GetGroupRootFiles } from './go-cqhttp/GetGroupRootFiles'
 import { SetOnlineStatus } from './llonebot/SetOnlineStatus'
 import { SendGroupNotice } from './go-cqhttp/SendGroupNotice'
-import { GetProfileLike } from './llonebot/GetProfileLike'
+import { GetProfileLikeMe } from './llonebot/GetProfileLikeMe'
 import { FetchEmojiLike } from './llonebot/FetchEmojiLike'
 import { FetchCustomFace } from './llonebot/FetchCustomFace'
 import { GetFriendMsgHistory } from './llonebot/GetFriendMsgHistory'
@@ -85,6 +85,7 @@ import { SetFriendRemark } from './llonebot/SetFriendRemark'
 import { SetGroupMsgMask } from './llonebot/SetGroupMsgMask'
 import { SetGroupRemark } from './llonebot/SetGroupRemark'
 import { SetQQProfile } from './go-cqhttp/SetQQProfile'
+import { GetProfileLike } from '@/onebot11/action/llonebot/GetProfileLike'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -98,6 +99,7 @@ export function initActionMap(adapter: Adapter) {
     new GetEvent(adapter),
     new SetOnlineStatus(adapter),
     new GetProfileLike(adapter),
+    new GetProfileLikeMe(adapter),
     new GetFriendMsgHistory(adapter),
     new FetchEmojiLike(adapter),
     new FetchCustomFace(adapter),
