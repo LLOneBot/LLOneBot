@@ -203,7 +203,7 @@ export class NTQQUserApi extends Service {
     }])
   }
 
-  async getProfileLike(uid: string) {
+  async getProfileLike(uid: string, start = 0, limit = 20) {
     return await invoke('nodeIKernelProfileLikeService/getBuddyProfileLike', [{
       req: {
         friendUids: [uid],
@@ -211,9 +211,9 @@ export class NTQQUserApi extends Service {
         vote: 1,
         favorite: 0,
         userProfile: 1,
-        type: 2,
-        start: 0,
-        limit: 20,
+        type: 3,
+        start,
+        limit,
       }
     }])
   }
