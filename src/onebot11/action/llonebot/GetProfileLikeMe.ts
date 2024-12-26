@@ -4,7 +4,7 @@ import { selfInfo } from '@/common/globalVars'
 import { Dict } from 'cosmokit'
 
 interface Payload {
-  start: number | string,
+  start: number | string
   count: number | string
 }
 
@@ -21,17 +21,15 @@ export class GetProfileLikeMe extends BaseAction<Payload, Response> {
   })
 
   async _handle(payload: Payload): Promise<Response> {
-
     const ret = await this.ctx.ntUserApi.getProfileLikeMe(selfInfo.uid, +payload.start, +payload.count)
-    const {voteInfo} = ret.info.userLikeInfos[0]
-    const users = voteInfo.userInfos
+    const users = ret.info.userLikeInfos[0].voteInfo.userInfos
     for (const item of users) {
       try {
         item.uin = Number(await this.ctx.ntUserApi.getUinByUid(item.uid)) || 0
-      }catch (e) {
+      } catch (e) {
         item.uin = 0
       }
     }
-    return {users: users, nextStart: ret.info.start}
+    return { users: users, nextStart: ret.info.start }
   }
 }
