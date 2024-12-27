@@ -107,10 +107,6 @@ export class NTQQUserApi extends Service {
 
   async getUidByUinV1(uin: string, groupCode?: string) {
     let uid = (await invoke('nodeIKernelUixConvertService/getUid', [{ uins: [uin] }])).uidInfo.get(uin)
-    if (!uid) {
-      const friends = await this.ctx.ntFriendApi.getFriends()
-      uid = friends.find(item => item.uin === uin)?.uid
-    }
     if (!uid && groupCode) {
       let member = await this.ctx.ntGroupApi.searchMember(groupCode, uin)
       if (member.size === 0) {
@@ -119,6 +115,14 @@ export class NTQQUserApi extends Service {
         member = await this.ctx.ntGroupApi.searchMember(groupCode, uin)
       }
       uid = Array.from(member.values()).find(e => e.uin === uin)?.uid
+    }
+    if (!uid) {
+      const snapShot = await this.getRecentContactListSnapShot(10)
+      uid = snapShot.info.changedList.find(e => e.senderUin === uin)?.senderUid
+    }
+    if (!uid) {
+      const friends = await this.ctx.ntFriendApi.getFriends()
+      uid = friends.find(item => item.uin === uin)?.uid
     }
     if (!uid) {
       const unveifyUid = (await this.getUserDetailInfoByUin(uin)).info!.uid
@@ -306,5 +310,9 @@ export class NTQQUserApi extends Service {
 
   async modifySelfProfile(profile: MiniProfile) {
     return await invoke('nodeIKernelProfileService/modifyDesktopMiniProfile', [{ profile }])
+  }
+
+  async getRecentContactListSnapShot(count: number) {
+    return await invoke('nodeIKernelRecentContactService/getRecentContactListSnapShot', [{ count }])
   }
 }

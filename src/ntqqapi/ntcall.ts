@@ -15,7 +15,8 @@ import {
   NodeIKernelTicketService,
   NodeIKernelTipOffService,
   NodeIKernelRobotService,
-  NodeIKernelNodeMiscService
+  NodeIKernelNodeMiscService,
+  NodeIKernelRecentContactService
 } from './services'
 
 export enum NTClass {
@@ -97,6 +98,7 @@ interface NTService {
   nodeIKernelTipOffService: NodeIKernelTipOffService
   nodeIKernelRobotService: NodeIKernelRobotService
   nodeIKernelNodeMiscService: NodeIKernelNodeMiscService
+  nodeIKernelRecentContactService: NodeIKernelRecentContactService
 }
 
 interface InvokeOptions<ReturnType> {
