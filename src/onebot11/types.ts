@@ -80,8 +80,8 @@ export interface OB11Message {
   self_id: number
   time: number
   message_id: number
-  message_seq: number // go-cqhttp字段，实际上是message_id
-  real_id: number
+  message_seq: number
+  real_id?: number // 仅在 get_msg 接口存在
   user_id: number
   group_id?: number
   message_type: 'private' | 'group'

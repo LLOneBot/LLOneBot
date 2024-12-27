@@ -54,15 +54,14 @@ export namespace OB11Entities {
     const selfUin = selfInfo.uin
     const msgShortId = ctx.store.createMsgShortId({ chatType: msg.chatType, peerUid: msg.peerUid }, msg.msgId)
     const resMsg: OB11Message = {
-      self_id: parseInt(selfUin),
-      user_id: parseInt(msg.senderUin),
-      time: parseInt(msg.msgTime) || Date.now(),
+      self_id: Number(selfUin),
+      user_id: Number(msg.senderUin),
+      time: Number(msg.msgTime),
       message_id: msgShortId,
-      real_id: msgShortId,
-      message_seq: msgShortId,
+      message_seq: Number(msg.msgSeq),
       message_type: msg.chatType === ChatType.Group ? 'group' : 'private',
       sender: {
-        user_id: parseInt(msg.senderUin),
+        user_id: Number(msg.senderUin),
         nickname: msg.sendNickName,
         card: msg.sendMemberName ?? '',
       },
