@@ -187,5 +187,24 @@ export async function uri2local(ctx: Context, uri: string, needExt?: boolean): P
     }
   }
 
+  if (type === FileUriType.Unknown) {
+    // uri可能是文件名
+    let fileCache = await ctx.store.getFileCacheById(uri)
+    if (!fileCache?.length) {
+      fileCache = await ctx.store.getFileCacheByName(uri)
+    }
+    if (fileCache?.length) {
+      const downloadPath = await ctx.ntFileApi.downloadMedia(
+        fileCache[0].msgId,
+        fileCache[0].chatType,
+        fileCache[0].peerUid,
+        fileCache[0].elementId,
+        '',
+        ''
+      )
+      return { success: true, errMsg: '', fileName: fileCache[0].fileName, path: downloadPath, isLocal: true }
+    }
+  }
+
   return { success: false, errMsg: '未知文件类型', fileName: '', path: '', isLocal: false }
 }
