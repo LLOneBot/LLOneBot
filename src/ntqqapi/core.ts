@@ -96,6 +96,10 @@ class Core extends Service {
 
     if (getBuildVersion() < 30851) {
       invoke(ReceiveCmdS.NEW_MSG, [], { registerEvent: true })
+        .catch(async () => {
+          await this.ctx.sleep(600)
+          invoke(ReceiveCmdS.NEW_MSG, [], { registerEvent: true })
+        })
     }
 
     registerReceiveHook<{ msgList: RawMessage[] }>(ReceiveCmdS.NEW_MSG, payload => {
@@ -177,6 +181,10 @@ class Core extends Service {
     })
 
     invoke('nodeIKernelMsgListener/onRecvSysMsg', [], { registerEvent: true })
+      .catch(async () => {
+        await this.ctx.sleep(600)
+        invoke('nodeIKernelMsgListener/onRecvSysMsg', [], { registerEvent: true })
+      })
 
     registerReceiveHook<{
       msgBuf: number[]

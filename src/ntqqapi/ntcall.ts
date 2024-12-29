@@ -117,9 +117,10 @@ function getChannel() {
   if (channel) {
     return channel
   }
-  if (ipcMain.eventNames().includes(NTChannel.IPC_UP_2)) {
+  const names = ipcMain.eventNames()
+  if (names.includes(NTChannel.IPC_UP_2)) {
     return channel = NTChannel.IPC_UP_2
-  } else {
+  } else if (names.includes(NTChannel.IPC_UP_3)) {
     return channel = NTChannel.IPC_UP_3
   }
 }
@@ -133,11 +134,16 @@ export function invoke<
   const channel = options.channel ?? getChannel()
   const timeout = options.timeout ?? 5000
   const afterFirstCmd = options.afterFirstCmd ?? true
-  let eventName = className + '-' + channel[channel.length - 1]
-  if (options.registerEvent) {
-    eventName += '-register'
-  }
   return new Promise<R>((resolve, reject) => {
+    if (!channel) {
+      log(`no ntqq api channel found`)
+      reject('no ntqq api channel found')
+      return
+    }
+    let eventName = className + '-' + channel[channel.length - 1]
+    if (options.registerEvent) {
+      eventName += '-register'
+    }
     const apiArgs = [method, ...args]
     const callbackId = randomUUID()
     let eventId: string
