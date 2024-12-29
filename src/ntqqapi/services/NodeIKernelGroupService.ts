@@ -116,7 +116,7 @@ export interface NodeIKernelGroupService {
 
   setGroupShutUp(groupCode: string, shutUp: boolean): void
 
-  setMemberShutUp(groupCode: string, memberTimes: { uid: string, timeStamp: number }[]): Promise<void>
+  setMemberShutUp(groupCode: string, memberTimes: { uid: string, timeStamp: number }[]): Promise<GeneralCallResult>
 
   getGroupRecommendContactArkJson(groupCode: string): Promise<GeneralCallResult & { arkJson: string }>
 
