@@ -44,7 +44,7 @@ export class MessageEncoder {
 
     this.results.push({
       routingHead: {
-        fromUin: this.uin ?? +selfInfo.uin ?? 1094950020,
+        fromUin: this.uin ?? +selfInfo.uin, // 或 1094950020
         c2c: this.isGroup ? undefined : {
           friendName: nick
         },

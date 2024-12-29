@@ -172,11 +172,15 @@ export function invoke<
           resolve(payload)
         })
       }
-      !afterFirstCmd && secondCallback()
+      if (!afterFirstCmd) {
+        secondCallback()
+      }
       hookApiCallbacks[callbackId] = (res: GeneralCallResult) => {
         result = res
         if (res?.result === 0 || ['undefined', 'number'].includes(typeof res)) {
-          afterFirstCmd && secondCallback()
+          if (afterFirstCmd) {
+            secondCallback()
+          }
         }
         else {
           clearTimeout(timeoutId)

@@ -40,7 +40,9 @@ export class MessageEncoder {
     if (sent) {
       this.ctx.logger.info('消息发送', this.peer)
       const result = await decodeMessage(this.ctx, sent)
-      result && this.results.push(result)
+      if (result) {
+        this.results.push(result)
+      }
     }
     this.deleteAfterSentFiles.forEach(path => unlink(path))
     this.deleteAfterSentFiles = []
@@ -253,7 +255,9 @@ export class MessageEncoder {
           if (sent) {
             this.ctx.logger.info('消息发送', this.peer)
             const result = await decodeMessage(this.ctx, sent)
-            result && this.results.push(result)
+            if (result) {
+              this.results.push(result)
+            }
           }
         }
       } else if (attrs.forward) {

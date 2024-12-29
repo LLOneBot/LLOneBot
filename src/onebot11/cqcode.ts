@@ -11,7 +11,7 @@ function from(source: string) {
   if (!capture) return null
   const [, type, attrs] = capture
   const data: Record<string, unknown> = {}
-  attrs &&
+  if (attrs) {
     attrs
       .slice(1)
       .split(',')
@@ -19,6 +19,7 @@ function from(source: string) {
         const index = str.indexOf('=')
         data[str.slice(0, index)] = unescape(str.slice(index + 1))
       })
+  }
   return { type, data, capture }
 }
 

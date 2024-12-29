@@ -12,7 +12,7 @@ export class SendGroupSign extends BaseAction<Payload, null> {
     group_id: Schema.union([Number, String]).required(),
   })
 
-  async _handle(payload: Payload) {
+  async _handle() {
     throw new Error('暂未实现群签到功能')
     return null
   }

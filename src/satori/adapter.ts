@@ -138,26 +138,34 @@ class SatoriAdapter extends Service {
     this.ctx.on('nt/message-created', async input => {
       const event = await this.handleMessage(input)
         .catch(e => this.ctx.logger.error(e))
-      event && this.server.dispatch(event)
+      if (event) {
+        this.server.dispatch(event)
+      }
     })
 
     this.ctx.on('nt/group-notify', async input => {
       const { doubt, notify } = input
       const event = await this.handleGroupNotify(notify, doubt)
         .catch(e => this.ctx.logger.error(e))
-      event && this.server.dispatch(event)
+      if (event) {
+        this.server.dispatch(event)
+      }
     })
 
     this.ctx.on('nt/message-deleted', async input => {
       const event = await parseMessageDeleted(this, input)
         .catch(e => this.ctx.logger.error(e))
-      event && this.server.dispatch(event)
+      if (event) {
+        this.server.dispatch(event)
+      }
     })
 
     this.ctx.on('nt/friend-request', async input => {
       const event = await parseFriendRequest(this, input)
         .catch(e => this.ctx.logger.error(e))
-      event && this.server.dispatch(event)
+      if (event) {
+        this.server.dispatch(event)
+      }
     })
 
     this.ctx.on('llob/config-updated', async input => {
