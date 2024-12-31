@@ -482,25 +482,13 @@ export namespace OB11Entities {
             return await GroupBanEvent.parse(ctx, groupElement, msg.peerUid)
           } else if (groupElement.type === TipGroupElementType.Kicked) {
             ctx.logger.info(`收到我被踢出或退群提示, 群${msg.peerUid}`, groupElement)
-            ctx.ntGroupApi.quitGroup(msg.peerUid)
-            try {
-              const adminUin = await ctx.ntUserApi.getUinByUid(groupElement.adminUid)
-              if (adminUin) {
-                return new OB11GroupDecreaseEvent(
-                  parseInt(msg.peerUid),
-                  parseInt(selfInfo.uin),
-                  parseInt(adminUin),
-                  'kick_me'
-                )
-              }
-            } catch (e) {
-              return new OB11GroupDecreaseEvent(
-                parseInt(msg.peerUid),
-                parseInt(selfInfo.uin),
-                0,
-                'leave'
-              )
-            }
+            const { adminUid } = groupElement
+            return new OB11GroupDecreaseEvent(
+              Number(msg.peerUid),
+              Number(selfInfo.uin),
+              adminUid ? Number(await ctx.ntUserApi.getUinByUid(adminUid)) : 0,
+              adminUid ? 'kick_me' : 'leave'
+            )
           } else if (groupElement.type === TipGroupElementType.MemberIncrease) {
             const { memberUid, adminUid } = groupElement
             if (memberUid !== selfInfo.uid) return
