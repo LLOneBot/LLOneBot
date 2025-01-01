@@ -68,6 +68,7 @@ export enum ActionName {
   ForwardFriendSingleMsg = 'forward_friend_single_msg',
   ForwardGroupSingleMsg = 'forward_group_single_msg',
   GetCredentials = 'get_credentials',
+  GetCsrfToken = 'get_csrf_token',
   // go-cqhttp
   GoCQHTTP_SendGroupForwardMsg = 'send_group_forward_msg',
   GoCQHTTP_SendPrivateForwardMsg = 'send_private_forward_msg',
@@ -100,4 +101,5 @@ export enum ActionName {
   GoCQHTTP_SetGroupSpecialTitle = 'set_group_special_title',
   GoCQHTTP_SendGroupSign = 'send_group_sign',
   GoCQHTTP_SetQQProfile = 'set_qq_profile',
+  GoCQHTTP_SetGroupPortrait = 'set_group_portrait',
 }

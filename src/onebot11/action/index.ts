@@ -85,7 +85,9 @@ import { SetFriendRemark } from './llonebot/SetFriendRemark'
 import { SetGroupMsgMask } from './llonebot/SetGroupMsgMask'
 import { SetGroupRemark } from './llonebot/SetGroupRemark'
 import { SetQQProfile } from './go-cqhttp/SetQQProfile'
-import { GetProfileLike } from '@/onebot11/action/llonebot/GetProfileLike'
+import { GetProfileLike } from './llonebot/GetProfileLike'
+import { GetCsrfToken } from './system/GetCsrfToken'
+import { SetGroupPortrait } from './go-cqhttp/SetGroupPortrait'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -145,6 +147,7 @@ export function initActionMap(adapter: Adapter) {
     new ForwardGroupSingleMsg(adapter),
     new GetCredentials(adapter),
     new SetRestart(adapter),
+    new GetCsrfToken(adapter),
     // go-cqhttp
     new GetEssenceMsgList(adapter),
     new GetGroupHonorInfo(adapter),
@@ -178,6 +181,7 @@ export function initActionMap(adapter: Adapter) {
     new SetGroupSpecialTitle(adapter),
     new SendGroupSign(adapter),
     new SetQQProfile(adapter),
+    new SetGroupPortrait(adapter),
   ]
   const actionMap = new Map()
   for (const action of actionHandlers) {
