@@ -22,6 +22,7 @@ class GetGroupInfo extends BaseAction<Payload, OB11Group> {
       group_create_time: 0,
       member_count: groupAll.memberNum,
       max_member_count: groupAll.maxMemberNum,
+      remark_name: groupAll.remarkName,
       groupAll
     }
     const group = (await this.ctx.ntGroupApi.getGroups()).find(e => e.groupCode === groupCode)

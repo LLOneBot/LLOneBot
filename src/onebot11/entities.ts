@@ -613,6 +613,7 @@ export namespace OB11Entities {
       group_create_time: +group.createTime,
       member_count: group.memberCount,
       max_member_count: group.maxMember,
+      remark_name: group.remarkName,
     }
   }
 

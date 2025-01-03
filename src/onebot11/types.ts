@@ -56,6 +56,7 @@ export interface OB11Group {
   group_create_time: number
   member_count: number
   max_member_count: number
+  remark_name: string
 }
 
 interface OB11Sender {

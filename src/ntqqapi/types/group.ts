@@ -122,7 +122,7 @@ export interface GroupAllInfo {
   cmdUinPrivilege: number
   cmdUinFlagEx2: number
   appealDeadline: number
-  remarkName: number
+  remarkName: string
   isTop: boolean
   richFingerMemo: string
   groupAnswer: string
