@@ -17,7 +17,7 @@ interface Response {
 export class GetProfileLike extends BaseAction<Payload, Response> {
   actionName = ActionName.GetProfileLike
   payloadSchema = Schema.object({
-    start: Schema.union([Number, String]).default(-1), // 从0开始，-1表示获取全部
+    start: Schema.union([Number, String]).default(0), // 从0开始，-1表示获取全部
     count: Schema.union([Number, String]).default(20)  // 最多30一页
   })
 
