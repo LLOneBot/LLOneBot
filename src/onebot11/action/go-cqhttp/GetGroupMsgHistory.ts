@@ -1,7 +1,7 @@
 import { BaseAction, Schema } from '../BaseAction'
 import { OB11Message } from '../../types'
 import { ActionName } from '../types'
-import { ChatType } from '@/ntqqapi/types'
+import { ChatType, Peer } from '@/ntqqapi/types'
 import { OB11Entities } from '../../entities'
 import { RawMessage } from '@/ntqqapi/types'
 import { filterNullable, parseBool } from '@/common/utils/misc'
@@ -26,20 +26,37 @@ export class GetGroupMsgHistory extends BaseAction<Payload, Response> {
     reverseOrder: Schema.union([Boolean, Schema.transform(String, parseBool)]).default(false)
   })
 
-  protected async _handle(payload: Payload): Promise<Response> {
-    const { count, reverseOrder } = payload
-    const peer = { chatType: ChatType.Group, peerUid: payload.group_id.toString() }
-
+  private async getMessage(peer: Peer, count: number, seq?: number | string) {
     let msgList: RawMessage[]
-    if (!payload.message_seq || +payload.message_seq === 0) {
-      msgList = (await this.ctx.ntMsgApi.getAioFirstViewLatestMsgs(peer, +count)).msgList
+    if (!seq || +seq === 0) {
+      msgList = (await this.ctx.ntMsgApi.getAioFirstViewLatestMsgs(peer, count)).msgList
     } else {
-      msgList = (await this.ctx.ntMsgApi.getMsgsBySeqAndCount(peer, String(payload.message_seq), +count, true, true)).msgList
+      msgList = (await this.ctx.ntMsgApi.getMsgsBySeqAndCount(peer, String(seq), count, true, true)).msgList
+    }
+    if (!msgList?.length) return
+    const ob11MsgList = await Promise.all(msgList.map(msg => OB11Entities.message(this.ctx, msg)))
+    return filterNullable(ob11MsgList)
+  }
+
+  protected async _handle(payload: Payload): Promise<Response> {
+    const peer = {
+      chatType: ChatType.Group,
+      peerUid: payload.group_id.toString()
     }
 
-    if (!msgList?.length) throw new Error('未找到消息')
-    if (reverseOrder) msgList.reverse()
-    const ob11MsgList = await Promise.all(msgList.map(msg => OB11Entities.message(this.ctx, msg)))
-    return { messages: filterNullable(ob11MsgList) }
+    const messages: OB11Message[] = []
+    let seq = payload.message_seq
+    let count = +payload.count
+
+    while (count > 0) {
+      const res = await this.getMessage(peer, count, seq)
+      if (!res) break
+      seq = res[0].message_seq - 1
+      count -= res.length
+      messages.unshift(...res)
+    }
+
+    if (payload.reverseOrder) messages.reverse()
+    return { messages }
   }
 }
