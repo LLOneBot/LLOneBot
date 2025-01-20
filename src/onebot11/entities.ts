@@ -591,7 +591,7 @@ export namespace OB11Entities {
       sex: OB11UserSex.Unknown,
       age: 0,
       area: '',
-      level: String(member.memberLevel ?? 0),
+      level: String(member.memberRealLevel ?? 0),
       qq_level: 0,
       join_time: member.joinTime,
       last_sent_time: member.lastSpeakTime,
