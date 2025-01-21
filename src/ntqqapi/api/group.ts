@@ -346,4 +346,14 @@ export class NTQQGroupApi extends Service {
   async setGroupRemark(groupCode: string, groupRemark = '') {
     return await invoke('nodeIKernelGroupService/modifyGroupRemark', [{ groupCode, groupRemark }])
   }
+
+  async moveGroupFile(groupId: string, fileIdList: string[], curFolderId: string, dstFolderId: string) {
+    return await invoke('nodeIKernelRichMediaService/moveGroupFile', [{
+      groupId,
+      fileIdList,
+      curFolderId,
+      dstFolderId,
+      busIdList: [102]
+    }])
+  }
 }

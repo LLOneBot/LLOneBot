@@ -30,8 +30,6 @@ export interface NodeIKernelRichMediaService {
     }
   }>
 
-  moveGroupFile(arg1: unknown, arg2: unknown, arg3: unknown, arg4: unknown, arg5: unknown): unknown
-
   deleteGroupFile(groupCode: string, params: Array<number>, files: Array<string>): Promise<GeneralCallResult & {
     transGroupFileResult: {
       result: unknown
@@ -53,6 +51,18 @@ export interface NodeIKernelRichMediaService {
       totalSpace: string
       usedSpace: string
       allUpload: boolean
+    }
+  }>
+
+  moveGroupFile(...args: unknown[]): Promise<GeneralCallResult & {
+    moveGroupFileResult: {
+      result: {
+        retCode: number
+        retMsg: string
+        clientWording: string
+      }
+      successFileIdList: string[]
+      failFileIdList: string[]
     }
   }>
 }
