@@ -1,7 +1,8 @@
 import { log } from '@/common/utils'
 import { randomUUID } from 'node:crypto'
 import { ipcMain } from 'electron'
-import { Dict } from 'cosmokit'
+import { Awaitable, Dict } from 'cosmokit'
+import { NTMethod } from './ntcall'
 
 export const hookApiCallbacks: Record<string, (res: any) => void> = {}
 
@@ -31,13 +32,13 @@ const logHook = false
 
 const receiveHooks: Map<string, {
   method: ReceiveCmdS[]
-  hookFunc: (payload: any) => void | Promise<void>
+  hookFunc: (payload: any) => Awaitable<void>
 }> = new Map()
 
-/*const callHooks: Array<{
-  method: NTMethod[]
-  hookFunc: (callParams: unknown[]) => void | Promise<void>
-}> = []*/
+const callHooks: Map<
+  NTMethod,
+  (callParams: unknown[]) => Awaitable<void>
+> = new Map()
 
 export function startHook() {
   log('start hook')
@@ -86,15 +87,13 @@ export function startHook() {
         })
       }
 
-      /*if (args[3]?.length) {
+      if (args[3]?.length) {
         const method = args[3][0]
-        const callParams = args[3].slice(1)
-        for (const hook of callHooks) {
-          if (hook.method.includes(method)) {
-            Promise.resolve(hook.hookFunc(callParams))
-          }
+        if (callHooks.has(method)) {
+          const params = args[3].slice(1)
+          Promise.resolve(callHooks.get(method)!(params))
         }
-      }*/
+      }
       return target.apply(thisArg, args)
     },
   })
@@ -102,7 +101,7 @@ export function startHook() {
 
 export function registerReceiveHook<PayloadType>(
   method: string | string[],
-  hookFunc: (payload: PayloadType) => void,
+  hookFunc: (payload: PayloadType) => Awaitable<void>,
 ): string {
   const id = randomUUID()
   if (!Array.isArray(method)) {
@@ -115,18 +114,12 @@ export function registerReceiveHook<PayloadType>(
   return id
 }
 
-/*export function registerCallHook(
-  method: NTMethod | NTMethod[],
-  hookFunc: (callParams: unknown[]) => void | Promise<void>,
+export function registerCallHook(
+  method: NTMethod,
+  hookFunc: (callParams: unknown[]) => Awaitable<void>,
 ): void {
-  if (!Array.isArray(method)) {
-    method = [method]
-  }
-  callHooks.push({
-    method,
-    hookFunc,
-  })
-}*/
+  callHooks.set(method, hookFunc)
+}
 
 export function removeReceiveHook(id: string) {
   receiveHooks.delete(id)

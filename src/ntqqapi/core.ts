@@ -1,8 +1,8 @@
 import { unlink } from 'node:fs/promises'
 import { Service, Context } from 'cordis'
-import { registerReceiveHook, ReceiveCmdS } from './hook'
+import { registerReceiveHook, ReceiveCmdS, registerCallHook } from './hook'
 import { Config as LLOBConfig } from '../common/types'
-import { getBuildVersion } from '../common/utils/misc'
+import { getBuildVersion, isNumeric } from '../common/utils/misc'
 import {
   RawMessage,
   GroupNotify,
@@ -10,11 +10,14 @@ import {
   FriendRequest,
   GroupMember,
   BuddyReqType,
-  GrayTipElementSubType
+  GrayTipElementSubType,
+  CategoryFriend,
+  SimpleInfo,
+  ChatType
 } from './types'
 import { selfInfo } from '../common/globalVars'
 import { version } from '../version'
-import { invoke } from './ntcall'
+import { invoke, NTMethod } from './ntcall'
 import { Native } from './native/crychic'
 
 declare module 'cordis' {
@@ -51,35 +54,47 @@ class Core extends Service {
     })
   }
 
-  private registerListener() {
-    registerReceiveHook<{ msgList: RawMessage[] }>(ReceiveCmdS.NEW_MSG, (payload) => {
-      // 自动清理新消息文件
-      if (!this.config.autoDeleteFile) {
-        return
+  private handleMessage(msgList: RawMessage[]) {
+    const startTime = this.startTime / 1000
+    for (const message of msgList) {
+      // 过滤启动之前的消息
+      if (parseInt(message.msgTime) < startTime) {
+        continue
       }
-      for (const message of payload.msgList) {
-        for (const msgElement of message.elements) {
-          setTimeout(() => {
-            const picPath = msgElement.picElement?.sourcePath
-            const picThumbPath = [...(msgElement.picElement?.thumbPath ?? []).values()]
-            const pttPath = msgElement.pttElement?.filePath
-            const filePath = msgElement.fileElement?.filePath
-            const videoPath = msgElement.videoElement?.filePath
-            const videoThumbPath = [...(msgElement.videoElement?.thumbPath ?? []).values()]
-            const pathList = [picPath, ...picThumbPath, pttPath, filePath, videoPath, ...videoThumbPath]
-            if (msgElement.picElement) {
-              pathList.push(...Object.values(msgElement.picElement.thumbPath))
-            }
-            for (const path of pathList) {
-              if (path) {
-                unlink(path).then(() => this.ctx.logger.info('删除文件成功', path))
-              }
-            }
-          }, this.config.autoDeleteFileSecond! * 1000)
-        }
+      if (message.senderUin && message.senderUin !== '0') {
+        this.ctx.store.addMsgCache(message)
       }
-    })
+      this.ctx.parallel('nt/message-created', message)
+    }
 
+    // 自动清理新消息文件
+    if (!this.config.autoDeleteFile) {
+      return
+    }
+    for (const message of msgList) {
+      for (const msgElement of message.elements) {
+        setTimeout(() => {
+          const picPath = msgElement.picElement?.sourcePath
+          const picThumbPath = [...(msgElement.picElement?.thumbPath ?? []).values()]
+          const pttPath = msgElement.pttElement?.filePath
+          const filePath = msgElement.fileElement?.filePath
+          const videoPath = msgElement.videoElement?.filePath
+          const videoThumbPath = [...(msgElement.videoElement?.thumbPath ?? []).values()]
+          const pathList = [picPath, ...picThumbPath, pttPath, filePath, videoPath, ...videoThumbPath]
+          if (msgElement.picElement) {
+            pathList.push(...Object.values(msgElement.picElement.thumbPath))
+          }
+          for (const path of pathList) {
+            if (path) {
+              unlink(path).then(() => this.ctx.logger.info('删除文件成功', path))
+            }
+          }
+        }, this.config.autoDeleteFileSecond! * 1000)
+      }
+    }
+  }
+
+  private registerListener() {
     registerReceiveHook<{ info: { status: number } }>(ReceiveCmdS.SELF_STATUS, (info) => {
       Object.assign(selfInfo, { online: info.info.status !== 20 })
     })
@@ -95,25 +110,80 @@ class Core extends Service {
     })
 
     if (getBuildVersion() < 30851) {
-      invoke(ReceiveCmdS.NEW_MSG, [], { registerEvent: true })
-        .catch(async () => {
-          await this.ctx.sleep(600)
-          invoke(ReceiveCmdS.NEW_MSG, [], { registerEvent: true })
+      registerReceiveHook<{
+        data?: CategoryFriend[]
+        userSimpleInfos?: Map<string, SimpleInfo> //V2
+        buddyCategory?: CategoryFriend[] //V2
+      }>(ReceiveCmdS.FRIENDS, (payload) => {
+        let uids: string[] = []
+        if (payload.buddyCategory) {
+          uids = payload.buddyCategory.flatMap(item => item.buddyUids)
+        } else if (payload.data) {
+          uids = payload.data.flatMap(item => item.buddyList.map(e => e.uid))
+        }
+        for (const uid of uids) {
+          this.ctx.ntMsgApi.activateChat({ peerUid: uid, chatType: ChatType.C2C })
+        }
+        this.ctx.logger.info('好友列表变动', uids.length)
+      })
+
+      const activatedPeerUids: string[] = []
+      registerReceiveHook<{
+        changedRecentContactLists: {
+          listType: number
+          sortedContactList: string[]
+          changedList: {
+            id: string // peerUid
+            chatType: ChatType
+          }[]
+        }[]
+      }>(ReceiveCmdS.RECENT_CONTACT, async (payload) => {
+        for (const recentContact of payload.changedRecentContactLists) {
+          for (const contact of recentContact.changedList) {
+            if (activatedPeerUids.includes(contact.id)) continue
+            activatedPeerUids.push(contact.id)
+            if (contact.chatType === ChatType.TempC2CFromGroup) {
+              const peer = { peerUid: contact.id, chatType: contact.chatType }
+              this.ctx.ntMsgApi.activateChatAndGetHistory(peer, 2).then(res => {
+                for (const msg of res.msgList) {
+                  if (Date.now() / 1000 - Number(msg.msgTime) > 3) {
+                    continue
+                  }
+                  if (msg.senderUin && msg.senderUin !== '0') {
+                    this.ctx.store.addMsgCache(msg)
+                  }
+                  this.ctx.parallel('nt/message-created', msg)
+                }
+              })
+            }
+          }
+        }
+      })
+
+      registerCallHook(NTMethod.DELETE_ACTIVE_CHAT, async (payload) => {
+        const peerUid = payload[0] as string
+        this.ctx.logger.info('激活的聊天窗口被删除，准备重新激活', peerUid)
+        let chatType = ChatType.C2C
+        if (isNumeric(peerUid)) {
+          chatType = ChatType.Group
+        }
+        else if (!(await this.ctx.ntFriendApi.isBuddy(peerUid))) {
+          chatType = ChatType.TempC2CFromGroup
+        }
+        const peer = { peerUid, chatType }
+        await this.ctx.sleep(1000)
+        this.ctx.ntMsgApi.activateChat(peer).then((r) => {
+          this.ctx.logger.info('重新激活聊天窗口', peer, { result: r.result, errMsg: r.errMsg })
         })
+      })
+
+      registerReceiveHook<{ msgList: RawMessage[] }>(ReceiveCmdS.NEW_ACTIVE_MSG, payload => {
+        this.handleMessage(payload.msgList)
+      })
     }
 
     registerReceiveHook<{ msgList: RawMessage[] }>(ReceiveCmdS.NEW_MSG, payload => {
-      const startTime = this.startTime / 1000
-      for (const message of payload.msgList) {
-        // 过滤启动之前的消息
-        if (parseInt(message.msgTime) < startTime) {
-          continue
-        }
-        if (message.senderUin && message.senderUin !== '0') {
-          this.ctx.store.addMsgCache(message)
-        }
-        this.ctx.parallel('nt/message-created', message)
-      }
+      this.handleMessage(payload.msgList)
     })
 
     const sentMsgIds = new Map<string, boolean>()
