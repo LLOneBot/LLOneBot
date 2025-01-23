@@ -12,7 +12,11 @@ interface Payload {
   folder_id?: string
 }
 
-export class UploadGroupFile extends BaseAction<Payload, null> {
+interface Response {
+  file_id: string
+}
+
+export class UploadGroupFile extends BaseAction<Payload, Response> {
   actionName = ActionName.GoCQHTTP_UploadGroupFile
   payloadSchema = Schema.object({
     group_id: Schema.union([Number, String]).required(),
@@ -22,7 +26,7 @@ export class UploadGroupFile extends BaseAction<Payload, null> {
     folder_id: Schema.string()
   })
 
-  protected async _handle(payload: Payload): Promise<null> {
+  protected async _handle(payload: Payload) {
     const { success, errMsg, path, fileName } = await uri2local(this.ctx, payload.file)
     if (!success) {
       throw new Error(errMsg)
@@ -33,7 +37,9 @@ export class UploadGroupFile extends BaseAction<Payload, null> {
     }
     const file = await SendElement.file(this.ctx, path, name, payload.folder ?? payload.folder_id)
     const peer = await createPeer(this.ctx, payload, CreatePeerMode.Group)
-    await sendMsg(this.ctx, peer, [file], [])
-    return null
+    const msg = await sendMsg(this.ctx, peer, [file], [])
+    return {
+      file_id: msg!.elements[0].fileElement!.fileUuid
+    }
   }
 }

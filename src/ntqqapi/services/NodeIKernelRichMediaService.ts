@@ -17,7 +17,33 @@ export interface NodeIKernelRichMediaService {
 
   deleteGroupFolder(groupCode: string, folderId: string): Promise<GeneralCallResult & { groupFileCommonResult: { retCode: number, retMsg: string, clientWording: string } }>
 
-  createGroupFolder(groupCode: string, folderName: string): Promise<GeneralCallResult & { resultWithGroupItem: { result: unknown, groupItem: unknown[] } }>
+  createGroupFolder(groupCode: string, folderName: string): Promise<GeneralCallResult & {
+    resultWithGroupItem: {
+      result: {
+        retCode: number
+        retMsg: string
+        clientWording: string
+      }
+      groupItem: {
+        peerId: string
+        type: number
+        folderInfo: {
+          folderId: string
+          parentFolderId: string
+          folderName: string
+          createTime: number
+          modifyTime: number
+          createUin: string
+          creatorName: string
+          totalFileCount: number
+          modifyUin: string
+          modifyName: string
+          usedSpace: string
+        }
+        fileInfo: null
+      }
+    }
+  }>
 
   getGroupFileList(groupCode: string, params: GetFileListParam): Promise<GeneralCallResult & {
     groupSpaceResult: {

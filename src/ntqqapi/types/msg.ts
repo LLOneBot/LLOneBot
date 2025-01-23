@@ -68,7 +68,7 @@ export interface SendMarketFaceElement {
 export interface SendFileElement {
   elementType: ElementType.File
   elementId: ''
-  fileElement: FileElement
+  fileElement: Partial<FileElement>
 }
 
 export interface SendVideoElement {
@@ -147,7 +147,7 @@ export interface FileElement {
   file10MMd5?: string
   fileSha?: string
   fileSha3?: string
-  fileUuid?: string
+  fileUuid: string
   fileSubId?: string
   thumbFileSize?: number
   fileBizId?: number
