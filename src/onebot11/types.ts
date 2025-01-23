@@ -340,6 +340,12 @@ export interface OB11Version {
 export interface OB11Status {
   online: boolean | null
   good: boolean
+  stat: {
+    message_received: number
+    message_sent: number
+    last_message_time: number
+    startup_time: number
+  }
 }
 
 export interface OB11GroupFile {

@@ -2,7 +2,7 @@ import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
 import { SendElement } from '@/ntqqapi/entities'
 import { uri2local } from '@/common/utils'
-import { sendMsg, createPeer, CreatePeerMode } from '../../helper/createMessage'
+import { createPeer, CreatePeerMode } from '../../helper/createMessage'
 
 interface Payload {
   group_id: number | string
@@ -37,7 +37,7 @@ export class UploadGroupFile extends BaseAction<Payload, Response> {
     }
     const file = await SendElement.file(this.ctx, path, name, payload.folder ?? payload.folder_id)
     const peer = await createPeer(this.ctx, payload, CreatePeerMode.Group)
-    const msg = await sendMsg(this.ctx, peer, [file], [])
+    const msg = await this.ctx.app.sendMessage(this.ctx, peer, [file], [])
     return {
       file_id: msg!.elements[0].fileElement!.fileUuid
     }

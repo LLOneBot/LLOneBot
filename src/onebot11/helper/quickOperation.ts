@@ -2,7 +2,7 @@ import { OB11Message, OB11MessageData, OB11MessageDataType } from '../types'
 import { OB11FriendRequestEvent } from '../event/request/OB11FriendRequest'
 import { OB11GroupRequestEvent } from '../event/request/OB11GroupRequest'
 import { GroupRequestOperateTypes } from '@/ntqqapi/types'
-import { message2List, createSendElements, sendMsg, createPeer, CreatePeerMode } from '../helper/createMessage'
+import { message2List, createSendElements, createPeer, CreatePeerMode } from '../helper/createMessage'
 import { isNullable } from 'cosmokit'
 import { Context } from 'cordis'
 
@@ -83,7 +83,7 @@ async function handleMsg(ctx: Context, msg: OB11Message, quickAction: QuickOpera
     }
     replyMessage = replyMessage.concat(message2List(reply, quickAction.auto_escape))
     const { sendElements, deleteAfterSentFiles } = await createSendElements(ctx, replyMessage, peer)
-    sendMsg(ctx, peer, sendElements, deleteAfterSentFiles).catch(e => ctx.logger.error(e))
+    ctx.app.sendMessage(ctx, peer, sendElements, deleteAfterSentFiles).catch(e => ctx.logger.error(e))
   }
   if (msg.message_type === 'group') {
     const groupMsgQuickAction = quickAction as QuickOperationGroupMessage

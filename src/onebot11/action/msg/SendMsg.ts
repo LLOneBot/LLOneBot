@@ -4,7 +4,7 @@ import {
 } from '../../types'
 import { BaseAction } from '../BaseAction'
 import { ActionName } from '../types'
-import { message2List, createSendElements, sendMsg, createPeer, CreatePeerMode } from '../../helper/createMessage'
+import { message2List, createSendElements, createPeer, CreatePeerMode } from '../../helper/createMessage'
 
 interface ReturnData {
   message_id: number
@@ -34,7 +34,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnData> {
         return { message_id: 0 }
       }
     }
-    const returnMsg = await sendMsg(this.ctx, peer, sendElements, deleteAfterSentFiles)
+    const returnMsg = await this.ctx.app.sendMessage(this.ctx, peer, sendElements, deleteAfterSentFiles)
     if (!returnMsg) {
       throw new Error('消息发送失败')
     }

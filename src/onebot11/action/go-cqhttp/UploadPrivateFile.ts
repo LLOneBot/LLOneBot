@@ -2,7 +2,7 @@ import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
 import { SendElement } from '@/ntqqapi/entities'
 import { uri2local } from '@/common/utils'
-import { sendMsg, createPeer, CreatePeerMode } from '../../helper/createMessage'
+import { createPeer, CreatePeerMode } from '../../helper/createMessage'
 
 interface UploadPrivateFilePayload {
   user_id: number | string
@@ -29,7 +29,7 @@ export class UploadPrivateFile extends BaseAction<UploadPrivateFilePayload, null
     }
     const sendFileEle = await SendElement.file(this.ctx, path, name)
     const peer = await createPeer(this.ctx, payload, CreatePeerMode.Private)
-    await sendMsg(this.ctx, peer, [sendFileEle], [])
+    await this.ctx.app.sendMessage(this.ctx, peer, [sendFileEle], [])
     return null
   }
 }

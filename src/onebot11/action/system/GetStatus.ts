@@ -10,6 +10,12 @@ export default class GetStatus extends BaseAction<null, OB11Status> {
     return {
       online: selfInfo.online!,
       good: true,
+      stat: {
+        message_received: this.ctx.app.messageReceivedCount,
+        message_sent: this.ctx.app.messageSentCount,
+        last_message_time: this.ctx.app.lastMessageTime,
+        startup_time: this.ctx.app.startupTime
+      }
     }
   }
 }

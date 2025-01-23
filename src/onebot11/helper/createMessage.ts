@@ -235,54 +235,6 @@ export function message2List(message: OB11MessageMixType, autoEscape = false) {
   return message
 }
 
-export async function sendMsg(
-  ctx: Context,
-  peer: Peer,
-  sendElements: SendMessageElement[],
-  deleteAfterSentFiles: string[]
-) {
-  if (peer.chatType === ChatType.Group) {
-    const info = await ctx.ntGroupApi.getGroupAllInfo(peer.peerUid)
-      .catch(() => undefined)
-    const shutUpMeTimestamp = info?.groupAll.shutUpMeTimestamp
-    if (shutUpMeTimestamp && shutUpMeTimestamp * 1000 > Date.now()) {
-      throw new Error('当前处于被禁言状态')
-    }
-  }
-  if (!sendElements.length) {
-    throw new Error('消息体无法解析，请检查是否发送了不支持的消息类型')
-  }
-  // 计算发送的文件大小
-  let totalSize = 0
-  for (const fileElement of sendElements) {
-    try {
-      if (fileElement.elementType === ElementType.Ptt) {
-        totalSize += fs.statSync(fileElement.pttElement.filePath!).size
-      }
-      if (fileElement.elementType === ElementType.File) {
-        totalSize += fs.statSync(fileElement.fileElement.filePath!).size
-      }
-      if (fileElement.elementType === ElementType.Video) {
-        totalSize += fs.statSync(fileElement.videoElement.filePath).size
-      }
-      if (fileElement.elementType === ElementType.Pic) {
-        totalSize += fs.statSync(fileElement.picElement.sourcePath!).size
-      }
-    } catch (e) {
-      ctx.logger.warn('文件大小计算失败', e, fileElement)
-    }
-  }
-  //log('发送消息总大小', totalSize, 'bytes')
-  const timeout = 10000 + (totalSize / 1024 / 256 * 1000)  // 10s Basic Timeout + PredictTime( For File 512kb/s )
-  //log('设置消息超时时间', timeout)
-  const returnMsg = await ctx.ntMsgApi.sendMsg(peer, sendElements, timeout)
-  if (returnMsg) {
-    ctx.logger.info('消息发送', peer)
-    deleteAfterSentFiles.map(path => fsPromise.unlink(path))
-    return returnMsg
-  }
-}
-
 export interface CreatePeerPayload {
   group_id?: string | number
   user_id?: string | number

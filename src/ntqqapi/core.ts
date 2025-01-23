@@ -1,4 +1,5 @@
 import { unlink } from 'node:fs/promises'
+import { statSync } from 'node:fs'
 import { Service, Context } from 'cordis'
 import { registerReceiveHook, ReceiveCmdS, registerCallHook } from './hook'
 import { Config as LLOBConfig } from '../common/types'
@@ -13,7 +14,10 @@ import {
   GrayTipElementSubType,
   CategoryFriend,
   SimpleInfo,
-  ChatType
+  ChatType,
+  Peer,
+  SendMessageElement,
+  ElementType
 } from './types'
 import { selfInfo } from '../common/globalVars'
 import { version } from '../version'
@@ -37,8 +41,11 @@ declare module 'cordis' {
 
 class Core extends Service {
   static inject = ['ntMsgApi', 'ntFriendApi', 'ntGroupApi', 'store']
-  public startTime = 0
+  public startupTime = 0
   public native
+  public messageReceivedCount = 0
+  public messageSentCount = 0
+  public lastMessageTime = 0
 
   constructor(protected ctx: Context, public config: Core.Config) {
     super(ctx, 'app', true)
@@ -46,7 +53,7 @@ class Core extends Service {
   }
 
   public start() {
-    this.startTime = Date.now()
+    this.startupTime = Math.trunc(Date.now() / 1000)
     this.registerListener()
     this.ctx.logger.info(`LLOneBot/${version}`)
     this.ctx.on('llob/config-updated', input => {
@@ -54,16 +61,62 @@ class Core extends Service {
     })
   }
 
+  public async sendMessage(
+    ctx: Context,
+    peer: Peer,
+    sendElements: SendMessageElement[],
+    deleteAfterSentFiles: string[]
+  ) {
+    if (peer.chatType === ChatType.Group) {
+      const info = await ctx.ntGroupApi.getGroupAllInfo(peer.peerUid)
+        .catch(() => undefined)
+      const shutUpMeTimestamp = info?.groupAll.shutUpMeTimestamp
+      if (shutUpMeTimestamp && shutUpMeTimestamp * 1000 > Date.now()) {
+        throw new Error('当前处于被禁言状态')
+      }
+    }
+    if (!sendElements.length) {
+      throw new Error('消息体无法解析，请检查是否发送了不支持的消息类型')
+    }
+    // 计算发送的文件大小
+    let totalSize = 0
+    for (const fileElement of sendElements) {
+      try {
+        if (fileElement.elementType === ElementType.Ptt) {
+          totalSize += statSync(fileElement.pttElement.filePath!).size
+        } else if (fileElement.elementType === ElementType.File) {
+          totalSize += statSync(fileElement.fileElement.filePath!).size
+        } else if (fileElement.elementType === ElementType.Video) {
+          totalSize += statSync(fileElement.videoElement.filePath).size
+        } else if (fileElement.elementType === ElementType.Pic) {
+          totalSize += statSync(fileElement.picElement.sourcePath!).size
+        }
+      } catch (e) {
+        ctx.logger.warn('文件大小计算失败', e, fileElement)
+      }
+    }
+    const timeout = 10000 + (totalSize / 1024 / 256 * 1000)  // 10s Basic Timeout + PredictTime( For File 512kb/s )
+    const returnMsg = await ctx.ntMsgApi.sendMsg(peer, sendElements, timeout)
+    if (returnMsg) {
+      this.messageSentCount++
+      ctx.logger.info('消息发送', peer)
+      deleteAfterSentFiles.map(path => unlink(path))
+      return returnMsg
+    }
+  }
+
   private handleMessage(msgList: RawMessage[]) {
-    const startTime = this.startTime / 1000
     for (const message of msgList) {
+      const msgTime = parseInt(message.msgTime)
       // 过滤启动之前的消息
-      if (parseInt(message.msgTime) < startTime) {
+      if (msgTime < this.startupTime) {
         continue
       }
       if (message.senderUin && message.senderUin !== '0') {
         this.ctx.store.addMsgCache(message)
       }
+      this.lastMessageTime = msgTime
+      this.messageReceivedCount++
       this.ctx.parallel('nt/message-created', message)
     }
 
@@ -228,8 +281,8 @@ class Core extends Service {
           return
         }
         for (const notify of notifies) {
-          const notifyTime = Math.trunc(+notify.seq / 1000)
-          if (groupNotifyIgnore.includes(notify.seq) || notifyTime < this.startTime) {
+          const notifyTime = Math.trunc(+notify.seq / 1000 / 1000)
+          if (groupNotifyIgnore.includes(notify.seq) || notifyTime < this.startupTime) {
             continue
           }
           groupNotifyIgnore.push(notify.seq)
@@ -243,7 +296,7 @@ class Core extends Service {
         if (!!req.isInitiator || (req.isDecide && req.reqType !== BuddyReqType.MeInitiatorWaitPeerConfirm)) {
           continue
         }
-        if (+req.reqTime < this.startTime / 1000) {
+        if (+req.reqTime < this.startupTime) {
           continue
         }
         this.ctx.parallel('nt/friend-request', req)

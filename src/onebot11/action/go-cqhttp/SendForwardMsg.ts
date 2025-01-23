@@ -5,7 +5,7 @@ import { BaseAction, Schema } from '../BaseAction'
 import { Peer } from '@/ntqqapi/types/msg'
 import { ChatType, ElementType, RawMessage, SendMessageElement } from '@/ntqqapi/types'
 import { selfInfo } from '@/common/globalVars'
-import { message2List, createSendElements, sendMsg, createPeer, CreatePeerMode } from '../../helper/createMessage'
+import { message2List, createSendElements, createPeer, CreatePeerMode } from '../../helper/createMessage'
 import { MessageEncoder } from '@/onebot11/helper/createMultiMessage'
 import { Msg } from '@/ntqqapi/proto/compiled'
 
@@ -203,7 +203,7 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
           }
           this.ctx.logger.info('分割后的转发节点', sendElementsSplit)
           for (const eles of sendElementsSplit) {
-            const nodeMsg = await sendMsg(this.ctx, selfPeer, eles, [])
+            const nodeMsg = await this.ctx.app.sendMessage(this.ctx, selfPeer, eles, [])
             if (!nodeMsg) {
               this.ctx.logger.warn('转发节点生成失败', eles)
               continue
