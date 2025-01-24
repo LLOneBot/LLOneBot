@@ -1,11 +1,8 @@
-import fs from 'node:fs'
-import fsPromise from 'node:fs/promises'
 import {
   AtType,
   ChatType,
   GroupMemberRole,
-  SendMessageElement,
-  ElementType
+  SendMessageElement
 } from '@/ntqqapi/types'
 import {
   OB11MessageData,
@@ -17,9 +14,10 @@ import { decodeCQCode } from '../cqcode'
 import { Peer } from '@/ntqqapi/types/msg'
 import { SendElement } from '@/ntqqapi/entities'
 import { selfInfo } from '@/common/globalVars'
-import { uri2local } from '@/common/utils'
+import { uri2local, isNumeric } from '@/common/utils'
 import { Context } from 'cordis'
 import { MusicSign, MusicSignPostData } from '@/common/utils/sign'
+import { randomUUID } from 'node:crypto'
 
 export async function createSendElements(
   ctx: Context,
@@ -204,6 +202,67 @@ export async function createSendElements(
         } catch (e) {
           throw new Error(`签名音乐消息失败：${e}`)
         }
+      }
+        break
+      case OB11MessageDataType.Forward: {
+        let resid
+        let filename
+        let source = '聊天记录'
+        let news = [{
+          text: '查看转发消息'
+        }]
+        let summary = '查看转发消息'
+        if (isNumeric(segment.data.id)) {
+          const shortId = await ctx.store.getShortIdByMsgId(segment.data.id)
+          if (!shortId) {
+            throw new Error('msg not found')
+          }
+          const rootMsg = await ctx.store.getMsgInfoByShortId(shortId)
+          if (!rootMsg) {
+            throw new Error('msg not found')
+          }
+          const msg = await ctx.ntMsgApi.getMsgsByMsgId(rootMsg.peer, [rootMsg.msgId])
+          const { multiForwardMsgElement } = msg.msgList[0].elements[0]
+          resid = multiForwardMsgElement!.resId
+          filename = multiForwardMsgElement!.fileName
+          const { xmlContent } = multiForwardMsgElement!
+          const titles = Array.from(xmlContent.matchAll(/<title[^>]*>([^<]*)<\/title>/g))
+          source = titles[0][1]
+          news = titles.slice(1).map(e => {
+            return { text: e[1] }
+          })
+          summary = xmlContent.match(/<summary[^>]*>([^<]*)<\/summary>/)![1]
+        }
+        resid ??= segment.data.id
+        filename ??= randomUUID()
+        const content = JSON.stringify({
+          app: 'com.tencent.multimsg',
+          config: {
+            autosize: 1,
+            forward: 1,
+            round: 1,
+            type: 'normal',
+            width: 300
+          },
+          desc: '[聊天记录]',
+          extra: JSON.stringify({
+            filename,
+            tsum: 0,
+          }),
+          meta: {
+            detail: {
+              news,
+              resid,
+              source,
+              summary,
+              uniseq: filename,
+            }
+          },
+          prompt: '[聊天记录]',
+          ver: '0.0.0.5',
+          view: 'contact'
+        })
+        sendElements.push(SendElement.ark(content))
       }
         break
     }
