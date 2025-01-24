@@ -356,4 +356,22 @@ export class NTQQGroupApi extends Service {
       busIdList: [102]
     }])
   }
+
+  async getGroupShutUpMemberList(groupCode: string) {
+    await invoke('nodeIKernelGroupListener/onShutUpMemberListChanged', [], {
+      registerEvent: true
+    })
+    return await invoke<{
+      groupCode: string
+      memList: GroupMember[]
+    }>(
+      'nodeIKernelGroupService/getGroupShutUpMemberList',
+      [{ groupCode }],
+      {
+        cbCmd: 'nodeIKernelGroupListener/onShutUpMemberListChanged',
+        cmdCB: payload => payload.groupCode === groupCode,
+        afterFirstCmd: false
+      }
+    )
+  }
 }

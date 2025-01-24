@@ -35,6 +35,7 @@ export enum ActionName {
   SetGroupMsgMask = 'set_group_msg_mask',
   SetGroupRemark = 'set_group_remark',
   MoveGroupFile ='move_group_file',
+  GetGroupShutList = 'get_group_shut_list',
   // onebot 11
   SendLike = 'send_like',
   GetLoginInfo = 'get_login_info',

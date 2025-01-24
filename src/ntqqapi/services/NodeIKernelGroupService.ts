@@ -131,4 +131,6 @@ export interface NodeIKernelGroupService {
   getGroupNotifiesUnreadCount(doubt: boolean): Promise<GeneralCallResult>
 
   getGroupArkInviteState(groupCode: string, ark_seq: string, invitedUin: string): Promise<GeneralCallResult>
+
+  getGroupShutUpMemberList(groupCode: string): Promise<void | GeneralCallResult>
 }

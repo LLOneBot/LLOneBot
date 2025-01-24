@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
 import { hookApiCallbacks, registerReceiveHook, removeReceiveHook } from './hook'
-import { log } from '../common/utils'
+import { DetailedError, log } from '../common/utils'
 import { randomUUID } from 'node:crypto'
 import {
   GeneralCallResult,
@@ -133,7 +133,6 @@ export function invoke<
   const className = options.className ?? NTClass.NT_API
   const channel = options.channel ?? getChannel()
   const timeout = options.timeout ?? 5000
-  const afterFirstCmd = options.afterFirstCmd ?? true
   return new Promise<R>((resolve, reject) => {
     if (!channel) {
       log(`no ntqq api channel found`)
@@ -164,6 +163,7 @@ export function invoke<
       }
     }
     else {
+      const afterFirstCmd = options.afterFirstCmd ?? true
       let result: unknown
       // 这里的callback比较特殊，QQ后端先返回是否调用成功，再返回一条结果数据
       const secondCallback = () => {
@@ -182,19 +182,17 @@ export function invoke<
         secondCallback()
       }
       hookApiCallbacks[callbackId] = (res: GeneralCallResult) => {
-        result = res
         if (res?.result === 0 || ['undefined', 'number'].includes(typeof res)) {
+          result = res
           if (afterFirstCmd) {
             secondCallback()
           }
-        }
-        else {
+        } else {
           clearTimeout(timeoutId)
           if (eventId) {
             removeReceiveHook(eventId)
           }
-          log('ntqq api call failed,', method, args, res)
-          reject(`ntqq api call failed, ${method}, ${JSON.stringify(res)}`)
+          reject(new DetailedError(`call failed, ${method}, ${JSON.stringify(res)}`, res))
         }
       }
     }

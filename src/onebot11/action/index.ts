@@ -89,6 +89,7 @@ import { GetProfileLike } from './llonebot/GetProfileLike'
 import { GetCsrfToken } from './system/GetCsrfToken'
 import { SetGroupPortrait } from './go-cqhttp/SetGroupPortrait'
 import { MoveGroupFile } from './llonebot/MoveGroupFile'
+import { GetGroupShutList } from './llonebot/GetGroupShutList'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -115,6 +116,7 @@ export function initActionMap(adapter: Adapter) {
     new SetGroupMsgMask(adapter),
     new SetGroupRemark(adapter),
     new MoveGroupFile(adapter),
+    new GetGroupShutList(adapter),
     // onebot11
     new SendLike(adapter),
     new GetMsg(adapter),

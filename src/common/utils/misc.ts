@@ -1,5 +1,6 @@
 import { QQLevel } from '@/ntqqapi/types'
 import { Dict, isNullable } from 'cosmokit'
+import { defineProperty } from 'cosmokit'
 
 export function isNumeric(str: string) {
   return /^\d+$/.test(str)
@@ -44,4 +45,13 @@ export function parseBool(value: string) {
     return true
   }
   return false
+}
+
+export class DetailedError<T> extends Error {
+  public data!: T
+
+  constructor(message: string, data: T) {
+    super(message)
+    defineProperty(this, 'data', data)
+  }
 }
