@@ -91,10 +91,10 @@ class OB11Http {
     for (const client of this.sseClients) {
       if (!client.closed) {
         client.write(data)
-      }
-      if ('post_type' in event) {
-        const eventName = event.post_type + '.' + event[event.post_type + '_type']
-        this.ctx.logger.info('HTTP SSE 事件上报', eventName)
+        if ('post_type' in event) {
+          const eventName = event.post_type + '.' + event[event.post_type + '_type']
+          this.ctx.logger.info('HTTP SSE 事件上报', eventName)
+        }
       }
     }
   }
