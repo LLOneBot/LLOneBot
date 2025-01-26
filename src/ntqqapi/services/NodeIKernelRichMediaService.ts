@@ -91,5 +91,33 @@ export interface NodeIKernelRichMediaService {
       failFileIdList: string[]
     }
   }>
+
+  renameGroupFolder(groupId: string, folderId: string, newFolderName: string): Promise<GeneralCallResult & {
+    resultWithGroupItem: {
+      result: {
+        retCode: number
+        retMsg: string
+        clientWording: string
+      }
+      groupItem: {
+        peerId: string
+        type: number
+        folderInfo: {
+          folderId: string
+          parentFolderId: string
+          folderName: string
+          createTime: number
+          modifyTime: number
+          createUin: string
+          creatorName: string
+          totalFileCount: number
+          modifyUin: string
+          modifyName: string
+          usedSpace: string
+        }
+        fileInfo: null
+      }
+    }
+  }>
 }
 

@@ -374,4 +374,12 @@ export class NTQQGroupApi extends Service {
       }
     )
   }
+
+  async renameGroupFolder(groupId: string, folderId: string, newFolderName: string) {
+    return await invoke('nodeIKernelRichMediaService/renameGroupFolder', [{
+      groupId,
+      folderId,
+      newFolderName
+    }])
+  }
 }

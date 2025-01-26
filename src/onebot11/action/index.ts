@@ -90,6 +90,7 @@ import { GetCsrfToken } from './system/GetCsrfToken'
 import { SetGroupPortrait } from './go-cqhttp/SetGroupPortrait'
 import { MoveGroupFile } from './llonebot/MoveGroupFile'
 import { GetGroupShutList } from './llonebot/GetGroupShutList'
+import { RenameGroupFileFolder } from './llonebot/RenameGroupFileFolder'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -117,6 +118,7 @@ export function initActionMap(adapter: Adapter) {
     new SetGroupRemark(adapter),
     new MoveGroupFile(adapter),
     new GetGroupShutList(adapter),
+    new RenameGroupFileFolder(adapter),
     // onebot11
     new SendLike(adapter),
     new GetMsg(adapter),
