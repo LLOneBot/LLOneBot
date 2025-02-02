@@ -80,11 +80,14 @@ export namespace OB11Entities {
       resMsg.group_id = parseInt(msg.peerUin)
       // 284840486: 合并转发内部
       if (msg.peerUin !== '284840486') {
-        const member = await ctx.ntGroupApi.getGroupMember(msg.peerUin, msg.senderUid)
-        if (member) {
+        try {
+          const member = await ctx.ntGroupApi.getGroupMember(msg.peerUin, msg.senderUid)
           resMsg.sender.role = groupMemberRole(member.role)
           resMsg.sender.nickname = member.nick
           resMsg.sender.title = member.memberSpecialTitle ?? ''
+        } catch {
+          resMsg.sender.role = OB11GroupMemberRole.Member
+          resMsg.sender.title = ''
         }
       }
     }
