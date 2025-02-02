@@ -33,7 +33,7 @@ export class NTQQMsgApi extends Service {
   }
 
   async activateChat(peer: Peer) {
-    return await invoke(NTMethod.ACTIVE_CHAT_PREVIEW, [{ peer, cnt: 1 }])
+    return await invoke(NTMethod.ACTIVE_CHAT_PREVIEW, [{ peer, cnt: 0 }])
   }
 
   async activateChatAndGetHistory(peer: Peer, cnt: number) {

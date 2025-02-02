@@ -180,7 +180,7 @@ class Core extends Service {
         this.ctx.logger.info('好友列表变动', uids.length)
       })
 
-      const activatedPeerUids: string[] = []
+      const activatedPeerUids = new Set<string>()
       registerReceiveHook<{
         changedRecentContactLists: {
           listType: number
@@ -193,10 +193,10 @@ class Core extends Service {
       }>(ReceiveCmdS.RECENT_CONTACT, async (payload) => {
         for (const recentContact of payload.changedRecentContactLists) {
           for (const contact of recentContact.changedList) {
-            if (activatedPeerUids.includes(contact.id)) continue
-            activatedPeerUids.push(contact.id)
+            if (activatedPeerUids.has(contact.id)) continue
+            activatedPeerUids.add(contact.id)
+            const peer = { peerUid: contact.id, chatType: contact.chatType }
             if (contact.chatType === ChatType.TempC2CFromGroup) {
-              const peer = { peerUid: contact.id, chatType: contact.chatType }
               this.ctx.ntMsgApi.activateChatAndGetHistory(peer, 2).then(res => {
                 for (const msg of res.msgList) {
                   if (Date.now() / 1000 - Number(msg.msgTime) > 3) {
@@ -208,6 +208,8 @@ class Core extends Service {
                   this.ctx.parallel('nt/message-created', msg)
                 }
               })
+            } else {
+              this.ctx.ntMsgApi.activateChat(peer)
             }
           }
         }
