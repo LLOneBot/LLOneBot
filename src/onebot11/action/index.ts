@@ -44,7 +44,7 @@ import { GetGroupMsgHistory } from './go-cqhttp/GetGroupMsgHistory'
 import GetFile from './file/GetFile'
 import { GetForwardMsg } from './go-cqhttp/GetForwardMsg'
 import { GetCookies } from './user/GetCookie'
-import { SetMsgEmojiLike } from './llonebot/SetMsgEmojiLike'
+import {SetMsgEmojiLike, UnSetMsgEmojiLike} from './llonebot/SetMsgEmojiLike'
 import { ForwardFriendSingleMsg, ForwardGroupSingleMsg } from './msg/ForwardSingleMsg'
 import { GetEssenceMsgList } from './go-cqhttp/GetGroupEssence'
 import { GetGroupHonorInfo } from './group/GetGroupHonorInfo'
@@ -109,6 +109,7 @@ export function initActionMap(adapter: Adapter) {
     new FetchEmojiLike(adapter),
     new FetchCustomFace(adapter),
     new SetMsgEmojiLike(adapter),
+    new UnSetMsgEmojiLike(adapter),
     new GetRobotUinRange(adapter),
     new GroupPoke(adapter),
     new FriendPoke(adapter),

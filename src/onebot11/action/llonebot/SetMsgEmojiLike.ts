@@ -8,6 +8,7 @@ interface Payload {
 
 export class SetMsgEmojiLike extends BaseAction<Payload, unknown> {
   actionName = ActionName.SetMsgEmojiLike
+  set: boolean = true
 
   protected async _handle(payload: Payload) {
     if (!payload.message_id) {
@@ -28,7 +29,12 @@ export class SetMsgEmojiLike extends BaseAction<Payload, unknown> {
       msg.peer,
       msgData[0].msgSeq,
       payload.emoji_id.toString(),
-      true
+      this.set
     )
   }
+}
+
+export class UnSetMsgEmojiLike extends SetMsgEmojiLike{
+  actionName = ActionName.UnSetMsgEmojiLike
+  set = false
 }

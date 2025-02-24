@@ -27,6 +27,7 @@ export enum ActionName {
   GetFriendMsgHistory = 'get_friend_msg_history',
   SendForwardMsg = 'send_forward_msg',
   SetMsgEmojiLike = 'set_msg_emoji_like',
+  UnSetMsgEmojiLike = 'unset_msg_emoji_like',
   GetRobotUinRange = 'get_robot_uin_range',
   GroupPoke = 'group_poke',
   FriendPoke = 'friend_poke',
