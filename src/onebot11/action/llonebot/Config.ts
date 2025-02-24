@@ -16,5 +16,6 @@ export class SetConfigAction extends BaseAction<Config, void> {
 
   protected async _handle(payload: Config): Promise<void> {
     getConfigUtil().setConfig(payload)
+    await this.ctx.parallel('llob/config-updated', payload)
   }
 }
