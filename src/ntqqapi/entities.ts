@@ -244,8 +244,11 @@ export namespace SendElement {
     if (!faceType) {
       if (faceId < 222) {
         faceType = 1
-      } else {
+      } else if (faceId < 100000) {
         faceType = 2
+      }
+      else {
+        faceType = 4
       }
       if (face?.AniStickerType) {
         faceType = 3
