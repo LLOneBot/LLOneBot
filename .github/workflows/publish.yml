@@ -63,3 +63,5 @@ jobs:
           draft: true
           token: ${{ secrets.RELEASE_TOKEN }}
           name: LLOneBot v${{ steps.get-version.outputs.VERSION }}
+          body: |
+            **如果27597的 QQ 无法打开请先安装[vc140](https://github.com/linyuchen/LiteloaderQQNT-Integration/releases/download/win/vc140.x64.exe)**
