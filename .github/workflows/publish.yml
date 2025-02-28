@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependenies
+      - name: Install dependencies
         run: |
           export ELECTRON_SKIP_BINARY_DOWNLOAD=1
           npm install
@@ -23,22 +23,32 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Download QQ 29456
+      - name: Download QQ
         run: |
-          wget https://github.com/linyuchen/LiteloaderQQNT-Integration/releases/download/win/win-x64-29456.zip
-      - name: Extract QQ 29456
+          #wget https://github.com/linyuchen/LiteloaderQQNT-Integration/releases/download/win/win-x64-29456.zip
+          wget https://github.com/linyuchen/LiteloaderQQNT-Integration/releases/download/win/win-x64-27597.zip
+      - name: Extract QQ
         run: |
-          unzip win-x64-29456.zip
-          rm win-x64-29456.zip
-      - name: Copy LLOneBot to QQ 29456
+          #unzip win-x64-29456.zip
+          #rm win-x64-29456.zip
+          #mv QQNT QQNT-29456
+
+          unzip win-x64-27597.zip
+          rm win-x64-27597.zip
+          mv QQNT QQNT-27597
+      - name: Copy LLOneBot to QQ
         run: |
-          cp -r dist/ QQNT/versions/9.9.16-29456/resources/app/app_launcher/LiteLoaderQQNT/plugins/
-          mv QQNT/versions/9.9.16-29456/resources/app/app_launcher/LiteLoaderQQNT/plugins/dist QQNT/versions/9.9.16-29456/resources/app/app_launcher/LiteLoaderQQNT/plugins/LLOneBot
+          #cp -r dist/ QQNT/versions/9.9.16-29456/resources/app/app_launcher/LiteLoaderQQNT/plugins/
+          #mv QQNT/versions/9.9.16-29456/resources/app/app_launcher/LiteLoaderQQNT/plugins/dist QQNT/versions/9.9.16-29456/resources/app/app_launcher/LiteLoaderQQNT/plugins/LLOneBot
+
+          cp -r dist/ QQNT-27597/resources/app/app_launcher/LiteLoaderQQNT/plugins/
+          mv QQNT-27597/resources/app/app_launcher/LiteLoaderQQNT/plugins/dist QQNT-27597/resources/app/app_launcher/LiteLoaderQQNT/plugins/LLOneBot
 
       - name: Compress
         run: |
           sudo apt install zip -y
-          zip -r LLOneBot_QQ_Windows_x64.zip QQNT
+          zip -r LLOneBot_QQ27597_Windows_x64.zip QQNT-27597
+          #zip -r LLOneBot_QQ29456.zip QQNT-29456
           cd ./dist/
           zip -r ../LLOneBot.zip ./*
 
@@ -49,7 +59,7 @@ jobs:
       - name: Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: 'LLOneBot.zip, LLOneBot_QQ_Windows_x64.zip'
+          artifacts: 'LLOneBot.zip, LLOneBot_QQ27597_Windows_x64.zip'
           draft: true
           token: ${{ secrets.RELEASE_TOKEN }}
           name: LLOneBot v${{ steps.get-version.outputs.VERSION }}
