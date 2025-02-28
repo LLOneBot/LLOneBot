@@ -45,9 +45,6 @@ class OB11Http {
         res.send(`LLOneBot server 已启动`)
       })
       const host = this.config.listenLocalhost ? '127.0.0.1' : '0.0.0.0'
-      this.server = this.expressAPP.listen(this.config.port, host, () => {
-        this.ctx.logger.info(`HTTP server started ${host}:${this.config.port}`)
-      })
       llonebotError.httpServerError = ''
       this.expressAPP.get('/_events', (req: Request, res: Response) => {
         res.setHeader('Content-Type', 'text/event-stream; charset=utf-8')
@@ -58,6 +55,9 @@ class OB11Http {
         this.sseClients.push(res)
       })
       this.ctx.logger.info(`HTTP SSE started ${host}:${this.config.port}/_events`)
+      this.server = this.expressAPP.listen(this.config.port, host, () => {
+        this.ctx.logger.info(`HTTP server started ${host}:${this.config.port}`)
+      })
     } catch (e) {
       this.ctx.logger.error('HTTP服务启动失败', e)
       llonebotError.httpServerError = 'HTTP服务启动失败, ' + e
@@ -130,7 +130,7 @@ class OB11Http {
     if (req.path === '/') {
       return next()
     }
-    if (this.config.enableHttpSse && req.path === '/_events') {
+    if (req.path === '/_events') {
       return next()
     }
     let payload = req.body
