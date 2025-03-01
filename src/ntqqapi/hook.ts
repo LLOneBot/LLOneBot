@@ -72,8 +72,12 @@ export function startHook() {
                 delete hookApiCallbacks[callbackId]
               }
             } else if (args[2]) {
-              if (['IPC_DOWN_2', 'IPC_DOWN_3'].includes(args[0])) {
-                for (const receiveData of args[2]) {
+              if (['IPC_DOWN_2', 'IPC_DOWN_3', 'RM_IPCFROM_MAIN3', 'RM_IPCFROM_MAIN2'].includes(args[0])) {
+                let receiveCMDData = args[2];
+                if (!Array.isArray(args[2])) {
+                  receiveCMDData = [args[2]]
+                }
+                for (const receiveData of receiveCMDData) {
                   for (const hook of receiveHooks.values()) {
                     if (hook.method.includes(receiveData.cmdName)) {
                       Promise.resolve(hook.hookFunc(receiveData.payload))

@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
 import { hookApiCallbacks, registerReceiveHook, removeReceiveHook } from './hook'
-import { DetailedError, log } from '../common/utils'
+import { DetailedError, getBuildVersion, log } from '../common/utils'
 import { randomUUID } from 'node:crypto'
 import {
   GeneralCallResult,
@@ -16,7 +16,7 @@ import {
   NodeIKernelTipOffService,
   NodeIKernelRobotService,
   NodeIKernelNodeMiscService,
-  NodeIKernelRecentContactService
+  NodeIKernelRecentContactService,
 } from './services'
 
 export enum NTClass {
@@ -82,7 +82,9 @@ export enum NTChannel {
   IPC_UP_1 = 'IPC_UP_1',
   IPC_UP_2 = 'IPC_UP_2',
   IPC_UP_3 = 'IPC_UP_3',
-  IPC_UP_4 = 'IPC_UP_4'
+  IPC_UP_4 = 'IPC_UP_4',
+  RM_IPC_FROM_RENDERER_2 = 'RM_IPCFROM_RENDERER2',
+  RM_IPC_FROM_RENDERER_3 = 'RM_IPCFROM_RENDERER3'
 }
 
 interface NTService {
@@ -118,10 +120,10 @@ function getChannel() {
     return channel
   }
   const names = ipcMain.eventNames()
-  if (names.includes(NTChannel.IPC_UP_2)) {
-    return channel = NTChannel.IPC_UP_2
-  } else if (names.includes(NTChannel.IPC_UP_3)) {
-    return channel = NTChannel.IPC_UP_3
+  for (const chn of [NTChannel.IPC_UP_2, NTChannel.IPC_UP_3, NTChannel.RM_IPC_FROM_RENDERER_2, NTChannel.RM_IPC_FROM_RENDERER_3]) {
+    if (names.includes(chn)) {
+      return channel = chn
+    }
   }
 }
 
@@ -143,7 +145,11 @@ export function invoke<
     if (options.registerEvent) {
       eventName += '-register'
     }
-    const apiArgs = [method, ...args]
+    let apiArgs: unknown[] | {cmdName: string, cmdType: 'invoke', payload: unknown[]} = [method, ...args]
+    if (getBuildVersion() >= 32609){
+      eventName = className.split('-')[1]
+      apiArgs = {cmdName: method, cmdType: 'invoke', payload: args}
+    }
     const callbackId = randomUUID()
     let eventId: string
 
@@ -187,7 +193,8 @@ export function invoke<
           if (afterFirstCmd) {
             secondCallback()
           }
-        } else {
+        }
+        else {
           clearTimeout(timeoutId)
           if (eventId) {
             removeReceiveHook(eventId)
@@ -205,7 +212,7 @@ export function invoke<
           },
         },
       },
-      { type: 'request', callbackId, eventName },
+      { type: 'request', callbackId, eventName, peerId: channel.slice(-1)},
       apiArgs,
     )
   })
