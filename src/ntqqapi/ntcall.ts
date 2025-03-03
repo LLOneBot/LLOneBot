@@ -142,13 +142,17 @@ export function invoke<
       return
     }
     let eventName = className + '-' + channel[channel.length - 1]
+    let apiArgs: unknown[] | { cmdName: string, cmdType: 'invoke', payload: unknown[] } | string = [method, ...args]
+    if (getBuildVersion() >= 32690) {
+      eventName = className.split('-')[1]
+      if (options.registerEvent) {
+        apiArgs = method
+      } else {
+        apiArgs = { cmdName: method, cmdType: 'invoke', payload: args }
+      }
+    }
     if (options.registerEvent) {
       eventName += '-register'
-    }
-    let apiArgs: unknown[] | { cmdName: string, cmdType: 'invoke', payload: unknown[] } = [method, ...args]
-    if (getBuildVersion() >= 32609) {
-      eventName = className.split('-')[1]
-      apiArgs = { cmdName: method, cmdType: 'invoke', payload: args }
     }
     const callbackId = randomUUID()
     let eventId: string
@@ -212,7 +216,7 @@ export function invoke<
           },
         },
       },
-      { type: 'request', callbackId, eventName, peerId: channel.slice(-1) },
+      { type: 'request', callbackId, eventName, peerId: Number(channel.slice(-1)) },
       apiArgs,
     )
   })
