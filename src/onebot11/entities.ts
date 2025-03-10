@@ -428,8 +428,8 @@ export namespace OB11Entities {
             Number(groupCode),
             Number(senderUin),
             flag,
-            '',
-            'invite'
+            data.meta.news.desc,
+            'invite',
           )
         }
       }
