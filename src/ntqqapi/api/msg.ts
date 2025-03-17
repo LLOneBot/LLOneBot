@@ -293,4 +293,8 @@ export class NTQQMsgApi extends Service {
       incloudeDeleteMsg
     }])
   }
+
+  async sendSSOCmdReqByContent(ssoCmd: string, content: any){
+    await invoke('nodeIKernelMsgService/sendSsoCmdReqByContend', [{ ssoCmd, content }])
+  }
 }
