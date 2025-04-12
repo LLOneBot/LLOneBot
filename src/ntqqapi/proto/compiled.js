@@ -5421,4 +5421,569 @@ export const RichMedia = $root.RichMedia = (() => {
     return RichMedia;
 })();
 
+export const Oidb = $root.Oidb = (() => {
+
+    /**
+     * Namespace Oidb.
+     * @exports Oidb
+     * @namespace
+     */
+    const Oidb = {};
+
+    Oidb.Base = (function() {
+
+        /**
+         * Properties of a Base.
+         * @memberof Oidb
+         * @interface IBase
+         * @property {number|null} [command] Base command
+         * @property {number|null} [subCommand] Base subCommand
+         * @property {number|null} [errorCode] Base errorCode
+         * @property {Uint8Array|null} [body] Base body
+         * @property {string|null} [errorMsg] Base errorMsg
+         * @property {number|null} [isReserved] Base isReserved
+         */
+
+        /**
+         * Constructs a new Base.
+         * @memberof Oidb
+         * @classdesc Represents a Base.
+         * @implements IBase
+         * @constructor
+         * @param {Oidb.IBase=} [properties] Properties to set
+         */
+        function Base(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * Base command.
+         * @member {number} command
+         * @memberof Oidb.Base
+         * @instance
+         */
+        Base.prototype.command = 0;
+
+        /**
+         * Base subCommand.
+         * @member {number} subCommand
+         * @memberof Oidb.Base
+         * @instance
+         */
+        Base.prototype.subCommand = 0;
+
+        /**
+         * Base errorCode.
+         * @member {number} errorCode
+         * @memberof Oidb.Base
+         * @instance
+         */
+        Base.prototype.errorCode = 0;
+
+        /**
+         * Base body.
+         * @member {Uint8Array} body
+         * @memberof Oidb.Base
+         * @instance
+         */
+        Base.prototype.body = $util.newBuffer([]);
+
+        /**
+         * Base errorMsg.
+         * @member {string} errorMsg
+         * @memberof Oidb.Base
+         * @instance
+         */
+        Base.prototype.errorMsg = "";
+
+        /**
+         * Base isReserved.
+         * @member {number} isReserved
+         * @memberof Oidb.Base
+         * @instance
+         */
+        Base.prototype.isReserved = 0;
+
+        /**
+         * Encodes the specified Base message. Does not implicitly {@link Oidb.Base.verify|verify} messages.
+         * @function encode
+         * @memberof Oidb.Base
+         * @static
+         * @param {Oidb.IBase} message Base message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        Base.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.command != null && Object.hasOwnProperty.call(message, "command"))
+                writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.command);
+            if (message.subCommand != null && Object.hasOwnProperty.call(message, "subCommand"))
+                writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.subCommand);
+            if (message.errorCode != null && Object.hasOwnProperty.call(message, "errorCode"))
+                writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.errorCode);
+            if (message.body != null && Object.hasOwnProperty.call(message, "body"))
+                writer.uint32(/* id 4, wireType 2 =*/34).bytes(message.body);
+            if (message.errorMsg != null && Object.hasOwnProperty.call(message, "errorMsg"))
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.errorMsg);
+            if (message.isReserved != null && Object.hasOwnProperty.call(message, "isReserved"))
+                writer.uint32(/* id 12, wireType 0 =*/96).uint32(message.isReserved);
+            return writer;
+        };
+
+        /**
+         * Decodes a Base message from the specified reader or buffer.
+         * @function decode
+         * @memberof Oidb.Base
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Oidb.Base} Base
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        Base.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Oidb.Base();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1: {
+                        message.command = reader.uint32();
+                        break;
+                    }
+                case 2: {
+                        message.subCommand = reader.uint32();
+                        break;
+                    }
+                case 3: {
+                        message.errorCode = reader.uint32();
+                        break;
+                    }
+                case 4: {
+                        message.body = reader.bytes();
+                        break;
+                    }
+                case 5: {
+                        message.errorMsg = reader.string();
+                        break;
+                    }
+                case 12: {
+                        message.isReserved = reader.uint32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for Base
+         * @function getTypeUrl
+         * @memberof Oidb.Base
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        Base.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Oidb.Base";
+        };
+
+        return Base;
+    })();
+
+    Oidb.SendPoke = (function() {
+
+        /**
+         * Properties of a SendPoke.
+         * @memberof Oidb
+         * @interface ISendPoke
+         * @property {number|null} [toUin] SendPoke toUin
+         * @property {number|null} [groupCode] SendPoke groupCode
+         * @property {number|null} [friendUin] SendPoke friendUin
+         */
+
+        /**
+         * Constructs a new SendPoke.
+         * @memberof Oidb
+         * @classdesc Represents a SendPoke.
+         * @implements ISendPoke
+         * @constructor
+         * @param {Oidb.ISendPoke=} [properties] Properties to set
+         */
+        function SendPoke(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * SendPoke toUin.
+         * @member {number} toUin
+         * @memberof Oidb.SendPoke
+         * @instance
+         */
+        SendPoke.prototype.toUin = 0;
+
+        /**
+         * SendPoke groupCode.
+         * @member {number} groupCode
+         * @memberof Oidb.SendPoke
+         * @instance
+         */
+        SendPoke.prototype.groupCode = 0;
+
+        /**
+         * SendPoke friendUin.
+         * @member {number} friendUin
+         * @memberof Oidb.SendPoke
+         * @instance
+         */
+        SendPoke.prototype.friendUin = 0;
+
+        /**
+         * Encodes the specified SendPoke message. Does not implicitly {@link Oidb.SendPoke.verify|verify} messages.
+         * @function encode
+         * @memberof Oidb.SendPoke
+         * @static
+         * @param {Oidb.ISendPoke} message SendPoke message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        SendPoke.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.toUin != null && Object.hasOwnProperty.call(message, "toUin"))
+                writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.toUin);
+            if (message.groupCode != null && Object.hasOwnProperty.call(message, "groupCode"))
+                writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.groupCode);
+            if (message.friendUin != null && Object.hasOwnProperty.call(message, "friendUin"))
+                writer.uint32(/* id 5, wireType 0 =*/40).uint32(message.friendUin);
+            return writer;
+        };
+
+        /**
+         * Decodes a SendPoke message from the specified reader or buffer.
+         * @function decode
+         * @memberof Oidb.SendPoke
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Oidb.SendPoke} SendPoke
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        SendPoke.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Oidb.SendPoke();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1: {
+                        message.toUin = reader.uint32();
+                        break;
+                    }
+                case 2: {
+                        message.groupCode = reader.uint32();
+                        break;
+                    }
+                case 5: {
+                        message.friendUin = reader.uint32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for SendPoke
+         * @function getTypeUrl
+         * @memberof Oidb.SendPoke
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        SendPoke.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Oidb.SendPoke";
+        };
+
+        return SendPoke;
+    })();
+
+    Oidb.SetSpecialTitleBody = (function() {
+
+        /**
+         * Properties of a SetSpecialTitleBody.
+         * @memberof Oidb
+         * @interface ISetSpecialTitleBody
+         * @property {string|null} [targetUid] SetSpecialTitleBody targetUid
+         * @property {string|null} [specialTitle] SetSpecialTitleBody specialTitle
+         * @property {number|null} [expireTime] SetSpecialTitleBody expireTime
+         * @property {string|null} [uidName] SetSpecialTitleBody uidName
+         */
+
+        /**
+         * Constructs a new SetSpecialTitleBody.
+         * @memberof Oidb
+         * @classdesc Represents a SetSpecialTitleBody.
+         * @implements ISetSpecialTitleBody
+         * @constructor
+         * @param {Oidb.ISetSpecialTitleBody=} [properties] Properties to set
+         */
+        function SetSpecialTitleBody(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * SetSpecialTitleBody targetUid.
+         * @member {string} targetUid
+         * @memberof Oidb.SetSpecialTitleBody
+         * @instance
+         */
+        SetSpecialTitleBody.prototype.targetUid = "";
+
+        /**
+         * SetSpecialTitleBody specialTitle.
+         * @member {string} specialTitle
+         * @memberof Oidb.SetSpecialTitleBody
+         * @instance
+         */
+        SetSpecialTitleBody.prototype.specialTitle = "";
+
+        /**
+         * SetSpecialTitleBody expireTime.
+         * @member {number} expireTime
+         * @memberof Oidb.SetSpecialTitleBody
+         * @instance
+         */
+        SetSpecialTitleBody.prototype.expireTime = 0;
+
+        /**
+         * SetSpecialTitleBody uidName.
+         * @member {string} uidName
+         * @memberof Oidb.SetSpecialTitleBody
+         * @instance
+         */
+        SetSpecialTitleBody.prototype.uidName = "";
+
+        /**
+         * Encodes the specified SetSpecialTitleBody message. Does not implicitly {@link Oidb.SetSpecialTitleBody.verify|verify} messages.
+         * @function encode
+         * @memberof Oidb.SetSpecialTitleBody
+         * @static
+         * @param {Oidb.ISetSpecialTitleBody} message SetSpecialTitleBody message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        SetSpecialTitleBody.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.targetUid != null && Object.hasOwnProperty.call(message, "targetUid"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.targetUid);
+            if (message.specialTitle != null && Object.hasOwnProperty.call(message, "specialTitle"))
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.specialTitle);
+            if (message.expireTime != null && Object.hasOwnProperty.call(message, "expireTime"))
+                writer.uint32(/* id 6, wireType 0 =*/48).int32(message.expireTime);
+            if (message.uidName != null && Object.hasOwnProperty.call(message, "uidName"))
+                writer.uint32(/* id 7, wireType 2 =*/58).string(message.uidName);
+            return writer;
+        };
+
+        /**
+         * Decodes a SetSpecialTitleBody message from the specified reader or buffer.
+         * @function decode
+         * @memberof Oidb.SetSpecialTitleBody
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Oidb.SetSpecialTitleBody} SetSpecialTitleBody
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        SetSpecialTitleBody.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Oidb.SetSpecialTitleBody();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1: {
+                        message.targetUid = reader.string();
+                        break;
+                    }
+                case 5: {
+                        message.specialTitle = reader.string();
+                        break;
+                    }
+                case 6: {
+                        message.expireTime = reader.int32();
+                        break;
+                    }
+                case 7: {
+                        message.uidName = reader.string();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for SetSpecialTitleBody
+         * @function getTypeUrl
+         * @memberof Oidb.SetSpecialTitleBody
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        SetSpecialTitleBody.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Oidb.SetSpecialTitleBody";
+        };
+
+        return SetSpecialTitleBody;
+    })();
+
+    Oidb.SetSpecialTitle = (function() {
+
+        /**
+         * Properties of a SetSpecialTitle.
+         * @memberof Oidb
+         * @interface ISetSpecialTitle
+         * @property {number|null} [groupCode] SetSpecialTitle groupCode
+         * @property {Oidb.ISetSpecialTitleBody|null} [body] SetSpecialTitle body
+         */
+
+        /**
+         * Constructs a new SetSpecialTitle.
+         * @memberof Oidb
+         * @classdesc Represents a SetSpecialTitle.
+         * @implements ISetSpecialTitle
+         * @constructor
+         * @param {Oidb.ISetSpecialTitle=} [properties] Properties to set
+         */
+        function SetSpecialTitle(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * SetSpecialTitle groupCode.
+         * @member {number} groupCode
+         * @memberof Oidb.SetSpecialTitle
+         * @instance
+         */
+        SetSpecialTitle.prototype.groupCode = 0;
+
+        /**
+         * SetSpecialTitle body.
+         * @member {Oidb.ISetSpecialTitleBody|null|undefined} body
+         * @memberof Oidb.SetSpecialTitle
+         * @instance
+         */
+        SetSpecialTitle.prototype.body = null;
+
+        /**
+         * Encodes the specified SetSpecialTitle message. Does not implicitly {@link Oidb.SetSpecialTitle.verify|verify} messages.
+         * @function encode
+         * @memberof Oidb.SetSpecialTitle
+         * @static
+         * @param {Oidb.ISetSpecialTitle} message SetSpecialTitle message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        SetSpecialTitle.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.groupCode != null && Object.hasOwnProperty.call(message, "groupCode"))
+                writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.groupCode);
+            if (message.body != null && Object.hasOwnProperty.call(message, "body"))
+                $root.Oidb.SetSpecialTitleBody.encode(message.body, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a SetSpecialTitle message from the specified reader or buffer.
+         * @function decode
+         * @memberof Oidb.SetSpecialTitle
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Oidb.SetSpecialTitle} SetSpecialTitle
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        SetSpecialTitle.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Oidb.SetSpecialTitle();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1: {
+                        message.groupCode = reader.uint32();
+                        break;
+                    }
+                case 3: {
+                        message.body = $root.Oidb.SetSpecialTitleBody.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for SetSpecialTitle
+         * @function getTypeUrl
+         * @memberof Oidb.SetSpecialTitle
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        SetSpecialTitle.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Oidb.SetSpecialTitle";
+        };
+
+        return SetSpecialTitle;
+    })();
+
+    return Oidb;
+})();
+
 export { $root as default };

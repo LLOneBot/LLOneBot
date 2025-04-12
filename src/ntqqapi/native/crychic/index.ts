@@ -7,7 +7,7 @@ import { ChatType, Peer } from '../../types'
 import path from 'node:path'
 import addon from './external/crychic-win32-x64.node?asset'
 
-export class Native {
+export class Crychic {
   public activated = false
   private crychic?: Dict
   private seq = 0

@@ -60,7 +60,7 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
       }
     }
 
-    if (fake && this.ctx.app.native.activated) {
+    if (fake && this.ctx.app.crychic.activated) {
       return await this.handleFakeForwardNode(peer, nodes)
     } else {
       return await this.handleForwardNode(peer, nodes)
@@ -83,7 +83,7 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
     const encoder = new MessageEncoder(this.ctx, peer)
     const raw = await encoder.generate(nodes)
     const transmit = Msg.PbMultiMsgTransmit.encode({ pbItemList: raw.multiMsgItems }).finish()
-    const resid = await this.ctx.app.native.uploadForward(peer, transmit.subarray(1))
+    const resid = await this.ctx.app.crychic.uploadForward(peer, transmit.subarray(1))
     const uuid = crypto.randomUUID()
     try {
       const msg = await this.ctx.ntMsgApi.sendMsg(peer, [{

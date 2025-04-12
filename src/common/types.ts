@@ -41,6 +41,7 @@ export interface Config {
   ffmpeg?: string // ffmpeg路径
   musicSignUrl?: string
   ignoreBeforeLoginMsg?: boolean
+  packetEndpoint?: string
   /** 单位为秒 */
   msgCacheExpire?: number
   /** @deprecated */

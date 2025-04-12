@@ -1,0 +1,31 @@
+syntax = "proto3";
+package Oidb;
+
+message Base {
+  uint32 command = 1;
+  uint32 subCommand = 2;
+  uint32 errorCode = 3;
+  bytes body = 4;
+  string errorMsg = 5;
+  uint32 isReserved = 12;
+}
+
+// OidbSvcTrpcTcp.0xed3_1
+message SendPoke {
+  uint32 toUin = 1;
+  uint32 groupCode = 2;
+  uint32 friendUin = 5;
+}
+
+message SetSpecialTitleBody {
+  string targetUid = 1;
+  string specialTitle = 5;
+  int32 expireTime = 6;
+  string uidName = 7;
+}
+
+// OidbSvcTrpcTcp.0x8fc_2
+message SetSpecialTitle {
+  uint32 groupCode = 1;
+  SetSpecialTitleBody body = 3;
+}

@@ -22,7 +22,8 @@ import {
 import { selfInfo } from '../common/globalVars'
 import { version } from '../version'
 import { invoke, NTMethod } from './ntcall'
-import { Native } from './native/crychic'
+import { Crychic } from './native/crychic'
+import { Pmhq } from './native/pmhq'
 
 declare module 'cordis' {
   interface Context {
@@ -42,14 +43,16 @@ declare module 'cordis' {
 class Core extends Service {
   static inject = ['ntMsgApi', 'ntFriendApi', 'ntGroupApi', 'store']
   public startupTime = 0
-  public native
   public messageReceivedCount = 0
   public messageSentCount = 0
   public lastMessageTime = 0
+  public crychic
+  public pmhq
 
   constructor(protected ctx: Context, public config: Core.Config) {
     super(ctx, 'app', true)
-    this.native = new Native(ctx)
+    this.crychic = new Crychic(ctx)
+    this.pmhq = new Pmhq(ctx, config.packetEndpoint)
   }
 
   public start() {

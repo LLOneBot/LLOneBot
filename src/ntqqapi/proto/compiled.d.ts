@@ -2186,3 +2186,253 @@ export namespace RichMedia {
         public static getTypeUrl(typeUrlPrefix?: string): string;
     }
 }
+
+/** Namespace Oidb. */
+export namespace Oidb {
+
+    /** Properties of a Base. */
+    interface IBase {
+
+        /** Base command */
+        command?: (number|null);
+
+        /** Base subCommand */
+        subCommand?: (number|null);
+
+        /** Base errorCode */
+        errorCode?: (number|null);
+
+        /** Base body */
+        body?: (Uint8Array|null);
+
+        /** Base errorMsg */
+        errorMsg?: (string|null);
+
+        /** Base isReserved */
+        isReserved?: (number|null);
+    }
+
+    /** Represents a Base. */
+    class Base implements IBase {
+
+        /**
+         * Constructs a new Base.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Oidb.IBase);
+
+        /** Base command. */
+        public command: number;
+
+        /** Base subCommand. */
+        public subCommand: number;
+
+        /** Base errorCode. */
+        public errorCode: number;
+
+        /** Base body. */
+        public body: Uint8Array;
+
+        /** Base errorMsg. */
+        public errorMsg: string;
+
+        /** Base isReserved. */
+        public isReserved: number;
+
+        /**
+         * Encodes the specified Base message. Does not implicitly {@link Oidb.Base.verify|verify} messages.
+         * @param message Base message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Oidb.IBase, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a Base message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns Base
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Oidb.Base;
+
+        /**
+         * Gets the default type url for Base
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a SendPoke. */
+    interface ISendPoke {
+
+        /** SendPoke toUin */
+        toUin?: (number|null);
+
+        /** SendPoke groupCode */
+        groupCode?: (number|null);
+
+        /** SendPoke friendUin */
+        friendUin?: (number|null);
+    }
+
+    /** Represents a SendPoke. */
+    class SendPoke implements ISendPoke {
+
+        /**
+         * Constructs a new SendPoke.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Oidb.ISendPoke);
+
+        /** SendPoke toUin. */
+        public toUin: number;
+
+        /** SendPoke groupCode. */
+        public groupCode: number;
+
+        /** SendPoke friendUin. */
+        public friendUin: number;
+
+        /**
+         * Encodes the specified SendPoke message. Does not implicitly {@link Oidb.SendPoke.verify|verify} messages.
+         * @param message SendPoke message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Oidb.ISendPoke, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SendPoke message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SendPoke
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Oidb.SendPoke;
+
+        /**
+         * Gets the default type url for SendPoke
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a SetSpecialTitleBody. */
+    interface ISetSpecialTitleBody {
+
+        /** SetSpecialTitleBody targetUid */
+        targetUid?: (string|null);
+
+        /** SetSpecialTitleBody specialTitle */
+        specialTitle?: (string|null);
+
+        /** SetSpecialTitleBody expireTime */
+        expireTime?: (number|null);
+
+        /** SetSpecialTitleBody uidName */
+        uidName?: (string|null);
+    }
+
+    /** Represents a SetSpecialTitleBody. */
+    class SetSpecialTitleBody implements ISetSpecialTitleBody {
+
+        /**
+         * Constructs a new SetSpecialTitleBody.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Oidb.ISetSpecialTitleBody);
+
+        /** SetSpecialTitleBody targetUid. */
+        public targetUid: string;
+
+        /** SetSpecialTitleBody specialTitle. */
+        public specialTitle: string;
+
+        /** SetSpecialTitleBody expireTime. */
+        public expireTime: number;
+
+        /** SetSpecialTitleBody uidName. */
+        public uidName: string;
+
+        /**
+         * Encodes the specified SetSpecialTitleBody message. Does not implicitly {@link Oidb.SetSpecialTitleBody.verify|verify} messages.
+         * @param message SetSpecialTitleBody message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Oidb.ISetSpecialTitleBody, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SetSpecialTitleBody message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SetSpecialTitleBody
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Oidb.SetSpecialTitleBody;
+
+        /**
+         * Gets the default type url for SetSpecialTitleBody
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a SetSpecialTitle. */
+    interface ISetSpecialTitle {
+
+        /** SetSpecialTitle groupCode */
+        groupCode?: (number|null);
+
+        /** SetSpecialTitle body */
+        body?: (Oidb.ISetSpecialTitleBody|null);
+    }
+
+    /** Represents a SetSpecialTitle. */
+    class SetSpecialTitle implements ISetSpecialTitle {
+
+        /**
+         * Constructs a new SetSpecialTitle.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Oidb.ISetSpecialTitle);
+
+        /** SetSpecialTitle groupCode. */
+        public groupCode: number;
+
+        /** SetSpecialTitle body. */
+        public body?: (Oidb.ISetSpecialTitleBody|null);
+
+        /**
+         * Encodes the specified SetSpecialTitle message. Does not implicitly {@link Oidb.SetSpecialTitle.verify|verify} messages.
+         * @param message SetSpecialTitle message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Oidb.ISetSpecialTitle, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SetSpecialTitle message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SetSpecialTitle
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Oidb.SetSpecialTitle;
+
+        /**
+         * Gets the default type url for SetSpecialTitle
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+}
