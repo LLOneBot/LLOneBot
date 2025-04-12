@@ -8,8 +8,12 @@ interface Payload {
   user_id?: number | string
 }
 
-abstract class ForwardSingleMsg extends BaseAction<Payload, null> {
-  protected async _handle(payload: Payload): Promise<null> {
+interface Response {
+  message_id: number
+}
+
+abstract class ForwardSingleMsg extends BaseAction<Payload, Response> {
+  protected async _handle(payload: Payload) {
     if (!payload.message_id) {
       throw Error('message_id不能为空')
     }
@@ -22,7 +26,11 @@ abstract class ForwardSingleMsg extends BaseAction<Payload, null> {
     if (ret.length === 0) {
       throw new Error(`转发消息失败`)
     }
-    return null
+    const msgShortId = this.ctx.store.createMsgShortId({
+      chatType: ret[0].chatType,
+      peerUid: ret[0].peerUid
+    }, ret[0].msgId)
+    return { message_id: msgShortId }
   }
 }
 

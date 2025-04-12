@@ -12,7 +12,7 @@ export class Pmhq {
   public activated = false
   private ws?: WebSocket
   private seq = 0
-  private cb: Map<string, (res: any) => void> = new Map()
+  private cb: Map<string, (data: Data) => void> = new Map()
   private connected = false
 
   constructor(private ctx: Context, endpoint?: string) {
