@@ -1,5 +1,5 @@
-import {BaseAction} from '../BaseAction'
-import {ActionName} from '../types'
+import { BaseAction } from '../BaseAction'
+import { ActionName } from '../types'
 
 interface Payload {
   apiClass: string

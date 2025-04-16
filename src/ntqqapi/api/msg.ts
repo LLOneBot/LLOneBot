@@ -71,8 +71,8 @@ export class NTQQMsgApi extends Service {
         bubbleInfo: {},
         avatarPendantInfo: {},
         vasFont: {},
-        iceBreakInfo: {}
-      }
+        iceBreakInfo: {},
+      },
     })
 
     let sentMsgId: string
@@ -82,7 +82,7 @@ export class NTQQMsgApi extends Service {
         msgId: '0',
         peer,
         msgElements,
-        msgAttributeInfos
+        msgAttributeInfos,
       }],
       {
         cbCmd: 'nodeIKernelMsgListener/onMsgInfoListUpdate',
@@ -96,8 +96,8 @@ export class NTQQMsgApi extends Service {
           }
           return false
         },
-        timeout
-      }
+        timeout,
+      },
     )
 
     return data.msgList.find(msgRecord => msgRecord.msgId === sentMsgId)
@@ -126,8 +126,8 @@ export class NTQQMsgApi extends Service {
           }
           return false
         },
-        timeout: 3000
-      }
+        timeout: 3000,
+      },
     )
     delete destPeer.guildId
     return data.msgList.filter(msgRecord => msgRecord.guildId === uniqueId)
@@ -168,8 +168,8 @@ export class NTQQMsgApi extends Service {
             }
           }
           return false
-        }
-      }
+        },
+      },
     )
     return data.msgList.find(msgRecord => {
       const { arkElement } = msgRecord.elements[0]
@@ -197,7 +197,7 @@ export class NTQQMsgApi extends Service {
         isReverseOrder: true,
         isIncludeCurrent: true,
         pageLimit: 1,
-      }
+      },
     }])
   }
 
@@ -214,7 +214,7 @@ export class NTQQMsgApi extends Service {
         filterMsgFromTime: filterMsgTime,
         isIncludeCurrent: true,
         pageLimit: 1,
-      }
+      },
     }])
   }
 
@@ -228,7 +228,7 @@ export class NTQQMsgApi extends Service {
       msgSeq,
       emojiId,
       emojiType,
-      cnt: count
+      cnt: count,
     }])
   }
 
@@ -237,7 +237,7 @@ export class NTQQMsgApi extends Service {
       resId: '',
       count,
       backwardFetch: true,
-      forceRefresh: true
+      forceRefresh: true,
     }])
   }
 
@@ -246,7 +246,8 @@ export class NTQQMsgApi extends Service {
     const uniqueId = await invoke('nodeIKernelMsgService/generateMsgUniqueId', [{ chatType, time }])
     if (typeof uniqueId === 'string') {
       return uniqueId
-    } else {
+    }
+    else {
       const random = Math.trunc(Math.random() * 100)
       return `${Date.now()}${random}`
     }
@@ -261,13 +262,13 @@ export class NTQQMsgApi extends Service {
       params: {
         chatInfo: {
           peerUid: '',
-          chatType
+          chatType,
         },
         filterMsgToTime: msgTime,
         filterMsgFromTime: msgTime,
         isIncludeCurrent: true,
         pageLimit: 1,
-      }
+      },
     }])
   }
 
@@ -290,11 +291,7 @@ export class NTQQMsgApi extends Service {
       msgSeq,
       cnt,
       queryOrder,
-      incloudeDeleteMsg
+      incloudeDeleteMsg,
     }])
-  }
-
-  async sendSSOCmdReqByContent(ssoCmd: string, content: any){
-    await invoke('nodeIKernelMsgService/sendSsoCmdReqByContend', [{ ssoCmd, content }])
   }
 }

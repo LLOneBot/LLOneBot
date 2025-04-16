@@ -2435,4 +2435,145 @@ export namespace Oidb {
          */
         public static getTypeUrl(typeUrlPrefix?: string): string;
     }
+
+    /** Properties of a GetRKeyResponseItem. */
+    interface IGetRKeyResponseItem {
+
+        /** GetRKeyResponseItem rkey */
+        rkey?: (string|null);
+
+        /** GetRKeyResponseItem createTime */
+        createTime?: (number|null);
+    }
+
+    /** Represents a GetRKeyResponseItem. */
+    class GetRKeyResponseItem implements IGetRKeyResponseItem {
+
+        /**
+         * Constructs a new GetRKeyResponseItem.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Oidb.IGetRKeyResponseItem);
+
+        /** GetRKeyResponseItem rkey. */
+        public rkey: string;
+
+        /** GetRKeyResponseItem createTime. */
+        public createTime: number;
+
+        /**
+         * Encodes the specified GetRKeyResponseItem message. Does not implicitly {@link Oidb.GetRKeyResponseItem.verify|verify} messages.
+         * @param message GetRKeyResponseItem message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Oidb.IGetRKeyResponseItem, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a GetRKeyResponseItem message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns GetRKeyResponseItem
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Oidb.GetRKeyResponseItem;
+
+        /**
+         * Gets the default type url for GetRKeyResponseItem
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a GetRKeyResponseItems. */
+    interface IGetRKeyResponseItems {
+
+        /** GetRKeyResponseItems rkeyItems */
+        rkeyItems?: (Oidb.IGetRKeyResponseItem[]|null);
+    }
+
+    /** Represents a GetRKeyResponseItems. */
+    class GetRKeyResponseItems implements IGetRKeyResponseItems {
+
+        /**
+         * Constructs a new GetRKeyResponseItems.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Oidb.IGetRKeyResponseItems);
+
+        /** GetRKeyResponseItems rkeyItems. */
+        public rkeyItems: Oidb.IGetRKeyResponseItem[];
+
+        /**
+         * Encodes the specified GetRKeyResponseItems message. Does not implicitly {@link Oidb.GetRKeyResponseItems.verify|verify} messages.
+         * @param message GetRKeyResponseItems message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Oidb.IGetRKeyResponseItems, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a GetRKeyResponseItems message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns GetRKeyResponseItems
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Oidb.GetRKeyResponseItems;
+
+        /**
+         * Gets the default type url for GetRKeyResponseItems
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a GetRKeyResponseBody. */
+    interface IGetRKeyResponseBody {
+
+        /** GetRKeyResponseBody result */
+        result?: (Oidb.IGetRKeyResponseItems|null);
+    }
+
+    /** Represents a GetRKeyResponseBody. */
+    class GetRKeyResponseBody implements IGetRKeyResponseBody {
+
+        /**
+         * Constructs a new GetRKeyResponseBody.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Oidb.IGetRKeyResponseBody);
+
+        /** GetRKeyResponseBody result. */
+        public result?: (Oidb.IGetRKeyResponseItems|null);
+
+        /**
+         * Encodes the specified GetRKeyResponseBody message. Does not implicitly {@link Oidb.GetRKeyResponseBody.verify|verify} messages.
+         * @param message GetRKeyResponseBody message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Oidb.IGetRKeyResponseBody, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a GetRKeyResponseBody message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns GetRKeyResponseBody
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Oidb.GetRKeyResponseBody;
+
+        /**
+         * Gets the default type url for GetRKeyResponseBody
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
 }

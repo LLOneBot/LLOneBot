@@ -35,7 +35,21 @@ export class RkeyManager {
   }
 
   async refreshRkey() {
-    this.rkeyData = await this.fetchServerRkey()
+    try{
+      const {privateRKey, groupRKey} = await this.ctx.app.pmhq.getRKey()
+      if (privateRKey && groupRKey) {
+        this.ctx.logger.info(`发包获取rkey成功,private:${privateRKey}, group:${groupRKey}`)
+        this.rkeyData = {
+          private_rkey: privateRKey,
+          group_rkey: groupRKey,
+          expired_time: new Date().getTime() / 1000 + 50 * 60
+        }
+      }
+    }
+    catch (e) {
+      this.ctx.logger.warn(`发包获取rkey失败 ${e}，开始获取远程rkey`)
+      this.rkeyData = await this.fetchServerRkey()
+    }
   }
 
   async fetchServerRkey(): Promise<ServerRkeyData> {

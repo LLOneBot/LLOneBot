@@ -29,3 +29,15 @@ message SetSpecialTitle {
   uint32 groupCode = 1;
   SetSpecialTitleBody body = 3;
 }
+
+message GetRKeyResponseItem {
+  string rkey = 1;
+  uint32 createTime = 4;
+}
+
+message GetRKeyResponseItems {
+  repeated GetRKeyResponseItem rkeyItems = 1;
+}
+message GetRKeyResponseBody{
+  GetRKeyResponseItems result = 4;
+}

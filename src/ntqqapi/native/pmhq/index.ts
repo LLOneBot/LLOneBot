@@ -50,7 +50,7 @@ export class Pmhq {
   }
 
   private async connect(port: number) {
-    this.ws = new WebSocket(`ws://localhost:${port}/ws`)
+    this.ws = new WebSocket(`ws://127.0.0.1:${port}/ws`)
     this.ws.on('open', () => {
       this.connected = true
       this.ws!.addEventListener('message', ({ data }) => {
@@ -120,5 +120,18 @@ export class Pmhq {
       body
     }).finish()
     return await this.send('OidbSvcTrpcTcp.0x8fc_2', data)
+  }
+
+  async getRKey(){
+    const hexStr = '08e7a00210ca01221c0a130a05080110ca011206a80602b006011a02080122050a030a1400'
+    const data = new Uint8Array(Buffer.from(hexStr, 'hex'));
+    const resp = await this.send('OidbSvcTrpcTcp.0xed3_1', data)
+    const respProtobuf = resp.pb
+    const rkeyBody = Oidb.Base.decode(new Uint8Array(Buffer.from(respProtobuf, 'hex'))).body
+    const rkeyItems =  Oidb.GetRKeyResponseBody.decode(rkeyBody).result?.rkeyItems!
+    return {
+      privateRKey: rkeyItems[0]?.rkey,
+      groupRKey: rkeyItems[1]?.rkey
+    }
   }
 }

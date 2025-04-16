@@ -5983,6 +5983,316 @@ export const Oidb = $root.Oidb = (() => {
         return SetSpecialTitle;
     })();
 
+    Oidb.GetRKeyResponseItem = (function() {
+
+        /**
+         * Properties of a GetRKeyResponseItem.
+         * @memberof Oidb
+         * @interface IGetRKeyResponseItem
+         * @property {string|null} [rkey] GetRKeyResponseItem rkey
+         * @property {number|null} [createTime] GetRKeyResponseItem createTime
+         */
+
+        /**
+         * Constructs a new GetRKeyResponseItem.
+         * @memberof Oidb
+         * @classdesc Represents a GetRKeyResponseItem.
+         * @implements IGetRKeyResponseItem
+         * @constructor
+         * @param {Oidb.IGetRKeyResponseItem=} [properties] Properties to set
+         */
+        function GetRKeyResponseItem(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * GetRKeyResponseItem rkey.
+         * @member {string} rkey
+         * @memberof Oidb.GetRKeyResponseItem
+         * @instance
+         */
+        GetRKeyResponseItem.prototype.rkey = "";
+
+        /**
+         * GetRKeyResponseItem createTime.
+         * @member {number} createTime
+         * @memberof Oidb.GetRKeyResponseItem
+         * @instance
+         */
+        GetRKeyResponseItem.prototype.createTime = 0;
+
+        /**
+         * Encodes the specified GetRKeyResponseItem message. Does not implicitly {@link Oidb.GetRKeyResponseItem.verify|verify} messages.
+         * @function encode
+         * @memberof Oidb.GetRKeyResponseItem
+         * @static
+         * @param {Oidb.IGetRKeyResponseItem} message GetRKeyResponseItem message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        GetRKeyResponseItem.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.rkey != null && Object.hasOwnProperty.call(message, "rkey"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.rkey);
+            if (message.createTime != null && Object.hasOwnProperty.call(message, "createTime"))
+                writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.createTime);
+            return writer;
+        };
+
+        /**
+         * Decodes a GetRKeyResponseItem message from the specified reader or buffer.
+         * @function decode
+         * @memberof Oidb.GetRKeyResponseItem
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Oidb.GetRKeyResponseItem} GetRKeyResponseItem
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        GetRKeyResponseItem.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Oidb.GetRKeyResponseItem();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1: {
+                        message.rkey = reader.string();
+                        break;
+                    }
+                case 4: {
+                        message.createTime = reader.uint32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for GetRKeyResponseItem
+         * @function getTypeUrl
+         * @memberof Oidb.GetRKeyResponseItem
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        GetRKeyResponseItem.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Oidb.GetRKeyResponseItem";
+        };
+
+        return GetRKeyResponseItem;
+    })();
+
+    Oidb.GetRKeyResponseItems = (function() {
+
+        /**
+         * Properties of a GetRKeyResponseItems.
+         * @memberof Oidb
+         * @interface IGetRKeyResponseItems
+         * @property {Array.<Oidb.IGetRKeyResponseItem>|null} [rkeyItems] GetRKeyResponseItems rkeyItems
+         */
+
+        /**
+         * Constructs a new GetRKeyResponseItems.
+         * @memberof Oidb
+         * @classdesc Represents a GetRKeyResponseItems.
+         * @implements IGetRKeyResponseItems
+         * @constructor
+         * @param {Oidb.IGetRKeyResponseItems=} [properties] Properties to set
+         */
+        function GetRKeyResponseItems(properties) {
+            this.rkeyItems = [];
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * GetRKeyResponseItems rkeyItems.
+         * @member {Array.<Oidb.IGetRKeyResponseItem>} rkeyItems
+         * @memberof Oidb.GetRKeyResponseItems
+         * @instance
+         */
+        GetRKeyResponseItems.prototype.rkeyItems = $util.emptyArray;
+
+        /**
+         * Encodes the specified GetRKeyResponseItems message. Does not implicitly {@link Oidb.GetRKeyResponseItems.verify|verify} messages.
+         * @function encode
+         * @memberof Oidb.GetRKeyResponseItems
+         * @static
+         * @param {Oidb.IGetRKeyResponseItems} message GetRKeyResponseItems message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        GetRKeyResponseItems.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.rkeyItems != null && message.rkeyItems.length)
+                for (let i = 0; i < message.rkeyItems.length; ++i)
+                    $root.Oidb.GetRKeyResponseItem.encode(message.rkeyItems[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a GetRKeyResponseItems message from the specified reader or buffer.
+         * @function decode
+         * @memberof Oidb.GetRKeyResponseItems
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Oidb.GetRKeyResponseItems} GetRKeyResponseItems
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        GetRKeyResponseItems.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Oidb.GetRKeyResponseItems();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1: {
+                        if (!(message.rkeyItems && message.rkeyItems.length))
+                            message.rkeyItems = [];
+                        message.rkeyItems.push($root.Oidb.GetRKeyResponseItem.decode(reader, reader.uint32()));
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for GetRKeyResponseItems
+         * @function getTypeUrl
+         * @memberof Oidb.GetRKeyResponseItems
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        GetRKeyResponseItems.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Oidb.GetRKeyResponseItems";
+        };
+
+        return GetRKeyResponseItems;
+    })();
+
+    Oidb.GetRKeyResponseBody = (function() {
+
+        /**
+         * Properties of a GetRKeyResponseBody.
+         * @memberof Oidb
+         * @interface IGetRKeyResponseBody
+         * @property {Oidb.IGetRKeyResponseItems|null} [result] GetRKeyResponseBody result
+         */
+
+        /**
+         * Constructs a new GetRKeyResponseBody.
+         * @memberof Oidb
+         * @classdesc Represents a GetRKeyResponseBody.
+         * @implements IGetRKeyResponseBody
+         * @constructor
+         * @param {Oidb.IGetRKeyResponseBody=} [properties] Properties to set
+         */
+        function GetRKeyResponseBody(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * GetRKeyResponseBody result.
+         * @member {Oidb.IGetRKeyResponseItems|null|undefined} result
+         * @memberof Oidb.GetRKeyResponseBody
+         * @instance
+         */
+        GetRKeyResponseBody.prototype.result = null;
+
+        /**
+         * Encodes the specified GetRKeyResponseBody message. Does not implicitly {@link Oidb.GetRKeyResponseBody.verify|verify} messages.
+         * @function encode
+         * @memberof Oidb.GetRKeyResponseBody
+         * @static
+         * @param {Oidb.IGetRKeyResponseBody} message GetRKeyResponseBody message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        GetRKeyResponseBody.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.result != null && Object.hasOwnProperty.call(message, "result"))
+                $root.Oidb.GetRKeyResponseItems.encode(message.result, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a GetRKeyResponseBody message from the specified reader or buffer.
+         * @function decode
+         * @memberof Oidb.GetRKeyResponseBody
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Oidb.GetRKeyResponseBody} GetRKeyResponseBody
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        GetRKeyResponseBody.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Oidb.GetRKeyResponseBody();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 4: {
+                        message.result = $root.Oidb.GetRKeyResponseItems.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for GetRKeyResponseBody
+         * @function getTypeUrl
+         * @memberof Oidb.GetRKeyResponseBody
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        GetRKeyResponseBody.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Oidb.GetRKeyResponseBody";
+        };
+
+        return GetRKeyResponseBody;
+    })();
+
     return Oidb;
 })();
 
