@@ -1163,7 +1163,7 @@ export namespace Msg {
     interface ICommonElem {
 
         /** CommonElem serviceType */
-        serviceType: number;
+        serviceType?: (number|null);
 
         /** CommonElem pbElem */
         pbElem?: (Uint8Array|null);

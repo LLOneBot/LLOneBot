@@ -97,7 +97,7 @@ message LightAppElem {
 }
 
 message CommonElem {
-  required uint32 serviceType = 1;
+  uint32 serviceType = 1;
   optional bytes pbElem = 2;
   optional uint32 businessType = 3;
 }
