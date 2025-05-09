@@ -16,6 +16,11 @@ declare module 'cordis' {
       peerUid: string
     }
     file_v2: FileCacheV2
+    forward: {
+      rootMsgId: string
+      parentMsgId: string
+      peerUid: string
+    }
   }
 }
 
@@ -58,6 +63,13 @@ class Store extends Service {
     }, {
       primary: 'fileUuid',
       indexes: ['fileName']
+    })
+    this.ctx.model.extend('forward', {
+      rootMsgId: 'string(24)',
+      parentMsgId: 'string(24)',
+      peerUid: 'string(24)'
+    }, {
+      primary: 'parentMsgId'
     })
   }
 
@@ -141,6 +153,14 @@ class Store extends Service {
 
   getMsgCache(msgId: string) {
     return this.messages.get(msgId)
+  }
+
+  addMultiMsgInfo(rootMsgId: string, parentMsgId: string, peerUid: string) {
+    return this.ctx.database.upsert('forward', [{ rootMsgId, parentMsgId, peerUid }])
+  }
+
+  getMultiMsgInfo(parentMsgId: string) {
+    return this.ctx.database.get('forward', { parentMsgId })
   }
 }
 

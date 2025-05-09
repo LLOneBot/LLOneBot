@@ -1,8 +1,9 @@
 import { BaseAction, Schema } from '../BaseAction'
-import { OB11ForwardMessage } from '../../types'
+import { OB11ForwardMessage, OB11MessageDataType } from '../../types'
 import { OB11Entities } from '../../entities'
 import { ActionName } from '../types'
 import { filterNullable } from '@/common/utils/misc'
+import { message2List } from '@/onebot11/helper/createMessage'
 
 interface Payload {
   message_id: string // long msg id，gocq
@@ -25,12 +26,18 @@ export class GetForwardMsg extends BaseAction<Payload, Response> {
     if (!msgId) {
       throw Error('message_id不能为空')
     }
-    const rootMsgId = await this.ctx.store.getShortIdByMsgId(msgId)
-    const rootMsg = await this.ctx.store.getMsgInfoByShortId(rootMsgId || +msgId)
-    if (!rootMsg) {
+    const shortId = await this.ctx.store.getShortIdByMsgId(msgId)
+    const msgInfo = await this.ctx.store.getMsgInfoByShortId(shortId || +msgId)
+    if (!msgInfo) {
       throw Error('msg not found')
     }
-    const data = await this.ctx.ntMsgApi.getMultiMsg(rootMsg.peer, rootMsg.msgId, rootMsg.msgId)
+    const multiMsgInfo = await this.ctx.store.getMultiMsgInfo(msgInfo.msgId)
+    const rootMsgId = multiMsgInfo[0]?.rootMsgId ?? msgInfo.msgId
+    const peer = multiMsgInfo[0]?.peerUid ? {
+      ...msgInfo.peer,
+      peerUid: multiMsgInfo[0].peerUid
+    } : msgInfo.peer
+    const data = await this.ctx.ntMsgApi.getMultiMsg(peer, rootMsgId, msgInfo.msgId)
     if (data?.result !== 0) {
       throw Error('找不到相关的聊天记录' + data?.errMsg)
     }
@@ -38,6 +45,12 @@ export class GetForwardMsg extends BaseAction<Payload, Response> {
       data.msgList.map(async (msg) => {
         const res = await OB11Entities.message(this.ctx, msg)
         if (res) {
+          const segments = message2List(res.message)
+          for (const item of segments) {
+            if (item.type === OB11MessageDataType.Forward) {
+              await this.ctx.store.addMultiMsgInfo(rootMsgId, item.data.id, peer.peerUid)
+            }
+          }
           return {
             content: res.message,
             sender: {
