@@ -45,7 +45,12 @@ import { pathToFileURL } from 'node:url'
 import OneBot11Adapter from './adapter'
 
 export namespace OB11Entities {
-  export async function message(ctx: Context, msg: RawMessage): Promise<OB11Message | undefined> {
+  export async function message(
+    ctx: Context,
+    msg: RawMessage,
+    rootMsgID?: string,
+    peerUID?: string,
+  ): Promise<OB11Message | undefined> {
     if (!msg.senderUin || msg.senderUin === '0' || msg.msgType === 1) return //跳过空消息
     const {
       debug,
@@ -209,10 +214,14 @@ export namespace OB11Entities {
       }
       else if (element.videoElement) {
         const { videoElement } = element
-        const videoUrl = await ctx.ntFileApi.getVideoUrl({
-          chatType: msg.chatType,
-          peerUid: msg.peerUid,
-        }, msg.msgId, element.elementId)
+        const videoUrl = await ctx.ntFileApi.getVideoUrl(
+          {
+            chatType: msg.chatType,
+            peerUid: peerUID ?? msg.peerUid,
+          },
+          rootMsgID ?? msg.msgId,
+          element.elementId,
+        )
         const fileSize = videoElement.fileSize ?? '0'
         messageSegment = {
           type: OB11MessageDataType.Video,
