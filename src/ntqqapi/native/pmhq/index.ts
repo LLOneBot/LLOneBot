@@ -1,6 +1,12 @@
 import { Context } from 'cordis'
 import { WebSocket } from 'ws'
 import { Oidb } from '@/ntqqapi/proto/compiled'
+import { selfInfo } from '@/common/globalVars'
+import { Field } from 'minato'
+import string = Field.string
+import path from 'node:path'
+import * as os from 'node:os'
+import fs from 'node:fs'
 
 interface Data {
   echo: string
@@ -9,100 +15,60 @@ interface Data {
 }
 
 export class Pmhq {
-  public activated = false
-  private ws?: WebSocket
-  private seq = 0
-  private cb: Map<string, (data: Data) => void> = new Map()
-  private connected = false
   private reconnectTimer: NodeJS.Timeout | undefined
+  private url: string
 
-  constructor(private ctx: Context, port?: number) {
-    if (port) {
-      ctx.on('ready', () => {
-        this.start(port)
-      })
+  constructor(private ctx: Context) {
+    let pmhqAddrPath: string
+    let pmhqDataDir
+    if (process.platform === 'win32') {
+      pmhqDataDir = path.join(process.env['LOCALAPPDATA']!!, 'pmhq')
     }
-  }
-
-  public start(port: number) {
-    this.activated = true
-    this.connect(port)
-  }
-
-  public stop() {
-    if (this.activated) {
-      this.activated = false
-      if (this.ws) {
-        if (this.reconnectTimer) clearTimeout(this.reconnectTimer)
-        this.ws.onclose = null
-        this.ws.close()
-      }
+    else {
+      pmhqDataDir = path.join(os.homedir(), '.pmhq')
     }
+    pmhqAddrPath = path.join(pmhqDataDir, `PMHQ_ADDR_${selfInfo.uin}.txt`)
+    const pmhqAddr: string = fs.readFileSync(pmhqAddrPath).toString()
+    ctx.logger.info('PMHQ address:' + pmhqAddr)
+    this.url = 'http://' + pmhqAddr + '/'
   }
 
-  private send(cmd: string, pb: Uint8Array) {
-    return new Promise<Data>(async (resolve, reject) => {
-      if (!this.connected) {
-        reject(new Error('发包器未连接，请前往LLOneBot设置页面配置'))
-      }
-      const echo = String(++this.seq)
-      this.cb.set(echo, (data: Data) => {
-        this.cb.delete(echo)
-        resolve(data)
-      })
-      setTimeout(() => {
-        this.cb.delete(echo)
-        reject(new Error('发包超时'))
-      }, 5000)
-      this.ws!.send(JSON.stringify({
-        type: 'send',
-        data: {
-          echo,
-          cmd,
-          pb: Buffer.from(pb).toString('hex')
-        } as Data
-      }))
-    })
-  }
 
-  private async connect(port: number) {
-    this.ws = new WebSocket(`ws://127.0.0.1:${port}/ws`)
-    this.ws.on('open', () => {
-      this.connected = true
-      this.ws!.addEventListener('message', ({ data }) => {
-        let parsed: { type: 'recv', data: Data }
-        data = data.toString()
-        try {
-          parsed = JSON.parse(data)
-        } catch (error) {
-          return this.ctx.logger.warn('cannot parse message', data)
-        }
+  private async send(cmd: string, pb: Uint8Array) {
+    const payload = JSON.stringify({
+      type: 'send',
+      data: {
+        cmd,
+        pb: Buffer.from(pb).toString('hex'),
+      } as Data,
+    })
+    const response = await fetch(this.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: payload,
+    })
+    // this.ctx.logger.info(`pmhq payload ${payload}`)
 
-        if (this.cb.has(parsed.data.echo)) {
-          this.cb.get(parsed.data.echo)?.(parsed.data)
-        }
-      })
-    })
-    this.ws.on('error', (e) => {
-      this.ctx.logger.warn('发包器连接失败', e)
-    })
-    this.ws.on('close', () => {
-      this.connected = false
-      this.reconnectTimer = setTimeout(() => {
-        this.connect(port)
-      }, 5000)
-    })
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`PMHQ请求失败，请检查发包器PMHQ设置 ${response.status} - ${errorBody}`)
+    }
+
+    const result = await response.json()
+    return result.data
   }
 
   async sendFriendPoke(uin: number) {
     const body = Oidb.SendPoke.encode({
       toUin: uin,
-      friendUin: uin
+      friendUin: uin,
     }).finish()
     const data = Oidb.Base.encode({
       command: 0xed3,
       subCommand: 1,
-      body
+      body,
     }).finish()
     return await this.send('OidbSvcTrpcTcp.0xed3_1', data)
   }
@@ -110,12 +76,12 @@ export class Pmhq {
   async sendGroupPoke(groupCode: number, memberUin: number) {
     const body = Oidb.SendPoke.encode({
       toUin: memberUin,
-      groupCode
+      groupCode,
     }).finish()
     const data = Oidb.Base.encode({
       command: 0xed3,
       subCommand: 1,
-      body
+      body,
     }).finish()
     return await this.send('OidbSvcTrpcTcp.0xed3_1', data)
   }
@@ -127,13 +93,13 @@ export class Pmhq {
         targetUid: memberUid,
         uidName: title,
         specialTitle: title,
-        expireTime: -1
-      }
+        expireTime: -1,
+      },
     }).finish()
     const data = Oidb.Base.encode({
       command: 0x8fc,
       subCommand: 2,
-      body
+      body,
     }).finish()
     return await this.send('OidbSvcTrpcTcp.0x8fc_2', data)
   }
@@ -146,7 +112,7 @@ export class Pmhq {
     const rkeyItems = Oidb.GetRKeyResponseBody.decode(rkeyBody).result?.rkeyItems!
     return {
       privateRKey: rkeyItems[0]?.rkey,
-      groupRKey: rkeyItems[1]?.rkey
+      groupRKey: rkeyItems[1]?.rkey,
     }
   }
 }

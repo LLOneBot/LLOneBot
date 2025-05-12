@@ -14,7 +14,7 @@ export class GroupPoke extends BaseAction<Payload, null> {
   })
 
   async _handle(payload: Payload) {
-    if (this.ctx.app.pmhq.activated) {
+    try {
       if (payload.group_id === undefined) {
         await this.ctx.app.pmhq.sendFriendPoke(+payload.user_id)
       } else {
@@ -22,8 +22,11 @@ export class GroupPoke extends BaseAction<Payload, null> {
       }
       return null
     }
+    catch (e) {
+      this.ctx.logger.error('pmhq 发包失败', e)
+    }
     if (!this.ctx.app.crychic.checkPlatform() || !this.ctx.app.crychic.checkVersion()) {
-      throw new Error('请到LLOneBot设置页面配置发包器')
+      throw new Error('请配置发包器，参考https://llonebot.com/zh-CN/guide/pmhq')
     } else if (payload.group_id === undefined) {
       await this.ctx.app.crychic.sendFriendPoke(+payload.user_id)
     } else {

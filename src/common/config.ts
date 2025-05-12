@@ -55,8 +55,7 @@ export class ConfigUtil {
       autoDeleteFile: false,
       autoDeleteFileSecond: 60,
       musicSignUrl: '',
-      msgCacheExpire: 120,
-      packetPort: 0
+      msgCacheExpire: 120
     }
 
     if (!fs.existsSync(this.configPath)) {
