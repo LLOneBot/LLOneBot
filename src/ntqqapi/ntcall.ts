@@ -1,4 +1,3 @@
-import { ipcMain } from 'electron'
 import { hookApiCallbacks, registerReceiveHook, removeReceiveHook } from './hook'
 import { DetailedError, getBuildVersion, log } from '../common/utils'
 import { randomUUID } from 'node:crypto'
@@ -118,115 +117,11 @@ interface InvokeOptions<ReturnType> {
   timeout?: number
 }
 
-let channel: NTChannel
-
-function getChannel() {
-  if (channel) {
-    return channel
-  }
-  const names = ipcMain.eventNames()
-  for (const chn of [NTChannel.IPC_UP_2, NTChannel.IPC_UP_3, NTChannel.RM_IPC_FROM_RENDERER_2, NTChannel.RM_IPC_FROM_RENDERER_3]) {
-    if (names.includes(chn)) {
-      return channel = chn
-    }
-  }
-}
 
 export function invoke<
   R extends Awaited<ReturnType<Extract<NTService[S][M], (...args: any) => unknown>>>,
   S extends keyof NTService = any,
   M extends keyof NTService[S] & string = any
 >(method: Extract<unknown, `${S}/${M}`> | string, args: unknown[], options: InvokeOptions<R> = {}) {
-  const className = options.className ?? NTClass.NT_API
-  const channel = options.channel ?? getChannel()
-  const timeout = options.timeout ?? 5000
-  return new Promise<R>((resolve, reject) => {
-    if (!channel) {
-      log(`no ntqq api channel found`)
-      reject('no ntqq api channel found')
-      return
-    }
-    let eventName = className + '-' + channel[channel.length - 1]
-    let apiArgs: unknown[] | { cmdName: string, cmdType: 'invoke', payload: unknown[] } | string = [method, ...args]
-    if (getBuildVersion() >= 32690) {
-      if (className in newEventName) {
-        eventName = newEventName[className]
-      } else {
-        eventName = className.split('-')[1]
-      }
-      if (options.registerEvent) {
-        apiArgs = method
-      } else {
-        apiArgs = { cmdName: method, cmdType: 'invoke', payload: args }
-      }
-    }
-    if (options.registerEvent) {
-      eventName += '-register'
-    }
-    const callbackId = randomUUID()
-    let eventId: string
 
-    const timeoutId = setTimeout(() => {
-      if (eventId) {
-        removeReceiveHook(eventId)
-      }
-      log(`ntqq api timeout ${channel}, ${eventName}, ${method}`, args)
-      reject(`ntqq api timeout ${channel}, ${eventName}, ${method}, ${JSON.stringify(args)}`)
-    }, timeout)
-
-    if (!options.cbCmd) {
-      // QQ后端会返回结果，并且可以根据uuid识别
-      hookApiCallbacks.set(callbackId, res => {
-        clearTimeout(timeoutId)
-        resolve(res)
-      })
-    }
-    else {
-      const afterFirstCmd = options.afterFirstCmd ?? true
-      let result: unknown
-      // 这里的callback比较特殊，QQ后端先返回是否调用成功，再返回一条结果数据
-      const secondCallback = () => {
-        eventId = registerReceiveHook<R>(options.cbCmd!, (payload) => {
-          if (options.cmdCB) {
-            if (!options.cmdCB(payload, result)) {
-              return
-            }
-          }
-          removeReceiveHook(eventId)
-          clearTimeout(timeoutId)
-          resolve(payload)
-        })
-      }
-      if (!afterFirstCmd) {
-        secondCallback()
-      }
-      hookApiCallbacks.set(callbackId, (res: GeneralCallResult) => {
-        if (res?.result === 0 || ['undefined', 'number'].includes(typeof res)) {
-          result = res
-          if (afterFirstCmd) {
-            secondCallback()
-          }
-        }
-        else {
-          clearTimeout(timeoutId)
-          if (eventId) {
-            removeReceiveHook(eventId)
-          }
-          reject(new DetailedError(`call failed, ${method}, ${JSON.stringify(res)}`, res))
-        }
-      })
-    }
-
-    ipcMain.emit(
-      channel,
-      {
-        sender: {
-          send: () => {
-          },
-        },
-      },
-      { type: 'request', callbackId, eventName, peerId: Number(channel.slice(-1)) },
-      apiArgs,
-    )
-  })
 }
