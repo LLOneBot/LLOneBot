@@ -216,6 +216,7 @@ export async function getPeer(ctx: Context, channelId: string): Promise<NT.Peer>
   }
   return {
     chatType,
-    peerUid
+    peerUid,
+    guildId: ''
   }
 }

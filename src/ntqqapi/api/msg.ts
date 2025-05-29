@@ -48,7 +48,7 @@ export class NTQQMsgApi extends Service {
   async getMsgsByMsgId(peer: Peer, msgIds: string[]) {
     if (!peer) throw new Error('peer is not allowed')
     if (!msgIds) throw new Error('msgIds is not allowed')
-    return await invoke('nodeIKernelMsgService/getMsgsByMsgId', [{ peer, msgIds }])
+    return await invoke('nodeIKernelMsgService/getMsgsByMsgId', [peer, msgIds])
   }
 
   async getMsgHistory(peer: Peer, msgId: string, cnt: number, queryOrder = false) {
@@ -76,19 +76,18 @@ export class NTQQMsgApi extends Service {
     })
 
     let sentMsgId: string
-    const data = await invoke<{ msgList: RawMessage[] }>(
+    const data = await invoke<RawMessage[]>(
       'nodeIKernelMsgService/sendMsg',
-      [{
-        msgId: '0',
+      [
+        '0',
         peer,
         msgElements,
         msgAttributeInfos,
-      }],
+      ],
       {
-        cbCmd: 'nodeIKernelMsgListener/onMsgInfoListUpdate',
-        afterFirstCmd: false,
-        cmdCB: payload => {
-          for (const msgRecord of payload.msgList) {
+        resultCmd: 'nodeIKernelMsgListener/onMsgInfoListUpdate',
+        resultCb: payload => {
+          for (const msgRecord of payload) {
             if (msgRecord.msgAttrs.get(0)?.attrId === uniqueId && msgRecord.sendStatus === 2) {
               sentMsgId = msgRecord.msgId
               return true
@@ -100,7 +99,7 @@ export class NTQQMsgApi extends Service {
       },
     )
 
-    return data.msgList.find(msgRecord => msgRecord.msgId === sentMsgId)
+    return data.find(msgRecord => msgRecord.msgId === sentMsgId)
   }
 
   async forwardMsg(srcPeer: Peer, destPeer: Peer, msgIds: string[]) {
@@ -116,9 +115,8 @@ export class NTQQMsgApi extends Service {
         msgAttributeInfos: new Map(),
       }],
       {
-        cbCmd: 'nodeIKernelMsgListener/onMsgInfoListUpdate',
-        afterFirstCmd: false,
-        cmdCB: payload => {
+        resultCmd: 'nodeIKernelMsgListener/onMsgInfoListUpdate',
+        resultCb: payload => {
           for (const msgRecord of payload.msgList) {
             if (msgRecord.guildId === uniqueId && msgRecord.sendStatus === 2) {
               return true
@@ -149,9 +147,8 @@ export class NTQQMsgApi extends Service {
         msgAttributeInfos: new Map(),
       }],
       {
-        cbCmd: 'nodeIKernelMsgListener/onMsgInfoListUpdate',
-        afterFirstCmd: false,
-        cmdCB: payload => {
+        resultCmd: 'nodeIKernelMsgListener/onMsgInfoListUpdate',
+        resultCb: payload => {
           for (const msgRecord of payload.msgList) {
             if (
               msgRecord.msgType === 11 &&
@@ -202,11 +199,11 @@ export class NTQQMsgApi extends Service {
   }
 
   async queryMsgsWithFilterExBySeq(peer: Peer, msgSeq: string, filterMsgTime: string, filterSendersUid: string[] = []) {
-    return await invoke('nodeIKernelMsgService/queryMsgsWithFilterEx', [{
-      msgId: '0',
-      msgTime: '0',
+    return await invoke('nodeIKernelMsgService/queryMsgsWithFilterEx', [
+      '0',
+      '0',
       msgSeq,
-      params: {
+      {
         chatInfo: peer,
         filterMsgType: [],
         filterSendersUid,
@@ -215,7 +212,7 @@ export class NTQQMsgApi extends Service {
         isIncludeCurrent: true,
         pageLimit: 1,
       },
-    }])
+    ])
   }
 
   async setMsgRead(peer: Peer) {
@@ -243,7 +240,7 @@ export class NTQQMsgApi extends Service {
 
   async generateMsgUniqueId(chatType: number) {
     const time = await this.getServerTime()
-    const uniqueId = await invoke('nodeIKernelMsgService/generateMsgUniqueId', [{ chatType, time }])
+    const uniqueId = await invoke('nodeIKernelMsgService/generateMsgUniqueId', [chatType, time])
     if (typeof uniqueId === 'string') {
       return uniqueId
     }

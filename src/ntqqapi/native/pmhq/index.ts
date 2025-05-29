@@ -7,7 +7,7 @@ import string = Field.string
 import path from 'node:path'
 import * as os from 'node:os'
 import fs from 'node:fs'
-import { deepConvertMap } from '@/ntqqapi/native/pmhq/util'
+import { deepConvertMap, deepStringifyMap } from '@/ntqqapi/native/pmhq/util'
 
 interface PBData {
   echo?: string
@@ -85,7 +85,7 @@ export class PMHQ {
       pmhqDataDir = path.join(os.homedir(), '.pmhq')
     }
     pmhqAddrPath = path.join(pmhqDataDir, `PMHQ_ADDR_LAST.txt`)
-    let pmhqAddr = 'ali.linyuchen.net:13300'
+    let pmhqAddr = '127.0.0.1:13300'
     try {
       pmhqAddr = fs.readFileSync(pmhqAddrPath, 'utf-8')
     } catch (err) {
@@ -93,8 +93,8 @@ export class PMHQ {
       console.info('PMHQ address:' + pmhqAddr)
     }
     const port = pmhqAddr.split(':')[1]
-    this.httpUrl = `http://ali.linyuchen.net:${port}/`
-    this.wsUrl = `ws://ali.linyuchen.net:${port}/ws`
+    this.httpUrl = `http://127.0.0.1:${port}/`
+    this.wsUrl = `ws://127.0.0.1:${port}/ws`
     this.connectWebSocket()
   }
 
@@ -136,7 +136,7 @@ export class PMHQ {
   }
 
   public async httpSend(data: PMHQReq) {
-    const payload = JSON.stringify(data)
+    const payload = JSON.stringify(deepStringifyMap(data))
     const response = await fetch(this.httpUrl, {
       method: 'POST',
       headers: {

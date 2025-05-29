@@ -14,23 +14,6 @@ export class NTQQFriendApi extends Service {
     super(ctx, 'ntFriendApi', true)
   }
 
-  /** 大于或等于 26702 应使用 getBuddyV2 */
-  async getFriends() {
-    const res = await invoke<{
-      data: {
-        categoryId: number
-        categroyName: string
-        categroyMbCount: number
-        buddyList: Friend[]
-      }[]
-    }>('getBuddyList', [], {
-      className: NTClass.NODE_STORE_API,
-      cbCmd: ReceiveCmdS.FRIENDS,
-      afterFirstCmd: false
-    })
-    return res.data.flatMap(e => e.buddyList)
-  }
-
   async handleFriendRequest(friendUid: string, reqTime: string, accept: boolean) {
     return await invoke(NTMethod.HANDLE_FRIEND_REQUEST, [{
       approvalInfo: {
@@ -42,14 +25,14 @@ export class NTQQFriendApi extends Service {
   }
 
   async getBuddyV2(): Promise<SimpleInfo[]> {
-    const data = await invoke<CategoryFriend[][]>(
+    const data = await invoke<CategoryFriend[]>(
       'nodeIKernelBuddyService/getBuddyList',
       [true],
       {
         resultCmd: ReceiveCmdS.FRIENDS,
       }
     )
-    const result: SimpleInfo[] = data[0].flatMap((item: CategoryFriend)=> item.buddyList)
+    const result: SimpleInfo[] = data.flatMap((item: CategoryFriend)=> item.buddyList)
     return result
   }
 
@@ -63,9 +46,7 @@ export class NTQQFriendApi extends Service {
       'getBuddyList',
       [refresh],
       {
-        className: NTClass.NODE_STORE_API,
-        cbCmd: ReceiveCmdS.FRIENDS,
-        afterFirstCmd: false,
+        resultCmd: ReceiveCmdS.FRIENDS,
       }
     )
     for (const item of Object.values(data.userSimpleInfos)) {
@@ -89,7 +70,7 @@ export class NTQQFriendApi extends Service {
   }
 
   async isBuddy(uid: string): Promise<boolean> {
-    return await invoke('nodeIKernelBuddyService/isBuddy', [{ uid }])
+    return await invoke('nodeIKernelBuddyService/isBuddy', [uid])
   }
 
   async getBuddyRecommendContact(uin: string) {
@@ -99,18 +80,17 @@ export class NTQQFriendApi extends Service {
 
   async setBuddyRemark(uid: string, remark = '') {
     return await invoke('nodeIKernelBuddyService/setBuddyRemark', [
-      uid, remark
+      {uid, remark}
     ])
   }
 
   async delBuddy(friendUid: string) {
     return await invoke('nodeIKernelBuddyService/delBuddy', [{
-      delInfo: {
         friendUid,
         tempBlock: false,
         tempBothDel: true
       }
-    }])
+    ])
   }
 
   async setBuddyCategory(uid: string, categoryId: number) {

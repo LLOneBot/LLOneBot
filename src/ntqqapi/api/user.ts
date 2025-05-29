@@ -22,9 +22,9 @@ export class NTQQUserApi extends Service {
   async setSelfAvatar(path: string) {
     return await invoke(
       'nodeIKernelProfileService/setHeader',
-      [{ path }],
+      [path],
       {
-        timeout: 10 * Time.second // 10秒不一定够
+        timeout: 10 * Time.second // 10秒不一定够？
       }
     )
   }
@@ -39,28 +39,25 @@ export class NTQQUserApi extends Service {
         bizList: [ProfileBizType.KALL]
       }],
       {
-        cbCmd: 'nodeIKernelProfileListener/onUserDetailInfoChanged',
-        afterFirstCmd: false,
-        cmdCB: payload => payload.info.uid === uid,
+        resultCmd: 'nodeIKernelProfileListener/onUserDetailInfoChanged',
+        resultCb: payload => payload.info.uid === uid,
       }
     )
     return result.info
   }
 
   async getUserDetailInfo(uid: string) {
-    const result = await invoke<{ info: UserDetailInfo }>(
+    const result = await invoke<{ simpleInfo: SimpleInfo }>(
       'nodeIKernelProfileService/getUserDetailInfoWithBizInfo',
-      [{
+      [
         uid,
-        bizList: [0]
-      }],
+        [0]
+      ],
       {
-        cbCmd: 'nodeIKernelProfileListener/onProfileDetailInfoChanged',
-        afterFirstCmd: false,
-        cmdCB: (payload) => payload.info.uid === uid,
+        resultCmd: 'nodeIKernelProfileListener/onUserDetailInfoChanged',
       }
     )
-    return result.info
+    return result.simpleInfo
   }
 
   async getCookies(domain: string) {
@@ -91,39 +88,11 @@ export class NTQQUserApi extends Service {
     )
   }
 
-  async getUidByUinV1(uin: string, groupCode?: string) {
-    let uid = (await invoke('nodeIKernelUixConvertService/getUid', [{ uins: [uin] }])).uidInfo.get(uin)
-    if (!uid && groupCode) {
-      let member = await this.ctx.ntGroupApi.searchMember(groupCode, uin)
-      if (member.size === 0) {
-        await this.ctx.ntGroupApi.getGroupMembers(groupCode, 1)
-        await this.ctx.sleep(40)
-        member = await this.ctx.ntGroupApi.searchMember(groupCode, uin)
-      }
-      uid = Array.from(member.values()).find(e => e.uin === uin)?.uid
-    }
-    if (!uid) {
-      const snapShot = await this.getRecentContactListSnapShot(10)
-      uid = snapShot.info.changedList.find(e => e.senderUin === uin)?.senderUid
-    }
-    if (!uid) {
-      const friends = await this.ctx.ntFriendApi.getFriends()
-      uid = friends.find(item => item.uin === uin)?.uid
-    }
-    if (!uid) {
-      const unveifyUid = (await this.getUserDetailInfoByUin(uin)).info!.uid
-      if (!unveifyUid.includes('*')) {
-        uid = unveifyUid
-      }
-    }
-    return uid
-  }
-
   async getUidByUinV2(uin: string) {
-    let callResult = (await invoke('nodeIKernelGroupService/getUidByUins', [{ uinList: [uin] }]))
+    let callResult: any = (await invoke('nodeIKernelGroupService/getUidByUins', [[uin]]))
     let uid = callResult.uids.get(uin)
     if (uid) return uid
-    callResult = (await invoke('nodeIKernelProfileService/getUidByUin', [{ callFrom: 'FriendsServiceImpl', uin: [uin] }]))
+    callResult = (await invoke('nodeIKernelProfileService/getUidByUin', ['FriendsServiceImpl', [uin]]))
     uid = callResult?.get(uin)
     if (uid) return uid
     callResult = (await invoke('nodeIKernelUixConvertService/getUid', [[uin]]))
@@ -224,10 +193,10 @@ export class NTQQUserApi extends Service {
   async getUserSimpleInfoV2(uid: string, force = true) {
     const data = await invoke<{ profiles: Record<string, SimpleInfo> }>(
       'nodeIKernelProfileService/getUserSimpleInfo',
-      [{
-        uids: [uid],
+      [
+        [uid],
         force
-      }],
+      ],
       {
         resultCmd: ReceiveCmdS.USER_INFO,
       }
@@ -268,9 +237,6 @@ export class NTQQUserApi extends Service {
     return await invoke(
       'quitAccount',
       [],
-      {
-        className: NTClass.BUSINESS_API,
-      }
     )
   }
 

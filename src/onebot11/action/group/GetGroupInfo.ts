@@ -14,7 +14,7 @@ class GetGroupInfo extends BaseAction<Payload, OB11Group> {
 
   protected async _handle(payload: Payload) {
     const groupCode = payload.group_id.toString()
-    const { groupAll } = await this.ctx.ntGroupApi.getGroupAllInfo(groupCode)
+    const groupAll = await this.ctx.ntGroupApi.getGroupAllInfo(groupCode)
     const data = {
       group_id: +groupAll.groupCode,
       group_name: groupAll.groupName,

@@ -29,9 +29,9 @@ class GetGroupMemberInfo extends BaseAction<Payload, OB11GroupMember> {
       ret.last_sent_time ??= date
       ret.join_time ??= date
       const info = await this.ctx.ntUserApi.getUserDetailInfo(member.uid)
-      ret.sex = OB11Entities.sex(info.sex!)
-      ret.qq_level = info.qqLevel && calcQQLevel(info.qqLevel) || 0
-      ret.age = info.age ?? 0
+      ret.sex = OB11Entities.sex(info.baseInfo.sex!)
+      // ret.qq_level = info.qqLevel && calcQQLevel(info.baseInfo.qqLevel) || 0
+      ret.age = info.baseInfo.age ?? 0
       return ret
     }
     throw new Error(`群成员${payload.user_id}不存在`)

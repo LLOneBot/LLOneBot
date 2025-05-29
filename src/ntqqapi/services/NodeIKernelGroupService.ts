@@ -133,4 +133,6 @@ export interface NodeIKernelGroupService {
   getGroupArkInviteState(groupCode: string, ark_seq: string, invitedUin: string): Promise<GeneralCallResult>
 
   getGroupShutUpMemberList(groupCode: string): Promise<void | GeneralCallResult>
+
+  getAllMemberList(groupCode: string, force: boolean): Promise<GeneralCallResult & {result: {infos: Map<string, GroupMember>}}>
 }

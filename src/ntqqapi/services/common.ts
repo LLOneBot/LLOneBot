@@ -3,6 +3,7 @@ export enum GeneralCallResultStatus {
 }
 
 export interface GeneralCallResult {
-  result: GeneralCallResultStatus
   errMsg: string
+  errCode?: GeneralCallResultStatus
+  result: GeneralCallResultStatus | any
 }

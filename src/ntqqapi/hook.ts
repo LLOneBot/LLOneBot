@@ -44,6 +44,7 @@ const NT_RECV_PMHQ_TYPE_TO_NT_METHOD = {
   'on_message': 'nodeIKernelMsgListener',
   'on_group': 'nodeIKernelGroupListener',
   'on_buddy': 'nodeIKernelBuddyListener',
+  'on_profile': 'nodeIKernelProfileListener',
 }
 
 export function startHook() {

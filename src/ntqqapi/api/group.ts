@@ -11,10 +11,12 @@ import {
   GroupFileInfo,
   GroupBulletinListResult,
   GroupMsgMask,
-  GroupNotify
+  GroupNotify,
 } from '../types'
 import { invoke, NTClass, NTMethod } from '../ntcall'
 import { Service, Context } from 'cordis'
+import { Field } from 'minato'
+import number = Field.number
 
 declare module 'cordis' {
   interface Context {
@@ -28,27 +30,21 @@ export class NTQQGroupApi extends Service {
   }
 
   async getGroups(): Promise<GroupSimpleInfo[]> {
-    const result = await invoke<{
-      updateType: number
+    const result = await invoke<[
+      updateType: number,
       groupList: GroupSimpleInfo[]
-    }>(
-      'getGroupList',
-      [],
+    ]>(
+      'nodeIKernelGroupService/getGroupList',
+      [true],
       {
-        className: NTClass.NODE_STORE_API,
-        cbCmd: ReceiveCmdS.GROUPS_STORE,
-        afterFirstCmd: false,
-      }
+        resultCmd: 'nodeIKernelGroupListener/onGroupListUpdate',
+      },
     )
-    return result.groupList
+    return result[1]
   }
 
-  async getGroupMembers(groupCode: string, num = 3000) {
-    const sceneId = await invoke(NTMethod.GROUP_MEMBER_SCENE, [{
-      groupCode,
-      scene: 'groupMemberList_MainWindow'
-    }])
-    const data = await invoke(NTMethod.GROUP_MEMBERS, [{ sceneId, num }])
+  async getGroupMembers(groupCode: string, force: boolean = true) {
+    const data = await invoke(NTMethod.GROUP_MEMBERS, [groupCode, force])
     if (data.errCode !== 0) {
       throw new Error('获取群成员列表出错,' + data.errMsg)
     }
@@ -56,40 +52,31 @@ export class NTQQGroupApi extends Service {
   }
 
   async getGroupMember(groupCode: string, uid: string, forceUpdate = false) {
-    await invoke('nodeIKernelGroupListener/onMemberInfoChange', [], {
-      registerEvent: true
-    })
-
-    const data = await invoke<{
-      groupCode: string
+    const data = await invoke<[
+      groupCode: string,
+      unknown: number,
       members: Map<string, GroupMember>
-    }>(
+    ]>(
       'nodeIKernelGroupService/getMemberInfo',
-      [{
+      [
         groupCode,
-        uids: [uid],
-        forceUpdate
-      }],
+        [uid],
+        forceUpdate,
+      ],
       {
-        cbCmd: 'nodeIKernelGroupListener/onMemberInfoChange',
-        afterFirstCmd: false,
-        cmdCB: payload => payload.members.has(uid),
-        timeout: 2000
-      }
+        resultCmd: 'nodeIKernelGroupListener/onMemberInfoChange',
+      },
     )
-    return data.members.get(uid)!
+    return data[2].get(uid)!
   }
 
   async getSingleScreenNotifies(doubt: boolean, number: number, startSeq = '') {
-    await invoke(ReceiveCmdS.GROUP_NOTIFY, [], { registerEvent: true })
-
     const data = await invoke<GroupNotifies>(
       'nodeIKernelGroupService/getSingleScreenNotifies',
-      [{ doubt, startSeq, number }],
+      [doubt, startSeq, number],
       {
-        cbCmd: ReceiveCmdS.GROUP_NOTIFY,
-        afterFirstCmd: false,
-      }
+        resultCmd: ReceiveCmdS.GROUP_NOTIFY,
+      },
     )
     return data.notifies
   }
@@ -116,14 +103,14 @@ export class NTQQGroupApi extends Service {
           seq,
           type,
           groupCode,
-          postscript: reason || ' ' // 仅传空值可能导致处理失败，故默认给个空格
+          postscript: reason || ' ', // 仅传空值可能导致处理失败，故默认给个空格
         },
       },
     }])
   }
 
   async quitGroup(groupCode: string) {
-    return await invoke(NTMethod.QUIT_GROUP, [{ groupCode }])
+    return await invoke(NTMethod.QUIT_GROUP, [groupCode])
   }
 
   async kickMember(groupCode: string, kickUids: string[], refuseForever = false, kickReason = '') {
@@ -132,23 +119,23 @@ export class NTQQGroupApi extends Service {
 
   /** timeStamp为秒数, 0为解除禁言 */
   async banMember(groupCode: string, memList: Array<{ uid: string, timeStamp: number }>) {
-    return await invoke(NTMethod.MUTE_MEMBER, [{ groupCode, memList }])
+    return await invoke(NTMethod.MUTE_MEMBER, [groupCode, memList])
   }
 
   async banGroup(groupCode: string, shutUp: boolean) {
-    return await invoke(NTMethod.MUTE_GROUP, [{ groupCode, shutUp }])
+    return await invoke(NTMethod.MUTE_GROUP, [groupCode, shutUp])
   }
 
   async setMemberCard(groupCode: string, memberUid: string, cardName: string) {
-    return await invoke(NTMethod.SET_MEMBER_CARD, [{ groupCode, uid: memberUid, cardName }])
+    return await invoke(NTMethod.SET_MEMBER_CARD, [groupCode, memberUid, cardName])
   }
 
   async setMemberRole(groupCode: string, memberUid: string, role: GroupMemberRole) {
-    return await invoke(NTMethod.SET_MEMBER_ROLE, [{ groupCode, uid: memberUid, role }])
+    return await invoke(NTMethod.SET_MEMBER_ROLE, [groupCode, memberUid, role])
   }
 
   async setGroupName(groupCode: string, groupName: string) {
-    return await invoke(NTMethod.SET_GROUP_NAME, [{ groupCode, groupName }])
+    return await invoke(NTMethod.SET_GROUP_NAME, [groupCode, groupName, false])
   }
 
   async getGroupRemainAtTimes(groupCode: string) {
@@ -162,8 +149,8 @@ export class NTQQGroupApi extends Service {
       req: {
         groupCode: groupCode,
         msgRandom: Number(data?.msgList[0].msgRandom),
-        msgSeq: Number(data?.msgList[0].msgSeq)
-      }
+        msgSeq: Number(data?.msgList[0].msgSeq),
+      },
     }])
   }
 
@@ -174,8 +161,8 @@ export class NTQQGroupApi extends Service {
       req: {
         groupCode: groupCode,
         msgRandom: Number(data?.msgList[0].msgRandom),
-        msgSeq: Number(data?.msgList[0].msgSeq)
-      }
+        msgSeq: Number(data?.msgList[0].msgSeq),
+      },
     }])
   }
 
@@ -192,20 +179,20 @@ export class NTQQGroupApi extends Service {
   }
 
   async getGroupFileList(groupId: string, fileListForm: GetFileListParam) {
-    invoke('nodeIKernelMsgListener/onGroupFileInfoUpdate', [], { registerEvent: true })
-    const data = await invoke<{ fileInfo: GroupFileInfo }>(
+    const data = await invoke<GroupFileInfo>(
       'nodeIKernelRichMediaService/getGroupFileList',
-      [{
+      [
         groupId,
-        fileListForm
-      }],
+        fileListForm,
+      ],
       {
-        cbCmd: 'nodeIKernelMsgListener/onGroupFileInfoUpdate',
-        afterFirstCmd: false,
-        cmdCB: (payload, result) => payload.fileInfo.reqId === result
-      }
+        resultCmd: 'nodeIKernelMsgListener/onGroupFileInfoUpdate',
+        resultCb: (payload, reqId) => {
+          return payload.reqId === reqId
+        }
+      },
     )
-    return data.fileInfo
+    return data
   }
 
   async publishGroupBulletin(groupCode: string, req: PublishGroupBulletinReq) {
@@ -226,48 +213,41 @@ export class NTQQGroupApi extends Service {
   }
 
   async queryCachedEssenceMsg(groupCode: string, msgSeq = '0', msgRandom = '0') {
-    return await invoke('nodeIKernelGroupService/queryCachedEssenceMsg', [{
-      key: {
+    return await invoke('nodeIKernelGroupService/queryCachedEssenceMsg', [
+      {
         groupCode,
         msgSeq: +msgSeq,
-        msgRandom: +msgRandom
-      }
-    }])
+        msgRandom: +msgRandom,
+      },
+    ])
   }
 
   async getGroupHonorList(groupCode: string) {
     // 还缺点东西
     return await invoke('nodeIKernelGroupService/getGroupHonorList', [{
       req: {
-        groupCode: [+groupCode]
-      }
+        groupCode: [+groupCode],
+      },
     }])
   }
 
   async getGroupAllInfo(groupCode: string) {
-    invoke('nodeIKernelGroupListener/onGroupAllInfoChange', [], {
-      registerEvent: true
-    })
-
-    return await invoke<{ groupAll: GroupAllInfo }>(
+    return await invoke<GroupAllInfo>(
       'nodeIKernelGroupService/getGroupAllInfo',
-      [{
+      [
         groupCode,
-        source: 4
-      }],
+        4,
+      ],
       {
-        cbCmd: 'nodeIKernelGroupListener/onGroupAllInfoChange',
-        afterFirstCmd: false,
-        cmdCB: payload => payload.groupAll.groupCode === groupCode
-      }
+        resultCmd: 'nodeIKernelGroupListener/onGroupAllInfoChange',
+        resultCb: payload => {
+          return payload.groupCode === groupCode
+        },
+      },
     )
   }
 
   async getGroupBulletinList(groupCode: string) {
-    invoke('nodeIKernelGroupListener/onGetGroupBulletinListResult', [], {
-      registerEvent: true
-    })
-
     const ntUserApi = this.ctx.get('ntUserApi')!
     const psKey = (await ntUserApi.getPSkey(['qun.qq.com'])).domainPskeyMap.get('qun.qq.com')!
     return await invoke<{
@@ -276,22 +256,21 @@ export class NTQQGroupApi extends Service {
       result: GroupBulletinListResult
     }>(
       'nodeIKernelGroupService/getGroupBulletinList',
-      [{
+      [
         groupCode,
         psKey,
-        context: '',
-        req: {
+        '',
+        {
           startIndex: -1,
           num: 20,
           needInstructionsForJoinGroup: 1,
-          needPublisherInfo: 1
-        }
-      }],
+          needPublisherInfo: 1,
+        },
+      ],
       {
-        cbCmd: 'nodeIKernelGroupListener/onGetGroupBulletinListResult',
-        cmdCB: payload => payload.groupCode === groupCode,
-        afterFirstCmd: false
-      }
+        resultCmd: 'nodeIKernelGroupListener/onGetGroupBulletinListResult',
+        resultCb: payload => payload.groupCode === groupCode,
+      },
     )
   }
 
@@ -300,12 +279,9 @@ export class NTQQGroupApi extends Service {
   }
 
   async searchMember(groupCode: string, keyword: string) {
-    await invoke('nodeIKernelGroupListener/onSearchMemberChange', [], {
-      registerEvent: true
-    })
     const sceneId = await invoke(NTMethod.GROUP_MEMBER_SCENE, [{
       groupCode,
-      scene: 'groupMemberList_MainWindow'
+      scene: 'groupMemberList_MainWindow',
     }])
     const data = await invoke<{
       sceneId: string
@@ -315,12 +291,11 @@ export class NTQQGroupApi extends Service {
       'nodeIKernelGroupService/searchMember',
       [{ sceneId, keyword }],
       {
-        cbCmd: 'nodeIKernelGroupListener/onSearchMemberChange',
-        cmdCB: payload => {
+        resultCmd: 'nodeIKernelGroupListener/onSearchMemberChange',
+        resultCb: payload => {
           return payload.sceneId === sceneId && payload.keyword === keyword
         },
-        afterFirstCmd: false
-      }
+      },
     )
     return data.infos
   }
@@ -328,14 +303,14 @@ export class NTQQGroupApi extends Service {
   async getGroupFileCount(groupId: string) {
     return await invoke(
       'nodeIKernelRichMediaService/batchGetGroupFileCount',
-      [{ groupIds: [groupId] }]
+      [{ groupIds: [groupId] }],
     )
   }
 
   async getGroupFileSpace(groupId: string) {
     return await invoke(
       'nodeIKernelRichMediaService/getGroupSpace',
-      [{ groupId }]
+      [{ groupId }],
     )
   }
 
@@ -353,33 +328,29 @@ export class NTQQGroupApi extends Service {
       fileIdList,
       curFolderId,
       dstFolderId,
-      busIdList: [102]
+      busIdList: [102],
     }])
   }
 
   async getGroupShutUpMemberList(groupCode: string) {
-    await invoke('nodeIKernelGroupListener/onShutUpMemberListChanged', [], {
-      registerEvent: true
-    })
     return await invoke<{
       groupCode: string
       memList: GroupMember[]
     }>(
       'nodeIKernelGroupService/getGroupShutUpMemberList',
-      [{ groupCode }],
+      [groupCode],
       {
-        cbCmd: 'nodeIKernelGroupListener/onShutUpMemberListChanged',
-        cmdCB: payload => payload.groupCode === groupCode,
-        afterFirstCmd: false
-      }
+        resultCmd: 'nodeIKernelGroupListener/onShutUpMemberListChanged',
+        resultCb: payload => payload.groupCode === groupCode,
+      },
     )
   }
 
   async renameGroupFolder(groupId: string, folderId: string, newFolderName: string) {
-    return await invoke('nodeIKernelRichMediaService/renameGroupFolder', [{
+    return await invoke('nodeIKernelRichMediaService/renameGroupFolder', [
       groupId,
       folderId,
-      newFolderName
-    }])
+      newFolderName,
+    ])
   }
 }

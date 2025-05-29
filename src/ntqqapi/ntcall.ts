@@ -61,7 +61,7 @@ export enum NTMethod {
   OPEN_EXTRA_WINDOW = 'openExternalWindow',
 
   GROUP_MEMBER_SCENE = 'nodeIKernelGroupService/createMemberListScene',
-  GROUP_MEMBERS = 'nodeIKernelGroupService/getNextMemberList',
+  GROUP_MEMBERS = 'nodeIKernelGroupService/getAllMemberList',
   HANDLE_GROUP_REQUEST = 'nodeIKernelGroupService/operateSysNotify',
   QUIT_GROUP = 'nodeIKernelGroupService/quitGroup',
   GROUP_AT_ALL_REMAIN_COUNT = 'nodeIKernelGroupService/getGroupRemainAtTimes',
@@ -109,7 +109,8 @@ interface NTService {
 }
 
 interface InvokeOptions<ReturnType> {
-  resultCmd?: ReceiveCmdS  // 表示这次call是异步的，返回结果会通过这个命令上报
+  resultCmd?: ReceiveCmdS | string // 表示这次call是异步的，返回结果会通过这个命令上报
+  resultCb?: (data: ReturnType, firstResult: any) => boolean // 结果回调，直到返回true才会移除钩子
   timeout?: number
 }
 
@@ -133,7 +134,7 @@ export function invoke<
   R extends Awaited<ReturnType<Extract<NTService[S][M], (...args: any) => unknown>>>,
   S extends keyof NTService = any,
   M extends keyof NTService[S] & string = any
->(method: Extract<unknown, `${S}/${M}`> | string, args: unknown[], options: InvokeOptions<R> = {}) {
+>(method: Extract<unknown, `${S}/${M}`> | string, args: unknown[], options: InvokeOptions<R> = {}): Promise<R> {
   const splitMethod = method.split('/');
   const serviceName = splitMethod[0] as keyof NTService;
   const methodName = splitMethod.slice(1).join('/');
@@ -144,11 +145,24 @@ export function invoke<
   const funcName = `wrapperSession.${pmhqService}().${methodName}`;
   if (options.resultCmd){
     return new Promise<R>((resolve, reject) => {
+      let timeoutId = null
+      if (options.timeout){
+        timeoutId = setTimeout(() => {
+          reject(`invoke timeout, ${funcName}, ${args}`)
+        }, options.timeout)
+      }
+      let firstResult: any = undefined
       const hookId = registerReceiveHook<R>(options.resultCmd as string, (data: R)=>{
+        if (options.resultCb && !options.resultCb(data, firstResult)) {
+          return
+        }
         resolve(data)
         removeReceiveHook(hookId)
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+        }
       })
-      pmhq.call(funcName, args).then()
+      pmhq.call(funcName, args).then(r=>firstResult=r)
     })
   }
   else{

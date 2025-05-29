@@ -21,7 +21,7 @@ import {
 import { selfInfo } from '../common/globalVars'
 import { version } from '../version'
 import { invoke, NTMethod } from './ntcall'
-import { PMHQ } from './native/pmhq'
+import { pmhq } from './native/pmhq'
 
 declare module 'cordis' {
   interface Context {
@@ -44,9 +44,11 @@ class Core extends Service {
   public messageReceivedCount = 0
   public messageSentCount = 0
   public lastMessageTime = 0
+  public pmhq
 
   constructor(protected ctx: Context, public config: Core.Config) {
     super(ctx, 'app', true)
+    this.pmhq = pmhq
   }
 
   public start() {
