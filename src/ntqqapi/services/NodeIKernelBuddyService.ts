@@ -2,16 +2,15 @@ import { BuddyListReqType } from '@/ntqqapi/types'
 import { GeneralCallResult } from './common'
 
 export interface NodeIKernelBuddyService {
-  getBuddyListV2(callFrom: string, reqType: BuddyListReqType): Promise<GeneralCallResult & {
-    data: {
-      categoryId: number
-      categorySortId: number
-      categroyName: string
-      categroyMbCount: number
-      onlineCount: number
-      buddyUids: string[]
-    }[]
-  }>
+  getBuddyListV2(callFrom: string, reqType: BuddyListReqType): Promise<{
+    categoryId: number
+    categorySortId: number
+    categroyName: string
+    categroyMbCount: number
+    onlineCount: number
+    buddyUids: string[]
+
+  }[]>
 
   setBuddyRemark(arg: unknown): Promise<GeneralCallResult>
 

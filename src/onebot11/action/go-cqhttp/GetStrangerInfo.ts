@@ -2,7 +2,6 @@ import { BaseAction, Schema } from '../BaseAction'
 import { OB11User } from '../../types'
 import { OB11Entities } from '../../entities'
 import { ActionName } from '../types'
-import { getBuildVersion } from '@/common/utils'
 import { calcQQLevel } from '@/common/utils/misc'
 
 interface Payload {

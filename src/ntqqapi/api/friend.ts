@@ -41,21 +41,16 @@ export class NTQQFriendApi extends Service {
     }])
   }
 
-  async getBuddyV2(refresh = false): Promise<SimpleInfo[]> {
-    const data = await invoke<{
-      buddyCategory: CategoryFriend[]
-      userSimpleInfos: Record<string, SimpleInfo>
-    }>(
-      'getBuddyList',
-      [refresh],
+  async getBuddyV2(): Promise<SimpleInfo[]> {
+    const data = await invoke<CategoryFriend[][]>(
+      'nodeIKernelBuddyService/getBuddyList',
+      [true],
       {
-        className: NTClass.NODE_STORE_API,
-        cbCmd: ReceiveCmdS.FRIENDS,
-        afterFirstCmd: false,
+        resultCmd: ReceiveCmdS.FRIENDS,
       }
     )
-    const uids = data.buddyCategory.flatMap(item => item.buddyUids)
-    return Object.values(data.userSimpleInfos).filter(v => uids.includes(v.uid!))
+    const result: SimpleInfo[] = data[0].flatMap((item: CategoryFriend)=> item.buddyList)
+    return result
   }
 
   /** uid -> uin */
@@ -82,20 +77,15 @@ export class NTQQFriendApi extends Service {
     return retMap
   }
 
-  async getBuddyV2WithCate(refresh = false) {
-    const data = await invoke<{
-      buddyCategory: CategoryFriend[]
-      userSimpleInfos: Record<string, SimpleInfo>
-    }>(
-      'getBuddyList',
+  async getBuddyV2WithCate(refresh = false): Promise<CategoryFriend[]> {
+    const data = await invoke<CategoryFriend[][]>(
+      'nodeIKernelBuddyService/getBuddyList',
       [refresh],
       {
-        className: NTClass.NODE_STORE_API,
-        cbCmd: ReceiveCmdS.FRIENDS,
-        afterFirstCmd: false,
+        resultCmd: ReceiveCmdS.FRIENDS,
       }
     )
-    return data
+    return data[0]
   }
 
   async isBuddy(uid: string): Promise<boolean> {
@@ -108,9 +98,9 @@ export class NTQQFriendApi extends Service {
   }
 
   async setBuddyRemark(uid: string, remark = '') {
-    return await invoke('nodeIKernelBuddyService/setBuddyRemark', [{
-      remarkParams: { uid, remark }
-    }])
+    return await invoke('nodeIKernelBuddyService/setBuddyRemark', [
+      uid, remark
+    ])
   }
 
   async delBuddy(friendUid: string) {

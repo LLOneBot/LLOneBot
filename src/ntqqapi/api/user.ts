@@ -1,10 +1,10 @@
-import { MiniProfile, ProfileBizType, SimpleInfo, User, UserDetailInfoV2, UserDetailSource, UserDetailInfo } from '../types'
+import { MiniProfile, ProfileBizType, SimpleInfo, UserDetailInfo, UserDetailInfoV2, UserDetailSource } from '../types'
 import { invoke, NTClass } from '../ntcall'
-import { getBuildVersion } from '@/common/utils'
 import { RequestUtil } from '@/common/utils/request'
-import { isNullable, pick, Time } from 'cosmokit'
-import { Service, Context } from 'cordis'
+import { isNullable, Time } from 'cosmokit'
+import { Context, Service } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
+import { ReceiveCmdS } from '@/ntqqapi/hook'
 
 declare module 'cordis' {
   interface Context {
@@ -48,19 +48,6 @@ export class NTQQUserApi extends Service {
   }
 
   async getUserDetailInfo(uid: string) {
-    if (getBuildVersion() >= 26702) {
-      const info = await this.fetchUserDetailInfo(uid)
-      return {
-        ...info.simpleInfo.coreInfo,
-        ...info.simpleInfo.status,
-        ...info.simpleInfo.vasInfo,
-        ...info.commonExt,
-        ...info.simpleInfo.baseInfo,
-        ...info.simpleInfo.relationFlags,
-        photoWall: info.photoWall,
-        pendantId: ''
-      } as UserDetailInfo
-    }
     const result = await invoke<{ info: UserDetailInfo }>(
       'nodeIKernelProfileService/getUserDetailInfoWithBizInfo',
       [{
@@ -95,12 +82,11 @@ export class NTQQUserApi extends Service {
     return await invoke(
       'nodeIKernelProfileLikeService/setBuddyProfileLike',
       [{
-        doLikeUserInfo: {
+
           friendUid: uid,
           sourceId: 71,
           doLikeCount: count,
           doLikeTollCount: 0
-        }
       }]
     )
   }
@@ -134,30 +120,31 @@ export class NTQQUserApi extends Service {
   }
 
   async getUidByUinV2(uin: string) {
-    let uid = (await invoke('nodeIKernelGroupService/getUidByUins', [{ uinList: [uin] }])).uids.get(uin)
+    let callResult = (await invoke('nodeIKernelGroupService/getUidByUins', [{ uinList: [uin] }]))
+    let uid = callResult.uids.get(uin)
     if (uid) return uid
-    uid = (await invoke('nodeIKernelProfileService/getUidByUin', [{ callFrom: 'FriendsServiceImpl', uin: [uin] }])).get(uin)
+    callResult = (await invoke('nodeIKernelProfileService/getUidByUin', [{ callFrom: 'FriendsServiceImpl', uin: [uin] }]))
+    uid = callResult?.get(uin)
     if (uid) return uid
-    uid = (await invoke('nodeIKernelUixConvertService/getUid', [{ uins: [uin] }])).uidInfo.get(uin)
+    callResult = (await invoke('nodeIKernelUixConvertService/getUid', [[uin]]))
+    uid = callResult?.uidInfo.get(uin)
     if (uid) return uid
-    const unveifyUid = (await this.getUserDetailInfoByUin(uin)).detail!.uid
+    callResult = (await this.getUserDetailInfoByUin(uin))
+    uid = callResult.detail!.uid
     //if (!unveifyUid.includes('*')) return unveifyUid
-    return unveifyUid
+    return uid
   }
 
   async getUidByUin(uin: string, groupCode?: string) {
-    if (getBuildVersion() >= 26702) {
-      return this.getUidByUinV2(uin)
-    }
-    return this.getUidByUinV1(uin, groupCode)
+    return this.getUidByUinV2(uin)
   }
 
   async getUserDetailInfoByUin(uin: string) {
-    return await invoke('nodeIKernelProfileService/getUserDetailInfoByUin', [{ uin }])
+    return await invoke('nodeIKernelProfileService/getUserDetailInfoByUin', [uin])
   }
 
   async getUinByUidV1(uid: string) {
-    const ret = await invoke('nodeIKernelUixConvertService/getUin', [{ uids: [uid] }])
+    const ret = await invoke('nodeIKernelUixConvertService/getUin', [[uid]])
     let uin = ret.uinInfo.get(uid)
     if (!uin) {
       uin = (await this.getUserDetailInfo(uid)).uin
@@ -179,10 +166,7 @@ export class NTQQUserApi extends Service {
   }
 
   async getUinByUid(uid: string) {
-    if (getBuildVersion() >= 26702) {
-      return this.getUinByUidV2(uid)
-    }
-    return this.getUinByUidV1(uid)
+    return this.getUinByUidV2(uid)
   }
 
   async forceFetchClientKey() {
@@ -245,32 +229,14 @@ export class NTQQUserApi extends Service {
         force
       }],
       {
-        cbCmd: 'onProfileSimpleChanged',
-        afterFirstCmd: false,
-        cmdCB: payload => !isNullable(payload.profiles[uid]),
+        resultCmd: ReceiveCmdS.USER_INFO,
       }
     )
     return data.profiles[uid].coreInfo
   }
 
   async getUserSimpleInfo(uid: string, force = true) {
-    if (getBuildVersion() >= 26702) {
-      return this.getUserSimpleInfoV2(uid, force)
-    }
-    const data = await invoke<{ profiles: Map<string, User> }>(
-      'nodeIKernelProfileService/getUserSimpleInfo',
-      [{
-        uids: [uid],
-        force
-      }],
-      {
-        cbCmd: 'nodeIKernelProfileListener/onProfileSimpleChanged',
-        afterFirstCmd: false,
-        cmdCB: payload => payload.profiles.has(uid),
-      }
-    )
-    const profile = data.profiles.get(uid)!
-    return pick(profile, ['nick', 'remark', 'uid', 'uin'])
+    return this.getUserSimpleInfoV2(uid, force)
   }
 
   async getCoreAndBaseInfo(uids: string[]) {

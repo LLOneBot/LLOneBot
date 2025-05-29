@@ -3,7 +3,6 @@ import { statSync } from 'node:fs'
 import { Service, Context } from 'cordis'
 import { registerReceiveHook, ReceiveCmdS, registerCallHook } from './hook'
 import { Config as LLOBConfig } from '../common/types'
-import { getBuildVersion, isNumeric } from '../common/utils/misc'
 import {
   RawMessage,
   GroupNotify,
@@ -45,11 +44,9 @@ class Core extends Service {
   public messageReceivedCount = 0
   public messageSentCount = 0
   public lastMessageTime = 0
-  public pmhq
 
   constructor(protected ctx: Context, public config: Core.Config) {
     super(ctx, 'app', true)
-    this.pmhq = new PMHQ()
   }
 
   public start() {
@@ -152,100 +149,26 @@ class Core extends Service {
       Object.assign(selfInfo, { online: info.info.status !== 20 })
     })
 
-    registerReceiveHook<{
-      groupCode: string
-      dataSource: number
+    registerReceiveHook<[
+      groupCode: string,
+      dataSource: number,
       members: Set<GroupMember>
-    }>(ReceiveCmdS.GROUP_MEMBER_INFO_UPDATE, async (payload) => {
-      const groupCode = payload.groupCode
-      const members = Array.from(payload.members.values())
+    ]>(ReceiveCmdS.GROUP_MEMBER_INFO_UPDATE, async (payload) => {
+      const groupCode = payload[0]
+      const members = Array.from(payload[2].values())
       this.ctx.parallel('nt/group-member-info-updated', { groupCode, members })
     })
 
-    if (getBuildVersion() < 30851) {
-      registerReceiveHook<{
-        data?: CategoryFriend[]
-        userSimpleInfos?: Map<string, SimpleInfo> //V2
-        buddyCategory?: CategoryFriend[] //V2
-      }>(ReceiveCmdS.FRIENDS, (payload) => {
-        let uids: string[] = []
-        if (payload.buddyCategory) {
-          uids = payload.buddyCategory.flatMap(item => item.buddyUids)
-        } else if (payload.data) {
-          uids = payload.data.flatMap(item => item.buddyList.map(e => e.uid))
-        }
-        for (const uid of uids) {
-          this.ctx.ntMsgApi.activateChat({ peerUid: uid, chatType: ChatType.C2C })
-        }
-        this.ctx.logger.info('好友列表变动', uids.length)
-      })
 
-      const activatedPeerUids = new Set<string>()
-      registerReceiveHook<{
-        changedRecentContactLists: {
-          listType: number
-          sortedContactList: string[]
-          changedList: {
-            id: string // peerUid
-            chatType: ChatType
-          }[]
-        }[]
-      }>(ReceiveCmdS.RECENT_CONTACT, async (payload) => {
-        for (const recentContact of payload.changedRecentContactLists) {
-          for (const contact of recentContact.changedList) {
-            if (activatedPeerUids.has(contact.id)) continue
-            activatedPeerUids.add(contact.id)
-            const peer = { peerUid: contact.id, chatType: contact.chatType }
-            if (contact.chatType === ChatType.TempC2CFromGroup) {
-              this.ctx.ntMsgApi.activateChatAndGetHistory(peer, 2).then(res => {
-                for (const msg of res.msgList) {
-                  if (Date.now() / 1000 - Number(msg.msgTime) > 3) {
-                    continue
-                  }
-                  if (msg.senderUin && msg.senderUin !== '0') {
-                    this.ctx.store.addMsgCache(msg)
-                  }
-                  this.ctx.parallel('nt/message-created', msg)
-                }
-              })
-            } else {
-              this.ctx.ntMsgApi.activateChat(peer)
-            }
-          }
-        }
-      })
-
-      registerCallHook(NTMethod.DELETE_ACTIVE_CHAT, async (payload) => {
-        const peerUid = payload[0] as string
-        this.ctx.logger.info('激活的聊天窗口被删除，准备重新激活', peerUid)
-        let chatType = ChatType.C2C
-        if (isNumeric(peerUid)) {
-          chatType = ChatType.Group
-        }
-        else if (!(await this.ctx.ntFriendApi.isBuddy(peerUid))) {
-          chatType = ChatType.TempC2CFromGroup
-        }
-        const peer = { peerUid, chatType }
-        await this.ctx.sleep(1000)
-        this.ctx.ntMsgApi.activateChat(peer).then((r) => {
-          this.ctx.logger.info('重新激活聊天窗口', peer, { result: r.result, errMsg: r.errMsg })
-        })
-      })
-
-      registerReceiveHook<{ msgList: RawMessage[] }>(ReceiveCmdS.NEW_ACTIVE_MSG, payload => {
-        this.handleMessage(payload.msgList)
-      })
-    }
-
-    registerReceiveHook<{ msgList: RawMessage[] }>(ReceiveCmdS.NEW_MSG, payload => {
-      this.handleMessage(payload.msgList)
+    registerReceiveHook<RawMessage[]>(ReceiveCmdS.NEW_MSG, payload => {
+      this.handleMessage(payload)
     })
 
     const sentMsgIds = new Map<string, boolean>()
     const recallMsgIds: string[] = [] // 避免重复上报
 
-    registerReceiveHook<{ msgList: RawMessage[] }>([ReceiveCmdS.UPDATE_MSG], payload => {
-      for (const msg of payload.msgList) {
+    registerReceiveHook<RawMessage[]>([ReceiveCmdS.UPDATE_MSG], payload => {
+      for (const msg of payload) {
         if (
           msg.recallTime !== '0' &&
           msg.msgType === 5 &&
@@ -265,8 +188,8 @@ class Core extends Service {
       }
     })
 
-    registerReceiveHook<{ msgRecord: RawMessage }>(ReceiveCmdS.SELF_SEND_MSG, payload => {
-      sentMsgIds.set(payload.msgRecord.msgId, true)
+    registerReceiveHook<RawMessage>(ReceiveCmdS.SELF_SEND_MSG, payload => {
+      sentMsgIds.set(payload.msgId, true)
     })
 
     const groupNotifyIgnore: string[] = []
@@ -305,16 +228,9 @@ class Core extends Service {
       }
     })
 
-    invoke('nodeIKernelMsgListener/onRecvSysMsg', [], { registerEvent: true })
-      .catch(async () => {
-        await this.ctx.sleep(600)
-        invoke('nodeIKernelMsgListener/onRecvSysMsg', [], { registerEvent: true })
-      })
 
-    registerReceiveHook<{
-      msgBuf: number[]
-    }>('nodeIKernelMsgListener/onRecvSysMsg', payload => {
-      this.ctx.parallel('nt/system-message-created', Uint8Array.from(payload.msgBuf))
+    registerReceiveHook<number[]>('nodeIKernelMsgListener/onRecvSysMsg', payload => {
+      this.ctx.parallel('nt/system-message-created', Uint8Array.from(payload))
     })
   }
 }

@@ -5,6 +5,7 @@
   "description": "",
   "main": "dist/main.js",
   "scripts": {
+    "run": "tsx src/main/main.ts",
     "build": "electron-vite build",
     "build-mac": "npm run build && npm run deploy-mac",
     "deploy-mac": "cp -r dist/* ~/Library/Containers/com.tencent.qq/Data/Documents/LiteLoaderQQNT/plugins/LLOneBot/",

@@ -34,6 +34,7 @@ import {
   NTQQSystemApi
 } from '../ntqqapi/api'
 import { existsSync, mkdirSync } from 'node:fs'
+import { pmhq } from '@/ntqqapi/native/pmhq'
 
 declare module 'cordis' {
   interface Events {
@@ -140,9 +141,11 @@ function onLoad() {
   // })
 
   const intervalId = setInterval(async () => {
+    const pmhqSelfInfo = await pmhq.call('getSelfInfo', [])
+    ctx.logger.info('PMHQ self info', pmhqSelfInfo)
     const self = Object.assign(selfInfo, {
-      uin: globalThis.authData?.uin,
-      uid: globalThis.authData?.uid,
+      uin: pmhqSelfInfo.uin,
+      uid: pmhqSelfInfo.uid,
       online: true
     })
     if (self.uin) {

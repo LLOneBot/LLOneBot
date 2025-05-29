@@ -7,6 +7,7 @@ import string = Field.string
 import path from 'node:path'
 import * as os from 'node:os'
 import fs from 'node:fs'
+import { deepConvertMap } from '@/ntqqapi/native/pmhq/util'
 
 interface PBData {
   echo?: string
@@ -84,7 +85,7 @@ export class PMHQ {
       pmhqDataDir = path.join(os.homedir(), '.pmhq')
     }
     pmhqAddrPath = path.join(pmhqDataDir, `PMHQ_ADDR_LAST.txt`)
-    let pmhqAddr = '127.0.0.1:13000'
+    let pmhqAddr = 'ali.linyuchen.net:13300'
     try {
       pmhqAddr = fs.readFileSync(pmhqAddrPath, 'utf-8')
     } catch (err) {
@@ -92,8 +93,8 @@ export class PMHQ {
       console.info('PMHQ address:' + pmhqAddr)
     }
     const port = pmhqAddr.split(':')[1]
-    this.httpUrl = `http://127.0.0.1:${port}/`
-    this.wsUrl = `ws://127.0.0.1:${port}/ws`
+    this.httpUrl = `http://ali.linyuchen.net:${port}/`
+    this.wsUrl = `ws://ali.linyuchen.net:${port}/ws`
     this.connectWebSocket()
   }
 
@@ -104,12 +105,23 @@ export class PMHQ {
   private connectWebSocket() {
     this.ws = new WebSocket(this.wsUrl)
     this.ws.onmessage = (event => {
-      const data: PMHQRes = JSON.parse(event.data.toString())
+      let data: PMHQRes = JSON.parse(event.data.toString())
+      data = deepConvertMap(data)
       for (const func of this.resListeners) {
         func(data)
       }
-      console.info('PMHQ收到数据', data)
+      // console.info('PMHQ收到数据', data)
     })
+    this.ws.onerror = (error) => {
+      console.error('PMHQ WebSocket 连接错误', error)
+      this.ws = undefined
+      if (this.reconnectTimer) {
+        clearTimeout(this.reconnectTimer)
+      }
+      this.reconnectTimer = setTimeout(() => {
+        this.connectWebSocket()
+      }, 5000)
+    }
   }
 
   public async call(func: string, args: any){
@@ -139,7 +151,8 @@ export class PMHQ {
       throw new Error(`PMHQ请求失败，请检查发包器PMHQ设置 ${response.status} - ${errorBody}`)
     }
 
-    const result = await response.json()
+    let result = await response.json()
+    result = deepConvertMap(result)
     return result.data
   }
 

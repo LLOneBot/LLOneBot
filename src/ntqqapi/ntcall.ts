@@ -1,5 +1,5 @@
-import { hookApiCallbacks, registerReceiveHook, removeReceiveHook } from './hook'
-import { DetailedError, getBuildVersion, log } from '../common/utils'
+import { hookApiCallbacks, ReceiveCmdS, registerReceiveHook, removeReceiveHook } from './hook'
+import { DetailedError, log } from '../common/utils'
 import { randomUUID } from 'node:crypto'
 import {
   GeneralCallResult,
@@ -109,12 +109,7 @@ interface NTService {
 }
 
 interface InvokeOptions<ReturnType> {
-  className?: NTClass
-  channel?: NTChannel
-  registerEvent?: boolean
-  cbCmd?: string | string[]
-  cmdCB?: (payload: ReturnType, result: unknown) => boolean
-  afterFirstCmd?: boolean // 是否在methodName调用完之后再去hook cbCmd
+  resultCmd?: ReceiveCmdS  // 表示这次call是异步的，返回结果会通过这个命令上报
   timeout?: number
 }
 
@@ -142,7 +137,21 @@ export function invoke<
   const splitMethod = method.split('/');
   const serviceName = splitMethod[0] as keyof NTService;
   const methodName = splitMethod.slice(1).join('/');
-  const pmhqService = NT_SERVICE_TO_PMHQ[serviceName] || serviceName;
+  const pmhqService = NT_SERVICE_TO_PMHQ[serviceName];
+  if (!pmhqService) {
+    console.error('unknown service:', serviceName);
+ }
   const funcName = `wrapperSession.${pmhqService}().${methodName}`;
-  return pmhq.call(funcName, args)
+  if (options.resultCmd){
+    return new Promise<R>((resolve, reject) => {
+      const hookId = registerReceiveHook<R>(options.resultCmd as string, (data: R)=>{
+        resolve(data)
+        removeReceiveHook(hookId)
+      })
+      pmhq.call(funcName, args).then()
+    })
+  }
+  else{
+    return pmhq.call(funcName, args)
+  }
 }

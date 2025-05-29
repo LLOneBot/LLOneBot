@@ -9,7 +9,7 @@ export const llonebotError: LLOneBotError = {
   otherError: 'LLOneBot 未能正常启动，请检查日志查看错误',
 }
 
-export const DATA_DIR: string = path.join(process.execPath, 'data')
+export const DATA_DIR: string = path.join('data')
 export const TEMP_DIR: string = path.join(DATA_DIR, 'temp')
 export const LOG_DIR = path.join(DATA_DIR, 'logs')
 

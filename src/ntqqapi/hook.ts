@@ -18,7 +18,7 @@ export enum ReceiveCmdS {
   GROUPS = 'nodeIKernelGroupListener/onGroupListUpdate',
   GROUPS_STORE = 'onGroupListUpdate',
   GROUP_MEMBER_INFO_UPDATE = 'nodeIKernelGroupListener/onMemberInfoChange',
-  FRIENDS = 'onBuddyListChange',
+  FRIENDS = 'nodeIKernelBuddyListener/onBuddyListChange',
   MEDIA_DOWNLOAD_COMPLETE = 'nodeIKernelMsgListener/onRichMediaDownloadComplete',
   UNREAD_GROUP_NOTIFY = 'nodeIKernelGroupListener/onGroupNotifiesUnreadCountUpdated',
   GROUP_NOTIFY = 'nodeIKernelGroupListener/onGroupSingleScreenNotifies',
@@ -53,6 +53,7 @@ export function startHook() {
     if ('sub_type' in data.data && listenerName in NT_RECV_PMHQ_TYPE_TO_NT_METHOD) {
       const sub_type = data.data.sub_type
       const ntCmd: ReceiveCmdS = (NT_RECV_PMHQ_TYPE_TO_NT_METHOD[listenerName as keyof typeof NT_RECV_PMHQ_TYPE_TO_NT_METHOD] + '/' + sub_type) as ReceiveCmdS
+      console.info(ntCmd, data.data)
       for (const hook of receiveHooks.values()) {
         if (hook.method.includes(ntCmd)) {
           Promise.resolve(hook.hookFunc(data.data.data))

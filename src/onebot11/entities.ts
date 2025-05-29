@@ -166,7 +166,7 @@ export namespace OB11Entities {
 
           let replyMsg: RawMessage | undefined
           if (record.msgRandom !== '0') {
-            replyMsg = msgList.find(msg => msg.msgRandom === record.msgRandom)
+            replyMsg = msgList.find((msg: RawMessage) => msg.msgRandom === record.msgRandom)
           } else {
             ctx.logger.info('msgRandom is missing', replyElement, record)
             replyMsg = msgList[0]
