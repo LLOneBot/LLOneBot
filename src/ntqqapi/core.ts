@@ -16,7 +16,7 @@ import {
   ChatType,
   Peer,
   SendMessageElement,
-  ElementType
+  ElementType,
 } from './types'
 import { selfInfo } from '../common/globalVars'
 import { version } from '../version'
@@ -27,6 +27,7 @@ declare module 'cordis' {
   interface Context {
     app: Core
   }
+
   interface Events {
     'nt/message-created': (input: RawMessage) => void
     'nt/message-deleted': (input: RawMessage) => void
@@ -64,7 +65,7 @@ class Core extends Service {
     ctx: Context,
     peer: Peer,
     sendElements: SendMessageElement[],
-    deleteAfterSentFiles: string[]
+    deleteAfterSentFiles: string[],
   ) {
     if (peer.chatType === ChatType.Group) {
       const info = await ctx.ntGroupApi.getGroupAllInfo(peer.peerUid)
@@ -83,11 +84,14 @@ class Core extends Service {
       try {
         if (fileElement.elementType === ElementType.Ptt) {
           totalSize += statSync(fileElement.pttElement.filePath!).size
-        } else if (fileElement.elementType === ElementType.File) {
+        }
+        else if (fileElement.elementType === ElementType.File) {
           totalSize += statSync(fileElement.fileElement.filePath!).size
-        } else if (fileElement.elementType === ElementType.Video) {
+        }
+        else if (fileElement.elementType === ElementType.Video) {
           totalSize += statSync(fileElement.videoElement.filePath).size
-        } else if (fileElement.elementType === ElementType.Pic) {
+        }
+        else if (fileElement.elementType === ElementType.Pic) {
           totalSize += statSync(fileElement.picElement.sourcePath!).size
         }
       } catch (e) {
@@ -99,7 +103,12 @@ class Core extends Service {
     if (returnMsg) {
       this.messageSentCount++
       ctx.logger.info('消息发送', peer)
-      deleteAfterSentFiles.map(path => unlink(path))
+      deleteAfterSentFiles.map(path => {
+        try {
+          unlink(path)
+        } catch (e) {
+        }
+      })
       return returnMsg
     }
   }
@@ -147,7 +156,7 @@ class Core extends Service {
   }
 
   private registerListener() {
-    registerReceiveHook<{  status: number }>(ReceiveCmdS.SELF_STATUS, (info) => {
+    registerReceiveHook<{ status: number }>(ReceiveCmdS.SELF_STATUS, (info) => {
       Object.assign(selfInfo, { online: info.status !== 20 })
     })
 
@@ -181,7 +190,8 @@ class Core extends Service {
           recallMsgIds.shift()
           recallMsgIds.push(msg.msgId)
           this.ctx.parallel('nt/message-deleted', msg)
-        } else if (sentMsgIds.get(msg.msgId)) {
+        }
+        else if (sentMsgIds.get(msg.msgId)) {
           if (msg.sendStatus === 2) {
             sentMsgIds.delete(msg.msgId)
             this.ctx.parallel('nt/message-sent', msg)
