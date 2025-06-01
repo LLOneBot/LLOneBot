@@ -38,8 +38,7 @@ export class NTQQFriendApi extends Service {
   /** uid -> uin */
   async getBuddyIdMap(refresh = false): Promise<Map<string, string>> {
     const retMap: Map<string, string> = new Map()
-    const data = await invoke<CategoryFriend[][]
-    >(
+    const data = await invoke<CategoryFriend[]>(
       'nodeIKernelBuddyService/getBuddyList',
       [refresh],
       {
@@ -50,24 +49,22 @@ export class NTQQFriendApi extends Service {
       if (retMap.size > 5000) {
         break
       }
-      for (const item of category) {
-        for (const buddy of item.buddyList) {
-          retMap.set(buddy.uid!, buddy.uin!)
-        }
+      for (const buddy of category.buddyList) {
+        retMap.set(buddy.uid!, buddy.uin!)
       }
     }
     return retMap
   }
 
   async getBuddyV2WithCate(refresh = false): Promise<CategoryFriend[]> {
-    const data = await invoke<CategoryFriend[][]>(
+    const data = await invoke<CategoryFriend[]>(
       'nodeIKernelBuddyService/getBuddyList',
       [refresh],
       {
         resultCmd: ReceiveCmdS.FRIENDS,
       },
     )
-    return data[0]
+    return data
   }
 
   async isBuddy(uid: string): Promise<boolean> {

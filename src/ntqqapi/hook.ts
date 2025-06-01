@@ -61,66 +61,7 @@ export function startHook() {
         }
       }
     }
-
   })
-  // const senderExclude = Symbol()
-
-  // ipcMain.emit = new Proxy(ipcMain.emit, {
-  //   apply(target, thisArg, args: [channel: string, ...args: any]) {
-  //     if (args[2]?.eventName?.startsWith('ns-LoggerApi') || args[2]?.eventName === 'LogApi') {
-  //       return target.apply(thisArg, args)
-  //     }
-  //     if (logHook) {
-  //       log('【request】', args)
-  //     }
-  //     const event = args[1]
-  //     if (event.sender && !event.sender[senderExclude]) {
-  //       event.sender[senderExclude] = true
-  //       event.sender.send = new Proxy(event.sender.send, {
-  //         apply(target, thisArg, args: [channel: string, meta: Dict, data: Dict[]]) {
-  //           if (args[1]?.eventName?.startsWith('ns-LoggerApi') || args[1]?.eventName === 'LogApi') {
-  //             return target.apply(thisArg, args)
-  //           }
-  //           if (logHook) {
-  //             log('【received】', args)
-  //           }
-  //
-  //           const callbackId = args[1]?.callbackId
-  //           if (callbackId) {
-  //             if (hookApiCallbacks.has(callbackId)) {
-  //               Promise.resolve(hookApiCallbacks.get(callbackId)!(args[2]))
-  //               hookApiCallbacks.delete(callbackId)
-  //             }
-  //           } else if (args[2]) {
-  //             if (['IPC_DOWN_2', 'IPC_DOWN_3', 'RM_IPCFROM_MAIN3', 'RM_IPCFROM_MAIN2'].includes(args[0])) {
-  //               let receiveCMDData = args[2];
-  //               if (!Array.isArray(args[2])) {
-  //                 receiveCMDData = [args[2]]
-  //               }
-  //               for (const receiveData of receiveCMDData) {
-  //                 for (const hook of receiveHooks.values()) {
-  //                   if (hook.method.includes(receiveData.cmdName)) {
-  //                     Promise.resolve(hook.hookFunc(receiveData.payload))
-  //                   }
-  //                 }
-  //               }
-  //             }
-  //           }
-  //           return target.apply(thisArg, args)
-  //         }
-  //       })
-  //     }
-  //
-  //     if (args[3]?.length) {
-  //       const method = args[3][0]
-  //       if (callHooks.has(method)) {
-  //         const params = args[3].slice(1)
-  //         Promise.resolve(callHooks.get(method)!(params))
-  //       }
-  //     }
-  //     return target.apply(thisArg, args)
-  //   },
-  // })
 }
 
 

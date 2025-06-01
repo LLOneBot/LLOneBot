@@ -1,4 +1,9 @@
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+const __dirname = typeof window === 'undefined'
+  ? path.dirname(fileURLToPath(import.meta.url))
+  : '';
+global.__dirname = __dirname
 import Log from './log'
 import Core from '../ntqqapi/core'
 import OneBot11Adapter from '../onebot11/adapter'

@@ -25,5 +25,6 @@ export function log(...msg: unknown[]) {
   }
   const currentDateTime = new Date().toLocaleString()
   logMsg = `${currentDateTime} ${logMsg}\n\n`
+  console.log(logMsg)
   fs.appendFile(path.join(LOG_DIR, logFileName), logMsg, () => { })
 }

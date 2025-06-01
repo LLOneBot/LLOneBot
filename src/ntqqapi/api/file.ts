@@ -231,10 +231,10 @@ export class NTQQFileCacheApi extends Service {
   }
 
   getCacheSessionPathList() {
-    return invoke<Array<{
-      key: string
-      value: string
-    }>>(NTMethod.CACHE_PATH_SESSION, [])
+    // return invoke<Array<{
+    //   key: string
+    //   value: string
+    // }>>(NTMethod.CACHE_PATH_SESSION, [])
   }
 
   scanCache() {
@@ -243,11 +243,11 @@ export class NTQQFileCacheApi extends Service {
   }
 
   getHotUpdateCachePath() {
-    return invoke<string>(NTMethod.CACHE_PATH_HOT_UPDATE, [])
+    // return invoke<string>(NTMethod.CACHE_PATH_HOT_UPDATE, [])
   }
 
   getDesktopTmpPath() {
-    return invoke<string>(NTMethod.CACHE_PATH_DESKTOP_TEMP, [])
+    // return invoke<string>(NTMethod.CACHE_PATH_DESKTOP_TEMP, [])
   }
 
   getFileCacheInfo(fileType: CacheFileType, pageSize: number = 1000, lastRecord?: CacheFileListItem) {

@@ -13,6 +13,7 @@ export class ConfigUtil {
   }
 
   listenChange(cb: (config: Config) => void) {
+    console.log('配置文件位于', this.configPath)
     this.setConfig(this.getConfig())
     fs.watchFile(this.configPath, { persistent: true, interval: 1000 }, () => {
       const c = this.reloadConfig()
@@ -65,7 +66,7 @@ export class ConfigUtil {
       musicSignUrl: 'https://llob.linyuchen.net/sign/music',
       msgCacheExpire: 120
     }
-    console.info('读取配置文件', this.configPath)
+    // console.info('读取配置文件', this.configPath)
     if (!fs.existsSync(this.configPath)) {
       this.config = defaultConfig
       return this.config

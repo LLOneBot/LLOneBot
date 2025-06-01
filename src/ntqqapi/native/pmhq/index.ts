@@ -109,16 +109,28 @@ export class PMHQ {
     this.resListeners.delete(listenerId)
   }
 
-  private connectWebSocket() {
+  private async connectWebSocket() {
     this.ws = new WebSocket(this.wsUrl)
-    this.ws.onmessage = (event => {
-      let data: PMHQRes = JSON.parse(event.data.toString())
+    this.ws.onmessage = async event => {
+      let data: PMHQRes;
+      try {
+        data = JSON.parse(event.data.toString())
+      }catch (e) {
+        console.error('解析 PMHQ 消息失败', event.data, e)
+        return
+      }
       data = deepConvertMap(data)
       for (const func of this.resListeners.values()) {
-        func(data)
+        setImmediate(() => {
+          try {
+            func(data)
+          } catch (e) {
+            console.error('PMHQ res listener error', e)
+          }
+        })
       }
       // console.info('PMHQ收到数据', data)
-    })
+    }
     this.ws.onerror = (error) => {
       console.error('PMHQ WebSocket 连接错误', error)
       this.ws = undefined

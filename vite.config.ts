@@ -9,6 +9,16 @@ const external = [
   'ws',
   'supports-color',
   'has-flag',
+  'file-type',
+  'strtok3',
+  'token-types',
+  '@tokenizer/inflate',
+  'uint8array-extras',
+  'peek-readable',
+  'ieee754',
+  'fflate',
+  'debug',
+  'ms',
   /^node:/,
 ]
 function genCpModule(module: string | RegExp){
