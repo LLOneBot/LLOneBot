@@ -1,8 +1,9 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+
 const __dirname = typeof window === 'undefined'
   ? path.dirname(fileURLToPath(import.meta.url))
-  : '';
+  : ''
 global.__dirname = __dirname
 import Log from './log'
 import Core from '../ntqqapi/core'
@@ -19,7 +20,7 @@ import {
   CHANNEL_LOG,
   CHANNEL_SELECT_FILE,
   CHANNEL_SET_CONFIG,
-  CHANNEL_UPDATE
+  CHANNEL_UPDATE,
 } from '../common/channels'
 import { startHook } from '../ntqqapi/hook'
 import { checkNewVersion, upgradeLLOneBot } from '../common/utils/upgrade'
@@ -36,7 +37,7 @@ import {
   NTQQMsgApi,
   NTQQUserApi,
   NTQQWebApi,
-  NTQQSystemApi
+  NTQQSystemApi,
 } from '../ntqqapi/api'
 import { existsSync, mkdirSync } from 'node:fs'
 import { pmhq } from '@/ntqqapi/native/pmhq'
@@ -48,7 +49,7 @@ declare module 'cordis' {
 }
 
 
-function onLoad() {
+async function onLoad() {
   if (!existsSync(DATA_DIR)) {
     mkdirSync(DATA_DIR, { recursive: true })
   }
@@ -145,70 +146,64 @@ function onLoad() {
   //   log(arg)
   // })
 
-  const intervalId = setInterval(async () => {
-    const pmhqSelfInfo = await pmhq.call('getSelfInfo', [])
-    ctx.logger.info('self info', pmhqSelfInfo)
-    const self = Object.assign(selfInfo, {
-      uin: pmhqSelfInfo.uin,
-      uid: pmhqSelfInfo.uid,
-      online: true
+  const pmhqSelfInfo = await pmhq.call('getSelfInfo', [])
+  ctx.logger.info('self info', pmhqSelfInfo)
+  const self = Object.assign(selfInfo, {
+    uin: pmhqSelfInfo.uin,
+    uid: pmhqSelfInfo.uid,
+    online: true,
+  })
+  log('process pid', process.pid)
+  const configUtil = getConfigUtil()
+  const config = configUtil.getConfig()
+  configUtil.listenChange(c => {
+    ctx.parallel('llob/config-updated', c)
+  })
+
+  if (config.enableLLOB && (config.satori.enable || config.ob11.enable)) {
+    startHook()
+  }
+  else {
+    llonebotError.otherError = 'LLOneBot 未启动'
+    log('LLOneBot 开关设置为关闭，不启动 LLOneBot')
+    return
+  }
+  ctx.plugin(Log, {
+    enable: config.log!,
+    filename: logFileName,
+  })
+  ctx.plugin(SQLiteDriver, {
+    path: path.join(dbDir, `${selfInfo.uin}.db`),
+  })
+  ctx.plugin(Store, {
+    msgCacheExpire: config.msgCacheExpire! * 1000,
+  })
+  ctx.plugin(Core, config)
+  if (config.ob11.enable) {
+    ctx.plugin(OneBot11Adapter, {
+      ...config.ob11,
+      heartInterval: config.heartInterval,
+      debug: config.debug!,
+      musicSignUrl: config.musicSignUrl,
+      enableLocalFile2Url: config.enableLocalFile2Url!,
+      ffmpeg: config.ffmpeg,
     })
-    if (self.uin) {
-      clearInterval(intervalId)
-      log('process pid', process.pid)
-      const configUtil = getConfigUtil()
-      const config = configUtil.getConfig()
-      configUtil.listenChange(c=>{
-        ctx.parallel('llob/config-updated', c)
-      })
+  }
+  if (config.satori.enable) {
+    ctx.plugin(SatoriAdapter, {
+      ...config.satori,
+      ffmpeg: config.ffmpeg,
+    })
+  }
 
-      if (config.enableLLOB && (config.satori.enable || config.ob11.enable)) {
-        startHook()
-        await ctx.sleep(800)
-      } else {
-        llonebotError.otherError = 'LLOneBot 未启动'
-        log('LLOneBot 开关设置为关闭，不启动 LLOneBot')
-        return
-      }
-      ctx.plugin(Log, {
-        enable: config.log!,
-        filename: logFileName
-      })
-      ctx.plugin(SQLiteDriver, {
-        path: path.join(dbDir, `${selfInfo.uin}.db`)
-      })
-      ctx.plugin(Store, {
-        msgCacheExpire: config.msgCacheExpire! * 1000
-      })
-      ctx.plugin(Core, config)
-      if (config.ob11.enable) {
-        ctx.plugin(OneBot11Adapter, {
-          ...config.ob11,
-          heartInterval: config.heartInterval,
-          debug: config.debug!,
-          musicSignUrl: config.musicSignUrl,
-          enableLocalFile2Url: config.enableLocalFile2Url!,
-          ffmpeg: config.ffmpeg,
-        })
-      }
-      if (config.satori.enable) {
-        ctx.plugin(SatoriAdapter, {
-          ...config.satori,
-          ffmpeg: config.ffmpeg,
-        })
-      }
-
-      ctx.start()
-      started = true
-      llonebotError.otherError = ''
-    }
-  }, 500)
+  ctx.start()
+  started = true
+  llonebotError.otherError = ''
 }
 
 
-
 try {
-  onLoad()
+  onLoad().then()
 } catch (e) {
   console.log(e)
 }

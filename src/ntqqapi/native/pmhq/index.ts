@@ -96,7 +96,7 @@ export class PMHQ {
     const port = pmhqAddr.split(':')[1]
     this.httpUrl = `http://127.0.0.1:${port}/`
     this.wsUrl = `ws://127.0.0.1:${port}/ws`
-    this.connectWebSocket()
+    this.connectWebSocket().then()
   }
 
   public addResListener(listener: ResListener) {
@@ -110,12 +110,25 @@ export class PMHQ {
   }
 
   private async connectWebSocket() {
-    this.ws = new WebSocket(this.wsUrl)
+    const reconnect = () => {
+      this.ws = undefined
+      if (this.reconnectTimer) {
+        clearTimeout(this.reconnectTimer)
+      }
+      this.reconnectTimer = setTimeout(() => {
+        this.connectWebSocket()
+      }, 999)
+    }
+    try {
+      this.ws = new WebSocket(this.wsUrl)
+    } catch (e) {
+      return reconnect()
+    }
     this.ws.onmessage = async event => {
-      let data: PMHQRes;
+      let data: PMHQRes
       try {
         data = JSON.parse(event.data.toString())
-      }catch (e) {
+      } catch (e) {
         console.error('解析 PMHQ 消息失败', event.data, e)
         return
       }
@@ -131,15 +144,16 @@ export class PMHQ {
       }
       // console.info('PMHQ收到数据', data)
     }
+
     this.ws.onerror = (error) => {
-      console.error('PMHQ WebSocket 连接错误', error)
-      this.ws = undefined
-      if (this.reconnectTimer) {
-        clearTimeout(this.reconnectTimer)
-      }
-      this.reconnectTimer = setTimeout(() => {
-        this.connectWebSocket()
-      }, 5000)
+      console.error('PMHQ WebSocket 连接错误', '正在重连...')
+      reconnect()
+    }
+
+    this.ws.onclose = reconnect
+
+    this.ws.onopen = ()=>{
+      console.info('PMHQ WebSocket 连接成功')
     }
   }
 
@@ -151,17 +165,31 @@ export class PMHQ {
         args,
       },
     }
-    return ((await this.wsSend(payload)) as PMHQResCall).data.result
+    const result = ((await this.wsSend(payload)) as PMHQResCall).data?.result
+    return result
+  }
+
+  public async waitConnected() {
+    return new Promise((resolve, reject) => {
+      const check = () => {
+        if (this.ws && (this.ws.readyState === WebSocket.OPEN)) {
+          resolve(true)
+        }
+        else {
+          console.log('recheck')
+          setTimeout(check, 1000)
+        }
+      }
+      check()
+    })
   }
 
   public async wsSend(data: PMHQReq) {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      throw new Error('PMHQ WebSocket 未连接或已断开，请检查 PMHQ 设置')
-    }
+    await this.waitConnected()
     const echo = randomUUID()
     data.data.echo = echo
     const payload = JSON.stringify(deepStringifyMap(data))
-    const p = new Promise<PMHQRes>((resolve, reject) => {
+    const p = new Promise((resolve, reject) => {
       const listenerId = this.addResListener((res => {
         if (!res.data) {
           console.error(data)
@@ -172,7 +200,7 @@ export class PMHQ {
         }
       }))
     })
-    this.ws.send(payload)
+    this.ws!.send(payload)
     return p
   }
 

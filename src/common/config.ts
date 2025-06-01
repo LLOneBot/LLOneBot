@@ -16,6 +16,7 @@ export class ConfigUtil {
     console.log('配置文件位于', this.configPath)
     this.setConfig(this.getConfig())
     fs.watchFile(this.configPath, { persistent: true, interval: 1000 }, () => {
+      console.log('配置重載')
       const c = this.reloadConfig()
       cb(c)
     })
