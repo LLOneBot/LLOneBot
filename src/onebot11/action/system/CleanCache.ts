@@ -8,6 +8,7 @@ export default class CleanCache extends BaseAction<void, void> {
   actionName = ActionName.CleanCache
 
   protected async _handle(): Promise<void> {
+    return
     const cacheFilePaths: string[] = []
 
     await this.ctx.ntFileCacheApi.setCacheSilentScan(false)
@@ -64,9 +65,18 @@ function deleteCachePath(pathList: string[]) {
       const filePath = Path.resolve(path, file)
       const stats = fs.statSync(filePath)
       if (stats.isDirectory()) emptyPath(filePath)
-      else fs.unlinkSync(filePath)
+      else {
+        try {
+          fs.unlinkSync(filePath)
+        }catch (e) {
+        }
+      }
     })
-    fs.rmdirSync(path)
+    try {
+      fs.rmdirSync(path)
+    }catch (e) {
+
+    }
   }
 
   for (const path of pathList) {

@@ -214,7 +214,7 @@ export namespace SendElement {
       throw new Error('文件异常，大小为 0')
     }
     if (converted) {
-      unlink(silkPath)
+        unlink(silkPath).then().catch(e=>{})
     }
     return {
       elementType: ElementType.Ptt,

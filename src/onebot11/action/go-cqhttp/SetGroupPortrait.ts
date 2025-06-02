@@ -24,7 +24,7 @@ export class SetGroupPortrait extends BaseAction<Payload, null> {
     const groupCode = payload.group_id.toString()
     const res = await this.ctx.ntGroupApi.setGroupAvatar(groupCode, path)
     if (!isLocal) {
-      unlink(path)
+        unlink(path).then().catch(e=>{})
     }
     if (res.result !== 0) {
       throw new Error(res.errMsg)

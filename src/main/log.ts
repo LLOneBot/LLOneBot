@@ -23,7 +23,8 @@ export default class Log {
           return
         }
         const dateTime = new Date(record.timestamp).toLocaleString()
-        let content = `${dateTime} [${record.type}] ${selfInfo.nick}(${selfInfo.uin}) | ${record.name} ${record.content}\n\n`
+        let content = `${dateTime} | ${record.name} ${record.content}\n\n`
+        console.log(content)
         appendFile(file, content, noop)
       },
     }

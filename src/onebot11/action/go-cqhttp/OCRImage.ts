@@ -36,7 +36,7 @@ export class OCRImage extends BaseAction<Payload, Response> {
 
     const data = await this.ctx.ntFileApi.ocrImage(path)
     if (!isLocal) {
-      unlink(path)
+        unlink(path).then().catch((e)=>{})
     }
 
     const texts = data.result.map(item => {

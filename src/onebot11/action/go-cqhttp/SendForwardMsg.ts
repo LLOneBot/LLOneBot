@@ -206,7 +206,7 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
             nodeMsgIds.push({ msgId: nodeMsg.msgId, peer: selfPeer })
             await this.ctx.sleep(300)
           }
-          deleteAfterSentFiles.map(path => unlink(path))
+          deleteAfterSentFiles.map(path => unlink(path).then().catch(e=>{}))
         } catch (e) {
           this.ctx.logger.error('生成转发消息节点失败', e)
         }

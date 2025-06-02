@@ -48,7 +48,11 @@ export class RkeyManager {
     }
     catch (e) {
       this.ctx.logger.warn(`发包获取rkey失败 ${e}，开始获取远程rkey`)
-      this.rkeyData = await this.fetchServerRkey()
+      try {
+        this.rkeyData = await this.fetchServerRkey()
+      }catch (e) {
+        this.ctx.logger.error('获取远程rkey失败', e)
+      }
     }
   }
 

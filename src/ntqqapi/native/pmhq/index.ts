@@ -65,8 +65,8 @@ export type PMHQRes = PMHQResSendPB | PMHQResRecvPB | PMHQResOn | PMHQResCall
 
 export type PMHQReq = PMHQReqSendPB | PMHQReqCall
 
-interface ResListener {
-  (data: PMHQRes): void
+interface ResListener<R extends PMHQRes> {
+  (data: R): void
 }
 
 export class PMHQ {
@@ -74,7 +74,7 @@ export class PMHQ {
   private httpUrl: string = 'http://127.0.0.1:13000'
   private wsUrl: string = 'ws://127.0.0.1:13000/ws'
   private ws: WebSocket | undefined
-  private resListeners: Map<string, ResListener> = new Map()
+  private resListeners: Map<string, ResListener<any>> = new Map()
 
   constructor() {
     let pmhqAddrPath: string
@@ -99,7 +99,7 @@ export class PMHQ {
     this.connectWebSocket().then()
   }
 
-  public addResListener(listener: ResListener) {
+  public addResListener<R extends PMHQRes>(listener: ResListener<R>) {
     const listenerId = randomUUID()
     this.resListeners.set(listenerId, listener)
     return listenerId
@@ -176,7 +176,7 @@ export class PMHQ {
           resolve(true)
         }
         else {
-          console.log('recheck')
+          // console.log('recheck')
           setTimeout(check, 1000)
         }
       }
@@ -184,13 +184,16 @@ export class PMHQ {
     })
   }
 
-  public async wsSend(data: PMHQReq) {
+  public async wsSend<R extends PMHQRes>(data: PMHQReq): Promise<R> {
     await this.waitConnected()
-    const echo = randomUUID()
-    data.data.echo = echo
+    let echo = data.data?.echo
+    if (!data.data?.echo) {
+      echo = randomUUID()
+      data.data.echo = echo
+    }
     const payload = JSON.stringify(deepStringifyMap(data))
-    const p = new Promise((resolve, reject) => {
-      const listenerId = this.addResListener((res => {
+    const p = new Promise<R>((resolve, reject) => {
+      const listenerId = this.addResListener<R>((res => {
         if (!res.data) {
           console.error(data)
         }
@@ -204,7 +207,7 @@ export class PMHQ {
     return p
   }
 
-  public async httpSend(data: PMHQReq) {
+  public async httpSend<R extends PMHQRes>(data: PMHQReq): Promise<R> {
     const payload = JSON.stringify(deepStringifyMap(data))
     const response = await fetch(this.httpUrl, {
       method: 'POST',
@@ -222,17 +225,27 @@ export class PMHQ {
 
     let result = await response.json()
     result = deepConvertMap(result)
-    return result.data
+    return result
   }
 
-  private async httpSendPB(cmd: string, pb: Uint8Array) {
-    return this.httpSend({
+  private async httpSendPB(cmd: string, pb: Uint8Array): Promise<PBData> {
+    return (await this.httpSend<PMHQResSendPB>({
       type: 'send',
       data: {
         cmd,
         pb: Buffer.from(pb).toString('hex'),
       },
-    })
+    })).data
+  }
+
+  private async wsSendPB(cmd: string, pb: Uint8Array): Promise<PBData> {
+    return (await this.wsSend<PMHQResSendPB>({
+      type: 'send',
+      data: {
+        cmd,
+        pb: Buffer.from(pb).toString('hex'),
+      },
+    })).data
   }
 
   async sendFriendPoke(uin: number) {
@@ -245,7 +258,7 @@ export class PMHQ {
       subCommand: 1,
       body,
     }).finish()
-    return await this.httpSendPB('OidbSvcTrpcTcp.0xed3_1', data)
+    return await this.wsSendPB('OidbSvcTrpcTcp.0xed3_1', data)
   }
 
   async sendGroupPoke(groupCode: number, memberUin: number) {
@@ -258,7 +271,7 @@ export class PMHQ {
       subCommand: 1,
       body,
     }).finish()
-    return await this.httpSendPB('OidbSvcTrpcTcp.0xed3_1', data)
+    return await this.wsSendPB('OidbSvcTrpcTcp.0xed3_1', data)
   }
 
   async setSpecialTitle(groupCode: number, memberUid: string, title: string) {
@@ -282,7 +295,7 @@ export class PMHQ {
   async getRKey() {
     const hexStr = '08e7a00210ca01221c0a130a05080110ca011206a80602b006011a02080122050a030a1400'
     const data = Buffer.from(hexStr, 'hex')
-    const resp = await this.httpSendPB('OidbSvcTrpcTcp.0xed3_1', data)
+    const resp = await this.wsSendPB('OidbSvcTrpcTcp.0xed3_1', data)
     const rkeyBody = Oidb.Base.decode(Buffer.from(resp.pb, 'hex')).body
     const rkeyItems = Oidb.GetRKeyResponseBody.decode(rkeyBody).result?.rkeyItems!
     return {

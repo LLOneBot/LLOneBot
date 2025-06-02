@@ -19,7 +19,7 @@ export default class SetAvatar extends BaseAction<Payload, null> {
       await checkFileReceived(path, 5000) // 文件不存在QQ会崩溃，需要提前判断
       const ret = await this.ctx.ntUserApi.setSelfAvatar(path)
       if (!isLocal) {
-        unlink(path)
+          unlink(path).then().catch(err => {})
       }
       if (!ret) {
         throw `头像${payload.file}设置失败,api无返回`
@@ -31,9 +31,10 @@ export default class SetAvatar extends BaseAction<Payload, null> {
       }
     } else {
       if (!isLocal) {
-        unlink(path)
+        unlink(path).then().catch(e => {
+          this.ctx.logger.error(`头像${payload.file}设置失败,无法获取头像,文件可能不存在`)
+        })
       }
-      throw `头像${payload.file}设置失败,无法获取头像,文件可能不存在`
     }
     return null
   }

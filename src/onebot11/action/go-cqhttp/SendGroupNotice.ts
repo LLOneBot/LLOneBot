@@ -38,7 +38,7 @@ export class SendGroupNotice extends BaseAction<Payload, null> {
         throw new Error(`设置群公告失败, 错误信息: uploadGroupBulletinPic: ${result.errMsg}`)
       }
       if (!isLocal) {
-        unlink(path)
+        unlink(path).then().catch(e=>{})
       }
       picInfo = result.picInfo
     }

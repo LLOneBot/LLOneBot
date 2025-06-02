@@ -101,9 +101,7 @@ export class NTQQFileApi extends Service {
     // 用于下载收到的消息中的图片等
     if (sourcePath && existsSync(sourcePath)) {
       if (force) {
-        try {
-          await unlink(sourcePath)
-        } catch { }
+          unlink(sourcePath).then().catch(e=>{})
       } else {
         return sourcePath
       }

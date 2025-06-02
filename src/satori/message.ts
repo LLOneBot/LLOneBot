@@ -44,7 +44,13 @@ export class MessageEncoder {
         this.results.push(result)
       }
     }
-    this.deleteAfterSentFiles.forEach(path => unlink(path))
+    this.deleteAfterSentFiles.forEach(path => {
+      try {
+        unlink(path).then().catch((e)=>{})
+      }catch (e) {
+
+      }
+    })
     this.deleteAfterSentFiles = []
     this.elements = []
   }

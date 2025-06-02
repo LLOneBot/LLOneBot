@@ -16,7 +16,7 @@ import {
   ChatType,
   Peer,
   SendMessageElement,
-  ElementType,
+  ElementType, summaryMessage, logSummaryMessage,
 } from './types'
 import { selfInfo } from '../common/globalVars'
 import { version } from '../version'
@@ -40,7 +40,7 @@ declare module 'cordis' {
 }
 
 class Core extends Service {
-  static inject = ['ntMsgApi', 'ntFriendApi', 'ntGroupApi', 'store']
+  static inject = ['ntMsgApi', 'ntFriendApi', 'ntGroupApi', 'store', 'ntUserApi']
   public startupTime = 0
   public messageReceivedCount = 0
   public messageSentCount = 0
@@ -104,10 +104,7 @@ class Core extends Service {
       this.messageSentCount++
       ctx.logger.info('消息发送', peer)
       deleteAfterSentFiles.map(path => {
-        try {
-          unlink(path)
-        } catch (e) {
-        }
+          unlink(path).then().catch(e=>{})
       })
       return returnMsg
     }
@@ -125,6 +122,7 @@ class Core extends Service {
       }
       this.lastMessageTime = msgTime
       this.messageReceivedCount++
+      logSummaryMessage(this.ctx, message).then()
       this.ctx.parallel('nt/message-created', message)
     }
 
@@ -147,7 +145,7 @@ class Core extends Service {
           }
           for (const path of pathList) {
             if (path) {
-              unlink(path).then(() => this.ctx.logger.info('删除文件成功', path))
+              unlink(path).then(() => this.ctx.logger.info('删除文件成功', path)).catch(e=>{})
             }
           }
         }, this.config.autoDeleteFileSecond! * 1000)
@@ -194,6 +192,7 @@ class Core extends Service {
         else if (sentMsgIds.get(msg.msgId)) {
           if (msg.sendStatus === 2) {
             sentMsgIds.delete(msg.msgId)
+            logSummaryMessage(this.ctx, msg).then()
             this.ctx.parallel('nt/message-sent', msg)
           }
         }

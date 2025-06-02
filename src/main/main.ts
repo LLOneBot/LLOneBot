@@ -41,6 +41,7 @@ import {
 } from '../ntqqapi/api'
 import { existsSync, mkdirSync } from 'node:fs'
 import { pmhq } from '@/ntqqapi/native/pmhq'
+import { version } from '../version'
 
 declare module 'cordis' {
   interface Events {
@@ -146,14 +147,14 @@ async function onLoad() {
   //   log(arg)
   // })
 
+  ctx.logger.info(`LLOneBot ${version}`)
   const pmhqSelfInfo = await pmhq.call('getSelfInfo', [])
-  ctx.logger.info('self info', pmhqSelfInfo)
   const self = Object.assign(selfInfo, {
     uin: pmhqSelfInfo.uin,
     uid: pmhqSelfInfo.uid,
     online: true,
   })
-  log('process pid', process.pid)
+  // log('process pid', process.pid)
   const configUtil = getConfigUtil()
   const config = configUtil.getConfig()
   configUtil.listenChange(c => {

@@ -1,5 +1,6 @@
 import { GroupMemberRole } from './group'
 import { GeneralCallResult } from '../services'
+import { Field } from 'minato'
 
 export enum ElementType {
   Text = 1,
@@ -423,7 +424,7 @@ export enum ChatType {
 
 export interface RawMessage {
   msgId: string
-  msgType: number
+  msgType: ElementType
   subMsgType: number
   msgTime: string // 时间戳，秒
   msgSeq: string
@@ -632,3 +633,4 @@ export enum RMBizType {
   C2CPtt,
   GroupPtt,
 }
+
