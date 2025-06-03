@@ -76,6 +76,7 @@ export class ConfigUtil {
       let jsonData: Config = defaultConfig
       try {
         jsonData = JSON.parse(data)
+        console.info('配置加载成功')
       } catch (e) {
         console.error(`${this.configPath} json 内容不合格`)
         this.config = defaultConfig

@@ -86,7 +86,7 @@ export class PMHQ {
       pmhqDataDir = path.join(os.homedir(), '.pmhq')
     }
     pmhqAddrPath = path.join(pmhqDataDir, `PMHQ_ADDR_LAST.txt`)
-    let pmhqAddr = '127.0.0.1:13300'
+    let pmhqAddr = '127.0.0.1:13000'
     try {
       pmhqAddr = fs.readFileSync(pmhqAddrPath, 'utf-8')
     } catch (err) {

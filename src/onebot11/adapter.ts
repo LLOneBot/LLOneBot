@@ -230,6 +230,7 @@ class OneBot11Adapter extends Service {
   private async handleConfigUpdated(config: LLOBConfig) {
     const old = this.config
     this.ob11Http.updateConfig({
+      listenLocalhost: config.ob11.listenLocalhost,
       port: config.ob11.httpPort,
       token: config.ob11.token,
     })
@@ -240,6 +241,7 @@ class OneBot11Adapter extends Service {
       enableHttpHeart: config.ob11.enableHttpHeart
     })
     this.ob11WebSocket.updateConfig({
+      listenLocalhost: config.ob11.listenLocalhost,
       port: config.ob11.wsPort,
       heartInterval: config.heartInterval,
       token: config.ob11.token,
@@ -249,7 +251,6 @@ class OneBot11Adapter extends Service {
       heartInterval: config.heartInterval,
       token: config.ob11.token,
     })
-    // 判断是否启用或关闭 HTTP 服务
     if (config.ob11.enableHttp !== old.enableHttp) {
       if (!config.ob11.enableHttp) {
         await this.ob11Http.stop()
