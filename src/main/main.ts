@@ -161,14 +161,8 @@ async function onLoad() {
     ctx.parallel('llob/config-updated', c)
   })
 
-  if (config.enableLLOB && (config.satori.enable || config.ob11.enable)) {
-    startHook()
-  }
-  else {
-    llonebotError.otherError = 'LLOneBot 未启动'
-    log('LLOneBot 开关设置为关闭，不启动 LLOneBot')
-    return
-  }
+  startHook()
+
   ctx.plugin(Log, {
     enable: config.log!,
     filename: logFileName,

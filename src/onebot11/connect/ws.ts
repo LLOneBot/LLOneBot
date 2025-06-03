@@ -22,7 +22,7 @@ class OB11WebSocket {
   public start() {
     if (this.wsServer) return
     const host = this.config.listenLocalhost ? '127.0.0.1' : '::'
-    this.ctx.logger.info(`WebSocket server started ${host}:${this.config.port}`)
+    this.ctx.logger.info(`OneBot V11 WebSocket server started ${host}:${this.config.port}`)
     try {
       this.wsServer = new WebSocketServer({
         host,
