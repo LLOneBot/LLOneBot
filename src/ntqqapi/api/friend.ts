@@ -1,7 +1,7 @@
-import { Friend, SimpleInfo, CategoryFriend } from '../types'
+import { CategoryFriend, SimpleInfo } from '../types'
 import { ReceiveCmdS } from '../hook'
 import { invoke, NTMethod } from '../ntcall'
-import { Service, Context } from 'cordis'
+import { Context, Service } from 'cordis'
 
 declare module 'cordis' {
   interface Context {
@@ -23,23 +23,16 @@ export class NTQQFriendApi extends Service {
     ])
   }
 
-  async getBuddyV2(): Promise<SimpleInfo[]> {
-    const data = await invoke<CategoryFriend[]>(
-      'nodeIKernelBuddyService/getBuddyList',
-      [true],
-      {
-        resultCmd: ReceiveCmdS.FRIENDS,
-      },
-    )
-    const result: SimpleInfo[] = data.flatMap((item: CategoryFriend) => item.buddyList)
-    return result
+  async getBuddyV2(refresh = false): Promise<SimpleInfo[]> {
+    const data = await this.getBuddyV2WithCate(refresh)
+    return data.flatMap((item: CategoryFriend) => item.buddyList)
   }
 
   /** uid -> uin */
   async getBuddyIdMap(refresh = false): Promise<Map<string, string>> {
     const retMap: Map<string, string> = new Map()
     const data = await invoke<CategoryFriend[]>(
-      'nodeIKernelBuddyService/getBuddyList',
+      'nodeIKernelBuddyService/getBuddyListV2',
       [refresh],
       {
         resultCmd: ReceiveCmdS.FRIENDS,
@@ -57,14 +50,14 @@ export class NTQQFriendApi extends Service {
   }
 
   async getBuddyV2WithCate(refresh = false): Promise<CategoryFriend[]> {
-    const data = await invoke<CategoryFriend[]>(
-      'nodeIKernelBuddyService/getBuddyList',
-      [refresh],
+    return await invoke<CategoryFriend[]>(
+      'nodeIKernelBuddyService/getBuddyListV2',
+      [refresh, 0],
       {
         resultCmd: ReceiveCmdS.FRIENDS,
+        timeout: 3000,
       },
     )
-    return data
   }
 
   async isBuddy(uid: string): Promise<boolean> {
