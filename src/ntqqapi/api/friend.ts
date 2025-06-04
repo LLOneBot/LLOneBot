@@ -23,6 +23,15 @@ export class NTQQFriendApi extends Service {
     ])
   }
 
+  async getBuddyList(): Promise<SimpleInfo[]> {
+    const data = await invoke<CategoryFriend[]>(
+      'getBuddyList',
+      [],
+      {},
+    )
+    return data.flatMap((item: CategoryFriend) => item.buddyList)
+  }
+
   async getBuddyV2(refresh = false): Promise<SimpleInfo[]> {
     const data = await this.getBuddyV2WithCate(refresh)
     return data.flatMap((item: CategoryFriend) => item.buddyList)

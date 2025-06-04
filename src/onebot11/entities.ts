@@ -210,7 +210,7 @@ export namespace OB11Entities {
           fileName: picElement.fileName,
           fileUuid: picElement.fileUuid,
           fileSize,
-        })
+        }).then()
       }
       else if (element.videoElement) {
         const { videoElement } = element
@@ -242,7 +242,7 @@ export namespace OB11Entities {
           fileName: videoElement.fileName,
           fileUuid: videoElement.fileUuid!,
           fileSize,
-        })
+        }).then()
       }
       else if (element.fileElement) {
         const { fileElement } = element
@@ -267,7 +267,7 @@ export namespace OB11Entities {
           fileName: fileElement.fileName,
           fileUuid: fileElement.fileUuid!,
           fileSize,
-        })
+        }).then()
       }
       else if (element.pttElement) {
         const { pttElement } = element
@@ -291,7 +291,7 @@ export namespace OB11Entities {
           fileName: pttElement.fileName,
           fileUuid: pttElement.fileUuid,
           fileSize,
-        })
+        }).then()
       }
       else if (element.arkElement) {
         const { arkElement } = element

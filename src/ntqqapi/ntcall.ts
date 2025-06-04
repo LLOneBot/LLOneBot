@@ -100,10 +100,11 @@ export function invoke<
   const serviceName = splitMethod[0] as keyof NTService;
   const methodName = splitMethod.slice(1).join('/');
   const pmhqService = NT_SERVICE_TO_PMHQ[serviceName];
+  let funcName = `wrapperSession.${pmhqService}().${methodName}`;
   if (!pmhqService) {
-    console.error('unknown service:', serviceName);
+    funcName = method
+    // console.error('unknown service:', serviceName);
  }
-  const funcName = `wrapperSession.${pmhqService}().${methodName}`;
   if (options.resultCmd){
     return new Promise<R>((resolve, reject) => {
       let timeoutId = null

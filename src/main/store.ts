@@ -132,7 +132,7 @@ class Store extends Service {
   async addFileCache(data: FileCacheV2) {
     // 判断 fileUuid 是否存在
     const existingFile = await this.ctx.database.get('file_v2', { fileUuid: data.fileUuid })
-    if (existingFile) {
+    if (existingFile.length) {
       return existingFile
     }
     this.ctx.database.upsert('file_v2', [data], 'fileUuid').then()

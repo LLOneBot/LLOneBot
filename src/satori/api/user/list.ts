@@ -7,7 +7,7 @@ interface Payload {
 }
 
 export const getFriendList: Handler<List<User>, Payload> = async (ctx) => {
-  const friends = await ctx.ntFriendApi.getBuddyV2()
+  const friends = await ctx.ntFriendApi.getBuddyList()
   return {
     data: friends.map(e => decodeUser(e.coreInfo))
   }
