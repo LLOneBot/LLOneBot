@@ -17,10 +17,13 @@ export interface GetFileResponse {
 
 export abstract class GetFileBase extends BaseAction<GetFilePayload, GetFileResponse> {
   payloadSchema = Schema.object({
-    file: Schema.string().required()
+    file: Schema.string()
   })
 
   protected async _handle(payload: GetFilePayload): Promise<GetFileResponse> {
+    if (!payload.file){
+      throw new Error('file is required')
+    }
     const { enableLocalFile2Url } = this.adapter.config
 
     let fileCache = await this.ctx.store.getFileCacheById(payload.file)
@@ -79,12 +82,12 @@ export abstract class GetFileBase extends BaseAction<GetFilePayload, GetFileResp
 export default class GetFile extends GetFileBase {
   actionName = ActionName.GetFile
   payloadSchema = Schema.object({
-    file: Schema.string(),
-    file_id: Schema.string().required()
+    file: Schema.string().required(false),
+    file_id: Schema.string().required(false),
   })
 
   protected async _handle(payload: { file_id: string, file: string }): Promise<GetFileResponse> {
-    payload.file = payload.file_id
+    payload.file = payload.file || payload.file_id
     return super._handle(payload)
   }
 }
