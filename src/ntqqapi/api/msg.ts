@@ -17,7 +17,7 @@ export class NTQQMsgApi extends Service {
   }
 
   async getTempChatInfo(chatType: ChatType, peerUid: string) {
-    return await invoke('nodeIKernelMsgService/getTempChatInfo', [{ chatType, peerUid }])
+    return await invoke('nodeIKernelMsgService/getTempChatInfo', [chatType, peerUid])
   }
 
   async setEmojiLike(peer: Peer, msgSeq: string, emojiId: string, setEmoji: boolean) {
@@ -25,20 +25,20 @@ export class NTQQMsgApi extends Service {
     // nt_qq/global/nt_data/Emoji/emoji-resource/face_config.json 里面有所有表情的id, 自带表情id是QSid, 标准emoji表情id是QCid
     // 其实以官方文档为准是最好的，https://bot.q.qq.com/wiki/develop/api-v2/openapi/emoji/model.html#EmojiType
     const emojiType = emojiId.length > 3 ? '2' : '1'
-    return await invoke(NTMethod.EMOJI_LIKE, [{ peer, msgSeq, emojiId, emojiType, setEmoji }])
+    return await invoke(NTMethod.EMOJI_LIKE, [peer, msgSeq, emojiId, emojiType, setEmoji])
   }
 
   async getMultiMsg(peer: Peer, rootMsgId: string, parentMsgId: string) {
-    return await invoke(NTMethod.GET_MULTI_MSG, [{ peer, rootMsgId, parentMsgId }])
+    return await invoke(NTMethod.GET_MULTI_MSG, [peer, rootMsgId, parentMsgId])
   }
 
   async activateChat(peer: Peer) {
-    return await invoke(NTMethod.ACTIVE_CHAT_PREVIEW, [{ peer, cnt: 0 }])
+    return await invoke(NTMethod.ACTIVE_CHAT_PREVIEW, [peer, 0])
   }
 
   async activateChatAndGetHistory(peer: Peer, cnt: number) {
     // 消息从旧到新
-    return await invoke(NTMethod.ACTIVE_CHAT_HISTORY, [{ peer, cnt, msgId: '0', queryOrder: true }])
+    return await invoke(NTMethod.ACTIVE_CHAT_HISTORY, [peer, cnt, '0', true])
   }
 
   async getAioFirstViewLatestMsgs(peer: Peer, cnt: number) {
@@ -181,15 +181,15 @@ export class NTQQMsgApi extends Service {
   }
 
   async getSingleMsg(peer: Peer, msgSeq: string) {
-    return await invoke('nodeIKernelMsgService/getSingleMsg', [{ peer, msgSeq }])
+    return await invoke('nodeIKernelMsgService/getSingleMsg', [peer, msgSeq])
   }
 
   async queryFirstMsgBySeq(peer: Peer, msgSeq: string) {
-    return await invoke('nodeIKernelMsgService/queryMsgsWithFilterEx', [{
-      msgId: '0',
-      msgTime: '0',
+    return await invoke('nodeIKernelMsgService/queryMsgsWithFilterEx', [
+      '0', // msgId
+      '0', // msgTime
       msgSeq,
-      params: {
+      {
         chatInfo: peer,
         filterMsgType: [],
         filterSendersUid: [],
@@ -199,7 +199,7 @@ export class NTQQMsgApi extends Service {
         isIncludeCurrent: true,
         pageLimit: 1,
       },
-    }])
+    ])
   }
 
   async queryMsgsWithFilterExBySeq(peer: Peer, msgSeq: string, filterMsgTime: string, filterSendersUid: string[] = []) {
@@ -220,26 +220,26 @@ export class NTQQMsgApi extends Service {
   }
 
   async setMsgRead(peer: Peer) {
-    return await invoke('nodeIKernelMsgService/setMsgRead', [{ peer }])
+    return await invoke('nodeIKernelMsgService/setMsgRead', [peer])
   }
 
   async getMsgEmojiLikesList(peer: Peer, msgSeq: string, emojiId: string, emojiType: string, count: number) {
-    return await invoke('nodeIKernelMsgService/getMsgEmojiLikesList', [{
+    return await invoke('nodeIKernelMsgService/getMsgEmojiLikesList', [
       peer,
       msgSeq,
       emojiId,
       emojiType,
-      cnt: count,
-    }])
+      count,
+    ])
   }
 
   async fetchFavEmojiList(count: number) {
-    return await invoke('nodeIKernelMsgService/fetchFavEmojiList', [{
-      resId: '',
+    return await invoke('nodeIKernelMsgService/fetchFavEmojiList', [
+      '', // resId
       count,
-      backwardFetch: true,
-      forceRefresh: true,
-    }])
+      true, // backwardFetch
+      true, // forceRefresh
+    ])
   }
 
   async generateMsgUniqueId(chatType: number) {
