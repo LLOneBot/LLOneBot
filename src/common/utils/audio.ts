@@ -6,6 +6,8 @@ import { TEMP_DIR } from '../globalVars'
 import { randomUUID } from 'node:crypto'
 import { Readable } from 'node:stream'
 import { Context } from 'cordis'
+import { fileURLToPath } from 'node:url'
+import fs from 'node:fs'
 
 interface FFmpegOptions {
   input?: string[]
@@ -19,6 +21,14 @@ function convert(ctx: Context, input: Input, options: FFmpegOptions, outputPath:
 function convert(ctx: Context, input: Input, options: FFmpegOptions, outputPath?: string): Promise<Buffer | string> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = []
+    let ffmpegPath: string | undefined = ctx.config.ffmpeg
+    if (!ffmpegPath) {
+      ffmpegPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'ffmpeg.exe')
+      if (!fs.existsSync(ffmpegPath)) {
+        ffmpegPath = undefined
+      }
+    }
+    ffmpegPath && ffmpeg.setFfmpegPath(ffmpegPath)
     let command = ffmpeg(input)
       .on('error', err => {
         ctx.logger.error(`FFmpeg处理转换出错: `, err.message)
@@ -37,7 +47,6 @@ function convert(ctx: Context, input: Input, options: FFmpegOptions, outputPath?
     if (options.output) {
       command = command.outputOptions(options.output)
     }
-    const ffmpegPath: string | undefined = ctx.config.ffmpeg
     if (ffmpegPath) {
       command = command.setFfmpegPath(ffmpegPath)
     }

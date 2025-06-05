@@ -24,16 +24,16 @@ export class NTQQFriendApi extends Service {
   }
 
   async getBuddyList(): Promise<SimpleInfo[]> {
-    const data = await invoke<CategoryFriend[]>(
+    const data = await invoke<SimpleInfo[]>(
       'getBuddyList',
       [],
       {},
     )
-    return data.flatMap((item: CategoryFriend) => item.buddyList)
+    return data
   }
 
   async getBuddyV2(refresh = false): Promise<SimpleInfo[]> {
-    const data = await this.getBuddyV2WithCate(refresh)
+    const data = await this.getBuddyV2WithCate(false)
     return data.flatMap((item: CategoryFriend) => item.buddyList)
   }
 
@@ -59,14 +59,24 @@ export class NTQQFriendApi extends Service {
   }
 
   async getBuddyV2WithCate(refresh = false): Promise<CategoryFriend[]> {
-    return await invoke<CategoryFriend[]>(
+    const categoryData = (await invoke<{data:CategoryFriend[]}>(
       'nodeIKernelBuddyService/getBuddyListV2',
       [refresh, 0],
       {
-        resultCmd: ReceiveCmdS.FRIENDS,
-        timeout: 3000,
       },
-    )
+    )).data
+    const buddyList = await this.getBuddyList();
+    const buddyMap = new Map<string, SimpleInfo>();
+    for (const buddy of buddyList) {
+      buddyMap.set(buddy.uid!, buddy)
+    }
+    for (const category of categoryData) {
+      category.buddyList = []
+      for(const uid of category.buddyUids){
+        category.buddyList.push(buddyMap.get(uid)!)
+      }
+    }
+    return categoryData
   }
 
   async isBuddy(uid: string): Promise<boolean> {
