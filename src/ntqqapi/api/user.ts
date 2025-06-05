@@ -1,10 +1,9 @@
-import { MiniProfile, ProfileBizType, SimpleInfo, UserDetailInfo, UserDetailInfoV2, UserDetailSource } from '../types'
+import { MiniProfile, ProfileBizType, SimpleInfo, UserDetailInfoV2, UserDetailSource } from '../types'
 import { invoke } from '../ntcall'
 import { RequestUtil } from '@/common/utils/request'
-import { isNullable, Time } from 'cosmokit'
+import { Time } from 'cosmokit'
 import { Context, Service } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
-import { ReceiveCmdS } from '@/ntqqapi/hook'
 
 declare module 'cordis' {
   interface Context {
@@ -24,8 +23,8 @@ export class NTQQUserApi extends Service {
       'nodeIKernelProfileService/setHeader',
       [path],
       {
-        timeout: 10 * Time.second // 10秒不一定够？
-      }
+        timeout: 10 * Time.second, // 10秒不一定够？
+      },
     )
   }
 
@@ -36,12 +35,12 @@ export class NTQQUserApi extends Service {
         callFrom: 'BuddyProfileStore',
         uid: [uid],
         source: UserDetailSource.KSERVER,
-        bizList: [ProfileBizType.KALL]
+        bizList: [ProfileBizType.KALL],
       }],
       {
         resultCmd: 'nodeIKernelProfileListener/onUserDetailInfoChanged',
         resultCb: payload => payload.info.uid === uid,
-      }
+      },
     )
     return result.info
   }
@@ -51,13 +50,18 @@ export class NTQQUserApi extends Service {
       'nodeIKernelProfileService/getUserDetailInfoWithBizInfo',
       [
         uid,
-        [0]
+        [0],
       ],
       {
         resultCmd: 'nodeIKernelProfileListener/onUserDetailInfoChanged',
-      }
+      },
     )
     return result.simpleInfo
+  }
+
+  async getBuddyNick(uid: string): Promise<string>{
+    const data = await invoke<Map<string, string>>('nodeIKernelBuddyService/getBuddyNick', [[uid]])
+    return data.get(uid) || ''
   }
 
   async getCookies(domain: string) {
@@ -74,7 +78,7 @@ export class NTQQUserApi extends Service {
   async getPSkey(domains: string[]) {
     return await invoke('nodeIKernelTipOffService/getPskey', [
       domains,
-      true // isFromNewPCQQ
+      true, // isFromNewPCQQ
     ])
   }
 
@@ -83,11 +87,11 @@ export class NTQQUserApi extends Service {
       'nodeIKernelProfileLikeService/setBuddyProfileLike',
       [{
 
-          friendUid: uid,
-          sourceId: 71,
-          doLikeCount: count,
-          doLikeTollCount: 0
-      }]
+        friendUid: uid,
+        sourceId: 71,
+        doLikeCount: count,
+        doLikeTollCount: 0,
+      }],
     )
   }
 
@@ -148,20 +152,19 @@ export class NTQQUserApi extends Service {
   async getSelfNick(refresh = true) {
     if ((refresh || !selfInfo.nick) && selfInfo.uid) {
       // const data = await this.getUserSimpleInfo(selfInfo.uid, refresh)
-      const data = await this.getUserDetailInfo(selfInfo.uid)
-      selfInfo.nick = data.coreInfo.nick
+      selfInfo.nick = await this.getBuddyNick(selfInfo.uid)
     }
     return selfInfo.nick
   }
 
   async setSelfStatus(status: number, extStatus: number, batteryStatus: number) {
-    return await invoke('nodeIKernelMsgService/setStatus', [{
-      statusReq: {
+    return await invoke('nodeIKernelMsgService/setStatus', [
+      {
         status,
         extStatus,
         batteryStatus,
-      }
-    }])
+      },
+    ])
   }
 
   async getProfileLike(uid: string, start = 0, limit = 20) {
@@ -175,7 +178,7 @@ export class NTQQUserApi extends Service {
         type: 3,
         start,
         limit,
-      }
+      },
     ])
   }
 
@@ -190,7 +193,7 @@ export class NTQQUserApi extends Service {
         type: 2,
         start,
         limit,
-      }
+      },
     ])
   }
 
@@ -216,10 +219,10 @@ export class NTQQUserApi extends Service {
   async getCoreAndBaseInfo(uids: string[]) {
     return await invoke(
       'nodeIKernelProfileService/getCoreAndBaseInfo',
-      [{
+      [
         uids,
-        callFrom: 'nodeStore'
-      }]
+        'nodeStore',
+      ],
     )
   }
 
@@ -231,9 +234,9 @@ export class NTQQUserApi extends Service {
           justFetchMsgConfig: '1',
           type: 1,
           version: 0,
-          aioKeywordVersion: 0
-        }
-      ]
+          aioKeywordVersion: 0,
+        },
+      ],
     )
     return data.response.robotUinRanges
   }
@@ -246,10 +249,10 @@ export class NTQQUserApi extends Service {
   }
 
   async modifySelfProfile(profile: MiniProfile) {
-    return await invoke('nodeIKernelProfileService/modifyDesktopMiniProfile', [{ profile }])
+    return await invoke('nodeIKernelProfileService/modifyDesktopMiniProfile', [profile])
   }
 
   async getRecentContactListSnapShot(count: number) {
-    return await invoke('nodeIKernelRecentContactService/getRecentContactListSnapShot', [{ count }])
+    return await invoke('nodeIKernelRecentContactService/getRecentContactListSnapShot', [count])
   }
 }

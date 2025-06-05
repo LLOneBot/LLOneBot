@@ -77,26 +77,21 @@ export class PMHQ {
   private resListeners: Map<string, ResListener<any>> = new Map()
 
   constructor() {
-    let pmhqAddrPath: string
-    let pmhqDataDir
-    if (process.platform === 'win32') {
-      pmhqDataDir = path.join(os.homedir(), 'APPDATA/Local/pmhq')
-    }
-    else {
-      pmhqDataDir = path.join(os.homedir(), '.pmhq')
-    }
-    pmhqAddrPath = path.join(pmhqDataDir, `PMHQ_ADDR_LAST.txt`)
-    let pmhqAddr = '127.0.0.1:13000'
-    try {
-      pmhqAddr = fs.readFileSync(pmhqAddrPath, 'utf-8')
-    } catch (err) {
-      console.error('PMHQ地址文件读取失败，使用默认地址')
-      console.info('PMHQ address:' + pmhqAddr)
-    }
-    const port = pmhqAddr.split(':')[1]
+    console.log(process.argv)
+    const port = this.getPMHQPort()
     this.httpUrl = `http://127.0.0.1:${port}/`
     this.wsUrl = `ws://127.0.0.1:${port}/ws`
     this.connectWebSocket().then()
+  }
+
+  private getPMHQPort(): string{
+    let pmhqPort = '13000'
+    for(const pArg of process.argv) {
+      if (pArg.startsWith('--pmhq-port=')) {
+        pmhqPort = pArg.replace('--pmhq-port=', '')
+      }
+    }
+    return pmhqPort
   }
 
   public addResListener<R extends PMHQRes>(listener: ResListener<R>) {
