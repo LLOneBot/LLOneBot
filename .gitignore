@@ -10,6 +10,7 @@ yarn.lock
 node_modules
 dist
 out
+data
 
 .DS_Store
 .idea
