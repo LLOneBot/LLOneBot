@@ -23,34 +23,26 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Download QQ
-        run: |
-          #wget https://github.com/linyuchen/LiteloaderQQNT-Integration/releases/download/win/win-x64-29456.zip
-          wget https://github.com/linyuchen/LiteloaderQQNT-Integration/releases/download/win/win-x64-27597.zip
-      - name: Extract QQ
-        run: |
-          #unzip win-x64-29456.zip
-          #rm win-x64-29456.zip
-          #mv QQNT QQNT-29456
-
-          unzip win-x64-27597.zip
-          rm win-x64-27597.zip
-          mv QQNT QQNT-27597
-      - name: Copy LLOneBot to QQ
-        run: |
-          #cp -r dist/ QQNT/versions/9.9.16-29456/resources/app/app_launcher/LiteLoaderQQNT/plugins/
-          #mv QQNT/versions/9.9.16-29456/resources/app/app_launcher/LiteLoaderQQNT/plugins/dist QQNT/versions/9.9.16-29456/resources/app/app_launcher/LiteLoaderQQNT/plugins/LLOneBot
-
-          cp -r dist/ QQNT-27597/resources/app/app_launcher/LiteLoaderQQNT/plugins/
-          mv QQNT-27597/resources/app/app_launcher/LiteLoaderQQNT/plugins/dist QQNT-27597/resources/app/app_launcher/LiteLoaderQQNT/plugins/LLOneBot
-
-      - name: Compress
+      - name: Compress dist
         run: |
           sudo apt install zip -y
-          zip -r LLOneBot_QQ27597_Windows_x64.zip QQNT-27597
-          #zip -r LLOneBot_QQ29456.zip QQNT-29456
           cd ./dist/
           zip -r ../LLOneBot.zip ./*
+
+      - name: Compress for Windows
+        run: |
+          mkdir llonebot-win-x64
+          cd llonebot-win-x64
+          mv ../dist ./llonebot
+          wget https://github.com/linyuchen/PMHQ/releases/latest/download/pmhq-win-x64.zip
+          unzip pmhq-win-x64.zip
+          mv pmhq-win-x64.exe llonebot.exe
+          zip -r ../LLOneBot-win-x64.zip ./*
+          wget https://github.com/LLOneBot/exe/releases/latest/download/node.exe -O llonebot/node.exe
+          wget https://github.com/LLOneBot/exe/releases/latest/download/ffmpeg.exe -O llonebot/ffmpeg.exe
+          wget https://github.com/LLOneBot/exe/releases/latest/download/ffprob.exe -O llonebot/ffprob.exe
+          zip -r ../LLOneBot-win-x64-ffmpeg.zip ./*
+
 
       - name: Extract version from tag
         id: get-version
@@ -59,9 +51,9 @@ jobs:
       - name: Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: 'LLOneBot.zip, LLOneBot_QQ27597_Windows_x64.zip'
+          artifacts: 'LLOneBot.zip, LLOneBot-win-x64.zip, LLOneBot-win-x64-ffmpeg.zip'
           draft: true
           token: ${{ secrets.RELEASE_TOKEN }}
           name: LLOneBot v${{ steps.get-version.outputs.VERSION }}
           body: |
-            **如果27597的 QQ 无法打开请先安装[vc140](https://github.com/linyuchen/LiteloaderQQNT-Integration/releases/download/win/vc140.x64.exe)**
+            **LLOneBot v${{ steps.get-version.outputs.VERSION }}**
