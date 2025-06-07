@@ -40,7 +40,7 @@ jobs:
           zip -r ../LLOneBot-win-x64.zip ./*
           wget https://github.com/LLOneBot/exe/releases/latest/download/node.exe -O llonebot/node.exe
           wget https://github.com/LLOneBot/exe/releases/latest/download/ffmpeg.exe -O llonebot/ffmpeg.exe
-          wget https://github.com/LLOneBot/exe/releases/latest/download/ffprob.exe -O llonebot/ffprob.exe
+          wget https://github.com/LLOneBot/exe/releases/latest/download/ffprobe.exe -O llonebot/ffprobe.exe
           zip -r ../LLOneBot-win-x64-ffmpeg.zip ./*
 
 
