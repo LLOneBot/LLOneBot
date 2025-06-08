@@ -96,38 +96,41 @@ export function invoke<
   S extends keyof NTService = any,
   M extends keyof NTService[S] & string = any
 >(method: Extract<unknown, `${S}/${M}`> | string, args: unknown[], options: InvokeOptions<R> = {}): Promise<R> {
-  const splitMethod = method.split('/');
-  const serviceName = splitMethod[0] as keyof NTService;
-  const methodName = splitMethod.slice(1).join('/');
-  const pmhqService = NT_SERVICE_TO_PMHQ[serviceName];
-  let funcName = `wrapperSession.${pmhqService}().${methodName}`;
+  const splitMethod = method.split('/')
+  const serviceName = splitMethod[0] as keyof NTService
+  const methodName = splitMethod.slice(1).join('/')
+  const pmhqService = NT_SERVICE_TO_PMHQ[serviceName]
+  let funcName = `wrapperSession.${pmhqService}().${methodName}`
   if (!pmhqService) {
     funcName = method
     // console.error('unknown service:', serviceName);
- }
-  if (options.resultCmd){
-    return new Promise<R>((resolve, reject) => {
-      let timeoutId = null
-      if (options.timeout){
-        timeoutId = setTimeout(() => {
-          reject(`invoke timeout, ${funcName}, ${args}`)
-        }, options.timeout)
-      }
+  }
+  let timeout = options.timeout ?? 3000
+
+  return new Promise<R>((resolve, reject) => {
+    let timeoutId = null
+    if (timeout) {
+      timeoutId = setTimeout(() => {
+        reject(`invoke timeout, ${funcName}, ${args}`)
+      }, timeout)
+    }
+    if (options.resultCmd) {
       let firstResult: any = undefined
-      const hookId = registerReceiveHook<R>(options.resultCmd as string, (data: R)=>{
+      const hookId = registerReceiveHook<R>(options.resultCmd as string, (data: R) => {
         if (options.resultCb && !options.resultCb(data, firstResult)) {
           return
         }
         resolve(data)
         removeReceiveHook(hookId)
-        if (timeoutId) {
-          clearTimeout(timeoutId)
-        }
+        timeoutId && clearTimeout(timeoutId)
       })
-      pmhq.call(funcName, args).then(r=>firstResult=r)
-    })
-  }
-  else{
-    return pmhq.call(funcName, args)
-  }
+      pmhq.call(funcName, args).then(r => firstResult = r)
+    }
+    else {
+      pmhq.call(funcName, args).then(r=>{
+        resolve(r)
+        timeoutId && clearTimeout(timeoutId)
+      })
+    }
+  })
 }

@@ -19,6 +19,7 @@ import { Field } from 'minato'
 import number = Field.number
 import boolean = Field.boolean
 import string = Field.string
+import { uidUinMap, uinUidMap } from '@/ntqqapi/cache'
 
 declare module 'cordis' {
   interface Context {
@@ -50,7 +51,12 @@ export class NTQQGroupApi extends Service {
     if (data.errCode !== 0) {
       throw new Error('获取群成员列表出错,' + data.errMsg)
     }
-    return data.result.infos
+    const infos: Map<string, GroupMember> = data.result.infos
+    for(const [uid, member] of infos){
+      uidUinMap.set(uid, member.uin)
+      uinUidMap.set(member.uin, member.uid)
+    }
+    return infos
   }
 
   async getGroupMember(groupCode: string, uid: string, forceUpdate = false) {

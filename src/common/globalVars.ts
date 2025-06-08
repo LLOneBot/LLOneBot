@@ -19,3 +19,4 @@ export const selfInfo: SelfInfo = {
   nick: '',
   online: true,
 }
+

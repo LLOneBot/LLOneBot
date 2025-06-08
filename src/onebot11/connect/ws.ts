@@ -23,17 +23,15 @@ class OB11WebSocket {
     if (this.wsServer) return
     const host = this.config.listenLocalhost ? '127.0.0.1' : '::'
     this.ctx.logger.info(`OneBot V11 WebSocket server started ${host}:${this.config.port}`)
-    try {
-      this.wsServer = new WebSocketServer({
-        host,
-        port: this.config.port,
-        maxPayload: 1024 * 1024 * 1024
-      })
-      llonebotError.wsServerError = ''
-    } catch (e) {
-      llonebotError.wsServerError = '正向 WebSocket 服务启动失败, ' + e
-      return
-    }
+    this.wsServer = new WebSocketServer({
+      host,
+      port: this.config.port,
+      maxPayload: 1024 * 1024 * 1024
+    })
+    llonebotError.wsServerError = ''
+    this.wsServer.on('error', (err: Error) => {
+      this.ctx.logger.error('OneBot V11 正向 WS 错误', err)
+    })
     this.wsServer?.on('connection', (socket, req) => {
       this.authorize(socket, req)
       this.connect(socket, req)

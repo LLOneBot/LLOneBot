@@ -287,12 +287,17 @@ export class NTQQMsgApi extends Service {
   }
 
   async getMsgsBySeqAndCount(peer: Peer, msgSeq: string, cnt: number, queryOrder: boolean, incloudeDeleteMsg: boolean) {
-    return await invoke('nodeIKernelMsgService/getMsgsBySeqAndCount', [
-      peer,
-      msgSeq,
-      cnt,
-      queryOrder,
-      incloudeDeleteMsg,
-    ])
+    try {
+      return await invoke('nodeIKernelMsgService/getMsgsBySeqAndCount', [
+        peer,
+        msgSeq,
+        cnt,
+        queryOrder,
+        incloudeDeleteMsg,
+      ])
+    }catch (e) {
+      this.ctx.logger.error('getMsgsBySeqAndCount error', e)
+      return {msgList: []}
+    }
   }
 }

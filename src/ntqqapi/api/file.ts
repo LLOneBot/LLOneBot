@@ -38,20 +38,25 @@ export class NTQQFileApi extends Service {
   }
 
   async getVideoUrl(peer: Peer, msgId: string, elementId: string): Promise<string | undefined> {
-    const data = await invoke('nodeIKernelRichMediaService/getVideoPlayUrlV2', [{
-      peer,
-      msgId,
-      elemId: elementId,
-      videoCodecFormat: 0,
-      exParams: {
-        downSourceType: 1,
-        triggerType: 1
+    try {
+      const data = await invoke('nodeIKernelRichMediaService/getVideoPlayUrlV2', [{
+        peer,
+        msgId,
+        elemId: elementId,
+        videoCodecFormat: 0,
+        exParams: {
+          downSourceType: 1,
+          triggerType: 1
+        }
+      }])
+      if (data.result !== 0) {
+        this.ctx.logger.warn('getVideoUrl', data)
       }
-    }])
-    if (data.result !== 0) {
-      this.ctx.logger.warn('getVideoUrl', data)
+      return data.urlResult.domainUrl[0]?.url
+    }catch (e) {
+      this.ctx.logger.warn('getVideoUrl error', e)
+      return ''
     }
-    return data.urlResult.domainUrl[0]?.url
   }
 
   async getFileType(filePath: string) {
@@ -192,7 +197,10 @@ export class NTQQFileApi extends Service {
       'nodeIKernelNodeMiscService/wantWinScreenOCR',
       [
         path
-      ]
+      ],
+      {
+        timeout: 2 * Time.minute
+      }
     )
   }
 

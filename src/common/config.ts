@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import JSON5 from 'json5'
 import { Config, OB11Config, SatoriConfig } from './types'
 import { DATA_DIR, selfInfo } from './globalVars'
 import { mergeNewProperties } from './utils/misc'
@@ -72,7 +73,7 @@ export class ConfigUtil {
       const defaultConfigPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'default_config.json')
       const defaultConfigData = fs.readFileSync(defaultConfigPath, 'utf-8')
       try{
-        this.config = JSON.parse(defaultConfigData)
+        this.config = JSON5.parse(defaultConfigData)
       }
       catch (e) {
         console.error('默认配置文件内容不合格，使用内置默认配置')
@@ -83,10 +84,10 @@ export class ConfigUtil {
       const data = fs.readFileSync(this.configPath, 'utf-8')
       let jsonData: Config = defaultConfig
       try {
-        jsonData = JSON.parse(data)
+        jsonData = JSON5.parse(data)
         console.info('配置加载成功')
       } catch (e) {
-        console.error(`${this.configPath} json 内容不合格`)
+        console.error(`${this.configPath} json 内容不合格`, e)
         this.config = defaultConfig
         return this.config
       }

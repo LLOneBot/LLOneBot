@@ -55,9 +55,13 @@ class OB11Http {
         this.sseClients.push(res)
       })
       this.ctx.logger.info(`OneBot V11 HTTP SSE started ${host}:${this.config.port}/_events`)
-      this.server = this.expressAPP.listen(this.config.port, host, () => {
-        this.ctx.logger.info(`OneBot V11 HTTP server started ${host}:${this.config.port}`)
-      })
+      try {
+        this.server = this.expressAPP.listen(this.config.port, host, () => {
+          this.ctx.logger.info(`OneBot V11 HTTP server started ${host}:${this.config.port}`)
+        })
+      }catch (e) {
+        this.ctx.logger.error(`OneBot V11 HTTP server error ${host}:${this.config.port}`, e)
+      }
     } catch (e) {
       this.ctx.logger.error('OneBot V11 HTTP服务启动失败', e)
       llonebotError.httpServerError = 'HTTP服务启动失败, ' + e

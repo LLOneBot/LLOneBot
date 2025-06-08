@@ -4,6 +4,7 @@ import { RequestUtil } from '@/common/utils/request'
 import { Time } from 'cosmokit'
 import { Context, Service } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
+import { uidUinMap } from '@/ntqqapi/cache'
 
 declare module 'cordis' {
   interface Context {
@@ -59,7 +60,7 @@ export class NTQQUserApi extends Service {
     return result.simpleInfo
   }
 
-  async getBuddyNick(uid: string): Promise<string>{
+  async getBuddyNick(uid: string): Promise<string> {
     const data = await invoke<Map<string, string>>('nodeIKernelBuddyService/getBuddyNick', [[uid]])
     return data.get(uid) || ''
   }
@@ -95,7 +96,7 @@ export class NTQQUserApi extends Service {
     )
   }
 
-  async getUidByUinV2(uin: string) {
+  async getUidByUin(uin: string, groupCode?: string) {
     let callResult: any = (await invoke('nodeIKernelGroupService/getUidByUins', [[uin]]))
     let uid = callResult.uids.get(uin)
     if (uid) return uid
@@ -111,38 +112,34 @@ export class NTQQUserApi extends Service {
     return uid
   }
 
-  async getUidByUin(uin: string, groupCode?: string) {
-    return this.getUidByUinV2(uin)
-  }
-
   async getUserDetailInfoByUin(uin: string) {
     return await invoke('nodeIKernelProfileService/getUserDetailInfoByUin', [uin])
   }
 
-  async getUinByUidV1(uid: string) {
-    const ret = await invoke('nodeIKernelUixConvertService/getUin', [[uid]])
-    let uin = ret.uinInfo.get(uid)
-    if (!uin) {
-      uin = (await this.getUserDetailInfo(uid)).uin
-    }
-    return uin
-  }
-
-  async getUinByUidV2(uid: string): Promise<string> {
+  async getUinByUid(uid: string, groupCode?: string): Promise<string> {
     // let uin = (await invoke('nodeIKernelGroupService/getUinByUids', [{ uidList: [uid] }])).uins.get(uid)
     // if (uin && uin !== '0') return uin
     // uin = (await invoke('nodeIKernelProfileService/getUinByUid', [{ callFrom: 'FriendsServiceImpl', uid: [uid] }])).get(uid)
     // if (uin) return uin
-    let uin = (await invoke('nodeIKernelUixConvertService/getUin', [[uid]])).uinInfo.get(uid)
+    let uin = uidUinMap.get(uid)
     if (uin) return uin
-    uin = (await this.ctx.ntFriendApi.getBuddyIdMap()).get(uid)
-    if (uin) return uin
-    uin = (await this.getUserDetailInfo(uid)).uin
-    return uin as string
-  }
+    if (groupCode){
+      try {
+        await this.ctx.ntGroupApi.getGroupMembers(groupCode)
+        uin = uidUinMap.get(uid)
+      }catch (e) {
 
-  async getUinByUid(uid: string) {
-    return this.getUinByUidV2(uid)
+      }
+    }
+    if (uin) return uin
+    try {
+      uin = (await invoke('nodeIKernelUixConvertService/getUin', [[uid]])).uinInfo.get(uid) || ''
+      if (uin) uidUinMap.set(uid, uin)
+      return uin
+    } catch (e) {
+      this.ctx.logger.error('nodeIKernelUixConvertService/getUin error', e)
+      return ''
+    }
   }
 
   async forceFetchClientKey() {

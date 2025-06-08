@@ -73,7 +73,8 @@ async function decodeElement(ctx: Context, data: NT.RawMessage, quoted = false) 
       }
 
       try {
-        const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replayMsgSeq, replyMsgTime, [senderUid])
+        // const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replayMsgSeq, replyMsgTime, [senderUid])
+        const { msgList } = await ctx.ntMsgApi.queryFirstMsgBySeq(peer, replayMsgSeq)
         let replyMsg: NT.RawMessage | undefined
         if (records.msgRandom !== '0') {
           replyMsg = msgList.find(msg => msg.msgRandom === records.msgRandom)
@@ -83,12 +84,13 @@ async function decodeElement(ctx: Context, data: NT.RawMessage, quoted = false) 
         }
         if (!replyMsg) {
           ctx.logger.info('queryMsgs', msgList.map(e => pick(e, ['msgSeq', 'msgRandom'])), records.msgRandom)
-          throw new Error('回复消息验证失败')
+          ctx.logger.error('回复消息验证失败')
+          continue
         }
         const elements = await decodeElement(ctx, replyMsg, true)
         buffer.push(h('quote', { id: replyMsg.msgId }, elements))
       } catch (e) {
-        ctx.logger.error('获取不到引用的消息', v.replyElement, (e as Error).stack)
+        ctx.logger.error('获取不到引用的消息', e, v.replyElement, (e as Error).stack)
       }
     } else if (v.picElement) {
       // img
