@@ -1,13 +1,13 @@
 import { defineConfig } from 'vite'
-import commonjs from '@rollup/plugin-commonjs'
 import { builtinModules } from 'module'
-import path from 'node:path'
 import cp from 'vite-plugin-cp'
 import { writeVersion } from './src/version'
 
 writeVersion()
 
 const external = [
+  'fluent-ffmpeg',
+  'express',
   'silk-wasm',
   '@minatojs/sql.js',
   'ws',
@@ -57,9 +57,6 @@ export default defineConfig({
             { src: './package-dist.json', dest: 'dist/', rename: 'package.json' },
             { src: './doc/使用说明.txt', dest: 'dist/'}
           ],
-        }),
-        commonjs({
-          include: /node_modules\/file-type/,
         }),
       ],
     },

@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import fsPromise from 'node:fs/promises'
 import path from 'node:path'
 import * as fileType from 'file-type'
+// @ts-ignore
 import { imageSizeFromFile } from "image-size/fromFile";
 import { TEMP_DIR } from '../globalVars'
 import { randomUUID, createHash } from 'node:crypto'
@@ -36,7 +37,7 @@ export function calculateFileMD5(filePath: string): Promise<string> {
     // 创建一个流式读取器
     const stream = fs.createReadStream(filePath)
 
-    stream.on('data', (data: Buffer) => {
+    stream.on('data', (data: Buffer | string) => {
       // 当读取到数据时，更新哈希对象的状态
       hash.update(data)
     })
