@@ -137,9 +137,16 @@ export class NTQQUserApi extends Service {
       if (uin) uidUinMap.set(uid, uin)
       return uin
     } catch (e) {
-      this.ctx.logger.error('nodeIKernelUixConvertService/getUin error', e)
-      return ''
+      // this.ctx.logger.error('nodeIKernelUixConvertService/getUin error', e)
     }
+    try{
+      uin = (await this.getUserDetailInfo(uid)).uin
+      return uin!
+    }
+    catch (e) {
+      this.ctx.logger.error('getUserDetailInfo from getUinByUid error', e)
+    }
+    return ''
   }
 
   async forceFetchClientKey() {
