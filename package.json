@@ -5,7 +5,7 @@
   "description": "",
   "main": "dist/llonebot.js",
   "scripts": {
-    "run": "tsx src/main/main.ts",
+    "dev": "tsx src/main/main.ts",
     "build": "vite build",
     "format": "prettier -cw .",
     "check": "tsc",
