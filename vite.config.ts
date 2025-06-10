@@ -6,24 +6,19 @@ import { writeVersion } from './src/version'
 writeVersion()
 
 const external = [
-  'fluent-ffmpeg',
-  'express',
+  'ws',
   'silk-wasm',
   '@minatojs/sql.js',
-  'ws',
-  'supports-color',
-  'has-flag',
   'file-type',
+  'uint8array-extras',
   'strtok3',
   'token-types',
   '@tokenizer/inflate',
-  'uint8array-extras',
   'peek-readable',
   'ieee754',
   'fflate',
   'debug',
   'ms',
-  /^node:/,
 ]
 
 function genCpModule(module: string | RegExp) {
@@ -42,7 +37,7 @@ export default defineConfig({
     outDir: 'dist',
     target: 'node18',
     rollupOptions: {
-      external: [...external, ...builtinModules],
+      external: [...external, ...builtinModules, /^node:/,],
       input: 'src/main/main.ts',
       output: {
         entryFileNames: 'llonebot.js',
@@ -53,9 +48,9 @@ export default defineConfig({
         cp({
           targets: [
             ...external.map(genCpModule),
-            { src: './src/common/default_config.json', dest: 'dist/'},
+            { src: './src/common/default_config.json', dest: 'dist/' },
             { src: './package-dist.json', dest: 'dist/', rename: 'package.json' },
-            { src: './doc/使用说明.txt', dest: 'dist/'}
+            { src: './doc/使用说明.txt', dest: 'dist/' },
           ],
         }),
       ],
@@ -64,6 +59,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src', // 可选：配置路径别名
+      'supports-color': 'node_modules/supports-color/index.js',
     },
   },
 })
