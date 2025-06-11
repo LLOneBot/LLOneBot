@@ -1,9 +1,9 @@
-注意：如果你安装过老版本的 LLOneBot 请先卸载并删干净 QQ 目录，重新安装原版 QQ，不要安装任何插件，否则依然有掉线风险！
+注意：请使用原版 QQ，不要安装任何插件，否则依然有掉线风险！
+官网 https://llonebot.com
 
 使用方法：
 
 双击 llonebot.exe 后会启动QQ
-
 登录 QQ 后修改 data/config_xxx.json 中的配置，xxx 为 QQ 号，修改后会自动重载，无需重启
 
 配置说明如下：

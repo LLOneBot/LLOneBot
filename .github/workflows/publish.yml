@@ -34,6 +34,7 @@ jobs:
       - name: Compress for Windows
         run: |
           cd llonebot-win-x64
+          mv ../dist/更新日志.txt ./
           mv ../dist ./llonebot
           wget https://github.com/linyuchen/PMHQ/releases/latest/download/pmhq-win-x64.zip
           unzip pmhq-win-x64.zip
