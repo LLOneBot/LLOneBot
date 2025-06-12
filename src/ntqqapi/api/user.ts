@@ -115,7 +115,7 @@ export class NTQQUserApi extends Service {
     return result
   }
 
-  async getUserDetailInfoWithBizInfo(uid: string) {
+  async getUserDetailInfoWithBizInfo(uid: string): Promise<SimpleInfo> {
     const result = await invoke<{ simpleInfo: SimpleInfo }>(
       'nodeIKernelProfileService/getUserDetailInfoWithBizInfo',
       [
@@ -130,19 +130,19 @@ export class NTQQUserApi extends Service {
     return result.simpleInfo
   }
 
-  async getUserSimpleInfo(uid: string, force = true) {
-    return this.getUserDetailInfoWithBizInfo(uid)
-    const data = await invoke<Map<string, SimpleInfo>>(
-      'nodeIKernelProfileService/getUserSimpleInfo',
-      [
-        [uid],
-        force,
-      ],
-      {
-        resultCmd: ReceiveCmdS.USER_INFO,
-      },
-    )
-    return data.get(uid)?.coreInfo
+  async getUserSimpleInfo(uid: string, force = true): Promise<SimpleInfo> {
+    return await this.getUserDetailInfoWithBizInfo(uid)
+    // const data = await invoke<Map<string, SimpleInfo>>(
+    //   'nodeIKernelProfileService/getUserSimpleInfo',
+    //   [
+    //     [uid],
+    //     force,
+    //   ],
+    //   {
+    //     resultCmd: ReceiveCmdS.USER_INFO,
+    //   },
+    // )
+    // return data.get(uid)?.coreInfo
   }
 
 
