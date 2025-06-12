@@ -300,4 +300,9 @@ export class NTQQMsgApi extends Service {
       return {msgList: []}
     }
   }
+
+  async getSourceOfReplyMsgByClientSeqAndTime(peer: Peer, clientSeq: string, msgTime: string, sourceMsgIdInRecords: string) {
+    // sourceMsgIdInRecord
+    return await invoke('nodeIKernelMsgService/getSourceOfReplyMsgByClientSeqAndTime', [peer, clientSeq, msgTime, sourceMsgIdInRecords])
+  }
 }

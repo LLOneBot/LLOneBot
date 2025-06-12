@@ -73,8 +73,7 @@ async function decodeElement(ctx: Context, data: NT.RawMessage, quoted = false) 
       }
 
       try {
-        // const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replayMsgSeq, replyMsgTime, [senderUid])
-        const { msgList } = await ctx.ntMsgApi.queryFirstMsgBySeq(peer, replayMsgSeq)
+        const { msgList } = await ctx.ntMsgApi.getMsgsBySeqAndCount(peer, replayMsgSeq, 1, true, true)
         let replyMsg: NT.RawMessage | undefined
         if (records.msgRandom !== '0') {
           replyMsg = msgList.find(msg => msg.msgRandom === records.msgRandom)
@@ -83,8 +82,7 @@ async function decodeElement(ctx: Context, data: NT.RawMessage, quoted = false) 
           replyMsg = msgList[0]
         }
         if (!replyMsg) {
-          ctx.logger.info('queryMsgs', msgList.map(e => pick(e, ['msgSeq', 'msgRandom'])), records.msgRandom)
-          ctx.logger.error('回复消息验证失败')
+          ctx.logger.warn('引用消息可能不完整', v.replyElement, records)
           continue
         }
         const elements = await decodeElement(ctx, replyMsg, true)

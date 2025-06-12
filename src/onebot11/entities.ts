@@ -163,8 +163,7 @@ export namespace OB11Entities {
             ctx.logger.error('找不到回复消息')
             continue
           }
-          const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replayMsgSeq, replyMsgTime, [senderUid])
-          // const { msgList } = await ctx.ntMsgApi.queryFirstMsgBySeq(peer, replayMsgSeq)
+          const { msgList } = await ctx.ntMsgApi.getMsgsBySeqAndCount(peer, replayMsgSeq, 1, true, true)
 
           let replyMsg: RawMessage | undefined
           if (record.msgRandom !== '0') {
@@ -173,12 +172,17 @@ export namespace OB11Entities {
             ctx.logger.info('msgRandom is missing', replyElement, record)
             replyMsg = msgList[0]
           }
-
+          if (!replyMsg) {
+            ctx.logger.error('获取不到引用的消息', replyElement)
+            continue
+          }
           // 284840486: 合并消息内侧 消息具体定位不到
           if (!replyMsg && msg.peerUin !== '284840486') {
+            ctx.logger.error('获取不到引用的消息', replyElement)
             ctx.logger.warn('queryMsgs', msgList.map(e => pick(e, ['msgSeq', 'msgRandom'])), record.msgRandom)
             continue
           }
+
           messageSegment = {
             type: OB11MessageDataType.Reply,
             data: {

@@ -18,7 +18,7 @@ export class RequestUtil {
                 //log('redirectCookies', redirectCookies)
                 cookies = { ...cookies, ...redirectCookies }
                 resolve(cookies)
-              })
+              }).catch(reject)
             } else {
               resolve(cookies)
             }
