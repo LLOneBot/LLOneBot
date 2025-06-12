@@ -83,9 +83,7 @@ async function decodeElement(ctx: Context, data: NT.RawMessage, quoted = false) 
           replyMsg = msgList[0]
         }
         if (!replyMsg) {
-          ctx.logger.info('queryMsgs', msgList.map(e => pick(e, ['msgSeq', 'msgRandom'])), records.msgRandom)
-          ctx.logger.error('回复消息验证失败')
-          continue
+          replyMsg = records
         }
         const elements = await decodeElement(ctx, replyMsg, true)
         buffer.push(h('quote', { id: replyMsg.msgId }, elements))
