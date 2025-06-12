@@ -1,7 +1,8 @@
 import { invoke, NTMethod } from '../ntcall'
-import { RawMessage, SendMessageElement, Peer, ChatType } from '../types'
-import { Service, Context } from 'cordis'
+import { ChatType, MessageElement, Peer, RawMessage, SendMessageElement } from '../types'
+import { Context, Service } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
+import { ReceiveCmdS } from '@/ntqqapi/hook'
 
 declare module 'cordis' {
   interface Context {
@@ -295,14 +296,33 @@ export class NTQQMsgApi extends Service {
         queryOrder,
         incloudeDeleteMsg,
       ])
-    }catch (e) {
+    } catch (e) {
       this.ctx.logger.error('getMsgsBySeqAndCount error', e)
-      return {msgList: []}
+      return { msgList: [] }
     }
   }
 
   async getSourceOfReplyMsgByClientSeqAndTime(peer: Peer, clientSeq: string, msgTime: string, sourceMsgIdInRecords: string) {
     // sourceMsgIdInRecord
     return await invoke('nodeIKernelMsgService/getSourceOfReplyMsgByClientSeqAndTime', [peer, clientSeq, msgTime, sourceMsgIdInRecords])
+  }
+
+  async translatePtt2Text(msgId: string, peer: Peer, voiceMsgElement: MessageElement) {
+    const res = await invoke('nodeIKernelMsgService/translatePtt2Text', [msgId, peer, voiceMsgElement],
+      {
+        resultCmd: ReceiveCmdS.UPDATE_MSG,
+        resultCb: (msgList: RawMessage[]) => {
+          const voiceMsg = msgList[0]
+          if (voiceMsg && voiceMsg.msgId === msgId && voiceMsg.elements.length > 0) {
+            const pttElement = voiceMsg.elements[0].pttElement
+            if (pttElement && pttElement.text) {
+              return true
+            }
+          }
+          return false
+        },
+      },
+    )
+    return res[0]?.elements[0]?.pttElement?.text || ''
   }
 }
