@@ -91,9 +91,12 @@ import { SetGroupPortrait } from './go-cqhttp/SetGroupPortrait'
 import { MoveGroupFile } from './llonebot/MoveGroupFile'
 import { GetGroupShutList } from './llonebot/GetGroupShutList'
 import { RenameGroupFileFolder } from './llonebot/RenameGroupFileFolder'
+import { VoiceMsg2Text } from '@/onebot11/action/llonebot/VoiceMsg2Text'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
+    // llonebot
+    new VoiceMsg2Text(adapter),
     new GetFile(adapter),
     new Debug(adapter),
     new GetConfigAction(adapter),
