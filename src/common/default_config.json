@@ -28,5 +28,6 @@
   "autoDeleteFileSecond": 60,
   "musicSignUrl": "https://llob.linyuchen.net/sign/music",
   "msgCacheExpire": 120,
-  "onlyLocalhost": true
+  "onlyLocalhost": true,
+  "ffmpeg": ""
 }
