@@ -1,29 +1,30 @@
 <template>
   <el-container class="main-container">
-    <el-header class="header">
-      <el-icon class="logo"><i-ep-setting /></el-icon>
-      <h2>LLOneBot 配置可视化编辑器</h2>
-    </el-header>
+
     <el-main>
+      <el-header class="header">
+        <el-icon class="logo"><i-ep-setting /></el-icon>
+        <h2>LLTwoBot</h2>
+      </el-header>
       <el-row :gutter="24" justify="center">
         <el-col :xs="24" :sm="22" :md="20" :lg="16" :xl="12">
           <el-card shadow="hover" class="config-card">
             <el-form :model="form" label-width="160px" size="large" class="config-form">
               <el-divider content-position="left"><el-icon><i-ep-cpu /></el-icon> Satori 协议</el-divider>
               <el-row :gutter="16" class="satori-row">
-                <el-col :span="6">
+                <el-col :span="12">
                   <el-form-item>
                     <template #label>启用 Satori</template>
                     <el-switch v-model="form.satori.enable" style="width: 100%;" />
                   </el-form-item>
                 </el-col>
-                <el-col :span="8">
+                <el-col :span="12">
                   <el-form-item>
                     <template #label>Satori 端口</template>
                     <el-input-number v-model="form.satori.port" :min="1" :max="65535" style="width: 100%;" />
                   </el-form-item>
                 </el-col>
-                <el-col :span="10">
+                <el-col :span="12">
                   <el-form-item>
                     <template #label>Satori Token</template>
                     <el-input v-model="form.satori.token" placeholder="Satori Token" clearable style="width: 100%;" />
