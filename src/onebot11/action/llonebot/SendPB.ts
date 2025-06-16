@@ -1,4 +1,3 @@
-import { from } from '@satorijs/element'
 import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
 

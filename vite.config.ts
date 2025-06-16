@@ -71,6 +71,7 @@ export default defineConfig({
             { src: './package-dist.json', dest: 'dist/', rename: 'package.json' },
             { src: './doc/使用说明.txt', dest: 'dist/' },
             { src: './doc/更新日志.txt', dest: 'dist/' },
+            { src: './public/qq_msg_encoding.wasm', dest: 'dist/'}
           ],
         }),
       ],
