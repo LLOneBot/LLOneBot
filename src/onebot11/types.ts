@@ -351,6 +351,7 @@ export type OB11MessageData =
   | OB11MessageForward
   | OB11MessageContact
   | OB11MessageShake
+  | OB11MessageKeyboard
 
 export interface OB11PostSendMsg {
   message_type?: 'private' | 'group'
