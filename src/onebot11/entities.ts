@@ -374,6 +374,33 @@ export namespace OB11Entities {
             id: msg.msgId
           }
         }
+      } else if (element.inlineKeyboardElement) {
+        messageSegment = {
+          type: OB11MessageDataType.Keyboard,
+          data: {
+            rows: element.inlineKeyboardElement.rows.map(row => ({
+              buttons: row.buttons.map(button => ({
+                id: button.id,
+                render_data: {
+                  label: button.label,
+                  visited_label: button.visitedLabel,
+                  style: button.style,
+                },
+                action: {
+                  type: button.type,
+                  permission: {
+                    type: button.permissionType,
+                    specify_role_ids: button.specifyRoleIds,
+                    specify_user_ids: button.specifyTinyids,
+                  },
+                  unsupport_tips: button.unsupportTips,
+                  data: button.data,
+                  reply: button.isReply,
+                  enter: button.enter,
+                },
+              }))
+            }))
+          }}
       }
       if (messageSegment) {
         const cqCode = encodeCQCode(messageSegment)

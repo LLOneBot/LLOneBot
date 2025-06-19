@@ -1,6 +1,5 @@
 import { GroupMemberRole } from './group'
 import { GeneralCallResult } from '../services'
-import { Field } from 'minato'
 
 export enum ElementType {
   Text = 1,
@@ -379,25 +378,26 @@ export interface MarkdownElement {
 }
 
 export interface InlineKeyboardElementRowButton {
-  id: ''
-  label: string
-  visitedLabel: string
-  style: 1 // 未知
-  type: 2 // 未知
-  clickLimit: 0 // 未知
-  unsupportTips: '请升级新版手机QQ'
-  data: string
-  atBotShowChannelList: false
-  permissionType: 2
-  specifyRoleIds: []
-  specifyTinyids: []
-  isReply: false
-  anchor: 0
-  enter: false
-  subscribeDataTemplateIds: []
+  id: string // 按钮ID：在一个keyboard消息内设置唯一
+  label: string // 按钮上的文字
+  visitedLabel: string // 点击后按钮的上文字
+  style: number // 按钮样式：0 灰色线框，1 蓝色线框
+  type: number // 设置 0 跳转按钮：http 或 小程序 客户端识别 scheme，设置 1 回调按钮：回调后台接口, data 传给后台，设置 2 指令按钮：自动在输入框插入 @bot data
+  clickLimit: number // 【已弃用】可操作点击的次数，默认不限
+  unsupportTips: string // 客户端不支持本action的时候，弹出的toast文案
+  data: string // 操作相关的数据
+  atBotShowChannelList: boolean // 	本字段仅在指令按钮下有效，设置后后会忽略 action.enter 配置。设置为 1 时 ，点击按钮自动唤起启手Q选图器，其他值暂无效果。（仅支持手机端版本 8983+ 的单聊场景，桌面端不支持）
+  permissionType: number // 0 指定用户可操作，1 仅管理者可操作，2 所有人可操作，3 指定身份组可操作（仅频道可用）
+  specifyRoleIds: string[] // 有权限的身份组 id 的列表（仅频道可用）
+  specifyTinyids: string[] // 有权限的用户 id 的列表
+  isReply: boolean // 指令按钮可用，指令是否带引用回复本消息，默认 false。支持版本 8983
+  anchor: number // 本字段仅在指令按钮下有效，设置后后会忽略 action.enter 配置。设置为 1 时 ，点击按钮自动唤起启手Q选图器，其他值暂无效果。（仅支持手机端版本 8983+ 的单聊场景，桌面端不支持）
+  enter: boolean // 指令按钮可用，点击按钮后直接自动发送 data，默认 false。支持版本 8983
+  subscribeDataTemplateIds: [] // 未知
 }
 
 export interface InlineKeyboardElement {
+  botAppid?: string
   rows: [
     {
       buttons: InlineKeyboardElementRowButton[]

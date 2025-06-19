@@ -138,6 +138,7 @@ export enum OB11MessageDataType {
   Rps = 'rps',
   Contact = 'contact',
   Shake = 'shake',
+  Keyboard = "keyboard",
 }
 
 export interface OB11MessageMFace {
@@ -150,6 +151,35 @@ export interface OB11MessageMFace {
     url?: string
   }
 }
+
+export interface OB11MessageKeyboard {
+  type: OB11MessageDataType.Keyboard
+  data: {
+    rows: {
+    buttons: {
+      id: string;
+      render_data: {
+        label: string;
+        visited_label: string;
+        style: number;
+      };
+      action: {
+        type: number;
+        permission: {
+          type: number;
+          specify_role_ids: string[];
+          specify_user_ids: string[];
+        };
+        unsupport_tips: string;
+        data: string;
+        reply: boolean;
+        enter: boolean;
+      };
+      }[];
+    }[];
+  }
+}
+
 
 export interface OB11MessageDice {
   type: OB11MessageDataType.Dice
@@ -321,6 +351,7 @@ export type OB11MessageData =
   | OB11MessageForward
   | OB11MessageContact
   | OB11MessageShake
+  | OB11MessageKeyboard
 
 export interface OB11PostSendMsg {
   message_type?: 'private' | 'group'
