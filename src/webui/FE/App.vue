@@ -1,12 +1,15 @@
 <template>
   <el-container class="main-container">
     <el-header class="header">
-      <h2>LLTwoBot</h2>
+      <h2 style="display:inline-block;">LLTwoBot</h2>
     </el-header>
     <el-main v-loading="loading">
       <el-row :gutter="24" justify="center">
         <el-col :xs="24" :sm="22" :md="20" :lg="16" :xl="12">
           <el-card shadow="hover" class="config-card">
+            <div class="account-info" style="margin-bottom: 12px; text-align: right;">
+              {{ accountNick }} <span v-if="accountUin">({{ accountUin }})</span>
+            </div>
             <el-menu mode="horizontal" :default-active="activeIndex" @select="handleSelect">
               <el-menu-item index="1">OneBot 11 配置</el-menu-item>
               <el-menu-item index="2">Satori 配置</el-menu-item>
@@ -292,7 +295,7 @@ async function promptPassword(tip: string): Promise<string> {
     tokenInput.value = ''
     showTokenDialog.value = true
     tokenDialogError.value = tip
-    function onConfirm() {
+    async function onConfirm() {
       const pwd = tokenInput.value.trim()
       if (!pwd) {
         tokenDialogError.value = '密码不能为空'
@@ -391,6 +394,9 @@ const httpPostUrlInput = ref('')
 const wsReverseUrlInput = ref('')
 const loading = ref(false)
 
+const accountNick = ref('')
+const accountUin = ref('')
+
 // 获取配置
 async function fetchConfig() {
   try {
@@ -398,7 +404,17 @@ async function fetchConfig() {
     const resp = await apiFetch('/api/config')
     const data = await resp.json()
     if (data.success) {
-      form.value = data.data
+      // 兼容新格式
+      if (data.data.config && data.data.selfInfo) {
+        form.value = data.data.config
+        accountNick.value = data.data.selfInfo.nick || ''
+        accountUin.value = data.data.selfInfo.uin || ''
+      } else {
+        form.value = data.data
+        accountNick.value = ''
+        accountUin.value = ''
+      }
+      console.log('config接口返回:', data)
       ElMessage.success('配置加载成功')
     } else {
       throw new Error(data.message || '获取配置失败')
@@ -413,6 +429,27 @@ async function fetchConfig() {
 
 // 保存配置
 async function onSave() {
+  // 校验 ws 反向输入框
+  const wsVal = wsReverseUrlInput.value.trim()
+  if (wsVal && !/^wss?:\/\//.test(wsVal)) {
+    ElMessage.error('反向WS地址必须以 ws:// 或 wss:// 开头')
+    return
+  }
+  // 校验 http 上报输入框
+  const httpVal = httpPostUrlInput.value.trim()
+  if (httpVal && !/^https?:\/\//.test(httpVal)) {
+    ElMessage.error('HTTP上报地址必须以 http:// 或 https:// 开头')
+    return
+  }
+  // 自动添加输入框内容到列表
+  if (wsVal && !form.value.ob11.wsReverseUrls.includes(wsVal)) {
+    form.value.ob11.wsReverseUrls.push(wsVal)
+    wsReverseUrlInput.value = ''
+  }
+  if (httpVal && !form.value.ob11.httpPostUrls.includes(httpVal)) {
+    form.value.ob11.httpPostUrls.push(httpVal)
+    httpPostUrlInput.value = ''
+  }
   try {
     loading.value = true
     const resp = await apiFetch('/api/config', {
@@ -531,6 +568,13 @@ function handleTokenDialogClose() {
 .info-icon {
   margin-left: 8px;
   color: #909399;
+}
+
+.account-info {
+  float: right;
+  margin-top: 12px;
+  font-size: 16px;
+  color: #666;
 }
 
 @media (max-width: 600px) {

@@ -87,7 +87,7 @@ export class SatoriServer {
     })
 
     const { onlyLocalhost, port } = this.config
-    let host = onlyLocalhost ? '127.0.0.1': '::'
+    let host = onlyLocalhost ? '127.0.0.1': ''
     this.httpServer = this.express.listen(port, host, () => {
       this.ctx.logger.info(`Satori server started ${host}:${port}`)
     })

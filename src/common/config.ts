@@ -9,15 +9,21 @@ import { fileURLToPath } from 'node:url'
 export class ConfigUtil {
   private readonly configPath: string
   private config: Config | null = null
+  private watch = false
 
   constructor(configPath: string) {
     this.configPath = configPath
+
   }
 
   listenChange(cb: (config: Config) => void) {
     console.log('配置文件位于', this.configPath)
+
     this.setConfig(this.getConfig())
     fs.watchFile(this.configPath, { persistent: true, interval: 1000 }, () => {
+      if (!this.watch) {
+        return
+      }
       console.log('配置重載')
       const c = this.reloadConfig()
       cb(c)
@@ -47,17 +53,17 @@ export class ConfigUtil {
       enableWsReverse: true,
       messagePostFormat: 'array',
       enableHttpHeart: false,
-      reportSelfMessage: false
+      reportSelfMessage: false,
     }
     const satoriDefault: SatoriConfig = {
       enable: false,
       port: 5600,
-      token: ''
+      token: '',
     }
     const webuiDefault: WebUIConfig = {
       enable: true,
       port: 3080,
-      token: ''
+      token: '',
     }
     const defaultConfig: Config = {
       webui: webuiDefault,
@@ -72,21 +78,22 @@ export class ConfigUtil {
       autoDeleteFileSecond: 60,
       musicSignUrl: 'https://llob.linyuchen.net/sign/music',
       msgCacheExpire: 120,
-      ffmpeg: ''
+      ffmpeg: '',
     }
     // console.info('读取配置文件', this.configPath)
     if (!fs.existsSync(this.configPath)) {
       const defaultConfigPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'default_config.json')
       const defaultConfigData = fs.readFileSync(defaultConfigPath, 'utf-8')
-      try{
+      try {
         this.config = JSON5.parse(defaultConfigData)
-      }
-      catch (e) {
-        console.error('默认配置文件内容不合格，使用内置默认配置')
+      } catch (e) {
+        console.error('默认配置文件 default_config.json 内容不合格，使用内置默认配置')
         this.config = defaultConfig
       }
+      this.setConfig(this.config!, false)
       return this.config!
-    } else {
+    }
+    else {
       const data = fs.readFileSync(this.configPath, 'utf-8')
       let jsonData: Config = defaultConfig
       try {
@@ -101,14 +108,19 @@ export class ConfigUtil {
       this.checkOldConfig(jsonData.ob11, jsonData.ob11, 'wsReverseUrls', 'wsHosts')
       this.checkOldConfig(jsonData.ob11, jsonData.ob11, 'httpPostUrls', 'httpHosts')
       this.checkOldConfig(jsonData, jsonData.ob11, 'onlyLocalhost', 'listenLocalhost')
+      this.setConfig(jsonData, false)
       this.config = jsonData
       return this.config
     }
   }
 
-  setConfig(config: Config) {
+  setConfig(config: Config, watch = false) {
+    this.watch = watch
     this.config = config
     fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), 'utf-8')
+    setTimeout(() => {
+      this.watch = true
+    }, 3000)
   }
 
   private checkOldConfig(

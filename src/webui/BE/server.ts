@@ -5,6 +5,7 @@ import { getConfigUtil } from '@/common/config'
 import { Config, WebUIConfig } from '@/common/types'
 import { Server } from 'http'
 import { Context, Service } from 'cordis'
+import { selfInfo } from '@/common/globalVars'
 
 const app = express()
 const __filename = fileURLToPath(import.meta.url)
@@ -46,7 +47,8 @@ export class WebUIServer extends Service {
     this.app.get('/api/config/', (req, res) => {
       try {
         const config = getConfigUtil().getConfig()
-        res.json({ success: true, data: config })
+        const { nick, uin } = selfInfo
+        res.json({ success: true, data: { config, selfInfo: { nick, uin } } })
       } catch (e) {
         res.status(500).json({ success: false, message: '获取配置失败', error: String(e) })
       }
@@ -75,9 +77,23 @@ export class WebUIServer extends Service {
       res.json({ success: true, message: 'Token设置成功' })
     })
 
+    // 获取账号信息接口
+    this.app.get('/api/login-info', (req, res) => {
+      const { nick, uin } = selfInfo
+      res.json({ success: true, data: { nick, uin } })
+    })
+
     this.app.get('/', (req, res) => {
       res.sendFile(path.join(feDistPath, 'index.html'))
     })
+
+    // 监听 config 更新事件
+    ctx.on('llob/config-updated', (newConfig: Config) => {
+      this.config = {onlyLocalhost: newConfig.onlyLocalhost, ...newConfig.webui}
+      this.ctx.logger.info('WebUI 配置已更新:', this.config)
+      this.restart()
+    })
+
   }
 
   // Override the base Service.start() signature to match expected arguments
@@ -87,11 +103,17 @@ export class WebUIServer extends Service {
     }
 
     const port = this.config.port ?? 3080
-    const host = this.config.onlyLocalhost ? 'localhost' : '::'
+    const host = this.config.onlyLocalhost ? 'localhost' : ''
 
     this.server = this.app.listen(port, host, () => {
-      console.log(`WebUI 后端已启动：http://${host}:${port}`)
-      console.log('静态文件目录:', feDistPath)
+      this.ctx.logger.info(`WebUI 端口: ${port}`)
+    })
+    this.server.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        this.ctx.logger.error(`WebUI 端口 ${port} 被占用，启动失败！`)
+      } else {
+        this.ctx.logger.error('WebUI 启动失败:', err)
+      }
     })
   }
 
