@@ -343,17 +343,18 @@ export class NTQQGroupApi extends Service {
   }
 
   async getGroupShutUpMemberList(groupCode: string) {
-    return await invoke<{
-      groupCode: string
+    const res = await invoke<[
+      groupCode: string,
       memList: GroupMember[]
-    }>(
+    ]>(
       'nodeIKernelGroupService/getGroupShutUpMemberList',
       [groupCode],
       {
         resultCmd: 'nodeIKernelGroupListener/onShutUpMemberListChanged',
-        resultCb: payload => payload.groupCode === groupCode,
+        resultCb: payload => payload[0] === groupCode,
       },
     )
+    return res[1]
   }
 
   async renameGroupFolder(groupId: string, folderId: string, newFolderName: string) {

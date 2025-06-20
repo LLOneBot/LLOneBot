@@ -16,8 +16,7 @@ export class GetGroupShutList extends BaseAction<Payload, GroupMember[]> {
   async _handle(payload: Payload) {
     try {
       const groupCode = payload.group_id.toString()
-      const res = await this.ctx.ntGroupApi.getGroupShutUpMemberList(groupCode)
-      return res.memList
+      return await this.ctx.ntGroupApi.getGroupShutUpMemberList(groupCode)
     } catch (e) {
       if (e instanceof DetailedError) {
         if (e.data.result === 120271006) {
