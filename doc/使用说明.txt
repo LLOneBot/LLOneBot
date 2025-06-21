@@ -3,7 +3,7 @@
 
 使用方法：
 
-双击 llonebot.exe 后会启动QQ
+双击 llonebot.exe 后会启动 QQ，登录 QQ 后
 
 浏览器访问 http://localhost:3080 进行配置
 
