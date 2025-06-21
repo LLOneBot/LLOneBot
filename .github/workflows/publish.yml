@@ -25,8 +25,7 @@ jobs:
       - name: Build
         run: |
           npm run build
-          cd src/webui/FE
-          npm install
+          npm run build-webui
 
       - name: Compress dist
         run: |
