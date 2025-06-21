@@ -90,7 +90,7 @@ export class WebUIServer extends Service {
     // 监听 config 更新事件
     ctx.on('llob/config-updated', (newConfig: Config) => {
       this.config = {onlyLocalhost: newConfig.onlyLocalhost, ...newConfig.webui}
-      this.ctx.logger.info('WebUI 配置已更新:', this.config)
+      // this.ctx.logger.info('WebUI 配置已更新:', this.config)
       this.restart()
     })
 
