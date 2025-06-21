@@ -95,6 +95,7 @@ export class NTQQUserApi extends Service {
     return ''
   }
 
+  // 这个会从服务器拉取，比较可靠
   async fetchUserDetailInfo(uid: string) {
     const result = await invoke<{detail: Map<string, UserDetailInfoV2>}>(
       'nodeIKernelProfileService/fetchUserDetailInfo',
@@ -106,20 +107,6 @@ export class NTQQUserApi extends Service {
       ],
     )
     return result.detail.get(uid)
-  }
-
-  async getUserDetailInfo(uid: string) {
-    const result = await invoke<UserDetailInfoV2>(
-      'nodeIKernelProfileService/getUserDetailInfo',
-      [
-        uid,
-      ],
-      {
-        resultCmd: 'nodeIKernelProfileListener/onUserDetailInfoChanged',
-        resultCb: payload => payload.uid === uid,
-      },
-    )
-    return result
   }
 
   async getUserDetailInfoWithBizInfo(uid: string): Promise<SimpleInfo> {
@@ -151,7 +138,6 @@ export class NTQQUserApi extends Service {
     // )
     // return data.get(uid)?.coreInfo
   }
-
 
   async getCoreAndBaseInfo(uids: string[]) {
     return await invoke(
