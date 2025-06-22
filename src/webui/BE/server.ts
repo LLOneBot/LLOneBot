@@ -103,7 +103,7 @@ export class WebUIServer extends Service {
     }
 
     const port = this.config.port ?? 3080
-    const host = this.config.onlyLocalhost ? 'localhost' : ''
+    const host = this.config.onlyLocalhost ? '127.0.0.1' : ''
 
     this.server = this.app.listen(port, host, () => {
       this.ctx.logger.info(`WebUI 端口: ${port}`)
