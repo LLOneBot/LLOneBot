@@ -21,6 +21,8 @@ async function fileExists(path: string): Promise<boolean> {
 }
 
 class WasmModule {
+  private static instance: WasmModule | null = null
+  
   private constructor(
     private wasmPath: string,
     private instance: WebAssembly.Instance,
@@ -28,6 +30,10 @@ class WasmModule {
   ) {}
 
   static async create(wasmPath: string): Promise<WasmModule> {
+    if (WasmModule.instance) {
+      return WasmModule.instance
+    }
+    
     const fullPath = resolve(wasmPath)
     const buffer = await readFile(fullPath)
     const { instance } = await WebAssembly.instantiate(buffer)
@@ -37,7 +43,15 @@ class WasmModule {
       throw new Error('Exported memory not found or invalid')
     }
 
-    return new WasmModule(wasmPath, instance, memory)
+    WasmModule.instance = new WasmModule(wasmPath, instance, memory)
+    return WasmModule.instance
+  }
+
+  static cleanup() {
+    if (WasmModule.instance) {
+      // 清理WebAssembly实例
+      WasmModule.instance = null
+    }
   }
 
   get exports() {

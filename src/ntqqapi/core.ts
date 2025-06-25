@@ -130,26 +130,33 @@ class Core extends Service {
     if (!this.config.autoDeleteFile) {
       return
     }
+    
+    // 使用一个定时器处理所有文件，而不是为每个元素创建定时器
+    const allPaths: string[] = []
     for (const message of msgList) {
       for (const msgElement of message.elements) {
-        setTimeout(() => {
-          const picPath = msgElement.picElement?.sourcePath
-          const picThumbPath = [...(msgElement.picElement?.thumbPath ?? []).values()]
-          const pttPath = msgElement.pttElement?.filePath
-          const filePath = msgElement.fileElement?.filePath
-          const videoPath = msgElement.videoElement?.filePath
-          const videoThumbPath = [...(msgElement.videoElement?.thumbPath ?? []).values()]
-          const pathList = [picPath, ...picThumbPath, pttPath, filePath, videoPath, ...videoThumbPath]
-          if (msgElement.picElement) {
-            pathList.push(...Object.values(msgElement.picElement.thumbPath))
-          }
-          for (const path of pathList) {
-            if (path) {
-              unlink(path).then(() => this.ctx.logger.info('删除文件成功', path)).catch(e=>{})
-            }
-          }
-        }, this.config.autoDeleteFileSecond! * 1000)
+        const picPath = msgElement.picElement?.sourcePath
+        const picThumbPath = [...(msgElement.picElement?.thumbPath ?? []).values()]
+        const pttPath = msgElement.pttElement?.filePath
+        const filePath = msgElement.fileElement?.filePath
+        const videoPath = msgElement.videoElement?.filePath
+        const videoThumbPath = [...(msgElement.videoElement?.thumbPath ?? []).values()]
+        const pathList = [picPath, ...picThumbPath, pttPath, filePath, videoPath, ...videoThumbPath]
+        if (msgElement.picElement) {
+          pathList.push(...Object.values(msgElement.picElement.thumbPath))
+        }
+        allPaths.push(...pathList.filter((path): path is string => path !== undefined && path !== null))
       }
+    }
+    
+    if (allPaths.length > 0) {
+      setTimeout(() => {
+        for (const path of allPaths) {
+          if (path) {
+            unlink(path).then(() => this.ctx.logger.info('删除文件成功', path)).catch(e=>{})
+          }
+        }
+      }, this.config.autoDeleteFileSecond! * 1000)
     }
   }
 
@@ -195,6 +202,14 @@ class Core extends Service {
             logSummaryMessage(this.ctx, msg).then()
             this.ctx.parallel('nt/message-sent', msg)
           }
+        }
+      }
+      
+      // 限制Map大小，防止内存泄露
+      if (sentMsgIds.size > 1000) {
+        const firstKey = sentMsgIds.keys().next().value
+        if (firstKey) {
+          sentMsgIds.delete(firstKey)
         }
       }
     })

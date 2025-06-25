@@ -105,7 +105,7 @@ export function invoke<
     funcName = method
     // console.error('unknown service:', serviceName);
   }
-  let timeout = options.timeout ?? 3000
+  let timeout = options.timeout ?? 5000
 
   return new Promise<R>((resolve, reject) => {
     let timeoutId = null

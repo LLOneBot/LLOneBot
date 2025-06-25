@@ -248,8 +248,7 @@ export class NTQQMsgApi extends Service {
     const uniqueId = await invoke('nodeIKernelMsgService/generateMsgUniqueId', [chatType, time])
     if (typeof uniqueId === 'string') {
       return uniqueId
-    }
-    else {
+    } else {
       const random = Math.trunc(Math.random() * 100)
       return `${Date.now()}${random}`
     }
@@ -290,12 +289,15 @@ export class NTQQMsgApi extends Service {
   async getMsgsBySeqAndCount(peer: Peer, msgSeq: string, cnt: number, queryOrder: boolean, includeDeleteMsg: boolean) {
     try {
       return await invoke('nodeIKernelMsgService/getMsgsBySeqAndCount', [
-        peer,
-        msgSeq,
-        cnt,
-        queryOrder,
-        includeDeleteMsg,
-      ])
+          peer,
+          msgSeq,
+          cnt,
+          queryOrder,
+          includeDeleteMsg,
+        ],
+        {
+          timeout: Math.max(1000 * cnt, 3000),
+        })
     } catch (e) {
       this.ctx.logger.error('getMsgsBySeqAndCount error', e)
       return { msgList: [] }

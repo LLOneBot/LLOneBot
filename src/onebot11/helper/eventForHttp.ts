@@ -42,6 +42,16 @@ export async function getHttpEvent(userKey: string, timeout = 0) {
       delete httpUser[key]
     }
   }
+  
+  // 限制httpUser大小，防止内存泄露
+  const userKeys = Object.keys(httpUser)
+  if (userKeys.length > 100) {
+    // 删除最旧的用户
+    const oldestKey = userKeys.reduce((oldest, current) => 
+      httpUser[current].lastAccessTime < httpUser[oldest].lastAccessTime ? current : oldest
+    )
+    delete httpUser[oldestKey]
+  }
 
   // 增加新的user
   if (!httpUser[userKey]) {

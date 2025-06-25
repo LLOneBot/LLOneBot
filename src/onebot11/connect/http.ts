@@ -53,6 +53,21 @@ class OB11Http {
         res.setHeader('X-Accel-Buffering', 'no')
         res.flushHeaders()
         this.sseClients.push(res)
+        
+        // 添加客户端断开连接时的清理逻辑
+        req.on('close', () => {
+          const index = this.sseClients.indexOf(res)
+          if (index > -1) {
+            this.sseClients.splice(index, 1)
+          }
+        })
+        
+        req.on('error', () => {
+          const index = this.sseClients.indexOf(res)
+          if (index > -1) {
+            this.sseClients.splice(index, 1)
+          }
+        })
       })
       this.ctx.logger.info(`OneBot V11 HTTP SSE started ${host}:${this.config.port}/_events`)
       try {

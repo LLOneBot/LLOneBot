@@ -113,16 +113,19 @@ export class PMHQ {
       this.ws = undefined
       if (this.reconnectTimer) {
         clearTimeout(this.reconnectTimer)
+        this.reconnectTimer = undefined
       }
       this.reconnectTimer = setTimeout(() => {
         this.connectWebSocket()
       }, 999)
     }
+    
     try {
       this.ws = new WebSocket(this.wsUrl)
     } catch (e) {
       return reconnect()
     }
+    
     this.ws.onmessage = async event => {
       let data: PMHQRes
       try {
@@ -149,7 +152,10 @@ export class PMHQ {
       reconnect()
     }
 
-    this.ws.onclose = reconnect
+    this.ws.onclose = () => {
+      console.info('PMHQ WebSocket 连接关闭，准备重连...')
+      reconnect()
+    }
 
     this.ws.onopen = ()=>{
       console.info('PMHQ WebSocket 连接成功')
