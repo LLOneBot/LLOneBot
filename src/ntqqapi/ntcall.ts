@@ -109,14 +109,16 @@ export function invoke<
 
   return new Promise<R>((resolve, reject) => {
     let timeoutId = null
+    let hookId: string = ''
     if (timeout) {
       timeoutId = setTimeout(() => {
+        removeReceiveHook(hookId)
         reject(`invoke timeout, ${funcName}, ${args}`)
       }, timeout)
     }
     if (options.resultCmd) {
       let firstResult: any = undefined
-      const hookId = registerReceiveHook<R>(options.resultCmd as string, (data: R) => {
+      hookId = registerReceiveHook<R>(options.resultCmd as string, (data: R) => {
         if (options.resultCb && !options.resultCb(data, firstResult)) {
           return
         }
@@ -124,10 +126,10 @@ export function invoke<
         removeReceiveHook(hookId)
         timeoutId && clearTimeout(timeoutId)
       })
-      pmhq.call(funcName, args).then(r => firstResult = r).catch(reject)
+      pmhq.call(funcName, args, timeout).then(r => firstResult = r).catch(reject)
     }
     else {
-      pmhq.call(funcName, args).then(r=>{
+      pmhq.call(funcName, args, timeout).then(r=>{
         resolve(r)
         timeoutId && clearTimeout(timeoutId)
       }).catch(reject)

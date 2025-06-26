@@ -119,13 +119,13 @@ export class PMHQ {
         this.connectWebSocket()
       }, 999)
     }
-    
+
     try {
       this.ws = new WebSocket(this.wsUrl)
     } catch (e) {
       return reconnect()
     }
-    
+
     this.ws.onmessage = async event => {
       let data: PMHQRes
       try {
@@ -162,7 +162,7 @@ export class PMHQ {
     }
   }
 
-  public async call(func: string, args: any) {
+  public async call(func: string, args: any, timeout=10000): Promise<any> {
     const payload: PMHQReqCall = {
       type: 'call',
       data: {
@@ -170,7 +170,7 @@ export class PMHQ {
         args,
       },
     }
-    const result = ((await this.wsSend(payload)) as PMHQResCall).data?.result
+    const result = ((await this.wsSend(payload, timeout)) as PMHQResCall).data?.result
     return result
   }
 
@@ -189,7 +189,7 @@ export class PMHQ {
     })
   }
 
-  public async wsSend<R extends PMHQRes>(data: PMHQReq): Promise<R> {
+  public async wsSend<R extends PMHQRes>(data: PMHQReq, timeout=10000): Promise<R> {
     await this.waitConnected()
     let echo = data.data?.echo
     if (!data.data?.echo) {
@@ -207,6 +207,10 @@ export class PMHQ {
           this.removeResListener(listenerId)
         }
       }))
+      setTimeout(() => {
+        reject(new Error('pmhq ws send: wait result timeout'))
+        this.removeResListener(listenerId)
+      }, timeout)
     })
     this.ws!.send(payload)
     return p

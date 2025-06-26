@@ -125,28 +125,6 @@ async function onLoad() {
   ctx.start()
   started = true
   llonebotError.otherError = ''
-
-  // 添加程序退出时的清理逻辑
-  process.on('SIGINT', async () => {
-    console.log('正在关闭 LLOneBot...')
-    await ctx.stop()
-    process.exit(0)
-  })
-
-  process.on('SIGTERM', async () => {
-    console.log('正在关闭 LLOneBot...')
-    await ctx.stop()
-    process.exit(0)
-  })
-
-  process.on('uncaughtException', (err) => {
-    console.error('未捕获的异常:', err)
-    process.exit(1)
-  })
-
-  process.on('unhandledRejection', (reason, promise) => {
-    console.error('未处理的 Promise 拒绝:', reason)
-  })
 }
 
 
