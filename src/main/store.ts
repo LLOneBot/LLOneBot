@@ -1,6 +1,6 @@
 import { Peer, RawMessage } from '@/ntqqapi/types'
 import { createHash } from 'node:crypto'
-import { LimitedHashTable } from '@/common/utils/table'
+import { BidiMap } from '@/common/utils/table'
 import { FileCacheV2 } from '@/common/types'
 import { Context, Service } from 'cordis'
 
@@ -31,12 +31,12 @@ interface MsgInfo {
 
 class Store extends Service {
   static inject = ['database', 'model', 'logger']
-  private cache: LimitedHashTable<string, number>
+  private cache: BidiMap<string, number>
   private messages: Map<string, RawMessage>
 
   constructor(protected ctx: Context, public config: Store.Config) {
     super(ctx, 'store', true)
-    this.cache = new LimitedHashTable(1000)
+    this.cache = new BidiMap(1000)
     this.messages = new Map()
     this.initDatabase().then().catch(console.error)
   }

@@ -2,7 +2,7 @@ import { CategoryFriend, SimpleInfo } from '../types'
 import { ReceiveCmdS } from '../hook'
 import { invoke, NTMethod } from '../ntcall'
 import { Context, Service } from 'cordis'
-import { uidUinMap, uinUidMap } from '@/ntqqapi/cache'
+import { uidUinBidiMap } from '@/ntqqapi/cache'
 
 declare module 'cordis' {
   interface Context {
@@ -32,8 +32,7 @@ export class NTQQFriendApi extends Service {
     )
     for (const item of data){
       if (item.uid && item.uin) {
-        uidUinMap.set(item.uid, item.uin);
-        uinUidMap.set(item.uin, item.uid);
+        uidUinBidiMap.set(item.uid, item.uin);
       }
     }
     return data

@@ -19,7 +19,7 @@ import { Field } from 'minato'
 import number = Field.number
 import boolean = Field.boolean
 import string = Field.string
-import { uidUinMap, uinUidMap } from '@/ntqqapi/cache'
+import { uidUinBidiMap } from '@/ntqqapi/cache'
 
 declare module 'cordis' {
   interface Context {
@@ -53,8 +53,7 @@ export class NTQQGroupApi extends Service {
     }
     const infos: Map<string, GroupMember> = data.result.infos
     for(const [uid, member] of infos){
-      uidUinMap.set(uid, member.uin)
-      uinUidMap.set(member.uin, member.uid)
+      uidUinBidiMap.set(uid, member.uin)
     }
     return infos
   }

@@ -4,7 +4,7 @@ import { RequestUtil } from '@/common/utils/request'
 import { Time } from 'cosmokit'
 import { Context, Service } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
-import { uidUinMap, uinUidMap } from '@/ntqqapi/cache'
+import { uidUinBidiMap } from '@/ntqqapi/cache'
 import { ReceiveCmdS } from '@/ntqqapi/hook'
 import { Field } from 'minato'
 import string = Field.string
@@ -33,7 +33,7 @@ export class NTQQUserApi extends Service {
   }
 
   async getUidByUin(uin: string, groupCode?: string) {
-    let uid = uinUidMap.get(uin)
+    let uid = uidUinBidiMap.getKey(uin)
     if (uid) return uid
     const funcs = [
       async ()=>{
@@ -54,7 +54,7 @@ export class NTQQUserApi extends Service {
       try {
         const uid = await f()
         if (uid) {
-          uinUidMap.set(uin, uid)
+          uidUinBidiMap.set(uid, uin)
           return uid
         }
       } catch (e) {
@@ -70,14 +70,14 @@ export class NTQQUserApi extends Service {
 
   async getUinByUid(uid: string, groupCode?: string): Promise<string> {
 
-    let uin = uidUinMap.get(uid)
+    let uin = uidUinBidiMap.get(uid)
     if (uin)
       return uin
 
     if (groupCode) {
       try {
         await this.ctx.ntGroupApi.getGroupMembers(groupCode)
-        uin = uidUinMap.get(uid)
+        uin = uidUinBidiMap.get(uid)
         if (uin) return uin
       } catch (e) {
 
@@ -100,7 +100,7 @@ export class NTQQUserApi extends Service {
       try {
         const result = await f()
         if (result) {
-          uidUinMap.set(uid, result)
+          uidUinBidiMap.set(uid, result)
           return result
         }
       } catch (e) {

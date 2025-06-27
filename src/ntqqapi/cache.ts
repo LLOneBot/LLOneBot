@@ -1,2 +1,3 @@
-export const uidUinMap = new Map<string, string>()
-export const uinUidMap = new Map<string, string>()
+import { BidiMap } from '@/common/utils/table'
+
+export const uidUinBidiMap =  new BidiMap<string, string>(-1)
