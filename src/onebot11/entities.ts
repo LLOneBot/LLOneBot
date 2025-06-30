@@ -360,6 +360,7 @@ export namespace OB11Entities {
       }
       else if (element.markdownElement) {
         const { markdownElement } = element
+        // todo: 解析闪传 markdown 获取 fileSetId
         messageSegment = {
           type: OB11MessageDataType.Markdown,
           data: {

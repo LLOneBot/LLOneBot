@@ -124,6 +124,7 @@ export enum OB11MessageDataType {
   Video = 'video',
   Record = 'record',
   File = 'file',
+  FlashFile = 'flash_file', // 闪传
   At = 'at',
   Reply = 'reply',
   Json = 'json',
