@@ -18,6 +18,7 @@ import {
   NodeIKernelRecentContactService,
 } from './services'
 import { pmhq } from '@/ntqqapi/native/pmhq'
+import { NodeIKernelFlashTransferService } from '@/ntqqapi/services/NodeIKernelFlashTransferService'
 
 export enum NTMethod {
   ACTIVE_CHAT_PREVIEW = 'nodeIKernelMsgService/getAioFirstViewLatestMsgsAndAddActiveChat', // 激活聊天窗口，有时候必须这样才能收到消息, 并返回最新预览消息
@@ -67,6 +68,7 @@ interface NTService {
   nodeIKernelRobotService: NodeIKernelRobotService
   nodeIKernelNodeMiscService: NodeIKernelNodeMiscService
   nodeIKernelRecentContactService: NodeIKernelRecentContactService
+  nodeIKernelFlashTransferService: NodeIKernelFlashTransferService
 }
 
 interface InvokeOptions<ReturnType> {
@@ -89,6 +91,7 @@ const NT_SERVICE_TO_PMHQ: Record<string, string> = {
   'nodeIKernelRobotService': 'getRobotService',
   'nodeIKernelNodeMiscService': 'getNodeMiscService',
   'nodeIKernelRecentContactService': 'getRecentContactService',
+  'nodeIKernelFlashTransferService': 'getFlashTransferService',
 }
 
 export function invoke<

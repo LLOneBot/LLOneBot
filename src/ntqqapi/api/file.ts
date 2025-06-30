@@ -21,6 +21,7 @@ import { calculateFileMD5, getFileType, getImageSize } from '@/common/utils/file
 import { copyFile, stat, unlink } from 'node:fs/promises'
 import { Time } from 'cosmokit'
 import { Service, Context } from 'cordis'
+import { selfInfo } from '@/common/globalVars'
 
 declare module 'cordis' {
   interface Context {
@@ -225,6 +226,43 @@ export class NTQQFileApi extends Service {
     )
     return data.notifyInfo
   }
+
+  async createFlashTransferUploadTask(filePaths: string[]){
+    const res = await invoke('nodeIKernelFlashTransferService/createFlashTransferUploadTask',
+      [
+        new Date().getTime(),
+        {
+          "scene": 1,
+          "name": "wrapper-darwin-arm64-34606.node",
+          "uploaders": [
+            {
+              "uin": selfInfo.uin,
+              "nickname": selfInfo.nick,
+              "uid": selfInfo.uid,
+              "sendEntrance": ""
+            }
+          ],
+          "permission": {},
+          "coverPath": "",
+          "paths": filePaths,
+          "excludePaths": [],
+          "expireLeftTime": 0,
+          "isNeedDelExif": true,
+          "coverOriginalInfos": [
+            {
+              "path": "",
+              "thumbnailPath": "",
+            }
+          ],
+          "uploadSceneType": 1
+        }
+      ]
+    )
+    if (res.result !== 0) {
+      throw new Error(`创建闪传上传任务失败: ${res.result}`)
+    }
+    return res.createFlashTransferResult
+  }
 }
 
 export class NTQQFileCacheApi extends Service {
@@ -275,3 +313,4 @@ export class NTQQFileCacheApi extends Service {
     }])
   }
 }
+
