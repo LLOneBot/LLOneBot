@@ -244,6 +244,15 @@ export interface OB11MessageFile extends OB11MessageFileBase {
   }
 }
 
+export interface OB11MessageFlashFile {
+  type: OB11MessageDataType.FlashFile
+  data: {
+    title: string
+    file_set_id: string
+    scene_type: number
+  }
+}
+
 export interface OB11MessageVideo extends OB11MessageFileBase {
   type: OB11MessageDataType.Video
   data: OB11MessageFileBase['data'] & {
@@ -340,6 +349,7 @@ export type OB11MessageData =
   | OB11MessageImage
   | OB11MessageRecord
   | OB11MessageFile
+  | OB11MessageFlashFile
   | OB11MessageVideo
   | OB11MessageNode
   | OB11MessageIdMusic

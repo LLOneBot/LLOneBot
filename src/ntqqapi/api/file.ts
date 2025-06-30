@@ -47,14 +47,14 @@ export class NTQQFileApi extends Service {
         0, // video code format, 0: H264, 1: H265 ?
         {
           downSourceType: 1,
-          triggerType: 1
-        }
+          triggerType: 1,
+        },
       ])
       if (data.result !== 0) {
         this.ctx.logger.warn('getVideoUrl', data)
       }
       return data.urlResult.domainUrl[0]?.url
-    }catch (e) {
+    } catch (e) {
       this.ctx.logger.warn('getVideoUrl error', e)
       return ''
     }
@@ -82,7 +82,7 @@ export class NTQQFileApi extends Service {
         needCreate: true,
         downloadType: 1,
         file_uuid: '',
-      }
+      },
     ])
     await copyFile(filePath, mediaPath)
     const fileSize = (await stat(filePath)).size
@@ -102,45 +102,47 @@ export class NTQQFileApi extends Service {
     thumbPath = '',
     sourcePath = '',
     timeout = 1000 * 60 * 30,
-    force = false
+    force = false,
   ) {
     // 用于下载收到的消息中的图片等
     if (sourcePath && existsSync(sourcePath)) {
       if (force) {
-          unlink(sourcePath).then().catch(e=>{})
-      } else {
+        unlink(sourcePath).then().catch(e => {
+        })
+      }
+      else {
         return sourcePath
       }
     }
     const data = await invoke<RichMediaDownloadCompleteNotify>(
       'nodeIKernelMsgService/downloadRichMedia',
       [{
-          fileModelId: '0',
-          downloadSourceType: 0,
-          triggerType: 1,
-          msgId: msgId,
-          chatType: chatType,
-          peerUid: peerUid,
-          elementId: elementId,
-          thumbSize: 0,
-          downloadType: 1,
-          filePath: thumbPath,
+        fileModelId: '0',
+        downloadSourceType: 0,
+        triggerType: 1,
+        msgId: msgId,
+        chatType: chatType,
+        peerUid: peerUid,
+        elementId: elementId,
+        thumbSize: 0,
+        downloadType: 1,
+        filePath: thumbPath,
       }],
       {
         resultCmd: ReceiveCmdS.MEDIA_DOWNLOAD_COMPLETE,
         resultCb: payload => payload.msgId === msgId,
-        timeout
-      }
+        timeout,
+      },
     )
     return data.filePath
   }
 
-  async getImageSize(filePath: string): Promise<{type: string, width: number, height: number}> {
+  async getImageSize(filePath: string): Promise<{ type: string, width: number, height: number }> {
     const fileType = await getFileType(filePath)
     const size = await getImageSize(filePath)
     return {
       type: fileType.ext,
-      ...size
+      ...size,
     }
   }
 
@@ -164,11 +166,13 @@ export class NTQQFileApi extends Service {
         const rkeyData = await this.rkeyManager.getRkey()
         rkey = imageAppid === '1406' ? rkeyData.private_rkey : rkeyData.group_rkey
         return IMAGE_HTTP_HOST_NT + url + rkey
-      } else {
+      }
+      else {
         // 老的图片url，不需要rkey
         return IMAGE_HTTP_HOST + url
       }
-    } else if (fileMd5 || md5HexStr) {
+    }
+    else if (fileMd5 || md5HexStr) {
       // 没有url，需要自己拼接
       return `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${(fileMd5 || md5HexStr)!.toUpperCase()}/0`
     }
@@ -182,13 +186,13 @@ export class NTQQFileApi extends Service {
       [
         peer,
         [fileModelId],
-        '' // savePath
+        '', // savePath
       ],
       {
         resultCmd: ReceiveCmdS.MEDIA_DOWNLOAD_COMPLETE,
         resultCb: payload => payload.fileModelId === fileModelId,
         timeout,
-      }
+      },
     )
     return data.filePath
   }
@@ -197,11 +201,11 @@ export class NTQQFileApi extends Service {
     return await invoke(
       'nodeIKernelNodeMiscService/wantWinScreenOCR',
       [
-        path
+        path,
       ],
       {
-        timeout: 2 * Time.minute
-      }
+        timeout: 2 * Time.minute,
+      },
     )
   }
 
@@ -215,53 +219,78 @@ export class NTQQFileApi extends Service {
           filePath,
           bizType,
           peerUid,
-          useNTV2: true
-        }
+          useNTV2: true,
+        },
       ],
       {
         resultCmd: ReceiveCmdS.MEDIA_UPLOAD_COMPLETE,
         resultCb: payload => payload.notifyInfo.filePath === filePath,
         timeout: 10 * Time.second,
-      }
+      },
     )
     return data.notifyInfo
   }
 
-  async createFlashTransferUploadTask(name: string, filePaths: string[]){
+  async createFlashTransferUploadTask(title: string, filePaths: string[]) {
     const res = await invoke('nodeIKernelFlashTransferService/createFlashTransferUploadTask',
       [
         new Date().getTime(),
         {
-          "scene": 1,
-          "name": name,
-          "uploaders": [
+          'scene': 1,
+          'name': title,
+          'uploaders': [
             {
-              "uin": selfInfo.uin,
-              "nickname": selfInfo.nick,
-              "uid": selfInfo.uid,
-              "sendEntrance": ""
-            }
+              'uin': selfInfo.uin,
+              'nickname': selfInfo.nick,
+              'uid': selfInfo.uid,
+              'sendEntrance': '',
+            },
           ],
-          "permission": {},
-          "coverPath": "",
-          "paths": filePaths,
-          "excludePaths": [],
-          "expireLeftTime": 0,
-          "isNeedDelExif": true,
-          "coverOriginalInfos": [
+          'permission': {},
+          'coverPath': '',
+          'paths': filePaths,
+          'excludePaths': [],
+          'expireLeftTime': 0,
+          'isNeedDelExif': true,
+          'coverOriginalInfos': [
             {
-              "path": "",
-              "thumbnailPath": "",
-            }
+              'path': '',
+              'thumbnailPath': '',
+            },
           ],
-          "uploadSceneType": 1
-        }
-      ]
+          'uploadSceneType': 1,
+        },
+      ],
     )
     if (res.result !== 0) {
       throw new Error(`创建闪传上传任务失败: ${res.result}`)
     }
     return res.createFlashTransferResult
+  }
+
+  async downloadFlashTransferFile(sceneType: number, fileSetId: string) {
+    const res = await invoke('nodeIKernelFlashTransferService/startFileSetDownload',
+      [
+        fileSetId,
+        sceneType,
+        { 'isIncludeCompressInnerFiles': false },
+      ],
+    )
+    if (res.result !== 0) {
+      throw new Error(`下载闪传文件失败: ${res.errMsg}`)
+    }
+  }
+
+  async getFlashTransferFileList(fileSetId: string){
+    const res = await invoke('nodeIKernelFlashTransferService/getFileList',
+      [
+        fileSetId,
+      ],
+    )
+    if (res.rsp.result !== 0) {
+      throw new Error(`获取闪传文件列表失败: ${res.rsp.errMs}`)
+    }
+    return res.rsp.fileLists
   }
 }
 

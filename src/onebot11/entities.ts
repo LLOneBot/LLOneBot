@@ -13,13 +13,14 @@ import {
   ChatType,
   FaceIndex,
   GrayTipElementSubType,
-  GroupSimpleInfo,
   GroupMember,
+  GroupSimpleInfo,
+  Peer,
   RawMessage,
   Sex,
+  SimpleInfo,
   TipGroupElementType,
   User,
-  SimpleInfo, Peer,
 } from '../ntqqapi/types'
 import { EventType } from './event/OB11BaseEvent'
 import { encodeCQCode } from './cqcode'
@@ -38,7 +39,7 @@ import { OB11GroupRequestEvent } from './event/request/OB11GroupRequest'
 import { GroupBanEvent } from './event/notice/OB11GroupBanEvent'
 import { GroupMsgEmojiLikeEvent } from './event/notice/OB11MsgEmojiLikeEvent'
 import { GroupEssenceEvent } from './event/notice/OB11GroupEssenceEvent'
-import { omit, pick, Dict } from 'cosmokit'
+import { Dict, omit, pick } from 'cosmokit'
 import { Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
 import { pathToFileURL } from 'node:url'
@@ -361,10 +362,40 @@ export namespace OB11Entities {
       else if (element.markdownElement) {
         const { markdownElement } = element
         // todo: 解析闪传 markdown 获取 fileSetId
-        messageSegment = {
-          type: OB11MessageDataType.Markdown,
-          data: {
-            content: markdownElement.content
+        if (markdownElement?.content.startsWith('[闪传](')){
+          const mqqapiUrl = markdownElement?.content.substring(5, markdownElement?.content.length - 1)
+          const urlJson = new URL(mqqapiUrl).searchParams.get('json')
+          if (urlJson){
+            const jsonData = JSON.parse(urlJson)
+            const busId = jsonData?.busId
+            if (busId === 'FlashTransfer'){
+              const attributes: any[] = jsonData?.attributes?.attributes || []
+              const fileAttribute = attributes.find(a=>a.viewId === 'file')
+              if (fileAttribute) {
+                const urlParams = new URL(fileAttribute.schema).searchParams
+                const fileSetId = urlParams.get('fileset_id') || ''
+                const sceneType = urlParams.get('scene_type') || ''
+                const fileSubAttributes: any[] = fileAttribute?.attributes || []
+                const titleAttribute = fileSubAttributes.find(a=>a.viewId === 'title')
+                const title: string = titleAttribute?.text
+                messageSegment = {
+                  type: OB11MessageDataType.FlashFile,
+                  data: {
+                    title,
+                    file_set_id: fileSetId,
+                    scene_type: parseInt(sceneType)
+                  }
+                }
+              }
+            }
+          }
+        }
+        else {
+          messageSegment = {
+            type: OB11MessageDataType.Markdown,
+            data: {
+              content: markdownElement.content
+            }
           }
         }
       }
