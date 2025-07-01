@@ -1,28 +1,27 @@
-import { Service, Context } from 'cordis'
+import { Context, Service } from 'cordis'
 import { OB11Entities } from './entities'
-import {
-  GroupNotify,
-  GroupNotifyType,
-  RawMessage,
-  FriendRequest,
-  GroupNotifyStatus
-} from '../ntqqapi/types'
+import { FriendRequest, GroupNotify, GroupNotifyStatus, GroupNotifyType, RawMessage } from '../ntqqapi/types'
 import { OB11GroupRequestEvent } from './event/request/OB11GroupRequest'
 import { OB11FriendRequestEvent } from './event/request/OB11FriendRequest'
 import { OB11GroupDecreaseEvent } from './event/notice/OB11GroupDecreaseEvent'
-import { selfInfo } from '../common/globalVars'
-import { OB11Config, Config as LLOBConfig } from '../common/types'
+import { llonebotError, selfInfo } from '../common/globalVars'
+import { Config as LLOBConfig, OB11Config } from '../common/types'
 import { OB11WebSocket, OB11WebSocketReverseManager } from './connect/ws'
 import { OB11Http, OB11HttpPost } from './connect/http'
 import { OB11BaseEvent } from './event/OB11BaseEvent'
 import { OB11BaseMetaEvent } from './event/meta/OB11BaseMetaEvent'
 import { postHttpEvent } from './helper/eventForHttp'
 import { initActionMap } from './action'
-import { llonebotError } from '../common/globalVars'
 import { OB11GroupAdminNoticeEvent } from './event/notice/OB11GroupAdminNoticeEvent'
 import { OB11ProfileLikeEvent } from './event/notice/OB11ProfileLikeEvent'
 import { Msg, SysMsg } from '@/ntqqapi/proto/compiled'
 import { OB11GroupIncreaseEvent } from './event/notice/OB11GroupIncreaseEvent'
+import { FlashFileDownloadStatus, FlashFileUploadStatus } from '@/ntqqapi/types/flashfile'
+import {
+  OB11FlashFile,
+  OB11FlashFileDownloadedEvent, OB11FlashFileDownloadingEvent,
+  OB11FlashFileUploadedEvent, OB11FlashFileUploadingEvent,
+} from '@/onebot11/event/notice/OB11FlashFileEvent'
 
 declare module 'cordis' {
   interface Context {
@@ -34,7 +33,7 @@ class OneBot11Adapter extends Service {
   static inject = [
     'ntMsgApi', 'ntFileApi', 'ntFileCacheApi',
     'ntFriendApi', 'ntGroupApi', 'ntUserApi',
-    'ntWebApi', 'ntSystemApi', 'store', 'app'
+    'ntWebApi', 'ntSystemApi', 'store', 'app',
   ]
   private ob11WebSocket
   private ob11WebSocketReverseManager
@@ -48,26 +47,26 @@ class OneBot11Adapter extends Service {
       port: config.httpPort,
       token: config.token,
       actionMap,
-      listenLocalhost: config.onlyLocalhost
+      listenLocalhost: config.onlyLocalhost,
     })
     this.ob11HttpPost = new OB11HttpPost(ctx, {
       hosts: config.httpPostUrls,
       heartInterval: config.heartInterval,
       secret: config.httpSecret,
-      enableHttpHeart: config.enableHttpHeart
+      enableHttpHeart: config.enableHttpHeart,
     })
     this.ob11WebSocket = new OB11WebSocket(ctx, {
       port: config.wsPort,
       heartInterval: config.heartInterval,
       token: config.token,
       actionMap,
-      listenLocalhost: config.onlyLocalhost
+      listenLocalhost: config.onlyLocalhost,
     })
     this.ob11WebSocketReverseManager = new OB11WebSocketReverseManager(ctx, {
       hosts: config.wsReverseUrls,
       heartInterval: config.heartInterval,
       token: config.token,
-      actionMap
+      actionMap,
     })
   }
 
@@ -106,8 +105,7 @@ class OneBot11Adapter extends Service {
           )
           this.dispatch(event)
         }
-      }
-      else if (notify.type === GroupNotifyType.RequestJoinNeedAdminiStratorPass && notify.status === GroupNotifyStatus.Unhandle) {
+      } else if (notify.type === GroupNotifyType.RequestJoinNeedAdminiStratorPass && notify.status === GroupNotifyStatus.Unhandle) {
         this.ctx.logger.info('有加群请求')
         const requestUin = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
         const event = new OB11GroupRequestEvent(
@@ -115,22 +113,22 @@ class OneBot11Adapter extends Service {
           parseInt(requestUin) || 0,
           flag,
           notify.postscript,
-          'add'
+          'add',
         )
         this.dispatch(event)
       }
-      // 邀请 bot 加群会发送一条 ark 消息，因此在消息那边处理，此处忽略
-      // else if (notify.type === GroupNotifyType.InvitedByMember && notify.status === GroupNotifyStatus.Unhandle) {
-      //   this.ctx.logger.info('收到邀请我加群通知')
-      //   const userId = await this.ctx.ntUserApi.getUinByUid(notify.user2.uid)
-      //   const event = new OB11GroupRequestEvent(
-      //     parseInt(notify.group.groupCode),
-      //     parseInt(userId) || 0,
-      //     flag,
-      //     notify.postscript,
-      //     'invite'
-      //   )
-      //   this.dispatch(event)
+        // 邀请 bot 加群会发送一条 ark 消息，因此在消息那边处理，此处忽略
+        // else if (notify.type === GroupNotifyType.InvitedByMember && notify.status === GroupNotifyStatus.Unhandle) {
+        //   this.ctx.logger.info('收到邀请我加群通知')
+        //   const userId = await this.ctx.ntUserApi.getUinByUid(notify.user2.uid)
+        //   const event = new OB11GroupRequestEvent(
+        //     parseInt(notify.group.groupCode),
+        //     parseInt(userId) || 0,
+        //     flag,
+        //     notify.postscript,
+        //     'invite'
+        //   )
+        //   this.dispatch(event)
       // }
       else if (notify.type === GroupNotifyType.InvitedNeedAdminiStratorPass && notify.status === GroupNotifyStatus.Unhandle) {
         this.ctx.logger.info('收到群员邀请加群通知')
@@ -142,14 +140,13 @@ class OneBot11Adapter extends Service {
           flag,
           notify.postscript,
           'add',
-          parseInt(invitorId) || 0
+          parseInt(invitorId) || 0,
         )
         this.dispatch(event)
-      }
-      else if ([
+      } else if ([
         GroupNotifyType.SetAdmin,
         GroupNotifyType.CancelAdminNotifyCanceled,
-        GroupNotifyType.CancelAdminNotifyAdmin
+        GroupNotifyType.CancelAdminNotifyAdmin,
       ].includes(notify.type)) {
         this.ctx.logger.info('收到管理员变动通知')
         const uin = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
@@ -196,7 +193,7 @@ class OneBot11Adapter extends Service {
   private handleRecallMsg(message: RawMessage) {
     const peer = {
       peerUid: message.peerUid,
-      chatType: message.chatType
+      chatType: message.chatType,
     }
     const oriMessageId = this.ctx.store.getShortIdByMsgInfo(peer, message.msgId)
     if (!oriMessageId) {
@@ -222,7 +219,7 @@ class OneBot11Adapter extends Service {
     const friendRequestEvent = new OB11FriendRequestEvent(
       userId,
       comment,
-      flag
+      flag,
     )
     this.dispatch(friendRequestEvent)
   }
@@ -238,7 +235,7 @@ class OneBot11Adapter extends Service {
       hosts: config.ob11.httpPostUrls,
       heartInterval: config.heartInterval,
       secret: config.ob11.httpSecret,
-      enableHttpHeart: config.ob11.enableHttpHeart
+      enableHttpHeart: config.ob11.enableHttpHeart,
     })
     this.ob11WebSocket.updateConfig({
       listenLocalhost: config.onlyLocalhost,
@@ -311,7 +308,7 @@ class OneBot11Adapter extends Service {
       msgCacheExpire: config.msgCacheExpire,
       musicSignUrl: config.musicSignUrl,
       enableLocalFile2Url: config.enableLocalFile2Url,
-      ffmpeg: config.ffmpeg
+      ffmpeg: config.ffmpeg,
     })
   }
 
@@ -384,6 +381,106 @@ class OneBot11Adapter extends Service {
         const event = new OB11GroupDecreaseEvent(tip.groupCode, userId, userId)
         this.dispatch(event)
       }
+    })
+
+    this.ctx.on('nt/flash-file-download-status', input => {
+      if (input.status === FlashFileDownloadStatus.DOWNLOADED) {
+        const files: OB11FlashFile[] = []
+        this.ctx.ntFileApi.getFlashFileList(input.info.fileSetId).then((res) => {
+          for (const file of res) {
+            for (const file2 of file.fileList) {
+              files.push({
+                name: file2.name,
+                size: file2.filePhysicalSize,
+                save_path: file2.saveFilePath,
+              })
+            }
+          }
+          const event = new OB11FlashFileDownloadedEvent(
+            input.info.name,
+            input.info.shareInfo.shareLink,
+            input.info.fileSetId,
+            files,
+          )
+          this.dispatch(event)
+        }).catch((err) => {
+          this.ctx.logger.error(err, { fileSetId: input.info.fileSetId })
+        })
+
+      }
+    })
+
+    this.ctx.on('nt/flash-file-upload-status', fileSetInfo => {
+      if (fileSetInfo.uploadStatus === FlashFileUploadStatus.UPLOADED) {
+        const event = new OB11FlashFileUploadedEvent(
+          fileSetInfo.name,
+          fileSetInfo.shareInfo.shareLink,
+          fileSetInfo.fileSetId,
+        )
+        this.dispatch(event)
+      }
+    })
+
+    this.ctx.on('nt/flash-file-downloading', input => {
+      const [fileSetId, downloadingInfo] = input
+      this.ctx.ntFileApi.getFlashFileInfo(fileSetId, false).then((res) => {
+        this.ctx.ntFileApi.getFlashFileList(fileSetId, false).then((fileList) => {
+          const files: OB11FlashFile[] = []
+          for (const file of fileList) {
+            for (const file2 of file.fileList) {
+              files.push({
+                name: file2.name,
+                size: file2.filePhysicalSize,
+                save_path: file2.saveFilePath,
+              })
+            }
+          }
+          const event = new OB11FlashFileDownloadingEvent(
+            res.name,
+            res.shareInfo.shareLink,
+            fileSetId,
+            parseInt(downloadingInfo.curDownLoadedBytes),
+            parseInt(downloadingInfo.totalDownLoadedBytes),
+            downloadingInfo.curSpeedBps,
+            downloadingInfo.remainDownLoadSeconds,
+            files
+          )
+          this.dispatch(event)
+        }).catch((err) => {
+          this.ctx.logger.error(err)
+        })
+
+      }).catch((err) => {
+        this.ctx.logger.error(err)
+      })
+    })
+
+    this.ctx.on('nt/flash-file-uploading', info => {
+      this.ctx.ntFileApi.getFlashFileList(info.fileSet.fileSetId, false).then(fileList=>{
+        const files: OB11FlashFile[] = []
+        for (const file of fileList) {
+          for (const file2 of file.fileList) {
+            files.push({
+              name: file2.name,
+              size: file2.filePhysicalSize,
+              save_path: file2.saveFilePath,
+            })
+          }
+        }
+
+        const event = new OB11FlashFileUploadingEvent(
+          info.fileSet.name,
+          info.fileSet.shareInfo.shareLink,
+          info.fileSet.fileSetId,
+          parseInt(info.uploadedFileSize),
+          parseInt(info.fileSet.totalFileSize),
+          parseInt(info.uploadSpeed),
+          parseInt(info.timeRemain),
+          files
+        )
+        this.dispatch(event)
+      })
+
     })
   }
 }

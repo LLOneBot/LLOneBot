@@ -16,12 +16,18 @@ import {
   ChatType,
   Peer,
   SendMessageElement,
-  ElementType, logSummaryMessage,
+  ElementType,
 } from './types'
 import { selfInfo } from '../common/globalVars'
 import { version } from '../version'
-import { invoke, NTMethod } from './ntcall'
 import { pmhq } from './native/pmhq'
+import {
+  FlashFileDownloadingInfo,
+  FlashFileDownloadStatus,
+  FlashFileSetInfo,
+  FlashFileUploadingInfo,
+} from '@/ntqqapi/types/flashfile'
+import { logSummaryMessage } from '@/ntqqapi/log'
 
 declare module 'cordis' {
   interface Context {
@@ -36,6 +42,10 @@ declare module 'cordis' {
     'nt/friend-request': (input: FriendRequest) => void
     'nt/group-member-info-updated': (input: { groupCode: string, members: GroupMember[] }) => void
     'nt/system-message-created': (input: Uint8Array) => void
+    'nt/flash-file-uploading': (input: {fileSet: FlashFileSetInfo} & FlashFileUploadingInfo) => void
+    'nt/flash-file-upload-status': (input: FlashFileSetInfo) => void
+    'nt/flash-file-download-status': (input: {status: FlashFileDownloadStatus, info: FlashFileSetInfo}) => void
+    'nt/flash-file-downloading': (input: [fileSetId: string, info: FlashFileDownloadingInfo]) => void
   }
 }
 
@@ -130,7 +140,7 @@ class Core extends Service {
     if (!this.config.autoDeleteFile) {
       return
     }
-    
+
     // 使用一个定时器处理所有文件，而不是为每个元素创建定时器
     const allPaths: string[] = []
     for (const message of msgList) {
@@ -148,7 +158,7 @@ class Core extends Service {
         allPaths.push(...pathList.filter((path): path is string => path !== undefined && path !== null))
       }
     }
-    
+
     if (allPaths.length > 0) {
       setTimeout(() => {
         for (const path of allPaths) {
@@ -192,7 +202,7 @@ class Core extends Service {
           msg.elements[0]?.grayTipElement?.subElementType === GrayTipElementSubType.Revoke &&
           !recallMsgIds.includes(msg.msgId)
         ) {
-          
+
           recallMsgIds.push(msg.msgId)
           this.ctx.parallel('nt/message-deleted', msg)
         }
@@ -204,7 +214,7 @@ class Core extends Service {
           }
         }
       }
-      
+
       if (recallMsgIds.length > 1000) {
         recallMsgIds.shift()
       }
@@ -265,6 +275,27 @@ class Core extends Service {
 
     registerReceiveHook<number[]>('nodeIKernelMsgListener/onRecvSysMsg', payload => {
       this.ctx.parallel('nt/system-message-created', Uint8Array.from(payload))
+    })
+
+    registerReceiveHook<[status: number, errCode: number, fileSetId: string]>(ReceiveCmdS.FLASH_FILE_DOWNLOAD_STATUS, payload => {
+      const [status, errCode, fileSetId] = payload
+      this.ctx.ntFileApi.getFlashFileInfo(fileSetId).then(info => {
+        this.ctx.parallel('nt/flash-file-download-status', {
+          status,
+          info
+        })
+      }).catch(err => {
+        this.ctx.logger.error(err, { fileSetId })
+      })
+    })
+
+    registerReceiveHook<FlashFileSetInfo>(ReceiveCmdS.FLASH_FILE_UPLOAD_STATUS, payload => {
+      this.ctx.parallel('nt/flash-file-upload-status', payload)
+    })
+
+    registerReceiveHook<[fileSetId: string, info: FlashFileDownloadingInfo]>(ReceiveCmdS.FLASH_FILE_DOWNLOADING, payload => {
+      const [fileSetId, info] = payload
+      this.ctx.parallel('nt/flash-file-downloading', [fileSetId, info])
     })
   }
 }

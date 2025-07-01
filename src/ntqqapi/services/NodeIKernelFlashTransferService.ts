@@ -1,5 +1,7 @@
 import { GeneralCallResult } from '@/ntqqapi/services/common'
 
+import { FlashFileListItem, FlashFileSetInfo } from '@/ntqqapi/types/flashfile'
+
 export interface NodeIKernelFlashTransferService {
   createFlashTransferUploadTask(timestamp: string, params: {
     scene: number,  // 1
@@ -39,21 +41,15 @@ export interface NodeIKernelFlashTransferService {
       result: number,
       errMs: string,
       fileLists:
-        {
-          fileList: {
-            fileSetId: string,
-            cliFileId: string,
-            fileType: number,
-            name: string,
-            saveFilePath?: string,
-            status: number,
-            uploadStatus: number,  // 3 是完成
-            downloadStatus: number, // 3 是完成
-            filePhysicalSize: string
-          }[],
-          isEnd: boolean,
-          isCache: boolean
-        }[]
+        FlashFileListItem[]
     }
+  }
+
+  getFileSetIdByCode(code: string): GeneralCallResult & {
+    fileSet: FlashFileSetInfo
+  }
+
+  getFileSet(fileSetId: string): GeneralCallResult & {
+    fileSet: FlashFileSetInfo
   }
 }

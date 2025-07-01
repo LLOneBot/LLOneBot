@@ -22,6 +22,7 @@ import { copyFile, stat, unlink } from 'node:fs/promises'
 import { Time } from 'cosmokit'
 import { Service, Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
+import { FlashFileListItem, FlashFileSetInfo } from '@/ntqqapi/types/flashfile'
 
 declare module 'cordis' {
   interface Context {
@@ -109,8 +110,7 @@ export class NTQQFileApi extends Service {
       if (force) {
         unlink(sourcePath).then().catch(e => {
         })
-      }
-      else {
+      } else {
         return sourcePath
       }
     }
@@ -166,13 +166,11 @@ export class NTQQFileApi extends Service {
         const rkeyData = await this.rkeyManager.getRkey()
         rkey = imageAppid === '1406' ? rkeyData.private_rkey : rkeyData.group_rkey
         return IMAGE_HTTP_HOST_NT + url + rkey
-      }
-      else {
+      } else {
         // 老的图片url，不需要rkey
         return IMAGE_HTTP_HOST + url
       }
-    }
-    else if (fileMd5 || md5HexStr) {
+    } else if (fileMd5 || md5HexStr) {
       // 没有url，需要自己拼接
       return `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${(fileMd5 || md5HexStr)!.toUpperCase()}/0`
     }
@@ -231,7 +229,7 @@ export class NTQQFileApi extends Service {
     return data.notifyInfo
   }
 
-  async createFlashTransferUploadTask(title: string, filePaths: string[]) {
+  async uploadFlashFile(title: string, filePaths: string[]) {
     const res = await invoke('nodeIKernelFlashTransferService/createFlashTransferUploadTask',
       [
         new Date().getTime(),
@@ -268,7 +266,7 @@ export class NTQQFileApi extends Service {
     return res.createFlashTransferResult
   }
 
-  async downloadFlashTransferFile(sceneType: number, fileSetId: string) {
+  async downloadFlashFile(fileSetId: string, sceneType: number = 1) {
     const res = await invoke('nodeIKernelFlashTransferService/startFileSetDownload',
       [
         fileSetId,
@@ -281,7 +279,15 @@ export class NTQQFileApi extends Service {
     }
   }
 
-  async getFlashTransferFileList(fileSetId: string){
+  flashFileListCache = new Map<string, FlashFileListItem[]>()
+
+  async getFlashFileList(fileSetId: string, force = true) {
+    if (!force) {
+      const cachedList = this.flashFileListCache.get(fileSetId)
+      if (cachedList) {
+        return cachedList
+      }
+    }
     const res = await invoke('nodeIKernelFlashTransferService/getFileList',
       [
         fileSetId,
@@ -290,7 +296,47 @@ export class NTQQFileApi extends Service {
     if (res.rsp.result !== 0) {
       throw new Error(`获取闪传文件列表失败: ${res.rsp.errMs}`)
     }
+    if (this.flashFileListCache.size > 100) {
+      const oldestKey = this.flashFileListCache.keys().next().value!
+      this.flashFileListCache.delete(oldestKey)
+    }
+    this.flashFileListCache.set(fileSetId, res.rsp.fileLists)
     return res.rsp.fileLists
+  }
+
+  async getFlashFileSetIdByCode(code: string) {
+    // code 是 qfile.qq.com/q/ 后面的部分
+    const res = await invoke('nodeIKernelFlashTransferService/getFileSetIdByCode',
+      [code],
+    )
+    if (res.result !== 0) {
+      throw new Error(`获取闪传文件 fileSetId 失败: ${res.errMsg}`)
+    }
+    return res.fileSet.fileSetId
+  }
+
+  flashFileInfoCache = new Map<string, FlashFileSetInfo>()
+
+  async getFlashFileInfo(fileSetId: string, force=true) {
+    if (!force){
+      const cachedInfo = this.flashFileInfoCache.get(fileSetId)
+      if (cachedInfo) {
+        return cachedInfo
+      }
+    }
+    const res = await invoke('nodeIKernelFlashTransferService/getFileSet',
+      [
+        { seq: 0, fileSetId, isUseCache: false, isNoReqSvr: false, sceneType: 1 },
+      ])
+    if (res.result !== 0) {
+      throw new Error(`获取闪传文件信息失败: ${res.errMsg}`)
+    }
+    if (this.flashFileInfoCache.size > 100) {
+      const oldestKey = this.flashFileInfoCache.keys().next().value!
+      this.flashFileInfoCache.delete(oldestKey)
+    }
+    this.flashFileInfoCache.set(fileSetId, res.fileSet)
+    return res.fileSet
   }
 }
 

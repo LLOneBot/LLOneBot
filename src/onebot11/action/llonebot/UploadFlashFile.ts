@@ -12,8 +12,8 @@ interface Response {
   expire_time: string,
 }
 
-export class FlashUpload extends BaseAction<Payload, Response> {
-  actionName = ActionName.FlashUpload
+export class UploadFlashFile extends BaseAction<Payload, Response> {
+  actionName = ActionName.UploadFlashFile
 
   async _handle(payload: Payload) {
     const { name, paths } = payload
@@ -29,10 +29,10 @@ export class FlashUpload extends BaseAction<Payload, Response> {
         throw new Error(`无法获取文件${path}的本地路径`)
       }
     }
-    const res = await this.ctx.ntFileApi.createFlashTransferUploadTask(name, localPaths)
+    const res = await this.ctx.ntFileApi.uploadFlashFile(name, localPaths)
     return {
       share_link: res.shareLink,
-      expire_time: res.expireTime
+      expire_time: res.expireTime,
     }
   }
 }

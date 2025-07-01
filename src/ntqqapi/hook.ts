@@ -26,6 +26,9 @@ export enum ReceiveCmdS {
   SELF_STATUS = 'nodeIKernelProfileListener/onSelfStatusChanged',
   CACHE_SCAN_FINISH = 'nodeIKernelStorageCleanListener/onFinishScan',
   MEDIA_UPLOAD_COMPLETE = 'nodeIKernelMsgListener/onRichMediaUploadComplete',
+  FLASH_FILE_DOWNLOAD_STATUS = 'nodeIKernelFlashTransferListener/onFileSetDownloadTaskStatusChange',
+  FLASH_FILE_DOWNLOADING = 'nodeIKernelFlashTransferListener/onFileSetDownloadTaskProgressChanged',
+  FLASH_FILE_UPLOAD_STATUS = 'nodeIKernelFlashTransferListener/onFileSetUploadStatusChanged',
 }
 
 const logHook = false
@@ -45,6 +48,7 @@ const NT_RECV_PMHQ_TYPE_TO_NT_METHOD = {
   'on_group': 'nodeIKernelGroupListener',
   'on_buddy': 'nodeIKernelBuddyListener',
   'on_profile': 'nodeIKernelProfileListener',
+  'on_flash_file': 'nodeIKernelFlashTransferListener',
 }
 
 export function startHook() {

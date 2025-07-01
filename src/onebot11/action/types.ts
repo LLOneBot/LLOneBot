@@ -11,7 +11,8 @@ export interface InvalidCheckResult {
 
 export enum ActionName {
   // llonebot
-  FlashUpload = 'flash_upload',
+  DownloadFlashFile = 'download_flash_file',
+  UploadFlashFile = 'upload_flash_file',
   GetRKey = "get_rkey",
   SendPbMsg = "send_msg_pb",
   SendPB = "send_pb",
