@@ -1,10 +1,11 @@
 V5.3.0
 更新时间：
 
+* 修复内存泄露
 * 新增获取 rkey API `get_rkey`
 * 新增上传闪传文件 API `upload_flash_file`
 * 新增下载闪传文件 API `download_flash_file`
-* 新增获取头像 API `get_avatar`
+* 新增获取头像 API `get_qq_avatar`
 
 =================
 V5.2.2
