@@ -84,12 +84,12 @@ class Store extends Service {
     hash[0] &= 0x7f //保证shortId为正数
     const shortId = hash.readInt32BE()
     this.cache.set(cacheKey, shortId)
-      this.ctx.database.upsert('message', [{
-        msgId,
-        shortId,
-        chatType: peer.chatType,
-        peerUid: peer.peerUid
-      }], 'shortId').then().catch(e=>this.ctx.logger.error('createMsgShortId database error:', e))
+    this.ctx.database.upsert('message', [{
+      msgId,
+      shortId,
+      chatType: peer.chatType,
+      peerUid: peer.peerUid
+    }], 'shortId').then().catch(e=>this.ctx.logger.error('createMsgShortId database error:', e))
     return shortId
   }
 
@@ -156,6 +156,13 @@ class Store extends Service {
     }
     const id = msg.msgId
     this.messages.set(id, msg)
+    if (this.messages.size > 10000) {
+      // 如果缓存超过10000条，清理最早的
+      const firstKey = this.messages.keys().next().value
+      if (firstKey) {
+        this.messages.delete(firstKey)
+      }
+    }
     setTimeout(() => {
       this.messages.delete(id)
     }, expire)
