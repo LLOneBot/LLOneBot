@@ -198,19 +198,20 @@ export class PMHQ {
     }
     const payload = JSON.stringify(deepStringifyMap(data))
     const p = new Promise<R>((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error('pmhq ws send: wait result timeout'))
+        this.removeResListener(listenerId)
+      }, timeout)
       const listenerId = this.addResListener<R>((res => {
         if (!res.data) {
           console.error(`PMHQ WS send error: payload ${data}, response ${res}`)
         }
         if (res.data?.echo == echo) {
           resolve(res)
+          clearTimeout(timeoutId)
           this.removeResListener(listenerId)
         }
       }))
-      setTimeout(() => {
-        reject(new Error('pmhq ws send: wait result timeout'))
-        this.removeResListener(listenerId)
-      }, timeout)
     })
     this.ws!.send(payload)
     return p
