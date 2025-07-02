@@ -96,6 +96,7 @@ import { SendPB } from './llonebot/SendPB'
 import { SendPbMsg } from './llonebot/SendPbMsg'
 import { GetRKey } from '@/onebot11/action/llonebot/GetRkey'
 import { UploadFlashFile } from '@/onebot11/action/llonebot/UploadFlashFile'
+import { GetQQAvatar } from '@/onebot11/action/llonebot/GetQQAvatar'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -111,6 +112,7 @@ export function initActionMap(adapter: Adapter) {
     new SetConfigAction(adapter),
     new GetGroupAddRequest(adapter),
     new SetQQAvatar(adapter),
+    new GetQQAvatar(adapter),
     new GetFriendWithCategory(adapter),
     new GetEvent(adapter),
     new SetOnlineStatus(adapter),

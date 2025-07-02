@@ -20,6 +20,7 @@ export enum ActionName {
   SendPoke = 'send_poke',
   GetGroupIgnoreAddRequest = 'get_group_ignore_add_request',
   SetQQAvatar = 'set_qq_avatar',
+  GetQQAvatar = 'get_qq_avatar',
   GetConfig = 'get_config',
   SetConfig = 'set_config',
   Debug = 'llonebot_debug',

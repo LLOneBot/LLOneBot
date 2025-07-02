@@ -7,7 +7,7 @@ interface Payload {
   file: string
 }
 
-export default class SetAvatar extends BaseAction<Payload, null> {
+export default class SetQQAvatar extends BaseAction<Payload, null> {
   actionName = ActionName.SetQQAvatar
 
   protected async _handle(payload: Payload): Promise<null> {
