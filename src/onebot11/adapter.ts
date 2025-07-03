@@ -391,8 +391,8 @@ class OneBot11Adapter extends Service {
             for (const file2 of file.fileList) {
               files.push({
                 name: file2.name,
-                size: file2.filePhysicalSize,
-                save_path: file2.saveFilePath,
+                size: parseInt(file2.filePhysicalSize),
+                path: file2.saveFilePath,
               })
             }
           }
@@ -430,8 +430,8 @@ class OneBot11Adapter extends Service {
             for (const file2 of file.fileList) {
               files.push({
                 name: file2.name,
-                size: file2.filePhysicalSize,
-                save_path: file2.saveFilePath,
+                size: parseInt(file2.filePhysicalSize),
+                path: file2.saveFilePath,
               })
             }
           }
@@ -462,8 +462,8 @@ class OneBot11Adapter extends Service {
           for (const file2 of file.fileList) {
             files.push({
               name: file2.name,
-              size: file2.filePhysicalSize,
-              save_path: file2.saveFilePath,
+              size: parseInt(file2.filePhysicalSize),
+              path: file2.physical.localPath,
             })
           }
         }

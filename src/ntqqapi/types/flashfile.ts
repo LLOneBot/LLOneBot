@@ -80,7 +80,12 @@ export interface FlashFileListItem {
     status: number,
     uploadStatus: number,  // 3 是完成
     downloadStatus: number, // 3 是完成
-    filePhysicalSize: string
+    filePhysicalSize: string,
+    physical: {
+      id: string,
+      status: number, // 2 是已完成?
+      localPath: string,
+    }
   }[],
   isEnd: boolean,
   isCache: boolean

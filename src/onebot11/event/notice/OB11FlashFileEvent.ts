@@ -2,8 +2,8 @@ import { OB11BaseNoticeEvent } from './OB11BaseNoticeEvent'
 
 export interface OB11FlashFile {
   name: string,
-  size: string,
-  save_path?: string,
+  size: number,
+  path?: string,
 }
 
 
@@ -41,6 +41,7 @@ export class OB11FlashFileDownloadingEvent extends OB11FlashFileEvent {
     this.total_size = total_size
     this.speed = speed
     this.remain_seconds = remain_seconds
+    this.files = files
   }
 }
 
@@ -68,6 +69,7 @@ export class OB11FlashFileUploadingEvent extends OB11FlashFileEvent {
     this.total_size = total_size
     this.speed = speed
     this.remain_seconds = remain_seconds
+    this.files = files
   }
 }
 
