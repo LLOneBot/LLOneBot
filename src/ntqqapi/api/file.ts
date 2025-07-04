@@ -208,9 +208,7 @@ export class NTQQFileApi extends Service {
   }
 
   async uploadRMFileWithoutMsg(filePath: string, bizType: RMBizType, peerUid: string) {
-    const data = await invoke<{
-      notifyInfo: RichMediaUploadCompleteNotify
-    }>(
+    const data = await invoke<RichMediaUploadCompleteNotify>(
       'nodeIKernelRichMediaService/uploadRMFileWithoutMsg',
       [
         {
@@ -222,11 +220,11 @@ export class NTQQFileApi extends Service {
       ],
       {
         resultCmd: ReceiveCmdS.MEDIA_UPLOAD_COMPLETE,
-        resultCb: payload => payload.notifyInfo.filePath === filePath,
+        resultCb: payload => payload.filePath === filePath,
         timeout: 10 * Time.second,
       },
     )
-    return data.notifyInfo
+    return data
   }
 
   async uploadFlashFile(title: string, filePaths: string[]) {
@@ -342,8 +340,8 @@ export class NTQQFileApi extends Service {
 
   flashFileInfoCache = new Map<string, FlashFileSetInfo>()
 
-  async getFlashFileInfo(fileSetId: string, force=true) {
-    if (!force){
+  async getFlashFileInfo(fileSetId: string, force = true) {
+    if (!force) {
       const cachedInfo = this.flashFileInfoCache.get(fileSetId)
       if (cachedInfo) {
         return cachedInfo
