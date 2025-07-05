@@ -96,10 +96,14 @@ import { SendPB } from './llonebot/SendPB'
 import { GetRKey } from '@/onebot11/action/llonebot/GetRkey'
 import { UploadFlashFile } from '@/onebot11/action/llonebot/UploadFlashFile'
 import { GetQQAvatar } from '@/onebot11/action/llonebot/GetQQAvatar'
+import { DownloadFlashFile } from '@/onebot11/action/llonebot/DownloadFlashFile'
+import { GetFlashFileInfo } from '@/onebot11/action/llonebot/GetFlashFileInfo'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
     // llonebot
+    new GetFlashFileInfo(adapter),
+    new DownloadFlashFile(adapter),
     new UploadFlashFile(adapter),
     new GetRKey(adapter),
     new SendPB(adapter),

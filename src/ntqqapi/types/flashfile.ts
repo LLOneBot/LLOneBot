@@ -76,6 +76,7 @@ export interface FlashFileListItem {
     cliFileId: string,
     fileType: number,
     name: string,
+    fileSize: string,
     saveFilePath?: string,
     status: number,
     uploadStatus: number,  // 3 是完成

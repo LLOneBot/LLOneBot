@@ -6,6 +6,7 @@ import { Config, WebUIConfig } from '@/common/types'
 import { Server } from 'http'
 import { Context, Service } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
+import { getAvailablePort, recordPort } from '@/common/utils/port'
 
 const app = express()
 const __filename = fileURLToPath(import.meta.url)
@@ -14,7 +15,7 @@ const __dirname = path.dirname(__filename)
 // 静态文件服务，指向前端dist目录
 const feDistPath = path.resolve(__dirname, 'webui/')
 
-export interface WebUIServerConfig extends WebUIConfig{
+export interface WebUIServerConfig extends WebUIConfig {
   onlyLocalhost: boolean
 }
 
@@ -89,7 +90,7 @@ export class WebUIServer extends Service {
 
     // 监听 config 更新事件
     ctx.on('llob/config-updated', (newConfig: Config) => {
-      this.config = {onlyLocalhost: newConfig.onlyLocalhost, ...newConfig.webui}
+      this.config = { onlyLocalhost: newConfig.onlyLocalhost, ...newConfig.webui }
       // this.ctx.logger.info('WebUI 配置已更新:', this.config)
       this.restart()
     })
@@ -97,21 +98,28 @@ export class WebUIServer extends Service {
   }
 
   // Override the base Service.start() signature to match expected arguments
-  start() {
+  async start() {
     if (!this.config?.enable) {
       return
     }
 
-    const port = this.config.port ?? 3080
+    let port = this.config.port ?? 3080
+    port = await getAvailablePort(port)
+    recordPort(
+      selfInfo.uin,
+      { webUIPort: port },
+    ).catch((err: Error) => {
+      this.ctx.logger.error('记录WebUI端口失败:', err)
+    })
     const host = this.config.onlyLocalhost ? '127.0.0.1' : ''
-
     this.server = this.app.listen(port, host, () => {
       this.ctx.logger.info(`WebUI 端口: ${port}`)
     })
     this.server.on('error', (err: any) => {
       if (err.code === 'EADDRINUSE') {
         this.ctx.logger.error(`WebUI 端口 ${port} 被占用，启动失败！`)
-      } else {
+      }
+      else {
         this.ctx.logger.error('WebUI 启动失败:', err)
       }
     })

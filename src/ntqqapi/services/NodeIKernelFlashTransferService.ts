@@ -46,7 +46,7 @@ export interface NodeIKernelFlashTransferService {
   }
 
   getFileSetIdByCode(code: string): GeneralCallResult & {
-    fileSet: FlashFileSetInfo
+    fileSetId: string
   }
 
   getFileSet(fileSetId: string): GeneralCallResult & {

@@ -335,7 +335,7 @@ export class NTQQFileApi extends Service {
     if (res.result !== 0) {
       throw new Error(`获取闪传文件 fileSetId 失败: ${res.errMsg}`)
     }
-    return res.fileSet.fileSetId
+    return res.fileSetId
   }
 
   flashFileInfoCache = new Map<string, FlashFileSetInfo>()
