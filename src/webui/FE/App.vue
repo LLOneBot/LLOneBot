@@ -7,221 +7,26 @@
       <el-row :gutter="24" justify="center">
         <el-col :xs="24" :sm="22" :md="20" :lg="16" :xl="12">
           <el-card shadow="hover" class="config-card">
-            <div class="account-info" style="margin-bottom: 12px; text-align: right;">
-              {{ accountNick }} <span v-if="accountUin">({{ accountUin }})</span>
-            </div>
+            <AccountInfo :accountNick="accountNick" :accountUin="accountUin" />
             <el-menu mode="horizontal" :default-active="activeIndex" @select="handleSelect">
               <el-menu-item index="1">OneBot 11 配置</el-menu-item>
               <el-menu-item index="2">Satori 配置</el-menu-item>
               <el-menu-item index="3">其他配置</el-menu-item>
             </el-menu>
             <el-form :model="form" label-width="160px" size="large" class="config-form">
-              <div v-if="activeIndex === '1'">
-                <el-divider content-position="left">
-                  OneBot 11 协议
-                </el-divider>
-                <el-row :gutter="16">
-                  <el-col :span="12">
-                    <el-form-item label="启用 OneBot 11">
-                      <el-switch v-model="form.ob11.enable" />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="OneBot 11 Token">
-                      <el-input v-model="form.ob11.token" placeholder="请输入 Token" clearable />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-                <el-row :gutter="16">
-                  <el-col :span="12">
-                    <el-form-item label="启用正向 WS 服务">
-                      <el-switch v-model="form.ob11.enableWs" />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="正向 WS 端口">
-                      <el-input-number v-model="form.ob11.wsPort" :min="1" :max="65535" />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-                <el-row :gutter="16">
-                  <el-col :span="12">
-                    <el-form-item label="启用反向 WS 服务">
-                      <el-switch v-model="form.ob11.enableWsReverse" />
-                    </el-form-item>
-                  </el-col>
-
-                </el-row>
-                <el-form-item label="反向 WS 地址">
-                  <el-input
-                    v-model="wsReverseUrlInput"
-                    placeholder="输入后回车添加"
-                    @keyup.enter="addWsReverseUrl"
-                    clearable
-                  />
-                  <div class="tag-list">
-                    <el-tag
-                      v-for="(url, idx) in form.ob11.wsReverseUrls"
-                      :key="url"
-                      closable
-                      @close="removeWsReverseUrl(idx)"
-                      style="margin-right: 4px; margin-top: 4px;"
-                    >{{ url }}
-                    </el-tag>
-                  </div>
-                </el-form-item>
-                <el-row :gutter="16">
-                  <el-col :span="12">
-                    <el-form-item label="启用 HTTP 服务">
-                      <el-switch v-model="form.ob11.enableHttp" />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="HTTP 端口">
-                      <el-input-number v-model="form.ob11.httpPort" :min="1" :max="65535" />
-                    </el-form-item>
-                  </el-col>
-
-                </el-row>
-                <el-row :gutter="16">
-                  <el-col :span="12">
-                    <el-form-item label="启用 HTTP 上报">
-                      <el-switch v-model="form.ob11.enableHttpPost" />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="启用 HTTP 心跳">
-                      <el-switch v-model="form.ob11.enableHttpHeart" />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-                <el-form-item label="HTTP 上报地址">
-                  <el-input
-                    v-model="httpPostUrlInput"
-                    placeholder="输入后回车添加"
-                    @keyup.enter="addHttpPostUrl"
-                    clearable
-                  />
-                  <div class="tag-list">
-                    <el-tag
-                      v-for="(url, idx) in form.ob11.httpPostUrls"
-                      :key="url"
-                      closable
-                      @close="removeHttpPostUrl(idx)"
-                      style="margin-right: 4px; margin-top: 4px;"
-                    >{{ url }}
-                    </el-tag>
-                  </div>
-                </el-form-item>
-                <el-form-item label="HTTP 上报密钥">
-                  <el-input v-model="form.ob11.httpSecret" placeholder="请输入密钥" clearable />
-                </el-form-item>
-
-                <el-divider content-position="left">
-                  上报消息设置
-                </el-divider>
-                <el-row :gutter="16">
-                  <el-col :span="12">
-                    <el-form-item label="消息上报格式">
-                      <el-radio-group v-model="form.ob11.messagePostFormat">
-                        <el-radio label="array">消息段</el-radio>
-                        <el-radio label="string">CQ码</el-radio>
-                      </el-radio-group>
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="上报自己发出的消息">
-                      <el-switch v-model="form.ob11.reportSelfMessage" />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-              </div>
-              <div v-if="activeIndex === '2'">
-                <el-divider content-position="left">
-                  <el-icon>
-                    <i-ep-cpu />
-                  </el-icon>
-                  Satori 协议
-                </el-divider>
-                <el-row :gutter="20" class="satori-row">
-                  <el-col :span="8">
-                    <el-form-item>
-                      <template #label>启用 Satori</template>
-                      <el-switch v-model="form.satori.enable" style="width: 100%;" />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item>
-                      <template #label>Satori 端口</template>
-                      <el-input-number v-model="form.satori.port" :min="1" :max="65535" style="width: 100%;" />
-                    </el-form-item>
-                  </el-col>
-
-                </el-row>
-                <el-row :gutter="20" class="satori-row">
-                  <el-col :span="20">
-                    <el-form-item>
-                      <template #label>Satori Token</template>
-                      <el-input v-model="form.satori.token" placeholder="Satori Token" clearable style="width: 100%;" />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-              </div>
-              <div v-if="activeIndex === '3'">
-                <el-divider content-position="left">
-                  全局设置
-                </el-divider>
-                <el-row :gutter="16">
-                  <el-col :span="12">
-                    <el-form-item label="心跳间隔 (ms)">
-                      <el-input-number v-model="form.heartInterval" :min="1000" :max="600000" />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="本地文件转URL">
-                      <el-switch v-model="form.enableLocalFile2Url" />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-                <el-row :gutter="16">
-                  <el-col :span="12">
-                    <el-form-item label="调试模式">
-                      <el-switch v-model="form.debug" />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="日志">
-                      <el-switch v-model="form.log" />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-                <el-row :gutter="16">
-                  <el-col :span="12">
-                    <el-form-item label="自动删除收到的文件">
-                      <el-switch v-model="form.autoDeleteFile" />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="自动删除文件时间 (秒)">
-                      <el-input-number v-model="form.autoDeleteFileSecond" :min="1" :max="3600" />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-                <el-form-item label="音乐签名地址">
-                  <el-input v-model="form.musicSignUrl" placeholder="请输入音乐签名地址" clearable />
-                </el-form-item>
-                <el-form-item label="消息缓存过期 (秒)">
-                  <el-input-number v-model="form.msgCacheExpire" :min="1" :max="86400" />
-                </el-form-item>
-                <el-form-item label="只监听本地地址">
-                  <el-switch v-model="form.onlyLocalhost" />
-                  <el-tooltip content="取消则监听0.0.0.0，暴露在公网请务必填写 Token ！" placement="top">
-                    <el-icon class="info-icon">
-                      <QuestionFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </el-form-item>
-              </div>
+              <Ob11ConfigForm
+                ref="ob11ConfigFormRef"
+                v-if="activeIndex === '1'"
+                v-model="form.ob11"
+                :httpPostUrlInput="httpPostUrlInput"
+                :wsReverseUrlInput="wsReverseUrlInput"
+                @addHttpPostUrl="addHttpPostUrl"
+                @removeHttpPostUrl="removeHttpPostUrl"
+                @addWsReverseUrl="addWsReverseUrl"
+                @removeWsReverseUrl="removeWsReverseUrl"
+              />
+              <SatoriConfigForm v-if="activeIndex === '2'" v-model="form.satori" />
+              <OtherConfigForm v-if="activeIndex === '3'" v-model="form" />
               <el-form-item class="form-actions">
                 <el-button type="primary" @click="onSave" size="large" style="float: right;" :loading="loading">保存配置</el-button>
               </el-form-item>
@@ -230,34 +35,19 @@
         </el-col>
       </el-row>
     </el-main>
-    <el-dialog
-      v-model="showTokenDialog"
-      title="请输入 WebUI 密码"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-      :show-close="false"
-      width="350px"
-      @close="handleTokenDialogClose"
-    >
-      <el-input
-        v-model="tokenInput"
-        placeholder="请输入密码"
-        show-password
-        @keyup.enter="handleTokenDialogConfirm"
-        :disabled="tokenDialogLoading"
-      />
-      <div v-if="tokenDialogError" style="color: red; margin-top: 8px;">{{ tokenDialogError }}</div>
-      <template #footer>
-        <el-button @click="handleTokenDialogConfirm" type="primary" :loading="tokenDialogLoading">确定</el-button>
-      </template>
-    </el-dialog>
+    <TokenDialog v-model:visible="showTokenDialog" v-model:tokenInput="tokenInput" :loading="tokenDialogLoading" :error="tokenDialogError" @confirm="handleTokenDialogConfirm" @close="handleTokenDialogClose" />
   </el-container>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { ElMessage, ElDialog, ElInput, ElButton } from 'element-plus'
 import { QuestionFilled } from '@element-plus/icons-vue'
+import AccountInfo from './components/AccountInfo.vue'
+import Ob11ConfigForm from './components/Ob11ConfigForm.vue'
+import SatoriConfigForm from './components/SatoriConfigForm.vue'
+import OtherConfigForm from './components/OtherConfigForm.vue'
+import TokenDialog from './components/TokenDialog.vue'
 
 // Token logic
 const tokenKey = 'webui_token'
@@ -397,6 +187,8 @@ const loading = ref(false)
 const accountNick = ref('')
 const accountUin = ref('')
 
+const ob11ConfigFormRef = ref()
+
 // 获取配置
 async function fetchConfig() {
   try {
@@ -429,25 +221,28 @@ async function fetchConfig() {
 
 // 保存配置
 async function onSave() {
-  // 校验 ws 反向输入框
+  // 校验并添加 wsReverseUrlInput
   const wsVal = wsReverseUrlInput.value.trim()
-  if (wsVal && !/^wss?:\/\//.test(wsVal)) {
-    ElMessage.error('反向WS地址必须以 ws:// 或 wss:// 开头')
-    return
-  }
-  // 校验 http 上报输入框
-  const httpVal = httpPostUrlInput.value.trim()
-  if (httpVal && !/^https?:\/\//.test(httpVal)) {
-    ElMessage.error('HTTP上报地址必须以 http:// 或 https:// 开头')
-    return
-  }
-  // 自动添加输入框内容到列表
-  if (wsVal && !form.value.ob11.wsReverseUrls.includes(wsVal)) {
-    form.value.ob11.wsReverseUrls.push(wsVal)
+  if (wsVal) {
+    if (!/^wss?:\/\//.test(wsVal)) {
+      ElMessage.error('反向WS地址必须以 ws:// 或 wss:// 开头')
+      return
+    }
+    if (!form.value.ob11.wsReverseUrls.includes(wsVal)) {
+      form.value.ob11.wsReverseUrls.push(wsVal)
+    }
     wsReverseUrlInput.value = ''
   }
-  if (httpVal && !form.value.ob11.httpPostUrls.includes(httpVal)) {
-    form.value.ob11.httpPostUrls.push(httpVal)
+  // 校验并添加 httpPostUrlInput
+  const httpVal = httpPostUrlInput.value.trim()
+  if (httpVal) {
+    if (!/^https?:\/\//.test(httpVal)) {
+      ElMessage.error('HTTP上报地址必须以 http:// 或 https:// 开头')
+      return
+    }
+    if (!form.value.ob11.httpPostUrls.includes(httpVal)) {
+      form.value.ob11.httpPostUrls.push(httpVal)
+    }
     httpPostUrlInput.value = ''
   }
   try {
@@ -476,10 +271,15 @@ onMounted(() => {
   fetchConfig()
 })
 
-function addHttpPostUrl() {
-  const val = httpPostUrlInput.value.trim()
-  if (val && !form.value.ob11.httpPostUrls.includes(val)) {
-    form.value.ob11.httpPostUrls.push(val)
+function addHttpPostUrl(val?: string) {
+  const value = (typeof val === 'string' ? val : httpPostUrlInput.value).trim()
+  if (!value) return
+  if (!/^https?:\/\//.test(value)) {
+    ElMessage.error('HTTP上报地址必须以 http:// 或 https:// 开头')
+    return
+  }
+  if (!form.value.ob11.httpPostUrls.includes(value)) {
+    form.value.ob11.httpPostUrls.push(value)
   }
   httpPostUrlInput.value = ''
 }
@@ -488,10 +288,15 @@ function removeHttpPostUrl(idx: number) {
   form.value.ob11.httpPostUrls.splice(idx, 1)
 }
 
-function addWsReverseUrl() {
-  const val = wsReverseUrlInput.value.trim()
-  if (val && !form.value.ob11.wsReverseUrls.includes(val)) {
-    form.value.ob11.wsReverseUrls.push(val)
+function addWsReverseUrl(val?: string) {
+  const value = (typeof val === 'string' ? val : wsReverseUrlInput.value).trim()
+  if (!value) return
+  if (!/^wss?:\/\//.test(value)) {
+    ElMessage.error('反向WS地址必须以 ws:// 或 wss:// 开头')
+    return
+  }
+  if (!form.value.ob11.wsReverseUrls.includes(value)) {
+    form.value.ob11.wsReverseUrls.push(value)
   }
   wsReverseUrlInput.value = ''
 }
