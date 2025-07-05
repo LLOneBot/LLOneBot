@@ -17,21 +17,210 @@
             </el-menu>
             <el-form :model="form" label-width="160px" size="large" class="config-form">
               <div v-if="activeIndex === '1'">
-                <Ob11ConfigForm
-                  :form="form"
-                  :httpPostUrlInput="httpPostUrlInput"
-                  :wsReverseUrlInput="wsReverseUrlInput"
-                  @addHttpPostUrl="addHttpPostUrl"
-                  @removeHttpPostUrl="removeHttpPostUrl"
-                  @addWsReverseUrl="addWsReverseUrl"
-                  @removeWsReverseUrl="removeWsReverseUrl"
-                />
+                <el-divider content-position="left">
+                  OneBot 11 协议
+                </el-divider>
+                <el-row :gutter="16">
+                  <el-col :span="12">
+                    <el-form-item label="启用 OneBot 11">
+                      <el-switch v-model="form.ob11.enable" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="OneBot 11 Token">
+                      <el-input v-model="form.ob11.token" placeholder="请输入 Token" clearable />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+                <el-row :gutter="16">
+                  <el-col :span="12">
+                    <el-form-item label="启用正向 WS 服务">
+                      <el-switch v-model="form.ob11.enableWs" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="正向 WS 端口">
+                      <el-input-number v-model="form.ob11.wsPort" :min="1" :max="65535" />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+                <el-row :gutter="16">
+                  <el-col :span="12">
+                    <el-form-item label="启用反向 WS 服务">
+                      <el-switch v-model="form.ob11.enableWsReverse" />
+                    </el-form-item>
+                  </el-col>
+
+                </el-row>
+                <el-form-item label="反向 WS 地址">
+                  <el-input
+                    v-model="wsReverseUrlInput"
+                    placeholder="输入后回车添加"
+                    @keyup.enter="addWsReverseUrl"
+                    clearable
+                  />
+                  <div class="tag-list">
+                    <el-tag
+                      v-for="(url, idx) in form.ob11.wsReverseUrls"
+                      :key="url"
+                      closable
+                      @close="removeWsReverseUrl(idx)"
+                      style="margin-right: 4px; margin-top: 4px;"
+                    >{{ url }}
+                    </el-tag>
+                  </div>
+                </el-form-item>
+                <el-row :gutter="16">
+                  <el-col :span="12">
+                    <el-form-item label="启用 HTTP 服务">
+                      <el-switch v-model="form.ob11.enableHttp" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="HTTP 端口">
+                      <el-input-number v-model="form.ob11.httpPort" :min="1" :max="65535" />
+                    </el-form-item>
+                  </el-col>
+
+                </el-row>
+                <el-row :gutter="16">
+                  <el-col :span="12">
+                    <el-form-item label="启用 HTTP 上报">
+                      <el-switch v-model="form.ob11.enableHttpPost" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="启用 HTTP 心跳">
+                      <el-switch v-model="form.ob11.enableHttpHeart" />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+                <el-form-item label="HTTP 上报地址">
+                  <el-input
+                    v-model="httpPostUrlInput"
+                    placeholder="输入后回车添加"
+                    @keyup.enter="addHttpPostUrl"
+                    clearable
+                  />
+                  <div class="tag-list">
+                    <el-tag
+                      v-for="(url, idx) in form.ob11.httpPostUrls"
+                      :key="url"
+                      closable
+                      @close="removeHttpPostUrl(idx)"
+                      style="margin-right: 4px; margin-top: 4px;"
+                    >{{ url }}
+                    </el-tag>
+                  </div>
+                </el-form-item>
+                <el-form-item label="HTTP 上报密钥">
+                  <el-input v-model="form.ob11.httpSecret" placeholder="请输入密钥" clearable />
+                </el-form-item>
+
+                <el-divider content-position="left">
+                  上报消息设置
+                </el-divider>
+                <el-row :gutter="16">
+                  <el-col :span="12">
+                    <el-form-item label="消息上报格式">
+                      <el-radio-group v-model="form.ob11.messagePostFormat">
+                        <el-radio label="array">消息段</el-radio>
+                        <el-radio label="string">CQ码</el-radio>
+                      </el-radio-group>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="上报自己发出的消息">
+                      <el-switch v-model="form.ob11.reportSelfMessage" />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
               </div>
               <div v-if="activeIndex === '2'">
-                <SatoriConfigForm :form="form" />
+                <el-divider content-position="left">
+                  <el-icon>
+                    <i-ep-cpu />
+                  </el-icon>
+                  Satori 协议
+                </el-divider>
+                <el-row :gutter="20" class="satori-row">
+                  <el-col :span="8">
+                    <el-form-item>
+                      <template #label>启用 Satori</template>
+                      <el-switch v-model="form.satori.enable" style="width: 100%;" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item>
+                      <template #label>Satori 端口</template>
+                      <el-input-number v-model="form.satori.port" :min="1" :max="65535" style="width: 100%;" />
+                    </el-form-item>
+                  </el-col>
+
+                </el-row>
+                <el-row :gutter="20" class="satori-row">
+                  <el-col :span="20">
+                    <el-form-item>
+                      <template #label>Satori Token</template>
+                      <el-input v-model="form.satori.token" placeholder="Satori Token" clearable style="width: 100%;" />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
               </div>
               <div v-if="activeIndex === '3'">
-                <OtherConfigForm :form="form" />
+                <el-divider content-position="left">
+                  全局设置
+                </el-divider>
+                <el-row :gutter="16">
+                  <el-col :span="12">
+                    <el-form-item label="心跳间隔 (ms)">
+                      <el-input-number v-model="form.heartInterval" :min="1000" :max="600000" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="本地文件转URL">
+                      <el-switch v-model="form.enableLocalFile2Url" />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+                <el-row :gutter="16">
+                  <el-col :span="12">
+                    <el-form-item label="调试模式">
+                      <el-switch v-model="form.debug" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="日志">
+                      <el-switch v-model="form.log" />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+                <el-row :gutter="16">
+                  <el-col :span="12">
+                    <el-form-item label="自动删除收到的文件">
+                      <el-switch v-model="form.autoDeleteFile" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="自动删除文件时间 (秒)">
+                      <el-input-number v-model="form.autoDeleteFileSecond" :min="1" :max="3600" />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+                <el-form-item label="音乐签名地址">
+                  <el-input v-model="form.musicSignUrl" placeholder="请输入音乐签名地址" clearable />
+                </el-form-item>
+                <el-form-item label="消息缓存过期 (秒)">
+                  <el-input-number v-model="form.msgCacheExpire" :min="1" :max="86400" />
+                </el-form-item>
+                <el-form-item label="只监听本地地址">
+                  <el-switch v-model="form.onlyLocalhost" />
+                  <el-tooltip content="取消则监听0.0.0.0，暴露在公网请务必填写 Token ！" placement="top">
+                    <el-icon class="info-icon">
+                      <QuestionFilled />
+                    </el-icon>
+                  </el-tooltip>
+                </el-form-item>
               </div>
               <el-form-item class="form-actions">
                 <el-button type="primary" @click="onSave" size="large" style="float: right;" :loading="loading">保存配置</el-button>
@@ -41,14 +230,27 @@
         </el-col>
       </el-row>
     </el-main>
-    <TokenDialog
+    <el-dialog
       v-model="showTokenDialog"
-      v-model:modelValueInput="tokenInput"
-      :tokenDialogLoading="tokenDialogLoading"
-      :tokenDialogError="tokenDialogError"
-      @handleTokenDialogConfirm="handleTokenDialogConfirm"
-      @handleTokenDialogClose="handleTokenDialogClose"
-    />
+      title="请输入 WebUI 密码"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
+      width="350px"
+      @close="handleTokenDialogClose"
+    >
+      <el-input
+        v-model="tokenInput"
+        placeholder="请输入密码"
+        show-password
+        @keyup.enter="handleTokenDialogConfirm"
+        :disabled="tokenDialogLoading"
+      />
+      <div v-if="tokenDialogError" style="color: red; margin-top: 8px;">{{ tokenDialogError }}</div>
+      <template #footer>
+        <el-button @click="handleTokenDialogConfirm" type="primary" :loading="tokenDialogLoading">确定</el-button>
+      </template>
+    </el-dialog>
   </el-container>
 </template>
 
@@ -56,10 +258,6 @@
 import { ref, onMounted, watch } from 'vue'
 import { ElMessage, ElDialog, ElInput, ElButton } from 'element-plus'
 import { QuestionFilled } from '@element-plus/icons-vue'
-import Ob11ConfigForm from './components/Ob11ConfigForm.vue'
-import SatoriConfigForm from './components/SatoriConfigForm.vue'
-import OtherConfigForm from './components/OtherConfigForm.vue'
-import TokenDialog from './components/TokenDialog.vue'
 
 // Token logic
 const tokenKey = 'webui_token'
