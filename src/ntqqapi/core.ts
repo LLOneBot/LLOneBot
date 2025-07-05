@@ -28,6 +28,8 @@ import {
   FlashFileUploadingInfo,
 } from '@/ntqqapi/types/flashfile'
 import { logSummaryMessage } from '@/ntqqapi/log'
+import { setFfmpegPath } from 'fluent-ffmpeg'
+import { setFFMpegPath } from '@/common/utils/ffmpeg'
 
 declare module 'cordis' {
   interface Context {
@@ -68,6 +70,7 @@ class Core extends Service {
     this.ctx.logger.info(`LLOneBot/${version}`)
     this.ctx.on('llob/config-updated', input => {
       Object.assign(this.config, input)
+      setFFMpegPath(input.ffmpeg || '')
     })
   }
 

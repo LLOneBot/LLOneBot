@@ -135,7 +135,7 @@ export namespace SendElement {
       filePath,
     }
     try {
-      videoInfo = await getVideoInfo(ctx, path)
+      videoInfo = await getVideoInfo(path)
       ctx.logger.info('视频信息', videoInfo)
     } catch (e) {
       ctx.logger.info('获取视频信息失败', e)

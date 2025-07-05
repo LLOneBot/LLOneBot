@@ -32,6 +32,7 @@ import { existsSync, mkdirSync } from 'node:fs'
 import { pmhq } from '@/ntqqapi/native/pmhq'
 import { version } from '../version'
 import { WebUIServer } from '../webui/BE/server'
+import { setFFMpegPath } from '@/common/utils/ffmpeg'
 
 declare module 'cordis' {
   interface Events {
@@ -88,7 +89,7 @@ async function onLoad() {
   configUtil.listenChange(c => {
     ctx.parallel('llob/config-updated', c)
   })
-
+  setFFMpegPath(config.ffmpeg || '')
   startHook()
 
   ctx.plugin(Log, {

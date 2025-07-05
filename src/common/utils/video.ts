@@ -10,7 +10,7 @@ const defaultVideoThumbB64 =
 
 export const defaultVideoThumb = Buffer.from(defaultVideoThumbB64, 'base64')
 
-export async function getVideoInfo(ctx: Context, filePath: string) {
+export async function getVideoInfo(filePath: string) {
   const size = fs.statSync(filePath).size
   return new Promise<{
     width: number
@@ -20,14 +20,6 @@ export async function getVideoInfo(ctx: Context, filePath: string) {
     size: number
     filePath: string
   }>((resolve, reject) => {
-    let ffmpegPath: string | undefined = ctx.config.ffmpeg
-    if (!ffmpegPath) {
-      ffmpegPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'ffmpeg.exe')
-      if (!fs.existsSync(ffmpegPath)) {
-        ffmpegPath = undefined
-      }
-    }
-    ffmpegPath && ffmpeg.setFfmpegPath(ffmpegPath)
     ffmpeg(filePath).ffprobe((err, metadata) => {
       if (err) {
         reject(err)
