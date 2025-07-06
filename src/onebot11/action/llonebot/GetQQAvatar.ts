@@ -5,10 +5,14 @@ interface Payload {
   user_id: string
 }
 
-export class GetQQAvatar extends BaseAction<Payload, string> {
+interface Response {
+  url: string
+}
+
+export class GetQQAvatar extends BaseAction<Payload, Response> {
   actionName = ActionName.GetQQAvatar
 
-  protected async _handle(payload: Payload){
-    return `https://thirdqq.qlogo.cn/g?b=qq&nk=${payload.user_id}&s=640`
+  protected async _handle(payload: Payload) {
+    return { url: `https://thirdqq.qlogo.cn/g?b=qq&nk=${payload.user_id}&s=640` }
   }
 }
