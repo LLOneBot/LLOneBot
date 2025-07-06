@@ -103,24 +103,20 @@ async function onLoad() {
     msgCacheExpire: config.msgCacheExpire! * 1000,
   })
   ctx.plugin(Core, config)
-  if (config.ob11.enable) {
-    ctx.plugin(OneBot11Adapter, {
-      ...config.ob11,
-      onlyLocalhost: config.onlyLocalhost,
-      heartInterval: config.heartInterval,
-      debug: config.debug!,
-      musicSignUrl: config.musicSignUrl,
-      enableLocalFile2Url: config.enableLocalFile2Url!,
-      ffmpeg: config.ffmpeg,
-    })
-  }
-  if (config.satori.enable) {
-    ctx.plugin(SatoriAdapter, {
-      ...config.satori,
-      ffmpeg: config.ffmpeg,
-      onlyLocalhost: config.onlyLocalhost,
-    })
-  }
+  ctx.plugin(OneBot11Adapter, {
+    ...config.ob11,
+    onlyLocalhost: config.onlyLocalhost,
+    heartInterval: config.heartInterval,
+    debug: config.debug!,
+    musicSignUrl: config.musicSignUrl,
+    enableLocalFile2Url: config.enableLocalFile2Url!,
+    ffmpeg: config.ffmpeg,
+  })
+  ctx.plugin(SatoriAdapter, {
+    ...config.satori,
+    ffmpeg: config.ffmpeg,
+    onlyLocalhost: config.onlyLocalhost,
+  })
   ctx.plugin(WebUIServer, {...config.webui, onlyLocalhost: config.onlyLocalhost})
 
   ctx.start()

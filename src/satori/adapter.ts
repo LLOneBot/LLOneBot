@@ -123,7 +123,9 @@ class SatoriAdapter extends Service {
   }
 
   start() {
-    this.server.start()
+    if(this.config.enable){
+      this.server.start()
+    }
     this.ctx.on('nt/message-created', async input => {
       const event = await this.handleMessage(input)
         .catch(e => this.ctx.logger.error(e))

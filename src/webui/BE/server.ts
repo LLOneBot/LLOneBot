@@ -38,11 +38,13 @@ export class WebUIServer extends Service {
       const token = config.webui?.token
       if (!token) {
         if (req.path === '/set-token') return next()
-        return res.status(401).json({ success: false, message: '请先设置WebUI密码' })
+        res.status(401).json({ success: false, message: '请先设置WebUI密码' })
+        return
       }
       const reqToken = req.headers['x-webui-token'] || req.body?.token || req.query?.token
       if (reqToken !== token) {
-        return res.status(403).json({ success: false, message: 'Token校验失败' })
+        res.status(403).json({ success: false, message: 'Token校验失败' })
+        return
       }
       next()
     })
@@ -64,7 +66,8 @@ export class WebUIServer extends Service {
         const config = req.body as Config
         const oldConfig = getConfigUtil().getConfig()
         const newConfig = {...oldConfig, ...config}
-        this.ctx.parallel('llob/config-updated', newConfig).then().catch(e=>this.ctx.logger.error(e))
+        this.ctx.parallel('llob/config-updated', newConfig).then()
+        getConfigUtil().setConfig(newConfig)
         res.json({ success: true, message: '配置保存成功' })
       } catch (e) {
         res.status(500).json({ success: false, message: '保存配置失败', error: String(e) })
@@ -72,10 +75,11 @@ export class WebUIServer extends Service {
     })
 
     // 设置token接口
-    this.app.post('/api/set-token', (req, res) => {
+    this.app.post('/api/set-token', (req: Request, res: Response) => {
       const { token } = req.body
       if (!token) {
-        return res.status(400).json({ success: false, message: 'Token不能为空' })
+        res.status(400).json({ success: false, message: 'Token不能为空' })
+        return
       }
       const config = getConfigUtil().getConfig()
       config.webui.token = token

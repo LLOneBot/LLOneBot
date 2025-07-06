@@ -45,29 +45,44 @@
     <el-form-item label="消息缓存过期 (秒)">
       <el-input-number v-model="form.msgCacheExpire" :min="1" :max="86400" />
     </el-form-item>
-    <el-form-item label="只监听本地地址">
-      <el-switch v-model="form.onlyLocalhost" />
-      <el-tooltip content="取消则监听0.0.0.0，暴露在公网请务必填写 Token ！" placement="top">
-        <el-icon class="info-icon">
-          <QuestionFilled />
-        </el-icon>
-      </el-tooltip>
-    </el-form-item>
+    <el-row :gutter="16">
+      <el-col :span="12">
+        <el-form-item label="只监听本地地址">
+          <el-switch v-model="form.onlyLocalhost" />
+          <el-tooltip content="取消则监听0.0.0.0，暴露在公网请务必填写 Token ！" placement="top">
+            <el-icon class="info-icon">
+              <QuestionFilled />
+            </el-icon>
+          </el-tooltip>
+        </el-form-item>
+      </el-col>
+      <el-col :span="12">
+        <el-form-item label="webui 密码">
+          <el-input v-model="form.webui.token"
+                    show-password
+                    @change='handleWebuiToken'
+                    placeholder="请输入密码" clearable />
+        </el-form-item>
+      </el-col>
+    </el-row>
   </div>
 </template>
 <script setup lang="ts">
 import { computed } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 const props = defineProps<{ modelValue: any }>()
-const emit = defineEmits(['update:modelValue'])
 const form = computed({
   get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
+  set: (val) => props.modelValue.value = val
 })
+function handleWebuiToken(v: string){
+
+}
 </script>
 <style scoped>
 .info-icon {
   margin-left: 8px;
   color: #909399;
 }
-</style> 
+</style>

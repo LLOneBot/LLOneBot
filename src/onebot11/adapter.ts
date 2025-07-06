@@ -251,7 +251,7 @@ class OneBot11Adapter extends Service {
       token: config.ob11.token,
     })
     if (config.ob11.enable) {
-      if (config.ob11.enableHttp !== old.enableHttp) {
+      if (config.ob11.enableHttp !== old.enableHttp || config.ob11.enable !== old.enable) {
         if (!config.ob11.enableHttp) {
           await this.ob11Http.stop()
         }
@@ -306,13 +306,15 @@ class OneBot11Adapter extends Service {
       }
       if (config.ob11.enableHttpHeart !== old.enableHttpHeart || config.ob11.enable !== old.enable) {
         this.ob11HttpPost.stop()
+      }
+      if (config.ob11.enableHttpPost) {
         this.ob11HttpPost.start()
       }
     }
     else {
       this.ob11Http.stop()
-      this.ob11WebSocket.stop()
       this.ob11HttpPost.stop()
+      this.ob11WebSocket.stop()
       this.ob11WebSocketReverseManager.stop()
     }
     Object.assign(this.config, {
@@ -327,17 +329,19 @@ class OneBot11Adapter extends Service {
   }
 
   public start() {
-    if (this.config.enableWs) {
-      this.ob11WebSocket.start()
-    }
-    if (this.config.enableWsReverse) {
-      this.ob11WebSocketReverseManager.start()
-    }
-    if (this.config.enableHttp) {
-      this.ob11Http.start()
-    }
-    if (this.config.enableHttpPost) {
-      this.ob11HttpPost.start()
+    if (this.config.enable) {
+      if (this.config.enableWs) {
+        this.ob11WebSocket.start()
+      }
+      if (this.config.enableWsReverse) {
+        this.ob11WebSocketReverseManager.start()
+      }
+      if (this.config.enableHttp) {
+        this.ob11Http.start()
+      }
+      if (this.config.enableHttpPost) {
+        this.ob11HttpPost.start()
+      }
     }
     this.ctx.on('llob/config-updated', input => {
       this.handleConfigUpdated(input).catch(e => {

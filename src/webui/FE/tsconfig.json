@@ -3,10 +3,11 @@
     "composite": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@common/types": ["../../common/types"],
+      "@/*": ["./*"],
     },
     "types": ["vite/client"]
   },
-  "include": ["./**/*"],
+  "include": ["./**/*", "../../common/*", "../../version.ts"],
   "exclude": ["node_modules"]
 }

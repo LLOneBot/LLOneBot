@@ -41,11 +41,22 @@ class OB11WebSocket {
   public stop() {
     return new Promise<boolean>((resolve) => {
       llonebotError.wsServerError = ''
+      this.ctx.logger.info('OneBot V11 WebSocket Server closing...')
+      this.wsClients.forEach(({ socket }) => {
+        try {
+          socket.close()
+        } catch (e) {
+          this.ctx.logger.error('关闭 OneBot V11 WebSocket 客户端连接失败', e)
+        }
+      })
+      this.wsClients = []
       if (this.wsServer) {
         this.wsServer.close((err) => {
           if (err) {
+            this.ctx.logger.error(`OneBot V11 WebSocket Server closing ${err}`)
             return resolve(false)
           }
+          this.ctx.logger.info('OneBot V11 WebSocket Server closed')
           resolve(true)
         })
         this.wsServer = undefined

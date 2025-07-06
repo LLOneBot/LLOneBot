@@ -90,7 +90,7 @@ export class ConfigUtil {
         console.error('默认配置文件 default_config.json 内容不合格，使用内置默认配置')
         this.config = defaultConfig
       }
-      this.setConfig(this.config!, false)
+      this.setConfig(this.config!)
       return this.config!
     }
     else {
@@ -108,15 +108,19 @@ export class ConfigUtil {
       this.checkOldConfig(jsonData.ob11, jsonData.ob11, 'wsReverseUrls', 'wsHosts')
       this.checkOldConfig(jsonData.ob11, jsonData.ob11, 'httpPostUrls', 'httpHosts')
       this.checkOldConfig(jsonData, jsonData.ob11, 'onlyLocalhost', 'listenLocalhost')
-      this.setConfig(jsonData, false)
+      this.setConfig(jsonData)
       this.config = jsonData
       return this.config
     }
   }
 
-  setConfig(config: Config, watch = false) {
-    this.watch = watch
+  setConfig(config: Config) {
     this.config = config
+    this.writeConfig(config)
+  }
+
+  writeConfig(config: Config, watch = false) {
+   this.watch = watch
     fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), 'utf-8')
     setTimeout(() => {
       this.watch = true

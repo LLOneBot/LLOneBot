@@ -24,7 +24,7 @@
       <el-col :span="20">
         <el-form-item>
           <template #label>Satori Token</template>
-          <el-input v-model="form.token" placeholder="Satori Token" clearable style="width: 100%;" />
+          <el-input v-model="form.token" show-password placeholder="Satori Token" clearable style="width: 100%;" />
         </el-form-item>
       </el-col>
     </el-row>
@@ -43,4 +43,4 @@ const form = computed({
 .satori-row {
   margin-bottom: 18px;
 }
-</style> 
+</style>

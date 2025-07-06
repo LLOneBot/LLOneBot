@@ -10,11 +10,13 @@ import { OB11BaseEvent } from '../event/OB11BaseEvent'
 import { handleQuickOperation, QuickOperationEvent } from '../helper/quickOperation'
 import { OB11HeartbeatEvent } from '../event/meta/OB11HeartbeatEvent'
 import { Dict } from 'cosmokit'
+import net from 'node:net'
 
 class OB11Http {
   private readonly expressAPP: Express
   private server?: http.Server
   private sseClients: Response[] = []
+  private sockets: Set<net.Socket> = new Set()
 
   constructor(protected ctx: Context, public config: OB11Http.Config) {
     this.expressAPP = express()
@@ -39,7 +41,8 @@ class OB11Http {
   }
 
   public start() {
-    if (this.server) return
+    if (this.server)
+      return
     try {
       this.expressAPP.get('/', (req: Request, res: Response) => {
         res.send(`LLOneBot server 已启动`)
@@ -53,7 +56,7 @@ class OB11Http {
         res.setHeader('X-Accel-Buffering', 'no')
         res.flushHeaders()
         this.sseClients.push(res)
-        
+
         // 添加客户端断开连接时的清理逻辑
         req.on('close', () => {
           const index = this.sseClients.indexOf(res)
@@ -61,7 +64,7 @@ class OB11Http {
             this.sseClients.splice(index, 1)
           }
         })
-        
+
         req.on('error', () => {
           const index = this.sseClients.indexOf(res)
           if (index > -1) {
@@ -71,8 +74,16 @@ class OB11Http {
       })
       this.ctx.logger.info(`OneBot V11 HTTP SSE started ${host}:${this.config.port}/_events`)
       try {
-        this.server = this.expressAPP.listen(this.config.port, host, () => {
+        this.server = this.expressAPP.listen(this.config.port, host, (err) => {
+          if (err){
+            this.ctx.logger.error('OneBot V11 HTTP server start error:', err)
+          }
           this.ctx.logger.info(`OneBot V11 HTTP server started ${host}:${this.config.port}`)
+        })
+        // 追踪所有 socket 连接
+        this.server.on('connection', (socket: net.Socket) => {
+          this.sockets.add(socket)
+          socket.on('close', () => this.sockets.delete(socket))
         })
       }catch (e) {
         this.ctx.logger.error(`OneBot V11 HTTP server error ${host}:${this.config.port}`, e)
@@ -85,15 +96,22 @@ class OB11Http {
 
   public stop() {
     return new Promise<boolean>((resolve) => {
-      llonebotError.httpServerError = ''
       if (this.server) {
+        this.ctx.logger.info('OneBot V11 HTTP Server closing...')
+        // 主动销毁所有 socket
+        for (const socket of this.sockets) {
+          socket.destroy()
+        }
+        this.sockets.clear()
         this.server.close((err) => {
           if (err) {
+            this.ctx.logger.error(`OneBot V11 HTTP Server closing ${err}`)
             return resolve(false)
           }
+          this.ctx.logger.info('OneBot V11 HTTP Server closed')
+          this.server = undefined
           resolve(true)
         })
-        this.server = undefined
       } else {
         resolve(true)
       }
@@ -231,13 +249,15 @@ class OB11HttpPost {
             this.ctx.logger.info(`HTTP 事件上报后返回快速操作:`, JSON.stringify(resJson))
             handleQuickOperation(this.ctx, event as QuickOperationEvent, resJson).catch(e => this.ctx.logger.error(e))
           } catch (e) {
-            //log(`新消息事件HTTP上报没有返回快速操作，不需要处理`)
+            this.ctx.logger.warn(`HTTP 事件上报返回数据解析失败: ${host}`, e)
           }
         },
         (err) => {
           this.ctx.logger.error(`HTTP 事件上报失败: ${host}`, err, event)
         },
-      ).catch(e => this.ctx.logger.error(e))
+      ).catch(e => {
+        this.ctx.logger.error(`HTTP 事件上报过程中发生异常: ${host}`, e)
+      })
     }
   }
 
@@ -256,3 +276,4 @@ namespace OB11HttpPost {
 }
 
 export { OB11Http, OB11HttpPost }
+
