@@ -78,11 +78,14 @@ async function onLoad() {
   const self = Object.assign(selfInfo, {
     uin: pmhqSelfInfo.uin,
     uid: pmhqSelfInfo.uid,
+    nick: pmhqSelfInfo.nickName,
     online: true,
   })
-  ctx.ntUserApi.getSelfNick().then(nick => {
-    self.nick = nick
-  }).catch(e=>ctx.logger.error('获取bot昵称失败', e))
+  if (!self.nick) {
+    ctx.ntUserApi.getSelfNick().then(nick => {
+      self.nick = nick
+    }).catch(e => ctx.logger.error('获取bot昵称失败', e))
+  }
   // log('process pid', process.pid)
   const configUtil = getConfigUtil()
   const config = configUtil.getConfig()
