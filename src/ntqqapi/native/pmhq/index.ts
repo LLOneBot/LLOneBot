@@ -1,4 +1,3 @@
-import { WebSocket } from 'ws'
 import { Action, Msg, Oidb } from '@/ntqqapi/proto/compiled'
 import { deepConvertMap, deepStringifyMap } from '@/ntqqapi/native/pmhq/util'
 import { Peer, ChatType } from '@/ntqqapi/types/msg'
