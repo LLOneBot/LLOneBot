@@ -87,6 +87,10 @@ export class PMHQ {
     this.connectWebSocket().then()
   }
 
+  public get_is_connected() {
+    return this.ws && (this.ws.readyState === WebSocket.OPEN)
+  }
+
   private getPMHQHostPort() {
     let pmhqPort = '13000'
     let pmhqHost: string = '127.0.0.1'
@@ -151,16 +155,19 @@ export class PMHQ {
     }
 
     this.ws.onerror = (error) => {
+      selfInfo.online = false
       console.error('PMHQ WebSocket 连接错误', '正在重连...')
       reconnect()
     }
 
     this.ws.onclose = () => {
+      selfInfo.online = false
       console.info('PMHQ WebSocket 连接关闭，准备重连...')
       reconnect()
     }
 
     this.ws.onopen = () => {
+      selfInfo.online = true
       console.info('PMHQ WebSocket 连接成功')
     }
   }

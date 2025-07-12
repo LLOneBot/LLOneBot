@@ -37,6 +37,6 @@ export const selfInfo: SelfInfo = {
   uid: '',
   uin: '',
   nick: '',
-  online: true,
+  online: false,
 }
 
