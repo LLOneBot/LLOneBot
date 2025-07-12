@@ -2,8 +2,7 @@ import fs from 'node:fs'
 import fsPromise from 'node:fs/promises'
 import path from 'node:path'
 import * as fileType from 'file-type'
-// @ts-ignore
-import { imageSizeFromFile } from "image-size/fromFile";
+import { imageSizeFromFile } from 'image-size/fromFile'
 import { TEMP_DIR } from '../globalVars'
 import { randomUUID, createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
