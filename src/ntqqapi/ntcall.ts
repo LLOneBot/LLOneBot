@@ -97,8 +97,9 @@ const NT_SERVICE_TO_PMHQ: Record<string, string> = {
 export function invoke<
   R extends Awaited<ReturnType<Extract<NTService[S][M], (...args: any) => unknown>>>,
   S extends keyof NTService = any,
-  M extends keyof NTService[S] & string = any
->(method: Extract<unknown, `${S}/${M}`> | string, args: unknown[], options: InvokeOptions<R> = {}): Promise<R> {
+  M extends keyof NTService[S] & string = any,
+  P extends Parameters<Extract<NTService[S][M], (...args: any) => unknown>> = any
+>(method: Extract<unknown, `${S}/${M}`> | string, args: P, options: InvokeOptions<R> = {}): Promise<R> {
   const splitMethod = method.split('/')
   const serviceName = splitMethod[0] as keyof NTService
   const methodName = splitMethod.slice(1).join('/')
@@ -132,7 +133,7 @@ export function invoke<
       pmhq.call(funcName, args, timeout).then(r => firstResult = r).catch(reject)
     }
     else {
-      pmhq.call(funcName, args, timeout).then(r=>{
+      pmhq.call(funcName, args, timeout).then(r => {
         resolve(r)
         timeoutId && clearTimeout(timeoutId)
       }).catch(reject)
