@@ -23,7 +23,7 @@
               <SatoriConfigForm v-if="activeIndex === '2'" v-model='form.satori' />
               <OtherConfigForm v-if="activeIndex === '3'" v-model='form' />
               <About v-if="activeIndex === '4'" />
-              <el-form-item class='form-actions'>
+              <el-form-item class='form-actions' v-if="activeIndex != '4'">
                 <el-button type='primary' @click='onSave' size='large' style='float: right;' :loading='loading'>
                   保存配置
                 </el-button>
@@ -50,6 +50,7 @@ import TokenDialog from './components/TokenDialog.vue'
 import { Config } from '@common/types'
 import { version } from '../../version'
 import About from '@/components/About.vue'
+import './App.css'
 
 // Token logic
 const tokenKey = 'webui_token'
@@ -281,80 +282,3 @@ function handleTokenDialogClose() {
   return true
 }
 </script>
-
-<style scoped>
-.main-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f0f3fa 0%, #e8f0fe 100%);
-}
-
-.header {
-  text-align: center;
-  background: transparent;
-  padding-bottom: 0;
-}
-
-.logo {
-  font-size: 40px;
-  color: #409eff;
-  vertical-align: middle;
-  margin-bottom: 8px;
-}
-
-.config-card {
-  border-radius: 18px;
-  box-shadow: 0 4px 24px 0 rgba(64, 158, 255, 0.08);
-  background: #fff;
-  padding: 0 24px 16px 24px;
-}
-
-.config-form {
-  margin-top: 8px;
-}
-
-.el-divider {
-  margin-top: 32px;
-  margin-bottom: 18px;
-  font-size: 18px;
-  color: #409eff;
-  font-weight: bold;
-}
-
-.form-actions {
-  float: right;
-}
-
-.tag-list {
-  margin-top: 4px;
-}
-
-.satori-row {
-  margin-bottom: 18px;
-}
-
-.info-icon {
-  margin-left: 8px;
-  color: #909399;
-}
-
-.account-info {
-  float: right;
-  margin-top: 12px;
-  font-size: 16px;
-  color: #666;
-}
-
-@media (max-width: 600px) {
-  .config-card {
-    padding: 12px 2px 8px 2px;
-  }
-
-  .header {
-    padding-top: 12px;
-  }
-
-  .el-divider {
-    font-size: 15px;
-  }
-}
-</style>
