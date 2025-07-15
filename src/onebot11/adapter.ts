@@ -118,19 +118,18 @@ class OneBot11Adapter extends Service {
         )
         this.dispatch(event)
       }
-        // 邀请 bot 加群会发送一条 ark 消息，因此在消息那边处理，此处忽略
-        // else if (notify.type === GroupNotifyType.InvitedByMember && notify.status === GroupNotifyStatus.Unhandle) {
-        //   this.ctx.logger.info('收到邀请我加群通知')
-        //   const userId = await this.ctx.ntUserApi.getUinByUid(notify.user2.uid)
-        //   const event = new OB11GroupRequestEvent(
-        //     parseInt(notify.group.groupCode),
-        //     parseInt(userId) || 0,
-        //     flag,
-        //     notify.postscript,
-        //     'invite'
-        //   )
-        //   this.dispatch(event)
-      // }
+      else if (notify.type === GroupNotifyType.InvitedByMember && notify.status === GroupNotifyStatus.Unhandle) {
+          this.ctx.logger.info('收到邀请我加群通知')
+          const userId = await this.ctx.ntUserApi.getUinByUid(notify.user2.uid)
+          const event = new OB11GroupRequestEvent(
+            parseInt(notify.group.groupCode),
+            parseInt(userId) || 0,
+            flag,
+            notify.postscript,
+            'invite'
+          )
+          this.dispatch(event)
+      }
       else if (notify.type === GroupNotifyType.InvitedNeedAdminiStratorPass && notify.status === GroupNotifyStatus.Unhandle) {
         this.ctx.logger.info('收到群员邀请加群通知')
         const userId = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)

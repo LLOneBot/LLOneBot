@@ -486,26 +486,27 @@ export namespace OB11Entities {
           return new OB11FriendAddNoticeEvent(uin)
         }
       } else if (element.arkElement) {
-        const data = JSON.parse(element.arkElement.bytesData)
-        if (data.app === 'com.tencent.qun.invite') {
-          const params = new URLSearchParams(data.meta.news.jumpUrl)
-          const receiverUin = params.get('receiveruin')
-          const senderUin = params.get('senderuin')
-          if (receiverUin !== selfInfo.uin || senderUin !== msg.senderUin) {
-            return
-          }
-          ctx.logger.info('收到邀请我加群消息')
-          const groupCode = params.get('groupcode')
-          const seq = params.get('msgseq')
-          const flag = `${groupCode}|${seq}|1|0`
-          return new OB11GroupRequestEvent(
-            Number(groupCode),
-            Number(senderUin),
-            flag,
-            data.meta.news.desc,
-            'invite',
-          )
-        }
+        // 已经在群通知那里解析过了，不再从消息解析邀请 bot 加群
+        // const data = JSON.parse(element.arkElement.bytesData)
+        // if (data.app === 'com.tencent.qun.invite') {
+        //   const params = new URLSearchParams(data.meta.news.jumpUrl)
+        //   const receiverUin = params.get('receiveruin')
+        //   const senderUin = params.get('senderuin')
+        //   if (receiverUin !== selfInfo.uin || senderUin !== msg.senderUin) {
+        //     return
+        //   }
+        //   ctx.logger.info('收到邀请我加群消息')
+        //   const groupCode = params.get('groupcode')
+        //   const seq = params.get('msgseq')
+        //   const flag = `${groupCode}|${seq}|1|0`
+        //   return new OB11GroupRequestEvent(
+        //     Number(groupCode),
+        //     Number(senderUin),
+        //     flag,
+        //     data.meta.news.desc,
+        //     'invite',
+        //   )
+        // }
       }
     }
   }

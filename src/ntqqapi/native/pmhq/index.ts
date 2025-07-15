@@ -123,7 +123,7 @@ export class PMHQ {
       }
       this.reconnectTimer = setTimeout(() => {
         this.connectWebSocket()
-      }, 999)
+      }, 1000)
     }
 
     try {
