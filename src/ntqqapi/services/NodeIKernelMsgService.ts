@@ -99,4 +99,11 @@ export interface NodeIKernelMsgService {
   getTempChatInfo(chatType: number, uid: string): Promise<TmpChatInfoApi>
 
   sendSsoCmdReqByContend(ssoCmd: string, content: string): Promise<GeneralCallResult & { rsp: string }>
+
+  JoinDragonGroupEmoji(req: {
+    manageEmojiId: number
+    manageMsgSeq: string
+    latestMsgSeq: string  // 固定 ''
+    peerContact: Peer
+  }): Promise<GeneralCallResult & { emojiId: number }>
 }
