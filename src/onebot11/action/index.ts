@@ -44,7 +44,7 @@ import { GetGroupMsgHistory } from './go-cqhttp/GetGroupMsgHistory'
 import GetFile from './file/GetFile'
 import { GetForwardMsg } from './go-cqhttp/GetForwardMsg'
 import { GetCookies } from './user/GetCookie'
-import {SetMsgEmojiLike, UnSetMsgEmojiLike} from './llonebot/SetMsgEmojiLike'
+import { SetMsgEmojiLike, UnSetMsgEmojiLike } from './llonebot/SetMsgEmojiLike'
 import { ForwardFriendSingleMsg, ForwardGroupSingleMsg } from './llonebot/ForwardSingleMsg'
 import { GetEssenceMsgList } from './go-cqhttp/GetGroupEssence'
 import { GetGroupHonorInfo } from './group/GetGroupHonorInfo'
@@ -98,6 +98,7 @@ import { UploadFlashFile } from '@/onebot11/action/llonebot/UploadFlashFile'
 import { GetQQAvatar } from '@/onebot11/action/llonebot/GetQQAvatar'
 import { DownloadFlashFile } from '@/onebot11/action/llonebot/DownloadFlashFile'
 import { GetFlashFileInfo } from '@/onebot11/action/llonebot/GetFlashFileInfo'
+import { GetRecommendFace } from './llonebot/GetRecommendFace'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -135,6 +136,7 @@ export function initActionMap(adapter: Adapter) {
     new MoveGroupFile(adapter),
     new GetGroupShutList(adapter),
     new RenameGroupFileFolder(adapter),
+    new GetRecommendFace(adapter),
     // onebot11
     new SendLike(adapter),
     new GetMsg(adapter),

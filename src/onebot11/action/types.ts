@@ -43,9 +43,10 @@ export enum ActionName {
   SetFriendCategory = 'set_friend_category',
   SetGroupMsgMask = 'set_group_msg_mask',
   SetGroupRemark = 'set_group_remark',
-  MoveGroupFile ='move_group_file',
+  MoveGroupFile = 'move_group_file',
   GetGroupShutList = 'get_group_shut_list',
   RenameGroupFileFolder = 'rename_group_file_folder',
+  GetRecommendFace = 'get_recommend_face',
   // onebot 11
   SendLike = 'send_like',
   GetLoginInfo = 'get_login_info',

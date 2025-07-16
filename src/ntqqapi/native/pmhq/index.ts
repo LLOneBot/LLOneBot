@@ -355,6 +355,20 @@ export class PMHQ {
     const res = await this.httpSendPB('trpc.group.long_msg_interface.MsgService.SsoSendLongMsg', data)
     return Action.SendLongMsgResp.decode(Buffer.from(res.pb, 'hex')).result!.resId!
   }
+
+  async pullPics(word: string) {
+    const data = Action.PullPicsReq.encode({
+      uin: +selfInfo.uin,
+      field3: 1,
+      word,
+      word2: word,
+      field8: 0,
+      field9: 0,
+      field14: 1
+    }).finish()
+    const res = await this.httpSendPB('PicSearchSvr.PullPics', data)
+    return Action.PullPicsResp.decode(Buffer.from(res.pb, 'hex'))
+  }
 }
 
 export const pmhq = new PMHQ()

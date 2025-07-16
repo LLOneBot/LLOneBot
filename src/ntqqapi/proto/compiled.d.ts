@@ -2967,4 +2967,175 @@ export namespace Action {
          */
         public static getTypeUrl(typeUrlPrefix?: string): string;
     }
+
+    /** Properties of a PullPicsReq. */
+    interface IPullPicsReq {
+
+        /** PullPicsReq uin */
+        uin?: (number|null);
+
+        /** PullPicsReq field3 */
+        field3?: (number|null);
+
+        /** PullPicsReq word */
+        word?: (string|null);
+
+        /** PullPicsReq word2 */
+        word2?: (string|null);
+
+        /** PullPicsReq field8 */
+        field8?: (number|null);
+
+        /** PullPicsReq field9 */
+        field9?: (number|null);
+
+        /** PullPicsReq field14 */
+        field14?: (number|null);
+    }
+
+    /** Represents a PullPicsReq. */
+    class PullPicsReq implements IPullPicsReq {
+
+        /**
+         * Constructs a new PullPicsReq.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Action.IPullPicsReq);
+
+        /** PullPicsReq uin. */
+        public uin: number;
+
+        /** PullPicsReq field3. */
+        public field3: number;
+
+        /** PullPicsReq word. */
+        public word: string;
+
+        /** PullPicsReq word2. */
+        public word2: string;
+
+        /** PullPicsReq field8. */
+        public field8: number;
+
+        /** PullPicsReq field9. */
+        public field9: number;
+
+        /** PullPicsReq field14. */
+        public field14: number;
+
+        /**
+         * Encodes the specified PullPicsReq message. Does not implicitly {@link Action.PullPicsReq.verify|verify} messages.
+         * @param message PullPicsReq message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Action.IPullPicsReq, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a PullPicsReq message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns PullPicsReq
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Action.PullPicsReq;
+
+        /**
+         * Gets the default type url for PullPicsReq
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a PullPicsImgInfo. */
+    interface IPullPicsImgInfo {
+
+        /** PullPicsImgInfo url */
+        url?: (string|null);
+    }
+
+    /** Represents a PullPicsImgInfo. */
+    class PullPicsImgInfo implements IPullPicsImgInfo {
+
+        /**
+         * Constructs a new PullPicsImgInfo.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Action.IPullPicsImgInfo);
+
+        /** PullPicsImgInfo url. */
+        public url: string;
+
+        /**
+         * Encodes the specified PullPicsImgInfo message. Does not implicitly {@link Action.PullPicsImgInfo.verify|verify} messages.
+         * @param message PullPicsImgInfo message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Action.IPullPicsImgInfo, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a PullPicsImgInfo message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns PullPicsImgInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Action.PullPicsImgInfo;
+
+        /**
+         * Gets the default type url for PullPicsImgInfo
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a PullPicsResp. */
+    interface IPullPicsResp {
+
+        /** PullPicsResp info */
+        info?: (Action.IPullPicsImgInfo[]|null);
+    }
+
+    /** Represents a PullPicsResp. */
+    class PullPicsResp implements IPullPicsResp {
+
+        /**
+         * Constructs a new PullPicsResp.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Action.IPullPicsResp);
+
+        /** PullPicsResp info. */
+        public info: Action.IPullPicsImgInfo[];
+
+        /**
+         * Encodes the specified PullPicsResp message. Does not implicitly {@link Action.PullPicsResp.verify|verify} messages.
+         * @param message PullPicsResp message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Action.IPullPicsResp, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a PullPicsResp message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns PullPicsResp
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Action.PullPicsResp;
+
+        /**
+         * Gets the default type url for PullPicsResp
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
 }

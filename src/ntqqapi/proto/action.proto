@@ -32,3 +32,21 @@ message SendLongMsgResp {
 message SendLongMsgResult {
   string resId = 3;
 }
+
+message PullPicsReq {
+  uint32 uin = 2;
+  uint32 field3 = 3;
+  string word = 6;
+  string word2 = 7;
+  uint32 field8 = 8;
+  uint32 field9 = 9;
+  uint32 field14 = 14;
+}
+
+message PullPicsImgInfo {
+  string url = 5;
+}
+
+message PullPicsResp {
+  repeated PullPicsImgInfo info = 3;
+}

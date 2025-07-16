@@ -325,4 +325,15 @@ export class NTQQMsgApi extends Service {
     )
     return res[0]?.elements[0]?.pttElement?.text || ''
   }
+
+  async fetchGetHitEmotionsByWord(word: string, count: number) {
+    return await invoke('nodeIKernelMsgService/fetchGetHitEmotionsByWord', [{
+      word,
+      uid: selfInfo.uid,
+      count,
+      age: 0,
+      gender: 1,
+      uiVersion: '',
+    }])
+  }
 }

@@ -7288,6 +7288,397 @@ export const Action = $root.Action = (() => {
         return SendLongMsgResult;
     })();
 
+    Action.PullPicsReq = (function() {
+
+        /**
+         * Properties of a PullPicsReq.
+         * @memberof Action
+         * @interface IPullPicsReq
+         * @property {number|null} [uin] PullPicsReq uin
+         * @property {number|null} [field3] PullPicsReq field3
+         * @property {string|null} [word] PullPicsReq word
+         * @property {string|null} [word2] PullPicsReq word2
+         * @property {number|null} [field8] PullPicsReq field8
+         * @property {number|null} [field9] PullPicsReq field9
+         * @property {number|null} [field14] PullPicsReq field14
+         */
+
+        /**
+         * Constructs a new PullPicsReq.
+         * @memberof Action
+         * @classdesc Represents a PullPicsReq.
+         * @implements IPullPicsReq
+         * @constructor
+         * @param {Action.IPullPicsReq=} [properties] Properties to set
+         */
+        function PullPicsReq(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * PullPicsReq uin.
+         * @member {number} uin
+         * @memberof Action.PullPicsReq
+         * @instance
+         */
+        PullPicsReq.prototype.uin = 0;
+
+        /**
+         * PullPicsReq field3.
+         * @member {number} field3
+         * @memberof Action.PullPicsReq
+         * @instance
+         */
+        PullPicsReq.prototype.field3 = 0;
+
+        /**
+         * PullPicsReq word.
+         * @member {string} word
+         * @memberof Action.PullPicsReq
+         * @instance
+         */
+        PullPicsReq.prototype.word = "";
+
+        /**
+         * PullPicsReq word2.
+         * @member {string} word2
+         * @memberof Action.PullPicsReq
+         * @instance
+         */
+        PullPicsReq.prototype.word2 = "";
+
+        /**
+         * PullPicsReq field8.
+         * @member {number} field8
+         * @memberof Action.PullPicsReq
+         * @instance
+         */
+        PullPicsReq.prototype.field8 = 0;
+
+        /**
+         * PullPicsReq field9.
+         * @member {number} field9
+         * @memberof Action.PullPicsReq
+         * @instance
+         */
+        PullPicsReq.prototype.field9 = 0;
+
+        /**
+         * PullPicsReq field14.
+         * @member {number} field14
+         * @memberof Action.PullPicsReq
+         * @instance
+         */
+        PullPicsReq.prototype.field14 = 0;
+
+        /**
+         * Encodes the specified PullPicsReq message. Does not implicitly {@link Action.PullPicsReq.verify|verify} messages.
+         * @function encode
+         * @memberof Action.PullPicsReq
+         * @static
+         * @param {Action.IPullPicsReq} message PullPicsReq message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        PullPicsReq.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.uin != null && Object.hasOwnProperty.call(message, "uin"))
+                writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.uin);
+            if (message.field3 != null && Object.hasOwnProperty.call(message, "field3"))
+                writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.field3);
+            if (message.word != null && Object.hasOwnProperty.call(message, "word"))
+                writer.uint32(/* id 6, wireType 2 =*/50).string(message.word);
+            if (message.word2 != null && Object.hasOwnProperty.call(message, "word2"))
+                writer.uint32(/* id 7, wireType 2 =*/58).string(message.word2);
+            if (message.field8 != null && Object.hasOwnProperty.call(message, "field8"))
+                writer.uint32(/* id 8, wireType 0 =*/64).uint32(message.field8);
+            if (message.field9 != null && Object.hasOwnProperty.call(message, "field9"))
+                writer.uint32(/* id 9, wireType 0 =*/72).uint32(message.field9);
+            if (message.field14 != null && Object.hasOwnProperty.call(message, "field14"))
+                writer.uint32(/* id 14, wireType 0 =*/112).uint32(message.field14);
+            return writer;
+        };
+
+        /**
+         * Decodes a PullPicsReq message from the specified reader or buffer.
+         * @function decode
+         * @memberof Action.PullPicsReq
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Action.PullPicsReq} PullPicsReq
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        PullPicsReq.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Action.PullPicsReq();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 2: {
+                        message.uin = reader.uint32();
+                        break;
+                    }
+                case 3: {
+                        message.field3 = reader.uint32();
+                        break;
+                    }
+                case 6: {
+                        message.word = reader.string();
+                        break;
+                    }
+                case 7: {
+                        message.word2 = reader.string();
+                        break;
+                    }
+                case 8: {
+                        message.field8 = reader.uint32();
+                        break;
+                    }
+                case 9: {
+                        message.field9 = reader.uint32();
+                        break;
+                    }
+                case 14: {
+                        message.field14 = reader.uint32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for PullPicsReq
+         * @function getTypeUrl
+         * @memberof Action.PullPicsReq
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        PullPicsReq.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Action.PullPicsReq";
+        };
+
+        return PullPicsReq;
+    })();
+
+    Action.PullPicsImgInfo = (function() {
+
+        /**
+         * Properties of a PullPicsImgInfo.
+         * @memberof Action
+         * @interface IPullPicsImgInfo
+         * @property {string|null} [url] PullPicsImgInfo url
+         */
+
+        /**
+         * Constructs a new PullPicsImgInfo.
+         * @memberof Action
+         * @classdesc Represents a PullPicsImgInfo.
+         * @implements IPullPicsImgInfo
+         * @constructor
+         * @param {Action.IPullPicsImgInfo=} [properties] Properties to set
+         */
+        function PullPicsImgInfo(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * PullPicsImgInfo url.
+         * @member {string} url
+         * @memberof Action.PullPicsImgInfo
+         * @instance
+         */
+        PullPicsImgInfo.prototype.url = "";
+
+        /**
+         * Encodes the specified PullPicsImgInfo message. Does not implicitly {@link Action.PullPicsImgInfo.verify|verify} messages.
+         * @function encode
+         * @memberof Action.PullPicsImgInfo
+         * @static
+         * @param {Action.IPullPicsImgInfo} message PullPicsImgInfo message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        PullPicsImgInfo.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.url != null && Object.hasOwnProperty.call(message, "url"))
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.url);
+            return writer;
+        };
+
+        /**
+         * Decodes a PullPicsImgInfo message from the specified reader or buffer.
+         * @function decode
+         * @memberof Action.PullPicsImgInfo
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Action.PullPicsImgInfo} PullPicsImgInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        PullPicsImgInfo.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Action.PullPicsImgInfo();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 5: {
+                        message.url = reader.string();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for PullPicsImgInfo
+         * @function getTypeUrl
+         * @memberof Action.PullPicsImgInfo
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        PullPicsImgInfo.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Action.PullPicsImgInfo";
+        };
+
+        return PullPicsImgInfo;
+    })();
+
+    Action.PullPicsResp = (function() {
+
+        /**
+         * Properties of a PullPicsResp.
+         * @memberof Action
+         * @interface IPullPicsResp
+         * @property {Array.<Action.IPullPicsImgInfo>|null} [info] PullPicsResp info
+         */
+
+        /**
+         * Constructs a new PullPicsResp.
+         * @memberof Action
+         * @classdesc Represents a PullPicsResp.
+         * @implements IPullPicsResp
+         * @constructor
+         * @param {Action.IPullPicsResp=} [properties] Properties to set
+         */
+        function PullPicsResp(properties) {
+            this.info = [];
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * PullPicsResp info.
+         * @member {Array.<Action.IPullPicsImgInfo>} info
+         * @memberof Action.PullPicsResp
+         * @instance
+         */
+        PullPicsResp.prototype.info = $util.emptyArray;
+
+        /**
+         * Encodes the specified PullPicsResp message. Does not implicitly {@link Action.PullPicsResp.verify|verify} messages.
+         * @function encode
+         * @memberof Action.PullPicsResp
+         * @static
+         * @param {Action.IPullPicsResp} message PullPicsResp message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        PullPicsResp.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.info != null && message.info.length)
+                for (let i = 0; i < message.info.length; ++i)
+                    $root.Action.PullPicsImgInfo.encode(message.info[i], writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a PullPicsResp message from the specified reader or buffer.
+         * @function decode
+         * @memberof Action.PullPicsResp
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Action.PullPicsResp} PullPicsResp
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        PullPicsResp.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Action.PullPicsResp();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 3: {
+                        if (!(message.info && message.info.length))
+                            message.info = [];
+                        message.info.push($root.Action.PullPicsImgInfo.decode(reader, reader.uint32()));
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for PullPicsResp
+         * @function getTypeUrl
+         * @memberof Action.PullPicsResp
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        PullPicsResp.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Action.PullPicsResp";
+        };
+
+        return PullPicsResp;
+    })();
+
     return Action;
 })();
 

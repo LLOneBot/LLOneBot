@@ -106,4 +106,40 @@ export interface NodeIKernelMsgService {
     latestMsgSeq: string  // 固定 ''
     peerContact: Peer
   }): Promise<GeneralCallResult & { emojiId: number }>
+
+  fetchGetHitEmotionsByWord(inputWordInfo: {
+    word: string
+    uid: string
+    count: number
+    age: number
+    gender: number
+    uiVersion: string
+  }): Promise<GeneralCallResult & {
+    emotionsInfo: {
+      words: string
+      isOver: boolean
+      emotionsInfo: {
+        result: number
+        msg: string
+        path: string
+        recommentEmojiType: number
+        emojiId: number
+        resId: string
+        uin: string
+        url: string
+        isMarkFace: boolean
+        exposeNum: number
+        clickNum: number
+        epId: number
+        eId: string
+        eIdName: string
+        encryptKey: string
+        eIdWeight: number
+        eIdHeight: number
+        eIdIsAPNG: number
+        md5: string
+        word: string
+      }[]
+    }
+  }>
 }
