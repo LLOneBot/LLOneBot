@@ -7,5 +7,5 @@ QQ Group: https://qm.qq.com/q/NsbdKiQ3eg
 使用方法：
 
 双击 llonebot.exe 后会启动 QQ，登录 QQ 后
-浏览器访问 http://localhost:3080 进行配置
+点击配置按钮会打开 webui，可进行配置
 
