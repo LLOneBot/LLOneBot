@@ -1,4 +1,4 @@
-import { SimpleInfo, UserDetailInfoV2, UserDetailInfo } from '../types'
+import { SimpleInfo, ProfileBizType, UserDetailInfoV2, UserDetailInfo, UserDetailSource } from '../types'
 import { GeneralCallResult } from './common'
 
 export interface NodeIKernelProfileService {
@@ -8,7 +8,10 @@ export interface NodeIKernelProfileService {
 
   getCoreAndBaseInfo(callfrom: string, uids: string[]): Promise<Map<string, SimpleInfo>>
 
-  fetchUserDetailInfo(trace: string, uids: string[], arg2: number, arg3: number[]): Promise<unknown>
+  fetchUserDetailInfo(callFrom: string, uid: string[], source: UserDetailSource, bizList: ProfileBizType[]): Promise<GeneralCallResult & {
+    source: UserDetailSource
+    detail: Map<string, UserDetailInfoV2>
+  }>
 
   setHeader(path: string): Promise<GeneralCallResult>
 

@@ -5,9 +5,6 @@ import { Time } from 'cosmokit'
 import { Context, Service } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
 import { uidUinBidiMap } from '@/ntqqapi/cache'
-import { ReceiveCmdS } from '@/ntqqapi/hook'
-import { Field } from 'minato'
-import string = Field.string
 
 declare module 'cordis' {
   interface Context {
@@ -36,21 +33,21 @@ export class NTQQUserApi extends Service {
     let uid = uidUinBidiMap.getKey(uin)
     if (uid) return uid
     const funcs = [
-      async ()=>{
+      async () => {
         return (await invoke('nodeIKernelUixConvertService/getUid', [[uin]]))?.uidInfo.get(uin)
       },
-      async ()=>{
+      async () => {
         return (await invoke('nodeIKernelGroupService/getUidByUins', [[uin]])).uids.get(uin)
       },
-      async ()=>{
+      async () => {
         return (await invoke('nodeIKernelProfileService/getUidByUin', ['FriendsServiceImpl', [uin]]))?.get(uin)
       },
-      async ()=>{
+      async () => {
         return (await this.getUserDetailInfoByUin(uin)).detail!.uid
       }
     ]
 
-    for(const f of funcs) {
+    for (const f of funcs) {
       try {
         const uid = await f()
         if (uid) {
@@ -96,7 +93,7 @@ export class NTQQUserApi extends Service {
       },
     ]
 
-    for(const f of funcs) {
+    for (const f of funcs) {
       try {
         const result = await f()
         if (result) {
@@ -113,7 +110,7 @@ export class NTQQUserApi extends Service {
 
   // 这个会从服务器拉取，比较可靠
   async fetchUserDetailInfo(uid: string) {
-    const result = await invoke<{detail: Map<string, UserDetailInfoV2>}>(
+    const result = await invoke(
       'nodeIKernelProfileService/fetchUserDetailInfo',
       [
         'BuddyProfileStore', // callFrom
@@ -122,11 +119,11 @@ export class NTQQUserApi extends Service {
         [ProfileBizType.KALL], //bizList
       ],
     )
-    return result.detail.get(uid)
+    return result.detail.get(uid)!
   }
 
-  async getUserDetailInfoWithBizInfo(uid: string): Promise<SimpleInfo> {
-    const result = await invoke<{ simpleInfo: SimpleInfo }>(
+  async getUserDetailInfoWithBizInfo(uid: string) {
+    const result = await invoke<UserDetailInfoV2>(
       'nodeIKernelProfileService/getUserDetailInfoWithBizInfo',
       [
         uid,
@@ -137,11 +134,11 @@ export class NTQQUserApi extends Service {
         resultCb: payload => payload.simpleInfo.uid === uid,
       },
     )
-    return result.simpleInfo
+    return result
   }
 
   async getUserSimpleInfo(uid: string, force = true): Promise<SimpleInfo> {
-    return await this.getUserDetailInfoWithBizInfo(uid)
+    return (await this.getUserDetailInfoWithBizInfo(uid)).simpleInfo
     // const data = await invoke<Map<string, SimpleInfo>>(
     //   'nodeIKernelProfileService/getUserSimpleInfo',
     //   [

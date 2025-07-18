@@ -3,7 +3,7 @@ import { OB11GroupMember } from '../../types'
 import { OB11Entities } from '../../entities'
 import { ActionName } from '../types'
 import { calcQQLevel, parseBool } from '@/common/utils/misc'
-import { SimpleInfo } from '@/ntqqapi/types'
+import { UserDetailInfoV2 } from '@/ntqqapi/types'
 
 interface Payload {
   group_id: number | string
@@ -29,22 +29,22 @@ class GetGroupMemberInfo extends BaseAction<Payload, OB11GroupMember> {
       const date = Math.trunc(Date.now() / 1000)
       ret.last_sent_time ??= date
       ret.join_time ??= date
-      let info: SimpleInfo | null = null
+      let info: UserDetailInfoV2 | null = null
       try {
         info = await this.ctx.ntUserApi.getUserDetailInfoWithBizInfo(member.uid)
-      }catch (e) {
+      } catch (e) {
         try {
           const fetchInfo = await this.ctx.ntUserApi.fetchUserDetailInfo(member.uid)
           if (fetchInfo) {
-            info = fetchInfo.simpleInfo
+            info = fetchInfo
           }
-        }catch (e) {
+        } catch (e) {
         }
       }
       if (info) {
-        ret.sex = OB11Entities.sex(info.baseInfo.sex!)
-        // ret.qq_level = info.qqLevel && calcQQLevel(info.baseInfo.qqLevel) || 0
-        ret.age = info.baseInfo.age ?? 0
+        ret.sex = OB11Entities.sex(info.simpleInfo.baseInfo.sex)
+        ret.qq_level = info.commonExt.qqLevel && calcQQLevel(info.commonExt.qqLevel) || 0
+        ret.age = info.simpleInfo.baseInfo.age ?? 0
       }
       return ret
     }
