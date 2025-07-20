@@ -258,7 +258,7 @@ export namespace OB11Entities {
           type: OB11MessageDataType.File,
           data: {
             file: fileElement.fileName,
-            url: fileElement?.filePath ?? pathToFileURL(fileElement.filePath).href,
+            url: fileElement.filePath ? pathToFileURL(fileElement.filePath).href : '',
             file_id: fileElement.fileUuid,
             path: fileElement.filePath,
             file_size: fileSize,
@@ -362,21 +362,21 @@ export namespace OB11Entities {
       else if (element.markdownElement) {
         const { markdownElement } = element
         // todo: 解析闪传 markdown 获取 fileSetId
-        if (markdownElement?.content.startsWith('[闪传](')){
+        if (markdownElement?.content.startsWith('[闪传](')) {
           const mqqapiUrl = markdownElement?.content.substring(5, markdownElement?.content.length - 1)
           const urlJson = new URL(mqqapiUrl).searchParams.get('json')
-          if (urlJson){
+          if (urlJson) {
             const jsonData = JSON.parse(urlJson)
             const busId = jsonData?.busId
-            if (busId === 'FlashTransfer'){
+            if (busId === 'FlashTransfer') {
               const attributes: any[] = jsonData?.attributes?.attributes || []
-              const fileAttribute = attributes.find(a=>a.viewId === 'file')
+              const fileAttribute = attributes.find(a => a.viewId === 'file')
               if (fileAttribute) {
                 const urlParams = new URL(fileAttribute.schema).searchParams
                 const fileSetId = urlParams.get('fileset_id') || ''
                 const sceneType = urlParams.get('scene_type') || ''
                 const fileSubAttributes: any[] = fileAttribute?.attributes || []
-                const titleAttribute = fileSubAttributes.find(a=>a.viewId === 'title')
+                const titleAttribute = fileSubAttributes.find(a => a.viewId === 'title')
                 const title: string = titleAttribute?.text
                 messageSegment = {
                   type: OB11MessageDataType.FlashFile,
@@ -432,7 +432,8 @@ export namespace OB11Entities {
                 },
               }))
             }))
-          }}
+          }
+        }
       }
       if (messageSegment) {
         const cqCode = encodeCQCode(messageSegment)
