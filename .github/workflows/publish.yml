@@ -77,5 +77,4 @@ jobs:
           token: ${{ secrets.RELEASE_TOKEN }}
           name: LLOneBot v${{ steps.get-version.outputs.VERSION }}
           body: |
-            **LLOneBot v${{ steps.get-version.outputs.VERSION }}**
             ${{ steps.changelog.outputs.BODY }}
