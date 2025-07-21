@@ -256,7 +256,7 @@ export interface UserDetailInfoV2 {
   uid: string
   uin: string
   simpleInfo: SimpleInfo
-  commonExt: CommonExt
+  commonExt: CommonExt | null
   photoWall: PhotoWall | null
 }
 
