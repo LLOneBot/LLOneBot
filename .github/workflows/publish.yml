@@ -3,6 +3,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
@@ -49,7 +50,6 @@ jobs:
           wget https://github.com/LLOneBot/exe/releases/latest/download/ffmpeg.exe -O llonebot/ffmpeg.exe
           wget https://github.com/LLOneBot/exe/releases/latest/download/ffprobe.exe -O llonebot/ffprobe.exe
           zip -r ../LLOneBot-win-x64-ffmpeg.zip ./*
-
 
       - name: Extract version from tag
         id: get-version
