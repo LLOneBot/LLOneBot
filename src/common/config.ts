@@ -79,6 +79,7 @@ export class ConfigUtil {
       musicSignUrl: 'https://llob.linyuchen.net/sign/music',
       msgCacheExpire: 120,
       ffmpeg: '',
+      receiveOfflineMsg: false
     }
     // console.info('读取配置文件', this.configPath)
     if (!fs.existsSync(this.configPath)) {

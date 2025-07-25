@@ -127,7 +127,7 @@ class Core extends Service {
     for (const message of msgList) {
       const msgTime = parseInt(message.msgTime)
       // 过滤启动之前的消息
-      if (msgTime < this.startupTime) {
+      if (!this.config.receiveOfflineMsg && msgTime < this.startupTime) {
         continue
       }
       if (message.senderUin && message.senderUin !== '0') {
