@@ -1,11 +1,9 @@
-name: Release
+name: Build Artifacts Only
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
+
 jobs:
-  build-and-release:
+  build-artifacts:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -51,30 +49,12 @@ jobs:
           wget https://github.com/LLOneBot/exe/releases/latest/download/ffprobe.exe -O llonebot/ffprobe.exe
           zip -r ../LLOneBot-win-x64-ffmpeg.zip ./*
 
-      - name: Extract version from tag
-        id: get-version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
-
-      - name: Generate release body from changelog
-        id: changelog
-        run: |
-          # 取第一个分段
-          content="$(awk 'BEGIN{RS="=================";ORS=""} NR==1{print}' doc/更新日志.txt)"
-          # 去掉前两行
-          body="$(echo "$content" | tail -n +3)"
-          # 去除前后空白
-          body="$(echo "$body" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
-          # 输出到 GITHUB_OUTPUT
-          echo "BODY<<EOF" >> $GITHUB_OUTPUT
-          echo "$body" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Release
-        uses: ncipollo/release-action@v1
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          artifacts: 'LLOneBot.zip, LLOneBot-win-x64.zip, LLOneBot-win-x64-ffmpeg.zip'
-          draft: true
-          token: ${{ secrets.RELEASE_TOKEN }}
-          name: LLOneBot v${{ steps.get-version.outputs.VERSION }}
-          body: |
-            ${{ steps.changelog.outputs.BODY }}
+          name: llonebot-builds
+          path: |
+            LLOneBot.zip
+            LLOneBot-win-x64.zip
+            LLOneBot-win-x64-ffmpeg.zip
+          retention-days: 30
