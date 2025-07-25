@@ -99,10 +99,12 @@ import { GetQQAvatar } from '@/onebot11/action/llonebot/GetQQAvatar'
 import { DownloadFlashFile } from '@/onebot11/action/llonebot/DownloadFlashFile'
 import { GetFlashFileInfo } from '@/onebot11/action/llonebot/GetFlashFileInfo'
 import { GetRecommendFace } from './llonebot/GetRecommendFace'
+import { BatchDeleteGroupMember } from '@/onebot11/action/group/BatchDeleteGroupMember'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
     // llonebot
+    new BatchDeleteGroupMember(adapter),
     new GetFlashFileInfo(adapter),
     new DownloadFlashFile(adapter),
     new UploadFlashFile(adapter),

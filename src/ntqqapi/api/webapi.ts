@@ -1,5 +1,5 @@
 import { RequestUtil } from '@/common/utils/request'
-import { Service, Context } from 'cordis'
+import { Context, Service } from 'cordis'
 import { Dict } from 'cosmokit'
 
 declare module 'cordis' {
@@ -46,7 +46,8 @@ export class NTQQWebApi extends Service {
         }
         if (type === 1) {
           return resJson?.talkativeList
-        } else {
+        }
+        else {
           return resJson?.actorList
         }
       } catch (e) {
@@ -70,16 +71,16 @@ export class NTQQWebApi extends Service {
           avatar: RetInternal[0]?.avatar,
           nickname: RetInternal[0]?.name,
           day_count: 0,
-          description: RetInternal[0]?.desc
+          description: RetInternal[0]?.desc,
         }
-        honorInfo.talkative_list = [];
+        honorInfo.talkative_list = []
         for (const talkative_ele of RetInternal) {
           honorInfo.talkative_list.push({
             user_id: talkative_ele?.uin,
             avatar: talkative_ele?.avatar,
             description: talkative_ele?.desc,
             day_count: 0,
-            nickname: talkative_ele?.name
+            nickname: talkative_ele?.name,
           })
         }
       } catch (e) {
@@ -98,7 +99,7 @@ export class NTQQWebApi extends Service {
             user_id: performer_ele?.uin,
             nickname: performer_ele?.name,
             avatar: performer_ele?.avatar,
-            description: performer_ele?.desc
+            description: performer_ele?.desc,
           })
         }
       } catch (e) {
@@ -117,7 +118,7 @@ export class NTQQWebApi extends Service {
             user_id: legend_ele?.uin,
             nickname: legend_ele?.name,
             avatar: legend_ele?.avatar,
-            desc: legend_ele?.description
+            desc: legend_ele?.description,
           })
         }
       } catch (e) {
@@ -136,7 +137,7 @@ export class NTQQWebApi extends Service {
             user_id: emotion_ele?.uin,
             nickname: emotion_ele?.name,
             avatar: emotion_ele?.avatar,
-            desc: emotion_ele?.description
+            desc: emotion_ele?.description,
           })
         }
       } catch (e) {
@@ -152,5 +153,37 @@ export class NTQQWebApi extends Service {
 
   private cookieToString(cookieObject: Dict) {
     return Object.entries(cookieObject).map(([key, value]) => `${key}=${value}`).join('; ')
+  }
+
+  async batchDeleteGroupMember(groupCode: string, memberUinList: string[]) {
+    const cookieObject = await this.ctx.ntUserApi.getCookies('qun.qq.com')
+    const bkn = this.genBkn(cookieObject.skey)
+    const url = `https://qun.qq.com/cgi-bin/qun_mgr/delete_group_member?bkn=${bkn}&ts=${Date.now()}`
+    const cookieStr = this.cookieToString(cookieObject)
+
+    // 创建 FormData 对象
+    const formData = new FormData()
+    formData.append('gc', groupCode)
+    formData.append('ul', memberUinList.join('|'))
+    formData.append('flag', '0')
+    formData.append('bkn', bkn)
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Cookie': cookieStr,
+      },
+      body: formData,
+    })
+
+    const responseText = await response.text()
+    return JSON.parse(responseText)
+    // if (result.retcode === 0) {
+    //   this.ctx.logger.info(`成功删除群成员: ${memberUinList.join(', ')}`)
+    //   return { success: true, message: '删除成功' }
+    // } else {
+    //   this.ctx.logger.error('删除群成员失败', result)
+    //   return { success: false, message: result.msg || '删除失败' }
+    // }
   }
 }
