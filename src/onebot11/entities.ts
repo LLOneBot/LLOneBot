@@ -11,7 +11,7 @@ import {
 import {
   AtType,
   ChatType,
-  FaceIndex,
+  FaceIndex, FaceType,
   GrayTipElementSubType,
   GroupMember,
   GroupSimpleInfo,
@@ -311,31 +311,41 @@ export namespace OB11Entities {
       }
       else if (element.faceElement) {
         const { faceElement } = element
-        const { faceIndex, pokeType } = faceElement
-        if (faceIndex === FaceIndex.Dice) {
+        const { faceIndex, faceType } = faceElement
+        if ( faceType === FaceType.Poke && faceIndex === 1) {
           messageSegment = {
-            type: OB11MessageDataType.Dice,
-            data: {
-              result: faceElement.resultId!
-            }
+            type: OB11MessageDataType.Shake,
+            data: {}
           }
-        } else if (faceIndex === FaceIndex.RPS) {
-          messageSegment = {
-            type: OB11MessageDataType.Rps,
-            data: {
-              result: faceElement.resultId!
-            }
-          }
-          /*} else if (faceIndex === 1 && pokeType === 1) {
+        }
+        else {
+          if (faceIndex === FaceIndex.Dice) {
             messageSegment = {
-              type: OB11MessageDataType.shake,
-              data: {}
-            }*/
-        } else {
-          messageSegment = {
-            type: OB11MessageDataType.Face,
-            data: {
-              id: faceIndex.toString()
+              type: OB11MessageDataType.Dice,
+              data: {
+                result: faceElement.resultId!
+              }
+            }
+          }
+          else if (faceIndex === FaceIndex.RPS) {
+            messageSegment = {
+              type: OB11MessageDataType.Rps,
+              data: {
+                result: faceElement.resultId!
+              }
+            }
+            /*} else if (faceIndex === 1 && pokeType === 1) {
+              messageSegment = {
+                type: OB11MessageDataType.shake,
+                data: {}
+              }*/
+          }
+          else {
+            messageSegment = {
+              type: OB11MessageDataType.Face,
+              data: {
+                id: faceIndex.toString()
+              }
             }
           }
         }

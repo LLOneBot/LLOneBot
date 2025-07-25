@@ -321,6 +321,10 @@ export enum FaceIndex {
   RPS = 359, // 石头剪刀布
 }
 
+export enum FaceType {
+  Poke = 5  // 戳一戳，窗口抖动那种
+}
+
 export interface FaceElement {
   faceIndex: number
   faceType: number
