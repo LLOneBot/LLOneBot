@@ -269,7 +269,7 @@ export class NTQQFileApi extends Service {
       [
         fileSetId,
         sceneType,
-        { 'isIncludeCompressInnerFiles': false },
+        { isIncludeCompressInnerFiles: false },
       ],
     )
     if (res.result !== 0) {
@@ -296,9 +296,9 @@ export class NTQQFileApi extends Service {
           reqInfos: [
             {
               count: 18,
-              paginationInfo: {},
-              parentId: "",
-              reqIndexPath: "",
+              paginationInfo: new Uint8Array(),
+              parentId: '',
+              reqIndexPath: '',
               reqDepth: 1,
               filterCondition: {
                 fileCategory: 0,
