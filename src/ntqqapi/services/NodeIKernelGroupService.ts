@@ -66,7 +66,11 @@ export interface NodeIKernelGroupService {
     }
   }>
 
-  kickMember(groupCode: string, memberUids: string[], refuseForever: boolean, kickReason: string): Promise<void>
+  kickMember(groupCode: string, kickUids: string[], refuseForever: boolean, kickReason: string): Promise<{
+    errCode: number
+    errMsg: string
+    resultList: { uid: string, result: number }[]
+  }>
 
   modifyMemberRole(groupCode: string, uid: string, role: GroupMemberRole): void
 
