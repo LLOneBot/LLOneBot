@@ -48,6 +48,7 @@ export enum ActionName {
   GetGroupShutList = 'get_group_shut_list',
   RenameGroupFileFolder = 'rename_group_file_folder',
   GetRecommendFace = 'get_recommend_face',
+  GetAiCharacters = 'get_ai_characters',
   // onebot 11
   SendLike = 'send_like',
   GetLoginInfo = 'get_login_info',

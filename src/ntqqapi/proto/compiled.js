@@ -7402,6 +7402,470 @@ export const Oidb = $root.Oidb = (() => {
         return OidbUserByteProperty;
     })();
 
+    Oidb.FetchAiCharacterList = (function() {
+
+        /**
+         * Properties of a FetchAiCharacterList.
+         * @memberof Oidb
+         * @interface IFetchAiCharacterList
+         * @property {number|null} [groupId] FetchAiCharacterList groupId
+         * @property {number|null} [chatType] FetchAiCharacterList chatType
+         */
+
+        /**
+         * Constructs a new FetchAiCharacterList.
+         * @memberof Oidb
+         * @classdesc Represents a FetchAiCharacterList.
+         * @implements IFetchAiCharacterList
+         * @constructor
+         * @param {Oidb.IFetchAiCharacterList=} [properties] Properties to set
+         */
+        function FetchAiCharacterList(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * FetchAiCharacterList groupId.
+         * @member {number} groupId
+         * @memberof Oidb.FetchAiCharacterList
+         * @instance
+         */
+        FetchAiCharacterList.prototype.groupId = 0;
+
+        /**
+         * FetchAiCharacterList chatType.
+         * @member {number} chatType
+         * @memberof Oidb.FetchAiCharacterList
+         * @instance
+         */
+        FetchAiCharacterList.prototype.chatType = 0;
+
+        /**
+         * Encodes the specified FetchAiCharacterList message. Does not implicitly {@link Oidb.FetchAiCharacterList.verify|verify} messages.
+         * @function encode
+         * @memberof Oidb.FetchAiCharacterList
+         * @static
+         * @param {Oidb.IFetchAiCharacterList} message FetchAiCharacterList message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        FetchAiCharacterList.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.groupId != null && Object.hasOwnProperty.call(message, "groupId"))
+                writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.groupId);
+            if (message.chatType != null && Object.hasOwnProperty.call(message, "chatType"))
+                writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.chatType);
+            return writer;
+        };
+
+        /**
+         * Decodes a FetchAiCharacterList message from the specified reader or buffer.
+         * @function decode
+         * @memberof Oidb.FetchAiCharacterList
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Oidb.FetchAiCharacterList} FetchAiCharacterList
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        FetchAiCharacterList.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Oidb.FetchAiCharacterList();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.groupId = reader.uint32();
+                        break;
+                    }
+                case 2: {
+                        message.chatType = reader.uint32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for FetchAiCharacterList
+         * @function getTypeUrl
+         * @memberof Oidb.FetchAiCharacterList
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        FetchAiCharacterList.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Oidb.FetchAiCharacterList";
+        };
+
+        return FetchAiCharacterList;
+    })();
+
+    Oidb.FetchAiCharacterListResponse = (function() {
+
+        /**
+         * Properties of a FetchAiCharacterListResponse.
+         * @memberof Oidb
+         * @interface IFetchAiCharacterListResponse
+         * @property {Array.<Oidb.IFetchAiCharacterListResponseKey>|null} [property] FetchAiCharacterListResponse property
+         */
+
+        /**
+         * Constructs a new FetchAiCharacterListResponse.
+         * @memberof Oidb
+         * @classdesc Represents a FetchAiCharacterListResponse.
+         * @implements IFetchAiCharacterListResponse
+         * @constructor
+         * @param {Oidb.IFetchAiCharacterListResponse=} [properties] Properties to set
+         */
+        function FetchAiCharacterListResponse(properties) {
+            this.property = [];
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * FetchAiCharacterListResponse property.
+         * @member {Array.<Oidb.IFetchAiCharacterListResponseKey>} property
+         * @memberof Oidb.FetchAiCharacterListResponse
+         * @instance
+         */
+        FetchAiCharacterListResponse.prototype.property = $util.emptyArray;
+
+        /**
+         * Encodes the specified FetchAiCharacterListResponse message. Does not implicitly {@link Oidb.FetchAiCharacterListResponse.verify|verify} messages.
+         * @function encode
+         * @memberof Oidb.FetchAiCharacterListResponse
+         * @static
+         * @param {Oidb.IFetchAiCharacterListResponse} message FetchAiCharacterListResponse message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        FetchAiCharacterListResponse.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.property != null && message.property.length)
+                for (let i = 0; i < message.property.length; ++i)
+                    $root.Oidb.FetchAiCharacterListResponseKey.encode(message.property[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a FetchAiCharacterListResponse message from the specified reader or buffer.
+         * @function decode
+         * @memberof Oidb.FetchAiCharacterListResponse
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Oidb.FetchAiCharacterListResponse} FetchAiCharacterListResponse
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        FetchAiCharacterListResponse.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Oidb.FetchAiCharacterListResponse();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        if (!(message.property && message.property.length))
+                            message.property = [];
+                        message.property.push($root.Oidb.FetchAiCharacterListResponseKey.decode(reader, reader.uint32()));
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for FetchAiCharacterListResponse
+         * @function getTypeUrl
+         * @memberof Oidb.FetchAiCharacterListResponse
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        FetchAiCharacterListResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Oidb.FetchAiCharacterListResponse";
+        };
+
+        return FetchAiCharacterListResponse;
+    })();
+
+    Oidb.FetchAiCharacterListResponseKey = (function() {
+
+        /**
+         * Properties of a FetchAiCharacterListResponseKey.
+         * @memberof Oidb
+         * @interface IFetchAiCharacterListResponseKey
+         * @property {string|null} [type] FetchAiCharacterListResponseKey type
+         * @property {Array.<Oidb.IFetchAiCharacterListResponseProperty>|null} [characters] FetchAiCharacterListResponseKey characters
+         */
+
+        /**
+         * Constructs a new FetchAiCharacterListResponseKey.
+         * @memberof Oidb
+         * @classdesc Represents a FetchAiCharacterListResponseKey.
+         * @implements IFetchAiCharacterListResponseKey
+         * @constructor
+         * @param {Oidb.IFetchAiCharacterListResponseKey=} [properties] Properties to set
+         */
+        function FetchAiCharacterListResponseKey(properties) {
+            this.characters = [];
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * FetchAiCharacterListResponseKey type.
+         * @member {string} type
+         * @memberof Oidb.FetchAiCharacterListResponseKey
+         * @instance
+         */
+        FetchAiCharacterListResponseKey.prototype.type = "";
+
+        /**
+         * FetchAiCharacterListResponseKey characters.
+         * @member {Array.<Oidb.IFetchAiCharacterListResponseProperty>} characters
+         * @memberof Oidb.FetchAiCharacterListResponseKey
+         * @instance
+         */
+        FetchAiCharacterListResponseKey.prototype.characters = $util.emptyArray;
+
+        /**
+         * Encodes the specified FetchAiCharacterListResponseKey message. Does not implicitly {@link Oidb.FetchAiCharacterListResponseKey.verify|verify} messages.
+         * @function encode
+         * @memberof Oidb.FetchAiCharacterListResponseKey
+         * @static
+         * @param {Oidb.IFetchAiCharacterListResponseKey} message FetchAiCharacterListResponseKey message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        FetchAiCharacterListResponseKey.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.type);
+            if (message.characters != null && message.characters.length)
+                for (let i = 0; i < message.characters.length; ++i)
+                    $root.Oidb.FetchAiCharacterListResponseProperty.encode(message.characters[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a FetchAiCharacterListResponseKey message from the specified reader or buffer.
+         * @function decode
+         * @memberof Oidb.FetchAiCharacterListResponseKey
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Oidb.FetchAiCharacterListResponseKey} FetchAiCharacterListResponseKey
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        FetchAiCharacterListResponseKey.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Oidb.FetchAiCharacterListResponseKey();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.type = reader.string();
+                        break;
+                    }
+                case 2: {
+                        if (!(message.characters && message.characters.length))
+                            message.characters = [];
+                        message.characters.push($root.Oidb.FetchAiCharacterListResponseProperty.decode(reader, reader.uint32()));
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for FetchAiCharacterListResponseKey
+         * @function getTypeUrl
+         * @memberof Oidb.FetchAiCharacterListResponseKey
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        FetchAiCharacterListResponseKey.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Oidb.FetchAiCharacterListResponseKey";
+        };
+
+        return FetchAiCharacterListResponseKey;
+    })();
+
+    Oidb.FetchAiCharacterListResponseProperty = (function() {
+
+        /**
+         * Properties of a FetchAiCharacterListResponseProperty.
+         * @memberof Oidb
+         * @interface IFetchAiCharacterListResponseProperty
+         * @property {string|null} [characterId] FetchAiCharacterListResponseProperty characterId
+         * @property {string|null} [characterName] FetchAiCharacterListResponseProperty characterName
+         * @property {string|null} [previewUrl] FetchAiCharacterListResponseProperty previewUrl
+         */
+
+        /**
+         * Constructs a new FetchAiCharacterListResponseProperty.
+         * @memberof Oidb
+         * @classdesc Represents a FetchAiCharacterListResponseProperty.
+         * @implements IFetchAiCharacterListResponseProperty
+         * @constructor
+         * @param {Oidb.IFetchAiCharacterListResponseProperty=} [properties] Properties to set
+         */
+        function FetchAiCharacterListResponseProperty(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * FetchAiCharacterListResponseProperty characterId.
+         * @member {string} characterId
+         * @memberof Oidb.FetchAiCharacterListResponseProperty
+         * @instance
+         */
+        FetchAiCharacterListResponseProperty.prototype.characterId = "";
+
+        /**
+         * FetchAiCharacterListResponseProperty characterName.
+         * @member {string} characterName
+         * @memberof Oidb.FetchAiCharacterListResponseProperty
+         * @instance
+         */
+        FetchAiCharacterListResponseProperty.prototype.characterName = "";
+
+        /**
+         * FetchAiCharacterListResponseProperty previewUrl.
+         * @member {string} previewUrl
+         * @memberof Oidb.FetchAiCharacterListResponseProperty
+         * @instance
+         */
+        FetchAiCharacterListResponseProperty.prototype.previewUrl = "";
+
+        /**
+         * Encodes the specified FetchAiCharacterListResponseProperty message. Does not implicitly {@link Oidb.FetchAiCharacterListResponseProperty.verify|verify} messages.
+         * @function encode
+         * @memberof Oidb.FetchAiCharacterListResponseProperty
+         * @static
+         * @param {Oidb.IFetchAiCharacterListResponseProperty} message FetchAiCharacterListResponseProperty message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        FetchAiCharacterListResponseProperty.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.characterId != null && Object.hasOwnProperty.call(message, "characterId"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.characterId);
+            if (message.characterName != null && Object.hasOwnProperty.call(message, "characterName"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.characterName);
+            if (message.previewUrl != null && Object.hasOwnProperty.call(message, "previewUrl"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.previewUrl);
+            return writer;
+        };
+
+        /**
+         * Decodes a FetchAiCharacterListResponseProperty message from the specified reader or buffer.
+         * @function decode
+         * @memberof Oidb.FetchAiCharacterListResponseProperty
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Oidb.FetchAiCharacterListResponseProperty} FetchAiCharacterListResponseProperty
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        FetchAiCharacterListResponseProperty.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Oidb.FetchAiCharacterListResponseProperty();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.characterId = reader.string();
+                        break;
+                    }
+                case 2: {
+                        message.characterName = reader.string();
+                        break;
+                    }
+                case 3: {
+                        message.previewUrl = reader.string();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for FetchAiCharacterListResponseProperty
+         * @function getTypeUrl
+         * @memberof Oidb.FetchAiCharacterListResponseProperty
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        FetchAiCharacterListResponseProperty.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Oidb.FetchAiCharacterListResponseProperty";
+        };
+
+        return FetchAiCharacterListResponseProperty;
+    })();
+
     return Oidb;
 })();
 

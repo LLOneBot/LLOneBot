@@ -49,3 +49,7 @@ export class DetailedError<T> extends Error {
     defineProperty(this, 'data', data)
   }
 }
+
+export type DeepNonNullable<T> = T extends object
+? { [K in keyof T]-?: DeepNonNullable<NonNullable<T[K]>> }
+  : NonNullable<T>

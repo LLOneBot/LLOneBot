@@ -386,6 +386,21 @@ export class PMHQ {
     const info = Oidb.FetchUserInfoResponse.decode(oidbRespBody)
     return info.body!.properties!.numberProperties![0].value!
   }
+
+  async fetchAiCharacterList(groupId: number, chatType: number) {
+    const body = Oidb.FetchAiCharacterList.encode({
+      groupId,
+      chatType,
+    }).finish()
+    const data = Oidb.Base.encode({
+      command: 0x929d,
+      subCommand: 0,
+      body,
+    }).finish()
+    const res = await this.httpSendPB('OidbSvcTrpcTcp.0x929d_0', data)
+    const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
+    return Oidb.FetchAiCharacterListResponse.decode(oidbRespBody)
+  }
 }
 
 export const pmhq = new PMHQ()

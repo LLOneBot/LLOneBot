@@ -80,3 +80,24 @@ message OidbUserByteProperty {
   uint32 key = 1;
   bytes value = 2;
 }
+
+// OidbSvcTrpcTcp.0x929d_0
+message FetchAiCharacterList {
+  uint32 groupId = 1;
+  uint32 chatType = 2;
+}
+
+message FetchAiCharacterListResponse {
+  repeated FetchAiCharacterListResponseKey property = 1;
+}
+
+message FetchAiCharacterListResponseKey {
+  string type = 1;
+  repeated FetchAiCharacterListResponseProperty characters = 2;
+}
+
+message FetchAiCharacterListResponseProperty {
+  string characterId = 1;
+  string characterName = 2;
+  string previewUrl = 3;
+}

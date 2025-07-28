@@ -3014,6 +3014,210 @@ export namespace Oidb {
          */
         public static getTypeUrl(typeUrlPrefix?: string): string;
     }
+
+    /** Properties of a FetchAiCharacterList. */
+    interface IFetchAiCharacterList {
+
+        /** FetchAiCharacterList groupId */
+        groupId?: (number|null);
+
+        /** FetchAiCharacterList chatType */
+        chatType?: (number|null);
+    }
+
+    /** Represents a FetchAiCharacterList. */
+    class FetchAiCharacterList implements IFetchAiCharacterList {
+
+        /**
+         * Constructs a new FetchAiCharacterList.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Oidb.IFetchAiCharacterList);
+
+        /** FetchAiCharacterList groupId. */
+        public groupId: number;
+
+        /** FetchAiCharacterList chatType. */
+        public chatType: number;
+
+        /**
+         * Encodes the specified FetchAiCharacterList message. Does not implicitly {@link Oidb.FetchAiCharacterList.verify|verify} messages.
+         * @param message FetchAiCharacterList message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Oidb.IFetchAiCharacterList, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a FetchAiCharacterList message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns FetchAiCharacterList
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Oidb.FetchAiCharacterList;
+
+        /**
+         * Gets the default type url for FetchAiCharacterList
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a FetchAiCharacterListResponse. */
+    interface IFetchAiCharacterListResponse {
+
+        /** FetchAiCharacterListResponse property */
+        property?: (Oidb.IFetchAiCharacterListResponseKey[]|null);
+    }
+
+    /** Represents a FetchAiCharacterListResponse. */
+    class FetchAiCharacterListResponse implements IFetchAiCharacterListResponse {
+
+        /**
+         * Constructs a new FetchAiCharacterListResponse.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Oidb.IFetchAiCharacterListResponse);
+
+        /** FetchAiCharacterListResponse property. */
+        public property: Oidb.IFetchAiCharacterListResponseKey[];
+
+        /**
+         * Encodes the specified FetchAiCharacterListResponse message. Does not implicitly {@link Oidb.FetchAiCharacterListResponse.verify|verify} messages.
+         * @param message FetchAiCharacterListResponse message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Oidb.IFetchAiCharacterListResponse, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a FetchAiCharacterListResponse message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns FetchAiCharacterListResponse
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Oidb.FetchAiCharacterListResponse;
+
+        /**
+         * Gets the default type url for FetchAiCharacterListResponse
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a FetchAiCharacterListResponseKey. */
+    interface IFetchAiCharacterListResponseKey {
+
+        /** FetchAiCharacterListResponseKey type */
+        type?: (string|null);
+
+        /** FetchAiCharacterListResponseKey characters */
+        characters?: (Oidb.IFetchAiCharacterListResponseProperty[]|null);
+    }
+
+    /** Represents a FetchAiCharacterListResponseKey. */
+    class FetchAiCharacterListResponseKey implements IFetchAiCharacterListResponseKey {
+
+        /**
+         * Constructs a new FetchAiCharacterListResponseKey.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Oidb.IFetchAiCharacterListResponseKey);
+
+        /** FetchAiCharacterListResponseKey type. */
+        public type: string;
+
+        /** FetchAiCharacterListResponseKey characters. */
+        public characters: Oidb.IFetchAiCharacterListResponseProperty[];
+
+        /**
+         * Encodes the specified FetchAiCharacterListResponseKey message. Does not implicitly {@link Oidb.FetchAiCharacterListResponseKey.verify|verify} messages.
+         * @param message FetchAiCharacterListResponseKey message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Oidb.IFetchAiCharacterListResponseKey, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a FetchAiCharacterListResponseKey message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns FetchAiCharacterListResponseKey
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Oidb.FetchAiCharacterListResponseKey;
+
+        /**
+         * Gets the default type url for FetchAiCharacterListResponseKey
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a FetchAiCharacterListResponseProperty. */
+    interface IFetchAiCharacterListResponseProperty {
+
+        /** FetchAiCharacterListResponseProperty characterId */
+        characterId?: (string|null);
+
+        /** FetchAiCharacterListResponseProperty characterName */
+        characterName?: (string|null);
+
+        /** FetchAiCharacterListResponseProperty previewUrl */
+        previewUrl?: (string|null);
+    }
+
+    /** Represents a FetchAiCharacterListResponseProperty. */
+    class FetchAiCharacterListResponseProperty implements IFetchAiCharacterListResponseProperty {
+
+        /**
+         * Constructs a new FetchAiCharacterListResponseProperty.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Oidb.IFetchAiCharacterListResponseProperty);
+
+        /** FetchAiCharacterListResponseProperty characterId. */
+        public characterId: string;
+
+        /** FetchAiCharacterListResponseProperty characterName. */
+        public characterName: string;
+
+        /** FetchAiCharacterListResponseProperty previewUrl. */
+        public previewUrl: string;
+
+        /**
+         * Encodes the specified FetchAiCharacterListResponseProperty message. Does not implicitly {@link Oidb.FetchAiCharacterListResponseProperty.verify|verify} messages.
+         * @param message FetchAiCharacterListResponseProperty message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Oidb.IFetchAiCharacterListResponseProperty, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a FetchAiCharacterListResponseProperty message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns FetchAiCharacterListResponseProperty
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Oidb.FetchAiCharacterListResponseProperty;
+
+        /**
+         * Gets the default type url for FetchAiCharacterListResponseProperty
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
 }
 
 /** Namespace Action. */

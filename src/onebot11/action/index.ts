@@ -100,6 +100,7 @@ import { DownloadFlashFile } from '@/onebot11/action/llonebot/DownloadFlashFile'
 import { GetFlashFileInfo } from '@/onebot11/action/llonebot/GetFlashFileInfo'
 import { GetRecommendFace } from './llonebot/GetRecommendFace'
 import { BatchDeleteGroupMember } from '@/onebot11/action/llonebot/BatchDeleteGroupMember'
+import { GetAiCharacters } from './llonebot/GetAiCharacters'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -139,6 +140,7 @@ export function initActionMap(adapter: Adapter) {
     new GetGroupShutList(adapter),
     new RenameGroupFileFolder(adapter),
     new GetRecommendFace(adapter),
+    new GetAiCharacters(adapter),
     // onebot11
     new SendLike(adapter),
     new GetMsg(adapter),
