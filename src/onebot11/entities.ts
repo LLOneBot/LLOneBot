@@ -312,7 +312,7 @@ export namespace OB11Entities {
       else if (element.faceElement) {
         const { faceElement } = element
         const { faceIndex, faceType } = faceElement
-        if ( faceType === FaceType.Poke && faceIndex === 1) {
+        if (faceType === FaceType.Poke && faceIndex === 1) {
           messageSegment = {
             type: OB11MessageDataType.Shake,
             data: {}

@@ -4130,6 +4130,948 @@ export const RichMedia = $root.RichMedia = (() => {
      */
     const RichMedia = {};
 
+    RichMedia.NTV2RichMediaReq = (function() {
+
+        /**
+         * Properties of a NTV2RichMediaReq.
+         * @memberof RichMedia
+         * @interface INTV2RichMediaReq
+         * @property {RichMedia.IMultiMediaReqHead|null} [reqHead] NTV2RichMediaReq reqHead
+         * @property {RichMedia.IDownloadReq|null} [download] NTV2RichMediaReq download
+         */
+
+        /**
+         * Constructs a new NTV2RichMediaReq.
+         * @memberof RichMedia
+         * @classdesc Represents a NTV2RichMediaReq.
+         * @implements INTV2RichMediaReq
+         * @constructor
+         * @param {RichMedia.INTV2RichMediaReq=} [properties] Properties to set
+         */
+        function NTV2RichMediaReq(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * NTV2RichMediaReq reqHead.
+         * @member {RichMedia.IMultiMediaReqHead|null|undefined} reqHead
+         * @memberof RichMedia.NTV2RichMediaReq
+         * @instance
+         */
+        NTV2RichMediaReq.prototype.reqHead = null;
+
+        /**
+         * NTV2RichMediaReq download.
+         * @member {RichMedia.IDownloadReq|null|undefined} download
+         * @memberof RichMedia.NTV2RichMediaReq
+         * @instance
+         */
+        NTV2RichMediaReq.prototype.download = null;
+
+        /**
+         * Encodes the specified NTV2RichMediaReq message. Does not implicitly {@link RichMedia.NTV2RichMediaReq.verify|verify} messages.
+         * @function encode
+         * @memberof RichMedia.NTV2RichMediaReq
+         * @static
+         * @param {RichMedia.INTV2RichMediaReq} message NTV2RichMediaReq message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        NTV2RichMediaReq.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.reqHead != null && Object.hasOwnProperty.call(message, "reqHead"))
+                $root.RichMedia.MultiMediaReqHead.encode(message.reqHead, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            if (message.download != null && Object.hasOwnProperty.call(message, "download"))
+                $root.RichMedia.DownloadReq.encode(message.download, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a NTV2RichMediaReq message from the specified reader or buffer.
+         * @function decode
+         * @memberof RichMedia.NTV2RichMediaReq
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {RichMedia.NTV2RichMediaReq} NTV2RichMediaReq
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        NTV2RichMediaReq.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.RichMedia.NTV2RichMediaReq();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.reqHead = $root.RichMedia.MultiMediaReqHead.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 3: {
+                        message.download = $root.RichMedia.DownloadReq.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for NTV2RichMediaReq
+         * @function getTypeUrl
+         * @memberof RichMedia.NTV2RichMediaReq
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        NTV2RichMediaReq.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/RichMedia.NTV2RichMediaReq";
+        };
+
+        return NTV2RichMediaReq;
+    })();
+
+    RichMedia.MultiMediaReqHead = (function() {
+
+        /**
+         * Properties of a MultiMediaReqHead.
+         * @memberof RichMedia
+         * @interface IMultiMediaReqHead
+         * @property {RichMedia.ICommonHead|null} [common] MultiMediaReqHead common
+         * @property {RichMedia.ISceneInfo|null} [scene] MultiMediaReqHead scene
+         * @property {RichMedia.IClientMeta|null} [client] MultiMediaReqHead client
+         */
+
+        /**
+         * Constructs a new MultiMediaReqHead.
+         * @memberof RichMedia
+         * @classdesc Represents a MultiMediaReqHead.
+         * @implements IMultiMediaReqHead
+         * @constructor
+         * @param {RichMedia.IMultiMediaReqHead=} [properties] Properties to set
+         */
+        function MultiMediaReqHead(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * MultiMediaReqHead common.
+         * @member {RichMedia.ICommonHead|null|undefined} common
+         * @memberof RichMedia.MultiMediaReqHead
+         * @instance
+         */
+        MultiMediaReqHead.prototype.common = null;
+
+        /**
+         * MultiMediaReqHead scene.
+         * @member {RichMedia.ISceneInfo|null|undefined} scene
+         * @memberof RichMedia.MultiMediaReqHead
+         * @instance
+         */
+        MultiMediaReqHead.prototype.scene = null;
+
+        /**
+         * MultiMediaReqHead client.
+         * @member {RichMedia.IClientMeta|null|undefined} client
+         * @memberof RichMedia.MultiMediaReqHead
+         * @instance
+         */
+        MultiMediaReqHead.prototype.client = null;
+
+        /**
+         * Encodes the specified MultiMediaReqHead message. Does not implicitly {@link RichMedia.MultiMediaReqHead.verify|verify} messages.
+         * @function encode
+         * @memberof RichMedia.MultiMediaReqHead
+         * @static
+         * @param {RichMedia.IMultiMediaReqHead} message MultiMediaReqHead message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        MultiMediaReqHead.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.common != null && Object.hasOwnProperty.call(message, "common"))
+                $root.RichMedia.CommonHead.encode(message.common, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            if (message.scene != null && Object.hasOwnProperty.call(message, "scene"))
+                $root.RichMedia.SceneInfo.encode(message.scene, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+            if (message.client != null && Object.hasOwnProperty.call(message, "client"))
+                $root.RichMedia.ClientMeta.encode(message.client, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a MultiMediaReqHead message from the specified reader or buffer.
+         * @function decode
+         * @memberof RichMedia.MultiMediaReqHead
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {RichMedia.MultiMediaReqHead} MultiMediaReqHead
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        MultiMediaReqHead.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.RichMedia.MultiMediaReqHead();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.common = $root.RichMedia.CommonHead.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 2: {
+                        message.scene = $root.RichMedia.SceneInfo.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 3: {
+                        message.client = $root.RichMedia.ClientMeta.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for MultiMediaReqHead
+         * @function getTypeUrl
+         * @memberof RichMedia.MultiMediaReqHead
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        MultiMediaReqHead.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/RichMedia.MultiMediaReqHead";
+        };
+
+        return MultiMediaReqHead;
+    })();
+
+    RichMedia.CommonHead = (function() {
+
+        /**
+         * Properties of a CommonHead.
+         * @memberof RichMedia
+         * @interface ICommonHead
+         * @property {number|null} [requestId] CommonHead requestId
+         * @property {number|null} [command] CommonHead command
+         */
+
+        /**
+         * Constructs a new CommonHead.
+         * @memberof RichMedia
+         * @classdesc Represents a CommonHead.
+         * @implements ICommonHead
+         * @constructor
+         * @param {RichMedia.ICommonHead=} [properties] Properties to set
+         */
+        function CommonHead(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * CommonHead requestId.
+         * @member {number} requestId
+         * @memberof RichMedia.CommonHead
+         * @instance
+         */
+        CommonHead.prototype.requestId = 0;
+
+        /**
+         * CommonHead command.
+         * @member {number} command
+         * @memberof RichMedia.CommonHead
+         * @instance
+         */
+        CommonHead.prototype.command = 0;
+
+        /**
+         * Encodes the specified CommonHead message. Does not implicitly {@link RichMedia.CommonHead.verify|verify} messages.
+         * @function encode
+         * @memberof RichMedia.CommonHead
+         * @static
+         * @param {RichMedia.ICommonHead} message CommonHead message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        CommonHead.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.requestId != null && Object.hasOwnProperty.call(message, "requestId"))
+                writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.requestId);
+            if (message.command != null && Object.hasOwnProperty.call(message, "command"))
+                writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.command);
+            return writer;
+        };
+
+        /**
+         * Decodes a CommonHead message from the specified reader or buffer.
+         * @function decode
+         * @memberof RichMedia.CommonHead
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {RichMedia.CommonHead} CommonHead
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        CommonHead.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.RichMedia.CommonHead();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.requestId = reader.uint32();
+                        break;
+                    }
+                case 2: {
+                        message.command = reader.uint32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for CommonHead
+         * @function getTypeUrl
+         * @memberof RichMedia.CommonHead
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        CommonHead.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/RichMedia.CommonHead";
+        };
+
+        return CommonHead;
+    })();
+
+    RichMedia.SceneInfo = (function() {
+
+        /**
+         * Properties of a SceneInfo.
+         * @memberof RichMedia
+         * @interface ISceneInfo
+         * @property {number|null} [requestType] SceneInfo requestType
+         * @property {number|null} [businessType] SceneInfo businessType
+         * @property {number|null} [field103] SceneInfo field103
+         * @property {number|null} [sceneType] SceneInfo sceneType
+         * @property {RichMedia.IC2CUserInfo|null} [c2c] SceneInfo c2c
+         * @property {RichMedia.IGroupInfo|null} [group] SceneInfo group
+         */
+
+        /**
+         * Constructs a new SceneInfo.
+         * @memberof RichMedia
+         * @classdesc Represents a SceneInfo.
+         * @implements ISceneInfo
+         * @constructor
+         * @param {RichMedia.ISceneInfo=} [properties] Properties to set
+         */
+        function SceneInfo(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * SceneInfo requestType.
+         * @member {number} requestType
+         * @memberof RichMedia.SceneInfo
+         * @instance
+         */
+        SceneInfo.prototype.requestType = 0;
+
+        /**
+         * SceneInfo businessType.
+         * @member {number} businessType
+         * @memberof RichMedia.SceneInfo
+         * @instance
+         */
+        SceneInfo.prototype.businessType = 0;
+
+        /**
+         * SceneInfo field103.
+         * @member {number} field103
+         * @memberof RichMedia.SceneInfo
+         * @instance
+         */
+        SceneInfo.prototype.field103 = 0;
+
+        /**
+         * SceneInfo sceneType.
+         * @member {number} sceneType
+         * @memberof RichMedia.SceneInfo
+         * @instance
+         */
+        SceneInfo.prototype.sceneType = 0;
+
+        /**
+         * SceneInfo c2c.
+         * @member {RichMedia.IC2CUserInfo|null|undefined} c2c
+         * @memberof RichMedia.SceneInfo
+         * @instance
+         */
+        SceneInfo.prototype.c2c = null;
+
+        /**
+         * SceneInfo group.
+         * @member {RichMedia.IGroupInfo|null|undefined} group
+         * @memberof RichMedia.SceneInfo
+         * @instance
+         */
+        SceneInfo.prototype.group = null;
+
+        /**
+         * Encodes the specified SceneInfo message. Does not implicitly {@link RichMedia.SceneInfo.verify|verify} messages.
+         * @function encode
+         * @memberof RichMedia.SceneInfo
+         * @static
+         * @param {RichMedia.ISceneInfo} message SceneInfo message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        SceneInfo.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.requestType != null && Object.hasOwnProperty.call(message, "requestType"))
+                writer.uint32(/* id 101, wireType 0 =*/808).uint32(message.requestType);
+            if (message.businessType != null && Object.hasOwnProperty.call(message, "businessType"))
+                writer.uint32(/* id 102, wireType 0 =*/816).uint32(message.businessType);
+            if (message.field103 != null && Object.hasOwnProperty.call(message, "field103"))
+                writer.uint32(/* id 103, wireType 0 =*/824).uint32(message.field103);
+            if (message.sceneType != null && Object.hasOwnProperty.call(message, "sceneType"))
+                writer.uint32(/* id 200, wireType 0 =*/1600).uint32(message.sceneType);
+            if (message.c2c != null && Object.hasOwnProperty.call(message, "c2c"))
+                $root.RichMedia.C2CUserInfo.encode(message.c2c, writer.uint32(/* id 201, wireType 2 =*/1610).fork()).ldelim();
+            if (message.group != null && Object.hasOwnProperty.call(message, "group"))
+                $root.RichMedia.GroupInfo.encode(message.group, writer.uint32(/* id 202, wireType 2 =*/1618).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a SceneInfo message from the specified reader or buffer.
+         * @function decode
+         * @memberof RichMedia.SceneInfo
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {RichMedia.SceneInfo} SceneInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        SceneInfo.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.RichMedia.SceneInfo();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 101: {
+                        message.requestType = reader.uint32();
+                        break;
+                    }
+                case 102: {
+                        message.businessType = reader.uint32();
+                        break;
+                    }
+                case 103: {
+                        message.field103 = reader.uint32();
+                        break;
+                    }
+                case 200: {
+                        message.sceneType = reader.uint32();
+                        break;
+                    }
+                case 201: {
+                        message.c2c = $root.RichMedia.C2CUserInfo.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 202: {
+                        message.group = $root.RichMedia.GroupInfo.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for SceneInfo
+         * @function getTypeUrl
+         * @memberof RichMedia.SceneInfo
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        SceneInfo.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/RichMedia.SceneInfo";
+        };
+
+        return SceneInfo;
+    })();
+
+    RichMedia.C2CUserInfo = (function() {
+
+        /**
+         * Properties of a C2CUserInfo.
+         * @memberof RichMedia
+         * @interface IC2CUserInfo
+         * @property {number|null} [accountType] C2CUserInfo accountType
+         * @property {string|null} [targetUid] C2CUserInfo targetUid
+         */
+
+        /**
+         * Constructs a new C2CUserInfo.
+         * @memberof RichMedia
+         * @classdesc Represents a C2CUserInfo.
+         * @implements IC2CUserInfo
+         * @constructor
+         * @param {RichMedia.IC2CUserInfo=} [properties] Properties to set
+         */
+        function C2CUserInfo(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * C2CUserInfo accountType.
+         * @member {number} accountType
+         * @memberof RichMedia.C2CUserInfo
+         * @instance
+         */
+        C2CUserInfo.prototype.accountType = 0;
+
+        /**
+         * C2CUserInfo targetUid.
+         * @member {string} targetUid
+         * @memberof RichMedia.C2CUserInfo
+         * @instance
+         */
+        C2CUserInfo.prototype.targetUid = "";
+
+        /**
+         * Encodes the specified C2CUserInfo message. Does not implicitly {@link RichMedia.C2CUserInfo.verify|verify} messages.
+         * @function encode
+         * @memberof RichMedia.C2CUserInfo
+         * @static
+         * @param {RichMedia.IC2CUserInfo} message C2CUserInfo message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        C2CUserInfo.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.accountType != null && Object.hasOwnProperty.call(message, "accountType"))
+                writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.accountType);
+            if (message.targetUid != null && Object.hasOwnProperty.call(message, "targetUid"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.targetUid);
+            return writer;
+        };
+
+        /**
+         * Decodes a C2CUserInfo message from the specified reader or buffer.
+         * @function decode
+         * @memberof RichMedia.C2CUserInfo
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {RichMedia.C2CUserInfo} C2CUserInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        C2CUserInfo.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.RichMedia.C2CUserInfo();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.accountType = reader.uint32();
+                        break;
+                    }
+                case 2: {
+                        message.targetUid = reader.string();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for C2CUserInfo
+         * @function getTypeUrl
+         * @memberof RichMedia.C2CUserInfo
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        C2CUserInfo.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/RichMedia.C2CUserInfo";
+        };
+
+        return C2CUserInfo;
+    })();
+
+    RichMedia.GroupInfo = (function() {
+
+        /**
+         * Properties of a GroupInfo.
+         * @memberof RichMedia
+         * @interface IGroupInfo
+         * @property {number|null} [groupId] GroupInfo groupId
+         */
+
+        /**
+         * Constructs a new GroupInfo.
+         * @memberof RichMedia
+         * @classdesc Represents a GroupInfo.
+         * @implements IGroupInfo
+         * @constructor
+         * @param {RichMedia.IGroupInfo=} [properties] Properties to set
+         */
+        function GroupInfo(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * GroupInfo groupId.
+         * @member {number} groupId
+         * @memberof RichMedia.GroupInfo
+         * @instance
+         */
+        GroupInfo.prototype.groupId = 0;
+
+        /**
+         * Encodes the specified GroupInfo message. Does not implicitly {@link RichMedia.GroupInfo.verify|verify} messages.
+         * @function encode
+         * @memberof RichMedia.GroupInfo
+         * @static
+         * @param {RichMedia.IGroupInfo} message GroupInfo message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        GroupInfo.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.groupId != null && Object.hasOwnProperty.call(message, "groupId"))
+                writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.groupId);
+            return writer;
+        };
+
+        /**
+         * Decodes a GroupInfo message from the specified reader or buffer.
+         * @function decode
+         * @memberof RichMedia.GroupInfo
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {RichMedia.GroupInfo} GroupInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        GroupInfo.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.RichMedia.GroupInfo();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.groupId = reader.uint32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for GroupInfo
+         * @function getTypeUrl
+         * @memberof RichMedia.GroupInfo
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        GroupInfo.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/RichMedia.GroupInfo";
+        };
+
+        return GroupInfo;
+    })();
+
+    RichMedia.ClientMeta = (function() {
+
+        /**
+         * Properties of a ClientMeta.
+         * @memberof RichMedia
+         * @interface IClientMeta
+         * @property {number|null} [agentType] ClientMeta agentType
+         */
+
+        /**
+         * Constructs a new ClientMeta.
+         * @memberof RichMedia
+         * @classdesc Represents a ClientMeta.
+         * @implements IClientMeta
+         * @constructor
+         * @param {RichMedia.IClientMeta=} [properties] Properties to set
+         */
+        function ClientMeta(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * ClientMeta agentType.
+         * @member {number} agentType
+         * @memberof RichMedia.ClientMeta
+         * @instance
+         */
+        ClientMeta.prototype.agentType = 0;
+
+        /**
+         * Encodes the specified ClientMeta message. Does not implicitly {@link RichMedia.ClientMeta.verify|verify} messages.
+         * @function encode
+         * @memberof RichMedia.ClientMeta
+         * @static
+         * @param {RichMedia.IClientMeta} message ClientMeta message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        ClientMeta.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.agentType != null && Object.hasOwnProperty.call(message, "agentType"))
+                writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.agentType);
+            return writer;
+        };
+
+        /**
+         * Decodes a ClientMeta message from the specified reader or buffer.
+         * @function decode
+         * @memberof RichMedia.ClientMeta
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {RichMedia.ClientMeta} ClientMeta
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        ClientMeta.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.RichMedia.ClientMeta();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.agentType = reader.uint32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for ClientMeta
+         * @function getTypeUrl
+         * @memberof RichMedia.ClientMeta
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        ClientMeta.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/RichMedia.ClientMeta";
+        };
+
+        return ClientMeta;
+    })();
+
+    RichMedia.DownloadReq = (function() {
+
+        /**
+         * Properties of a DownloadReq.
+         * @memberof RichMedia
+         * @interface IDownloadReq
+         * @property {RichMedia.IIndexNode|null} [node] DownloadReq node
+         */
+
+        /**
+         * Constructs a new DownloadReq.
+         * @memberof RichMedia
+         * @classdesc Represents a DownloadReq.
+         * @implements IDownloadReq
+         * @constructor
+         * @param {RichMedia.IDownloadReq=} [properties] Properties to set
+         */
+        function DownloadReq(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * DownloadReq node.
+         * @member {RichMedia.IIndexNode|null|undefined} node
+         * @memberof RichMedia.DownloadReq
+         * @instance
+         */
+        DownloadReq.prototype.node = null;
+
+        /**
+         * Encodes the specified DownloadReq message. Does not implicitly {@link RichMedia.DownloadReq.verify|verify} messages.
+         * @function encode
+         * @memberof RichMedia.DownloadReq
+         * @static
+         * @param {RichMedia.IDownloadReq} message DownloadReq message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        DownloadReq.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.node != null && Object.hasOwnProperty.call(message, "node"))
+                $root.RichMedia.IndexNode.encode(message.node, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a DownloadReq message from the specified reader or buffer.
+         * @function decode
+         * @memberof RichMedia.DownloadReq
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {RichMedia.DownloadReq} DownloadReq
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        DownloadReq.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.RichMedia.DownloadReq();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.node = $root.RichMedia.IndexNode.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for DownloadReq
+         * @function getTypeUrl
+         * @memberof RichMedia.DownloadReq
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        DownloadReq.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/RichMedia.DownloadReq";
+        };
+
+        return DownloadReq;
+    })();
+
     RichMedia.MsgInfo = (function() {
 
         /**
@@ -5671,6 +6613,378 @@ export const RichMedia = $root.RichMedia = (() => {
         };
 
         return PicFileIdInfo;
+    })();
+
+    RichMedia.NTV2RichMediaResp = (function() {
+
+        /**
+         * Properties of a NTV2RichMediaResp.
+         * @memberof RichMedia
+         * @interface INTV2RichMediaResp
+         * @property {RichMedia.IDownloadResp|null} [download] NTV2RichMediaResp download
+         */
+
+        /**
+         * Constructs a new NTV2RichMediaResp.
+         * @memberof RichMedia
+         * @classdesc Represents a NTV2RichMediaResp.
+         * @implements INTV2RichMediaResp
+         * @constructor
+         * @param {RichMedia.INTV2RichMediaResp=} [properties] Properties to set
+         */
+        function NTV2RichMediaResp(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * NTV2RichMediaResp download.
+         * @member {RichMedia.IDownloadResp|null|undefined} download
+         * @memberof RichMedia.NTV2RichMediaResp
+         * @instance
+         */
+        NTV2RichMediaResp.prototype.download = null;
+
+        /**
+         * Encodes the specified NTV2RichMediaResp message. Does not implicitly {@link RichMedia.NTV2RichMediaResp.verify|verify} messages.
+         * @function encode
+         * @memberof RichMedia.NTV2RichMediaResp
+         * @static
+         * @param {RichMedia.INTV2RichMediaResp} message NTV2RichMediaResp message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        NTV2RichMediaResp.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.download != null && Object.hasOwnProperty.call(message, "download"))
+                $root.RichMedia.DownloadResp.encode(message.download, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a NTV2RichMediaResp message from the specified reader or buffer.
+         * @function decode
+         * @memberof RichMedia.NTV2RichMediaResp
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {RichMedia.NTV2RichMediaResp} NTV2RichMediaResp
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        NTV2RichMediaResp.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.RichMedia.NTV2RichMediaResp();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 3: {
+                        message.download = $root.RichMedia.DownloadResp.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for NTV2RichMediaResp
+         * @function getTypeUrl
+         * @memberof RichMedia.NTV2RichMediaResp
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        NTV2RichMediaResp.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/RichMedia.NTV2RichMediaResp";
+        };
+
+        return NTV2RichMediaResp;
+    })();
+
+    RichMedia.DownloadResp = (function() {
+
+        /**
+         * Properties of a DownloadResp.
+         * @memberof RichMedia
+         * @interface IDownloadResp
+         * @property {string|null} [rKeyParam] DownloadResp rKeyParam
+         * @property {number|null} [rKeyTtlSecond] DownloadResp rKeyTtlSecond
+         * @property {RichMedia.IDownloadInfo|null} [info] DownloadResp info
+         * @property {number|null} [rKeyCreateTime] DownloadResp rKeyCreateTime
+         */
+
+        /**
+         * Constructs a new DownloadResp.
+         * @memberof RichMedia
+         * @classdesc Represents a DownloadResp.
+         * @implements IDownloadResp
+         * @constructor
+         * @param {RichMedia.IDownloadResp=} [properties] Properties to set
+         */
+        function DownloadResp(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * DownloadResp rKeyParam.
+         * @member {string} rKeyParam
+         * @memberof RichMedia.DownloadResp
+         * @instance
+         */
+        DownloadResp.prototype.rKeyParam = "";
+
+        /**
+         * DownloadResp rKeyTtlSecond.
+         * @member {number} rKeyTtlSecond
+         * @memberof RichMedia.DownloadResp
+         * @instance
+         */
+        DownloadResp.prototype.rKeyTtlSecond = 0;
+
+        /**
+         * DownloadResp info.
+         * @member {RichMedia.IDownloadInfo|null|undefined} info
+         * @memberof RichMedia.DownloadResp
+         * @instance
+         */
+        DownloadResp.prototype.info = null;
+
+        /**
+         * DownloadResp rKeyCreateTime.
+         * @member {number} rKeyCreateTime
+         * @memberof RichMedia.DownloadResp
+         * @instance
+         */
+        DownloadResp.prototype.rKeyCreateTime = 0;
+
+        /**
+         * Encodes the specified DownloadResp message. Does not implicitly {@link RichMedia.DownloadResp.verify|verify} messages.
+         * @function encode
+         * @memberof RichMedia.DownloadResp
+         * @static
+         * @param {RichMedia.IDownloadResp} message DownloadResp message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        DownloadResp.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.rKeyParam != null && Object.hasOwnProperty.call(message, "rKeyParam"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.rKeyParam);
+            if (message.rKeyTtlSecond != null && Object.hasOwnProperty.call(message, "rKeyTtlSecond"))
+                writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.rKeyTtlSecond);
+            if (message.info != null && Object.hasOwnProperty.call(message, "info"))
+                $root.RichMedia.DownloadInfo.encode(message.info, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            if (message.rKeyCreateTime != null && Object.hasOwnProperty.call(message, "rKeyCreateTime"))
+                writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.rKeyCreateTime);
+            return writer;
+        };
+
+        /**
+         * Decodes a DownloadResp message from the specified reader or buffer.
+         * @function decode
+         * @memberof RichMedia.DownloadResp
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {RichMedia.DownloadResp} DownloadResp
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        DownloadResp.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.RichMedia.DownloadResp();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.rKeyParam = reader.string();
+                        break;
+                    }
+                case 2: {
+                        message.rKeyTtlSecond = reader.uint32();
+                        break;
+                    }
+                case 3: {
+                        message.info = $root.RichMedia.DownloadInfo.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 4: {
+                        message.rKeyCreateTime = reader.uint32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for DownloadResp
+         * @function getTypeUrl
+         * @memberof RichMedia.DownloadResp
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        DownloadResp.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/RichMedia.DownloadResp";
+        };
+
+        return DownloadResp;
+    })();
+
+    RichMedia.DownloadInfo = (function() {
+
+        /**
+         * Properties of a DownloadInfo.
+         * @memberof RichMedia
+         * @interface IDownloadInfo
+         * @property {string|null} [domain] DownloadInfo domain
+         * @property {string|null} [urlPath] DownloadInfo urlPath
+         * @property {number|null} [httpsPort] DownloadInfo httpsPort
+         */
+
+        /**
+         * Constructs a new DownloadInfo.
+         * @memberof RichMedia
+         * @classdesc Represents a DownloadInfo.
+         * @implements IDownloadInfo
+         * @constructor
+         * @param {RichMedia.IDownloadInfo=} [properties] Properties to set
+         */
+        function DownloadInfo(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * DownloadInfo domain.
+         * @member {string} domain
+         * @memberof RichMedia.DownloadInfo
+         * @instance
+         */
+        DownloadInfo.prototype.domain = "";
+
+        /**
+         * DownloadInfo urlPath.
+         * @member {string} urlPath
+         * @memberof RichMedia.DownloadInfo
+         * @instance
+         */
+        DownloadInfo.prototype.urlPath = "";
+
+        /**
+         * DownloadInfo httpsPort.
+         * @member {number} httpsPort
+         * @memberof RichMedia.DownloadInfo
+         * @instance
+         */
+        DownloadInfo.prototype.httpsPort = 0;
+
+        /**
+         * Encodes the specified DownloadInfo message. Does not implicitly {@link RichMedia.DownloadInfo.verify|verify} messages.
+         * @function encode
+         * @memberof RichMedia.DownloadInfo
+         * @static
+         * @param {RichMedia.IDownloadInfo} message DownloadInfo message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        DownloadInfo.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.domain != null && Object.hasOwnProperty.call(message, "domain"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.domain);
+            if (message.urlPath != null && Object.hasOwnProperty.call(message, "urlPath"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.urlPath);
+            if (message.httpsPort != null && Object.hasOwnProperty.call(message, "httpsPort"))
+                writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.httpsPort);
+            return writer;
+        };
+
+        /**
+         * Decodes a DownloadInfo message from the specified reader or buffer.
+         * @function decode
+         * @memberof RichMedia.DownloadInfo
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {RichMedia.DownloadInfo} DownloadInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        DownloadInfo.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.RichMedia.DownloadInfo();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.domain = reader.string();
+                        break;
+                    }
+                case 2: {
+                        message.urlPath = reader.string();
+                        break;
+                    }
+                case 3: {
+                        message.httpsPort = reader.uint32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for DownloadInfo
+         * @function getTypeUrl
+         * @memberof RichMedia.DownloadInfo
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        DownloadInfo.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/RichMedia.DownloadInfo";
+        };
+
+        return DownloadInfo;
     })();
 
     return RichMedia;

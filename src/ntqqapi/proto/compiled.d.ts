@@ -1580,6 +1580,426 @@ export namespace Msg {
 /** Namespace RichMedia. */
 export namespace RichMedia {
 
+    /** Properties of a NTV2RichMediaReq. */
+    interface INTV2RichMediaReq {
+
+        /** NTV2RichMediaReq reqHead */
+        reqHead?: (RichMedia.IMultiMediaReqHead|null);
+
+        /** NTV2RichMediaReq download */
+        download?: (RichMedia.IDownloadReq|null);
+    }
+
+    /** Represents a NTV2RichMediaReq. */
+    class NTV2RichMediaReq implements INTV2RichMediaReq {
+
+        /**
+         * Constructs a new NTV2RichMediaReq.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: RichMedia.INTV2RichMediaReq);
+
+        /** NTV2RichMediaReq reqHead. */
+        public reqHead?: (RichMedia.IMultiMediaReqHead|null);
+
+        /** NTV2RichMediaReq download. */
+        public download?: (RichMedia.IDownloadReq|null);
+
+        /**
+         * Encodes the specified NTV2RichMediaReq message. Does not implicitly {@link RichMedia.NTV2RichMediaReq.verify|verify} messages.
+         * @param message NTV2RichMediaReq message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: RichMedia.INTV2RichMediaReq, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a NTV2RichMediaReq message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns NTV2RichMediaReq
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): RichMedia.NTV2RichMediaReq;
+
+        /**
+         * Gets the default type url for NTV2RichMediaReq
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a MultiMediaReqHead. */
+    interface IMultiMediaReqHead {
+
+        /** MultiMediaReqHead common */
+        common?: (RichMedia.ICommonHead|null);
+
+        /** MultiMediaReqHead scene */
+        scene?: (RichMedia.ISceneInfo|null);
+
+        /** MultiMediaReqHead client */
+        client?: (RichMedia.IClientMeta|null);
+    }
+
+    /** Represents a MultiMediaReqHead. */
+    class MultiMediaReqHead implements IMultiMediaReqHead {
+
+        /**
+         * Constructs a new MultiMediaReqHead.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: RichMedia.IMultiMediaReqHead);
+
+        /** MultiMediaReqHead common. */
+        public common?: (RichMedia.ICommonHead|null);
+
+        /** MultiMediaReqHead scene. */
+        public scene?: (RichMedia.ISceneInfo|null);
+
+        /** MultiMediaReqHead client. */
+        public client?: (RichMedia.IClientMeta|null);
+
+        /**
+         * Encodes the specified MultiMediaReqHead message. Does not implicitly {@link RichMedia.MultiMediaReqHead.verify|verify} messages.
+         * @param message MultiMediaReqHead message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: RichMedia.IMultiMediaReqHead, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a MultiMediaReqHead message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns MultiMediaReqHead
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): RichMedia.MultiMediaReqHead;
+
+        /**
+         * Gets the default type url for MultiMediaReqHead
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a CommonHead. */
+    interface ICommonHead {
+
+        /** CommonHead requestId */
+        requestId?: (number|null);
+
+        /** CommonHead command */
+        command?: (number|null);
+    }
+
+    /** Represents a CommonHead. */
+    class CommonHead implements ICommonHead {
+
+        /**
+         * Constructs a new CommonHead.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: RichMedia.ICommonHead);
+
+        /** CommonHead requestId. */
+        public requestId: number;
+
+        /** CommonHead command. */
+        public command: number;
+
+        /**
+         * Encodes the specified CommonHead message. Does not implicitly {@link RichMedia.CommonHead.verify|verify} messages.
+         * @param message CommonHead message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: RichMedia.ICommonHead, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a CommonHead message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns CommonHead
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): RichMedia.CommonHead;
+
+        /**
+         * Gets the default type url for CommonHead
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a SceneInfo. */
+    interface ISceneInfo {
+
+        /** SceneInfo requestType */
+        requestType?: (number|null);
+
+        /** SceneInfo businessType */
+        businessType?: (number|null);
+
+        /** SceneInfo field103 */
+        field103?: (number|null);
+
+        /** SceneInfo sceneType */
+        sceneType?: (number|null);
+
+        /** SceneInfo c2c */
+        c2c?: (RichMedia.IC2CUserInfo|null);
+
+        /** SceneInfo group */
+        group?: (RichMedia.IGroupInfo|null);
+    }
+
+    /** Represents a SceneInfo. */
+    class SceneInfo implements ISceneInfo {
+
+        /**
+         * Constructs a new SceneInfo.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: RichMedia.ISceneInfo);
+
+        /** SceneInfo requestType. */
+        public requestType: number;
+
+        /** SceneInfo businessType. */
+        public businessType: number;
+
+        /** SceneInfo field103. */
+        public field103: number;
+
+        /** SceneInfo sceneType. */
+        public sceneType: number;
+
+        /** SceneInfo c2c. */
+        public c2c?: (RichMedia.IC2CUserInfo|null);
+
+        /** SceneInfo group. */
+        public group?: (RichMedia.IGroupInfo|null);
+
+        /**
+         * Encodes the specified SceneInfo message. Does not implicitly {@link RichMedia.SceneInfo.verify|verify} messages.
+         * @param message SceneInfo message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: RichMedia.ISceneInfo, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SceneInfo message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SceneInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): RichMedia.SceneInfo;
+
+        /**
+         * Gets the default type url for SceneInfo
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a C2CUserInfo. */
+    interface IC2CUserInfo {
+
+        /** C2CUserInfo accountType */
+        accountType?: (number|null);
+
+        /** C2CUserInfo targetUid */
+        targetUid?: (string|null);
+    }
+
+    /** Represents a C2CUserInfo. */
+    class C2CUserInfo implements IC2CUserInfo {
+
+        /**
+         * Constructs a new C2CUserInfo.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: RichMedia.IC2CUserInfo);
+
+        /** C2CUserInfo accountType. */
+        public accountType: number;
+
+        /** C2CUserInfo targetUid. */
+        public targetUid: string;
+
+        /**
+         * Encodes the specified C2CUserInfo message. Does not implicitly {@link RichMedia.C2CUserInfo.verify|verify} messages.
+         * @param message C2CUserInfo message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: RichMedia.IC2CUserInfo, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a C2CUserInfo message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns C2CUserInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): RichMedia.C2CUserInfo;
+
+        /**
+         * Gets the default type url for C2CUserInfo
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a GroupInfo. */
+    interface IGroupInfo {
+
+        /** GroupInfo groupId */
+        groupId?: (number|null);
+    }
+
+    /** Represents a GroupInfo. */
+    class GroupInfo implements IGroupInfo {
+
+        /**
+         * Constructs a new GroupInfo.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: RichMedia.IGroupInfo);
+
+        /** GroupInfo groupId. */
+        public groupId: number;
+
+        /**
+         * Encodes the specified GroupInfo message. Does not implicitly {@link RichMedia.GroupInfo.verify|verify} messages.
+         * @param message GroupInfo message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: RichMedia.IGroupInfo, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a GroupInfo message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns GroupInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): RichMedia.GroupInfo;
+
+        /**
+         * Gets the default type url for GroupInfo
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a ClientMeta. */
+    interface IClientMeta {
+
+        /** ClientMeta agentType */
+        agentType?: (number|null);
+    }
+
+    /** Represents a ClientMeta. */
+    class ClientMeta implements IClientMeta {
+
+        /**
+         * Constructs a new ClientMeta.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: RichMedia.IClientMeta);
+
+        /** ClientMeta agentType. */
+        public agentType: number;
+
+        /**
+         * Encodes the specified ClientMeta message. Does not implicitly {@link RichMedia.ClientMeta.verify|verify} messages.
+         * @param message ClientMeta message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: RichMedia.IClientMeta, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a ClientMeta message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns ClientMeta
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): RichMedia.ClientMeta;
+
+        /**
+         * Gets the default type url for ClientMeta
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a DownloadReq. */
+    interface IDownloadReq {
+
+        /** DownloadReq node */
+        node?: (RichMedia.IIndexNode|null);
+    }
+
+    /** Represents a DownloadReq. */
+    class DownloadReq implements IDownloadReq {
+
+        /**
+         * Constructs a new DownloadReq.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: RichMedia.IDownloadReq);
+
+        /** DownloadReq node. */
+        public node?: (RichMedia.IIndexNode|null);
+
+        /**
+         * Encodes the specified DownloadReq message. Does not implicitly {@link RichMedia.DownloadReq.verify|verify} messages.
+         * @param message DownloadReq message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: RichMedia.IDownloadReq, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a DownloadReq message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns DownloadReq
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): RichMedia.DownloadReq;
+
+        /**
+         * Gets the default type url for DownloadReq
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
     /** Properties of a MsgInfo. */
     interface IMsgInfo {
 
@@ -2249,6 +2669,171 @@ export namespace RichMedia {
 
         /**
          * Gets the default type url for PicFileIdInfo
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a NTV2RichMediaResp. */
+    interface INTV2RichMediaResp {
+
+        /** NTV2RichMediaResp download */
+        download?: (RichMedia.IDownloadResp|null);
+    }
+
+    /** Represents a NTV2RichMediaResp. */
+    class NTV2RichMediaResp implements INTV2RichMediaResp {
+
+        /**
+         * Constructs a new NTV2RichMediaResp.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: RichMedia.INTV2RichMediaResp);
+
+        /** NTV2RichMediaResp download. */
+        public download?: (RichMedia.IDownloadResp|null);
+
+        /**
+         * Encodes the specified NTV2RichMediaResp message. Does not implicitly {@link RichMedia.NTV2RichMediaResp.verify|verify} messages.
+         * @param message NTV2RichMediaResp message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: RichMedia.INTV2RichMediaResp, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a NTV2RichMediaResp message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns NTV2RichMediaResp
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): RichMedia.NTV2RichMediaResp;
+
+        /**
+         * Gets the default type url for NTV2RichMediaResp
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a DownloadResp. */
+    interface IDownloadResp {
+
+        /** DownloadResp rKeyParam */
+        rKeyParam?: (string|null);
+
+        /** DownloadResp rKeyTtlSecond */
+        rKeyTtlSecond?: (number|null);
+
+        /** DownloadResp info */
+        info?: (RichMedia.IDownloadInfo|null);
+
+        /** DownloadResp rKeyCreateTime */
+        rKeyCreateTime?: (number|null);
+    }
+
+    /** Represents a DownloadResp. */
+    class DownloadResp implements IDownloadResp {
+
+        /**
+         * Constructs a new DownloadResp.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: RichMedia.IDownloadResp);
+
+        /** DownloadResp rKeyParam. */
+        public rKeyParam: string;
+
+        /** DownloadResp rKeyTtlSecond. */
+        public rKeyTtlSecond: number;
+
+        /** DownloadResp info. */
+        public info?: (RichMedia.IDownloadInfo|null);
+
+        /** DownloadResp rKeyCreateTime. */
+        public rKeyCreateTime: number;
+
+        /**
+         * Encodes the specified DownloadResp message. Does not implicitly {@link RichMedia.DownloadResp.verify|verify} messages.
+         * @param message DownloadResp message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: RichMedia.IDownloadResp, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a DownloadResp message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns DownloadResp
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): RichMedia.DownloadResp;
+
+        /**
+         * Gets the default type url for DownloadResp
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a DownloadInfo. */
+    interface IDownloadInfo {
+
+        /** DownloadInfo domain */
+        domain?: (string|null);
+
+        /** DownloadInfo urlPath */
+        urlPath?: (string|null);
+
+        /** DownloadInfo httpsPort */
+        httpsPort?: (number|null);
+    }
+
+    /** Represents a DownloadInfo. */
+    class DownloadInfo implements IDownloadInfo {
+
+        /**
+         * Constructs a new DownloadInfo.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: RichMedia.IDownloadInfo);
+
+        /** DownloadInfo domain. */
+        public domain: string;
+
+        /** DownloadInfo urlPath. */
+        public urlPath: string;
+
+        /** DownloadInfo httpsPort. */
+        public httpsPort: number;
+
+        /**
+         * Encodes the specified DownloadInfo message. Does not implicitly {@link RichMedia.DownloadInfo.verify|verify} messages.
+         * @param message DownloadInfo message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: RichMedia.IDownloadInfo, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a DownloadInfo message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns DownloadInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): RichMedia.DownloadInfo;
+
+        /**
+         * Gets the default type url for DownloadInfo
          * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns The default type url
          */

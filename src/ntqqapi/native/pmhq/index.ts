@@ -1,4 +1,4 @@
-import { Action, Msg, Oidb } from '@/ntqqapi/proto/compiled'
+import { Action, Msg, Oidb, RichMedia } from '@/ntqqapi/proto/compiled'
 import { deepConvertMap, deepStringifyMap } from '@/ntqqapi/native/pmhq/util'
 import { Peer, ChatType } from '@/ntqqapi/types/msg'
 import { selfInfo } from '@/common/globalVars'
@@ -418,6 +418,48 @@ export class PMHQ {
       body,
     }).finish()
     await this.httpSendPB('OidbSvcTrpcTcp.0x929b_0', data)
+  }
+
+  async getC2cPttUrl(fileUuid: string) {
+    const body = RichMedia.NTV2RichMediaReq.encode({
+      reqHead: {
+        common: {
+          requestId: 1,
+          command: 200,
+        },
+        scene: {
+          requestType: 1,
+          businessType: 3,
+          field103: 0,
+          sceneType: 1,
+          c2c: {
+            accountType: 2,
+            targetUid: selfInfo.uid,
+          }
+        },
+        client: {
+          agentType: 2
+        }
+      },
+      download: {
+        node: {
+          fileUuid,
+          storeID: 1,
+          uploadTime: 0,
+          expire: 0,
+          type: 0
+        }
+      }
+    }).finish()
+    const data = Oidb.Base.encode({
+      command: 0x126d,
+      subCommand: 200,
+      body,
+    }).finish()
+    const res = await this.httpSendPB('OidbSvcTrpcTcp.0x126d_200', data)
+    const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
+    const { download } = RichMedia.NTV2RichMediaResp.decode(oidbRespBody)
+    return `https://${download?.info?.domain}${download?.info?.urlPath}${download?.rKeyParam}` // 获取到的是 AMR 音频，并非 SILK
   }
 }
 
