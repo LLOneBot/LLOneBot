@@ -585,7 +585,12 @@ export namespace OB11Entities {
           const groupElement = grayTipElement.groupElement!
           if (groupElement.type === TipGroupElementType.Ban) {
             ctx.logger.info('收到群成员禁言提示', groupElement)
-            return await GroupBanEvent.parse(ctx, groupElement, msg.peerUid)
+            const event = await GroupBanEvent.parse(ctx, groupElement, msg.peerUid)
+            try {
+              const group = await ctx.ntGroupApi.getGroupAllInfo?.(msg.peerUid)
+              if (group && group.groupName) (event as any).group_name = group.groupName
+            } catch {}
+            return event
           } else if (groupElement.type === TipGroupElementType.Kicked) {
             ctx.logger.info(`收到我被踢出或退群提示, 群${msg.peerUid}`, groupElement)
             const { adminUid } = groupElement
