@@ -29,6 +29,11 @@ class GetGroupMemberInfo extends BaseAction<Payload, OB11GroupMember> {
       const date = Math.trunc(Date.now() / 1000)
       ret.last_sent_time ??= date
       ret.join_time ??= date
+      // 获取群名
+      try {
+        const group = await this.ctx.ntGroupApi.getGroupAllInfo?.(groupCode)
+        if (group && group.groupName) (ret as any).group_name = group.groupName
+      } catch {}
       let info: UserDetailInfoV2 | null = null
       try {
         info = await this.ctx.ntUserApi.getUserDetailInfoWithBizInfo(member.uid)

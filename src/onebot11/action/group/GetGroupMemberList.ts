@@ -33,6 +33,11 @@ class GetGroupMemberList extends BaseAction<Payload, OB11GroupMember[]> {
       const member = OB11Entities.groupMember(groupId, item)
       member.join_time ??= date
       member.last_sent_time ??= date
+      // 获取群名
+      try {
+        const group = await this.ctx.ntGroupApi.getGroupAllInfo?.(groupId.toString())
+        if (group && group.groupName) (member as any).group_name = group.groupName
+      } catch {}
       ret.push(member)
     }
 

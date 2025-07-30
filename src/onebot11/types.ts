@@ -47,6 +47,7 @@ export interface OB11GroupMember {
   // 以下为扩展字段
   is_robot?: boolean
   qage?: number
+  group_name?: string // 群名称
 }
 
 export interface OB11Group {

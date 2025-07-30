@@ -714,6 +714,7 @@ export namespace OB11Entities {
   }
 
   export function groupMember(groupId: number, member: GroupMember): OB11GroupMember {
+    // group_name 由调用方补充
     return {
       group_id: groupId,
       user_id: parseInt(member.uin),
@@ -733,7 +734,7 @@ export namespace OB11Entities {
       shut_up_timestamp: member.shutUpTime,
       role: groupMemberRole(member.role),
       title: member.memberSpecialTitle,
-    }
+    } as OB11GroupMember & { group_name?: string }
   }
 
   export function group(group: GroupSimpleInfo): OB11Group {

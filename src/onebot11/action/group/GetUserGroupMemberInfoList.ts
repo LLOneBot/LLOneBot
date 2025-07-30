@@ -19,8 +19,9 @@ class GetUserGroupMemberInfoList extends BaseAction<Payload, OB11GroupMember[]> 
         const members = await this.ctx.ntGroupApi.getGroupMembers(group.groupCode, false)
         for (const member of members.values()) {
           if (member.uin === userUin) {
-            // 复用 OB11Entities.groupMember 生成 OneBot 格式成员信息
-            result.push(await OB11Entities.groupMember(Number(group.groupCode), member))
+            const obMember = await OB11Entities.groupMember(Number(group.groupCode), member)
+            obMember.group_name = group.groupName
+            result.push(obMember)
             break
           }
         }
