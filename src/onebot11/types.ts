@@ -69,6 +69,7 @@ interface OB11Sender {
   role?: OB11GroupMemberRole
   group_id?: number // 当私聊 sub_type 为 group 时
   title?: string // 群聊专属头衔
+  is_robot?: boolean // 是否为机器人
 }
 
 export enum OB11MessageType {

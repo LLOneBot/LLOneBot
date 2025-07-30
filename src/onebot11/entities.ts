@@ -84,6 +84,13 @@ export namespace OB11Entities {
     if (msg.chatType === ChatType.Group) {
       resMsg.sub_type = 'normal'
       resMsg.group_id = parseInt(msg.peerUin)
+      // 获取群名称（仅查当前群）
+      try {
+        const group = await ctx.ntGroupApi.getGroupAllInfo?.(msg.peerUin)
+        if (group && group.groupName) {
+          (resMsg as any).group_name = group.groupName
+        }
+      } catch {}
       // 284840486: 合并转发内部
       if (msg.peerUin !== '284840486') {
         try {
@@ -91,20 +98,24 @@ export namespace OB11Entities {
           resMsg.sender.role = groupMemberRole(member.role)
           resMsg.sender.nickname = member.nick
           resMsg.sender.title = member.memberSpecialTitle ?? ''
+          resMsg.sender.is_robot = !!member.isRobot
         } catch {
           resMsg.sender.role = OB11GroupMemberRole.Member
           resMsg.sender.title = ''
+          resMsg.sender.is_robot = false
         }
       }
     }
     else if (msg.chatType === ChatType.C2C) {
       resMsg.sub_type = 'friend'
       resMsg.sender.nickname = (await ctx.ntUserApi.getUserSimpleInfo(msg.senderUid)).coreInfo.nick
+      resMsg.sender.is_robot = false
     }
     else if (msg.chatType === ChatType.TempC2CFromGroup) {
       resMsg.sub_type = 'group'
       resMsg.temp_source = 0 //群聊
       resMsg.sender.nickname = (await ctx.ntUserApi.getUserSimpleInfo(msg.senderUid)).coreInfo.nick
+      resMsg.sender.is_robot = false
       const ret = await ctx.ntMsgApi.getTempChatInfo(ChatType.TempC2CFromGroup, msg.senderUid)
       if (ret?.result === 0) {
         resMsg.sender.group_id = Number(ret.tmpChatInfo?.groupCode)
@@ -563,7 +574,12 @@ export namespace OB11Entities {
             ctx.logger.info('收到新人被邀请进群消息', grayTipElement)
             const userId = new URL(json.items[2].jp).searchParams.get('robot_uin')
             const operatorId = new URL(json.items[0].jp).searchParams.get('uin')
-            return new OB11GroupIncreaseEvent(Number(msg.peerUid), Number(userId), Number(operatorId), 'invite')
+            const event = new OB11GroupIncreaseEvent(Number(msg.peerUid), Number(userId), Number(operatorId), 'invite')
+            try {
+              const group = await ctx.ntGroupApi.getGroupAllInfo?.(msg.peerUid)
+              if (group && group.groupName) (event as any).group_name = group.groupName
+            } catch {}
+            return event
           }
         } else if (grayTipElement.subElementType === GrayTipElementSubType.Group) {
           const groupElement = grayTipElement.groupElement!
@@ -573,18 +589,28 @@ export namespace OB11Entities {
           } else if (groupElement.type === TipGroupElementType.Kicked) {
             ctx.logger.info(`收到我被踢出或退群提示, 群${msg.peerUid}`, groupElement)
             const { adminUid } = groupElement
-            return new OB11GroupDecreaseEvent(
+            const event = new OB11GroupDecreaseEvent(
               Number(msg.peerUid),
               Number(selfInfo.uin),
               adminUid ? Number(await ctx.ntUserApi.getUinByUid(adminUid)) : 0,
               adminUid ? 'kick_me' : 'leave'
             )
+            try {
+              const group = await ctx.ntGroupApi.getGroupAllInfo?.(msg.peerUid)
+              if (group && group.groupName) (event as any).group_name = group.groupName
+            } catch {}
+            return event
           } else if (groupElement.type === TipGroupElementType.MemberIncrease) {
             const { memberUid, adminUid } = groupElement
             if (memberUid !== selfInfo.uid) return
             ctx.logger.info('收到群成员增加消息', groupElement)
             const adminUin = adminUid ? await ctx.ntUserApi.getUinByUid(adminUid) : selfInfo.uin
-            return new OB11GroupIncreaseEvent(+msg.peerUid, +selfInfo.uin, +adminUin)
+            const event = new OB11GroupIncreaseEvent(+msg.peerUid, +selfInfo.uin, +adminUin)
+            try {
+              const group = await ctx.ntGroupApi.getGroupAllInfo?.(msg.peerUid)
+              if (group && group.groupName) (event as any).group_name = group.groupName
+            } catch {}
+            return event
           }
         } else if (grayTipElement.subElementType === GrayTipElementSubType.XmlMsg) {
           const xmlElement = grayTipElement.xmlElement!
@@ -596,7 +622,12 @@ export namespace OB11Entities {
             const invitor = xmlElement.templParam.get('invitor')
             const invitee = xmlElement.templParam.get('invitee')
             if (invitor && invitee) {
-              return new OB11GroupIncreaseEvent(+msg.peerUid, +invitee, +invitor, 'invite')
+              const event = new OB11GroupIncreaseEvent(+msg.peerUid, +invitee, +invitor, 'invite')
+              try {
+                const group = await ctx.ntGroupApi.getGroupAllInfo?.(msg.peerUid)
+                if (group && group.groupName) (event as any).group_name = group.groupName
+              } catch {}
+              return event
             }
           }
         }
@@ -612,12 +643,17 @@ export namespace OB11Entities {
     const revokeElement = msg.elements[0].grayTipElement?.revokeElement
     if (msg.chatType === ChatType.Group) {
       const operator = await ctx.ntGroupApi.getGroupMember(msg.peerUid, revokeElement!.operatorUid)
-      return new OB11GroupRecallNoticeEvent(
+      const event = new OB11GroupRecallNoticeEvent(
         parseInt(msg.peerUid),
         parseInt(msg.senderUin!),
         parseInt(operator?.uin || msg.senderUin!),
         shortId,
       )
+      try {
+        const group = await ctx.ntGroupApi.getGroupAllInfo?.(msg.peerUid)
+        if (group && group.groupName) (event as any).group_name = group.groupName
+      } catch {}
+      return event
     }
     else {
       return new OB11FriendRecallNoticeEvent(parseInt(msg.senderUin!), shortId)

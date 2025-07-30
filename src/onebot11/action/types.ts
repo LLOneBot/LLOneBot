@@ -12,6 +12,7 @@ export interface InvalidCheckResult {
 export enum ActionName {
   // llonebot
   GetUserGroupList = 'get_user_group_list',
+  GetUserGroupMemberInfoList = 'get_user_group_member_info_list',
   BatchDeleteGroupMember = 'batch_delete_group_member',
   GetFlashFileInfo = 'get_flash_file_info',
   DownloadFlashFile = 'download_flash_file',
