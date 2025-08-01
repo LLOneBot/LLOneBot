@@ -2,11 +2,11 @@ import { SimpleInfo, ProfileBizType, UserDetailInfoV2, UserDetailSource } from '
 import { GeneralCallResult } from './common'
 
 export interface NodeIKernelProfileService {
-  getUidByUin(callfrom: string, uin: Array<string>): Promise<Map<string, string>>
+  getUidByUin(callFrom: string, uin: string[]): Promise<Map<string, string>>
 
-  getUinByUid(callfrom: string, uid: Array<string>): Promise<Map<string, string>>
+  getUinByUid(callFrom: string, uid: string[]): Promise<Map<string, string>>
 
-  getCoreAndBaseInfo(callfrom: string, uids: string[]): Promise<Map<string, SimpleInfo>>
+  getCoreAndBaseInfo(callFrom: string, uids: string[]): Promise<Map<string, SimpleInfo>>
 
   fetchUserDetailInfo(callFrom: string, uid: string[], source: UserDetailSource, bizList: ProfileBizType[]): Promise<GeneralCallResult & {
     source: UserDetailSource
@@ -21,5 +21,5 @@ export interface NodeIKernelProfileService {
 
   modifyDesktopMiniProfile(profile: unknown): Promise<GeneralCallResult>
 
-  getUserSimpleInfo(uids: string[], force: boolean): Promise<unknown>
+  getUserSimpleInfo(uids: string[], force: boolean): Promise<GeneralCallResult>
 }

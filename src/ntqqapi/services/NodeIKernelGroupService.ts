@@ -23,13 +23,13 @@ export interface NodeIKernelGroupService {
     }
   }>
 
-  getUinByUids(uins: string[]): Promise<{
+  getUinByUids(uidList: string[]): Promise<{
     errCode: number
     errMsg: string
     uins: Map<string, string>
   }>
 
-  getUidByUins(uins: string[]): Promise<{
+  getUidByUins(uinList: string[]): Promise<{
     errCode: number
     errMsg: string
     uids: Map<string, string>
@@ -107,7 +107,9 @@ export interface NodeIKernelGroupService {
     }
   }>
 
-  getGroupRemainAtTimes(groupCode: string): Promise<GeneralCallResult & {
+  getGroupRemainAtTimes(groupCode: string): Promise<{
+    errCode: number
+    errMsg: string
     atInfo: {
       canAtAll: boolean
       RemainAtAllCountForUin: number

@@ -23,7 +23,7 @@ export interface NodeIKernelFlashTransferService {
       thumbnailPath: string // 可为空字符串
     }>,
     uploadSceneType: number // 1
-  }): GeneralCallResult & {
+  }): Promise<GeneralCallResult & {
     seq: number,
     createFlashTransferResult: {
       fileSetId: string,
@@ -31,9 +31,11 @@ export interface NodeIKernelFlashTransferService {
       expireTime: string,
       expireLeftTime: string
     }
-  }
+  }>
 
-  startFileSetDownload(fileSetId: string, sceneType: number, option: { isIncludeCompressInnerFiles: boolean }): GeneralCallResult
+  startFileSetDownload(fileSetId: string, sceneType: number, option: { isIncludeCompressInnerFiles: boolean }): Promise<GeneralCallResult & {
+    extraInfo: number
+  }>
 
   getFileList(req: {
     seq: number
@@ -53,7 +55,7 @@ export interface NodeIKernelFlashTransferService {
       sortConditions: { sortField: number, sortOrder: number }[]
       isNeedPhysicalInfoReady: boolean
     }[]
-  }): {
+  }): Promise<{
     rsp: {
       seq: number,
       result: number,
@@ -61,11 +63,11 @@ export interface NodeIKernelFlashTransferService {
       fileLists:
       FlashFileListItem[]
     }
-  }
+  }>
 
-  getFileSetIdByCode(code: string): GeneralCallResult & {
+  getFileSetIdByCode(code: string): Promise<GeneralCallResult & {
     fileSetId: string
-  }
+  }>
 
   getFileSet(req: {
     seq: number
@@ -73,7 +75,9 @@ export interface NodeIKernelFlashTransferService {
     isUseCache: boolean
     isNoReqSvr: boolean
     sceneType: number
-  }): GeneralCallResult & {
+  }): Promise<GeneralCallResult & {
+    seq: number
     fileSet: FlashFileSetInfo
-  }
+    isCache: boolean
+  }>
 }
