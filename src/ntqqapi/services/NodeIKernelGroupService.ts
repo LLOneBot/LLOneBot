@@ -143,7 +143,13 @@ export interface NodeIKernelGroupService {
     errCode: number
     errMsg: string
     result: {
+      ids: {
+        uid: string
+        index: number
+      }[]
       infos: Map<string, GroupMember>
+      finish: boolean
+      hasRobot: boolean
     }
   }>
 

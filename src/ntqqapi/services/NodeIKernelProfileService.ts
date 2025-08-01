@@ -21,5 +21,5 @@ export interface NodeIKernelProfileService {
 
   modifyDesktopMiniProfile(profile: unknown): Promise<GeneralCallResult>
 
-  getUserSimpleInfo(uids: string[], force: boolean): Promise<GeneralCallResult>
+  getUserSimpleInfo(force: boolean, uids: string[]): Promise<GeneralCallResult>
 }
