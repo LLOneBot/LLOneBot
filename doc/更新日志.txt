@@ -1,6 +1,7 @@
 V5.6.1
-更新时间
+更新时间 2025-8-2 21:04:08
 
+* 修复 bot 被邀请进群事件没有上报的问题
 * 新增获取群 Ai 语音可用声色列表 API `get_ai_characters`
 * 新增发送群 Ai 语音 API `send_group_ai_record`
 
