@@ -1,10 +1,7 @@
-import { log } from '@/common/utils'
 import { randomUUID } from 'node:crypto'
-import { Awaitable, Dict } from 'cosmokit'
+import { Awaitable } from 'cosmokit'
 import { NTMethod } from './ntcall'
 import { pmhq } from '@/ntqqapi/native/pmhq'
-
-export const hookApiCallbacks: Map<string, (res: any) => void> = new Map()
 
 export enum ReceiveCmdS {
   RECENT_CONTACT = 'nodeIKernelRecentContactListener/onRecentContactListChangedVer2',
