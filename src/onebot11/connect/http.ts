@@ -127,7 +127,7 @@ class OB11Http {
       if (!client.closed) {
         client.write(data)
         if ('post_type' in event) {
-          const eventName = event.post_type + '.' + event[event.post_type + '_type']
+          const eventName = event.getSummaryEventName()
           this.ctx.logger.info('OneBot V11 HTTP SSE 事件上报', eventName)
         }
       }

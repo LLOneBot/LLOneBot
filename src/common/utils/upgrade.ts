@@ -5,8 +5,8 @@ import { log, fetchFile } from '.'
 import { TEMP_DIR } from '../globalVars'
 import { compare } from 'compare-versions'
 
-const downloadMirrors = ['https://ghgo.xyz/']
-const releasesMirrors = ['https://kkgithub.com/']
+const downloadMirrors = ['https://ghfast.top/']
+const releasesMirrors = ['https://ghfast.top/', 'https://kkgithub.com/']
 
 export async function checkNewVersion() {
   const latestVersion = await getRemoteVersion()

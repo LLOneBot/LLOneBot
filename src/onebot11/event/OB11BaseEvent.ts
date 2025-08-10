@@ -13,4 +13,8 @@ export abstract class OB11BaseEvent {
   time = Math.floor(Date.now() / 1000)
   self_id = parseInt(selfInfo.uin)
   abstract post_type: EventType
+
+  getSummaryEventName() {
+    return this.post_type + '.' + this[(this.post_type === 'message_sent' ? 'message' : this.post_type) + '_type']
+  }
 }

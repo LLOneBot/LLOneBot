@@ -231,6 +231,25 @@ class Core extends Service {
       }
     })
 
+    registerReceiveHook<[Peer, string[]]>(ReceiveCmdS.DELETE_MSG, payload => {
+      // 撤回普通消息不会经过这里
+      // 撤回戳一戳会经过这里
+      const [peer, msgIds] = payload;
+      for (const msgId of msgIds) {
+        const msg = this.ctx.store.getMsgCache(msgId)
+        if (!msg) {
+          this.ctx.ntMsgApi.getMsgsByMsgId(peer, [msgId]).then(r=>{
+            for(const _msg of r.msgList) {
+              this.ctx.parallel('nt/message-deleted', _msg)
+            }
+          })
+        }
+        else{
+          this.ctx.parallel('nt/message-deleted', msg)
+        }
+      }
+    })
+
     registerReceiveHook<RawMessage>(ReceiveCmdS.SELF_SEND_MSG, payload => {
       sentMsgIds.set(payload.msgId, true)
     })
@@ -274,7 +293,6 @@ class Core extends Service {
         this.ctx.parallel('nt/friend-request', req)
       }
     })
-
 
     registerReceiveHook<number[]>('nodeIKernelMsgListener/onRecvSysMsg', payload => {
       this.ctx.parallel('nt/system-message-created', Uint8Array.from(payload))

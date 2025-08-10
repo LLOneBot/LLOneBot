@@ -2,7 +2,7 @@ import { OB11BaseNoticeEvent } from './OB11BaseNoticeEvent'
 
 abstract class OB11PokeEvent extends OB11BaseNoticeEvent {
   notice_type = 'notify'
-  sub_type = 'poke'
+  sub_type: 'poke' | 'poke_recall' = 'poke'
   target_id = 0
   abstract user_id: number
 }
@@ -32,4 +32,13 @@ export class OB11GroupPokeEvent extends OB11PokeEvent {
     this.user_id = user_id
     this.raw_info = raw_message
   }
+}
+
+
+export class OB11FriendPokeRecallEvent extends OB11FriendPokeEvent{
+  sub_type: 'poke' | 'poke_recall' = 'poke_recall'
+}
+
+export class OB11GroupPokeRecallEvent extends OB11GroupPokeEvent{
+  sub_type: 'poke' | 'poke_recall' = 'poke_recall'
 }
