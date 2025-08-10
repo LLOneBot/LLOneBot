@@ -292,6 +292,14 @@ export enum GrayTipElementSubType {
   JSON = 17,
 }
 
+export enum JsonGrayTipBusId {
+  AddedFriend = '19324',
+  Poke = '1061',
+  GroupMemberTitleChanged = '2407',
+  GroupEssenceMsg = '2401',
+  GroupNewMemberInvited = '19217',
+}
+
 export interface GrayTipElement {
   subElementType: GrayTipElementSubType
   revokeElement?: {
@@ -308,9 +316,10 @@ export interface GrayTipElement {
   groupElement?: TipGroupElement
   xmlElement?: TipXmlElement
   jsonGrayTipElement?: {
-    busiId: string
+    busiId: JsonGrayTipBusId
     jsonStr: string
     xmlToJsonParam?: {
+      templId: string
       templParam: Map<string, string>
     }
   }

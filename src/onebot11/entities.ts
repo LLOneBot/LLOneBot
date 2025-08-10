@@ -11,10 +11,12 @@ import {
 import {
   AtType,
   ChatType,
-  FaceIndex, FaceType,
+  FaceIndex,
+  FaceType,
   GrayTipElementSubType,
   GroupMember,
   GroupSimpleInfo,
+  JsonGrayTipBusId,
   Peer,
   RawMessage,
   Sex,
@@ -35,7 +37,6 @@ import { OB11FriendRecallNoticeEvent } from './event/notice/OB11FriendRecallNoti
 import { OB11GroupRecallNoticeEvent } from './event/notice/OB11GroupRecallNoticeEvent'
 import { OB11FriendPokeEvent, OB11GroupPokeEvent } from './event/notice/OB11PokeEvent'
 import { OB11BaseNoticeEvent } from './event/notice/OB11BaseNoticeEvent'
-import { OB11GroupRequestEvent } from './event/request/OB11GroupRequest'
 import { GroupBanEvent } from './event/notice/OB11GroupBanEvent'
 import { GroupMsgEmojiLikeEvent } from './event/notice/OB11MsgEmojiLikeEvent'
 import { GroupEssenceEvent } from './event/notice/OB11GroupEssenceEvent'
@@ -44,6 +45,7 @@ import { Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
 import { pathToFileURL } from 'node:url'
 import OneBot11Adapter from './adapter'
+import { OB11GroupRequestEvent } from '@/onebot11/event/request/OB11GroupRequest'
 
 export namespace OB11Entities {
   export async function message(
@@ -77,6 +79,9 @@ export namespace OB11Entities {
       message: messagePostFormat === 'string' ? '' : [],
       message_format: messagePostFormat === 'string' ? 'string' : 'array',
       post_type: selfUin === msg.senderUin ? EventType.MESSAGE_SENT : EventType.MESSAGE,
+      getSummaryEventName(): string {
+        return this.post_type + '.' + this.message_type
+      }
     }
     if (debug) {
       resMsg.raw = msg
@@ -492,7 +497,7 @@ export namespace OB11Entities {
             )
           }
         }
-        if (grayTipElement.xmlElement?.templId === '10229' || grayTipElement.jsonGrayTipElement?.busiId === '19324') {
+        if (grayTipElement.xmlElement?.templId === '10229' || grayTipElement.jsonGrayTipElement?.busiId === JsonGrayTipBusId.AddedFriend) {
           ctx.logger.info('收到好友添加消息', msg.peerUid)
           const uin = +msg.peerUin || +(await ctx.ntUserApi.getUinByUid(msg.peerUid))
           return new OB11FriendAddNoticeEvent(uin)
@@ -550,15 +555,15 @@ export namespace OB11Entities {
               Number(param.templParam.get('uin_str2')),
               json.items
             )
-          } else if (grayTipElement.jsonGrayTipElement?.busiId === '2401' && json.items[2]) {
+          } else if (grayTipElement.jsonGrayTipElement?.busiId === JsonGrayTipBusId.GroupEssenceMsg && json.items[2]) {
             ctx.logger.info('收到群精华消息', json)
             return await GroupEssenceEvent.parse(ctx, new URL(json.items[2].jp))
-          } else if (grayTipElement.jsonGrayTipElement?.busiId === '2407') {
+          } else if (grayTipElement.jsonGrayTipElement?.busiId === JsonGrayTipBusId.GroupMemberTitleChanged) {
             ctx.logger.info('收到群成员新头衔消息', json)
             const memberUin = json.items[1].param[0]
             const title = json.items[3].txt
             return new OB11GroupTitleEvent(parseInt(msg.peerUid), parseInt(memberUin), title)
-          } else if (grayTipElement.jsonGrayTipElement?.busiId === '19217') {
+          } else if (grayTipElement.jsonGrayTipElement?.busiId === JsonGrayTipBusId.GroupNewMemberInvited) {
             ctx.logger.info('收到新人被邀请进群消息', grayTipElement)
             const userId = new URL(json.items[2].jp).searchParams.get('robot_uin')
             const operatorId = new URL(json.items[0].jp).searchParams.get('uin')

@@ -70,7 +70,7 @@ class OB11WebSocket {
     this.wsClients.forEach(({ socket, emitEvent }) => {
       if (emitEvent && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify(event))
-        const eventName = event.post_type + '.' + event[event.post_type + '_type']
+        const eventName = event.getSummaryEventName()
         this.ctx.logger.info('WebSocket 事件上报', socket.url ?? '', eventName)
       }
     })
@@ -201,7 +201,7 @@ class OB11WebSocketReverse {
   public emitEvent(event: OB11BaseEvent) {
     if (this.wsClient && this.wsClient.readyState === WebSocket.OPEN) {
       this.wsClient.send(JSON.stringify(event))
-      const eventName = event.post_type + '.' + event[event.post_type + '_type']
+      const eventName = event.getSummaryEventName()
       this.ctx.logger.info('WebSocket 事件上报', this.wsClient.url ?? '', eventName)
     }
   }

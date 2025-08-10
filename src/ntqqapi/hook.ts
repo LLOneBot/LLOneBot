@@ -11,6 +11,7 @@ export enum ReceiveCmdS {
   UPDATE_MSG = 'nodeIKernelMsgListener/onMsgInfoListUpdate',
   UPDATE_ACTIVE_MSG = 'nodeIKernelMsgListener/onActiveMsgInfoUpdate',
   NEW_MSG = 'nodeIKernelMsgListener/onRecvMsg',
+  DELETE_MSG = 'nodeIKernelMsgListener/onMsgDelete',
   NEW_ACTIVE_MSG = 'nodeIKernelMsgListener/onRecvActiveMsg',
   SELF_SEND_MSG = 'nodeIKernelMsgListener/onAddSendMsg',
   USER_INFO = 'nodeIKernelProfileListener/onProfileSimpleChanged',

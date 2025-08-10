@@ -1,6 +1,14 @@
 import { Context, Service } from 'cordis'
 import { OB11Entities } from './entities'
-import { FriendRequest, GroupNotify, GroupNotifyStatus, GroupNotifyType, RawMessage } from '../ntqqapi/types'
+import {
+  ChatType,
+  FriendRequest,
+  GroupNotify,
+  GroupNotifyStatus,
+  GroupNotifyType,
+  JsonGrayTipBusId,
+  RawMessage,
+} from '../ntqqapi/types'
 import { OB11GroupRequestEvent } from './event/request/OB11GroupRequest'
 import { OB11FriendRequestEvent } from './event/request/OB11FriendRequest'
 import { OB11GroupDecreaseEvent } from './event/notice/OB11GroupDecreaseEvent'
@@ -19,9 +27,16 @@ import { OB11GroupIncreaseEvent } from './event/notice/OB11GroupIncreaseEvent'
 import { FlashFileDownloadStatus, FlashFileUploadStatus } from '@/ntqqapi/types/flashfile'
 import {
   OB11FlashFile,
-  OB11FlashFileDownloadedEvent, OB11FlashFileDownloadingEvent,
-  OB11FlashFileUploadedEvent, OB11FlashFileUploadingEvent,
+  OB11FlashFileDownloadedEvent,
+  OB11FlashFileDownloadingEvent,
+  OB11FlashFileUploadedEvent,
+  OB11FlashFileUploadingEvent,
 } from '@/onebot11/event/notice/OB11FlashFileEvent'
+import {
+  OB11FriendPokeEvent,
+  OB11FriendPokeRecallEvent,
+  OB11GroupPokeRecallEvent,
+} from '@/onebot11/event/notice/OB11PokeEvent'
 
 declare module 'cordis' {
   interface Context {
@@ -196,10 +211,33 @@ class OneBot11Adapter extends Service {
       peerUid: message.peerUid,
       chatType: message.chatType,
     }
+    // 解析撤回戳一戳
+    const grayTipElement = message.elements.find(el => el.grayTipElement)?.grayTipElement
+    if (grayTipElement && grayTipElement.jsonGrayTipElement?.busiId == JsonGrayTipBusId.Poke){
+      const json = JSON.parse(grayTipElement.jsonGrayTipElement.jsonStr)
+      const templateParams = grayTipElement.jsonGrayTipElement?.xmlToJsonParam?.templParam
+      const fromUserUin = templateParams?.get('uin_str1') || '0'
+      const toUserUin = templateParams?.get('uin_str2') || '0'
+      let recallEvent: OB11FriendPokeRecallEvent | OB11GroupPokeRecallEvent;
+      if (peer.chatType === ChatType.Group) {
+         recallEvent = new OB11GroupPokeRecallEvent(parseInt(message.peerUid), parseInt(fromUserUin), parseInt(toUserUin), json)
+      }
+      else{
+        recallEvent = new OB11FriendPokeRecallEvent(parseInt(fromUserUin), parseInt(toUserUin), json)
+      }
+      return this.dispatch(recallEvent)
+    }
+    // OB11Entities.privateEvent(this.ctx, message).then(privateEvent => {
+    //   if (privateEvent?.sub_type === 'poke') {
+    //     (privateEvent as OB11FriendPokeEvent).sub_type = 'poke_recall'
+    //     this.dispatch(privateEvent)
+    //   }
+    // })
     const oriMessageId = this.ctx.store.getShortIdByMsgInfo(peer, message.msgId)
     if (!oriMessageId) {
       return
     }
+
     OB11Entities.recallEvent(this.ctx, message, oriMessageId).then((recallEvent) => {
       if (recallEvent) {
         this.dispatch(recallEvent)
@@ -400,6 +438,19 @@ class OneBot11Adapter extends Service {
         const userId = Number(memberUin)
         const event = new OB11GroupDecreaseEvent(tip.groupCode, userId, userId)
         this.dispatch(event)
+      }
+      else if (msgType === 528 && subType === 321) {
+        // 私聊撤回戳一戳，不再从这里解析，应从 nt/message-deleted 事件中解析
+        const fromUin: string = sysMsg.routingHead?.fromUin.low
+        const toUin: string = sysMsg.routingHead?.toUin.low
+      }
+      else if (msgType === 732 && subType === 21) {
+        // 撤回群戳一戳，不再从这里解析，应从 nt/message-deleted 事件中解析
+        const fromUin: string = sysMsg.routingHead?.fromUin.low
+        const toUin: string = sysMsg.routingHead?.toUin.low  // 这个一直都是bot uin
+
+        // 这是个 tlv 格式数据
+        const content = sysMsg.body?.msgContent
       }
     })
 
