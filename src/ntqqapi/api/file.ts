@@ -32,7 +32,7 @@ declare module 'cordis' {
 }
 
 export class NTQQFileApi extends Service {
-  private rkeyManager: RkeyManager
+  rkeyManager: RkeyManager
 
   constructor(protected ctx: Context) {
     super(ctx, 'ntFileApi', true)

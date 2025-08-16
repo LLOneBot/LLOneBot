@@ -3,7 +3,7 @@ import { deepConvertMap, deepStringifyMap } from '@/ntqqapi/native/pmhq/util'
 import { Peer, ChatType } from '@/ntqqapi/types/msg'
 import { selfInfo } from '@/common/globalVars'
 import { randomBytes, randomUUID } from 'node:crypto'
-import { gzipSync } from 'node:zlib'
+import { gunzipSync, gzipSync } from 'node:zlib'
 
 interface PBData {
   echo?: string
@@ -333,7 +333,7 @@ export class PMHQ {
     }
   }
 
-  async uploadForward(peer: Peer, items: MultiMsgItem[]) {
+  async uploadForward(peer: Peer, items: Msg.PbMultiMsgItem[]) {
     const transmit = Msg.PbMultiMsgTransmit.encode({ pbItemList: items }).finish()
     const isGroup = peer.chatType === ChatType.Group
     const data = Action.SendLongMsgReq.encode({
@@ -460,6 +460,97 @@ export class PMHQ {
     const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
     const { download } = RichMedia.NTV2RichMediaResp.decode(oidbRespBody)
     return `https://${download?.info?.domain}${download?.info?.urlPath}${download?.rKeyParam}` // 获取到的是 AMR 音频，并非 SILK
+  }
+
+  async getMultiMsg(resId: string) {
+    const data = Action.RecvLongMsgReq.encode({
+      info: {
+        peer: {
+          uid: selfInfo.uid
+        },
+        resId,
+        acquire: true
+      },
+      settings: {
+        field1: 2,
+        field2: 0,
+        field3: 0,
+        field4: 0
+      }
+    }).finish()
+    const res = await this.httpSendPB('trpc.group.long_msg_interface.MsgService.SsoRecvLongMsg', data)
+    const payload = Action.RecvLongMsgResp.decode(Buffer.from(res.pb, 'hex')).result?.payload
+    const inflate = gunzipSync(payload!)
+    return Msg.PbMultiMsgTransmit.decode(inflate).pbItemList
+  }
+
+  async getGroupImageUrl(groupId: number, node: RichMedia.IndexNode) {
+    const body = RichMedia.NTV2RichMediaReq.encode({
+      reqHead: {
+        common: {
+          requestId: 1,
+          command: 200
+        },
+        scene: {
+          requestType: 2,
+          businessType: 1,
+          sceneType: 2,
+          group: {
+            groupId
+          }
+        },
+        client: {
+          agentType: 2,
+        }
+      },
+      download: {
+        node
+      }
+    }).finish()
+    const data = Oidb.Base.encode({
+      command: 0x11c4,
+      subCommand: 200,
+      body,
+    }).finish()
+    const res = await this.httpSendPB('OidbSvcTrpcTcp.0x11c4_200', data)
+    const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
+    const { download } = RichMedia.NTV2RichMediaResp.decode(oidbRespBody)
+    return `https://${download?.info?.domain}${download?.info?.urlPath}${download?.rKeyParam}`
+  }
+
+  async getC2cImageUrl(node: RichMedia.IndexNode) {
+    const body = RichMedia.NTV2RichMediaReq.encode({
+      reqHead: {
+        common: {
+          requestId: 1,
+          command: 200
+        },
+        scene: {
+          requestType: 2,
+          businessType: 1,
+          sceneType: 1,
+          c2c: {
+            accountType: 2,
+            targetUid: selfInfo.uid
+          },
+        },
+        client: {
+          agentType: 2,
+        }
+      },
+      download: {
+        node
+      }
+    }).finish()
+    const data = Oidb.Base.encode({
+      command: 0x11c5,
+      subCommand: 200,
+      body,
+    }).finish()
+    const res = await this.httpSendPB('OidbSvcTrpcTcp.0x11c5_200', data)
+    const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
+    const { download } = RichMedia.NTV2RichMediaResp.decode(oidbRespBody)
+    return `https://${download?.info?.domain}${download?.info?.urlPath}${download?.rKeyParam}`
   }
 }
 

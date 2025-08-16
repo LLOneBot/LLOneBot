@@ -341,7 +341,7 @@ export namespace Msg {
     interface IRoutingHead {
 
         /** RoutingHead fromUin */
-        fromUin?: (number|Long|null);
+        fromUin?: (number|null);
 
         /** RoutingHead fromUid */
         fromUid?: (string|null);
@@ -375,7 +375,7 @@ export namespace Msg {
         constructor(properties?: Msg.IRoutingHead);
 
         /** RoutingHead fromUin. */
-        public fromUin?: (number|Long|null);
+        public fromUin?: (number|null);
 
         /** RoutingHead fromUid. */
         public fromUid?: (string|null);
@@ -473,7 +473,7 @@ export namespace Msg {
     interface IGroup {
 
         /** Group groupCode */
-        groupCode?: (number|Long|null);
+        groupCode?: (number|null);
 
         /** Group groupType */
         groupType?: (number|null);
@@ -510,7 +510,7 @@ export namespace Msg {
         constructor(properties?: Msg.IGroup);
 
         /** Group groupCode. */
-        public groupCode?: (number|Long|null);
+        public groupCode?: (number|null);
 
         /** Group groupType. */
         public groupType?: (number|null);
@@ -581,7 +581,7 @@ export namespace Msg {
         msgSeq?: (number|Long|null);
 
         /** ContentHead msgTime */
-        msgTime?: (number|Long|null);
+        msgTime?: (number|null);
 
         /** ContentHead pkgNum */
         pkgNum?: (number|null);
@@ -630,7 +630,7 @@ export namespace Msg {
         public msgSeq?: (number|Long|null);
 
         /** ContentHead msgTime. */
-        public msgTime?: (number|Long|null);
+        public msgTime?: (number|null);
 
         /** ContentHead pkgNum. */
         public pkgNum?: (number|null);
@@ -4405,6 +4405,216 @@ export namespace Action {
 
         /**
          * Gets the default type url for PullPicsResp
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a RecvLongMsgReq. */
+    interface IRecvLongMsgReq {
+
+        /** RecvLongMsgReq info */
+        info?: (Action.IRecvLongMsgInfo|null);
+
+        /** RecvLongMsgReq settings */
+        settings?: (Action.ILongMsgSettings|null);
+    }
+
+    /** Represents a RecvLongMsgReq. */
+    class RecvLongMsgReq implements IRecvLongMsgReq {
+
+        /**
+         * Constructs a new RecvLongMsgReq.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Action.IRecvLongMsgReq);
+
+        /** RecvLongMsgReq info. */
+        public info?: (Action.IRecvLongMsgInfo|null);
+
+        /** RecvLongMsgReq settings. */
+        public settings?: (Action.ILongMsgSettings|null);
+
+        /**
+         * Encodes the specified RecvLongMsgReq message. Does not implicitly {@link Action.RecvLongMsgReq.verify|verify} messages.
+         * @param message RecvLongMsgReq message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Action.IRecvLongMsgReq, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a RecvLongMsgReq message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns RecvLongMsgReq
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Action.RecvLongMsgReq;
+
+        /**
+         * Gets the default type url for RecvLongMsgReq
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a RecvLongMsgInfo. */
+    interface IRecvLongMsgInfo {
+
+        /** RecvLongMsgInfo peer */
+        peer?: (Action.ILongMsgPeer|null);
+
+        /** RecvLongMsgInfo resId */
+        resId?: (string|null);
+
+        /** RecvLongMsgInfo acquire */
+        acquire?: (boolean|null);
+    }
+
+    /** Represents a RecvLongMsgInfo. */
+    class RecvLongMsgInfo implements IRecvLongMsgInfo {
+
+        /**
+         * Constructs a new RecvLongMsgInfo.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Action.IRecvLongMsgInfo);
+
+        /** RecvLongMsgInfo peer. */
+        public peer?: (Action.ILongMsgPeer|null);
+
+        /** RecvLongMsgInfo resId. */
+        public resId: string;
+
+        /** RecvLongMsgInfo acquire. */
+        public acquire: boolean;
+
+        /**
+         * Encodes the specified RecvLongMsgInfo message. Does not implicitly {@link Action.RecvLongMsgInfo.verify|verify} messages.
+         * @param message RecvLongMsgInfo message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Action.IRecvLongMsgInfo, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a RecvLongMsgInfo message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns RecvLongMsgInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Action.RecvLongMsgInfo;
+
+        /**
+         * Gets the default type url for RecvLongMsgInfo
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a RecvLongMsgResp. */
+    interface IRecvLongMsgResp {
+
+        /** RecvLongMsgResp result */
+        result?: (Action.IRecvLongMsgResult|null);
+
+        /** RecvLongMsgResp settings */
+        settings?: (Action.ILongMsgSettings|null);
+    }
+
+    /** Represents a RecvLongMsgResp. */
+    class RecvLongMsgResp implements IRecvLongMsgResp {
+
+        /**
+         * Constructs a new RecvLongMsgResp.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Action.IRecvLongMsgResp);
+
+        /** RecvLongMsgResp result. */
+        public result?: (Action.IRecvLongMsgResult|null);
+
+        /** RecvLongMsgResp settings. */
+        public settings?: (Action.ILongMsgSettings|null);
+
+        /**
+         * Encodes the specified RecvLongMsgResp message. Does not implicitly {@link Action.RecvLongMsgResp.verify|verify} messages.
+         * @param message RecvLongMsgResp message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Action.IRecvLongMsgResp, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a RecvLongMsgResp message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns RecvLongMsgResp
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Action.RecvLongMsgResp;
+
+        /**
+         * Gets the default type url for RecvLongMsgResp
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a RecvLongMsgResult. */
+    interface IRecvLongMsgResult {
+
+        /** RecvLongMsgResult resId */
+        resId?: (string|null);
+
+        /** RecvLongMsgResult payload */
+        payload?: (Uint8Array|null);
+    }
+
+    /** Represents a RecvLongMsgResult. */
+    class RecvLongMsgResult implements IRecvLongMsgResult {
+
+        /**
+         * Constructs a new RecvLongMsgResult.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Action.IRecvLongMsgResult);
+
+        /** RecvLongMsgResult resId. */
+        public resId: string;
+
+        /** RecvLongMsgResult payload. */
+        public payload: Uint8Array;
+
+        /**
+         * Encodes the specified RecvLongMsgResult message. Does not implicitly {@link Action.RecvLongMsgResult.verify|verify} messages.
+         * @param message RecvLongMsgResult message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Action.IRecvLongMsgResult, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a RecvLongMsgResult message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns RecvLongMsgResult
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Action.RecvLongMsgResult;
+
+        /**
+         * Gets the default type url for RecvLongMsgResult
          * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns The default type url
          */

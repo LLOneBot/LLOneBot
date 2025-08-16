@@ -50,3 +50,24 @@ message PullPicsImgInfo {
 message PullPicsResp {
   repeated PullPicsImgInfo info = 3;
 }
+
+message RecvLongMsgReq {
+  RecvLongMsgInfo info = 1;
+  LongMsgSettings settings = 15;
+}
+
+message RecvLongMsgInfo {
+  LongMsgPeer peer = 1;
+  string resId = 2;
+  bool acquire = 3;
+}
+
+message RecvLongMsgResp {
+  RecvLongMsgResult result = 1;
+  LongMsgSettings settings = 15;
+}
+
+message RecvLongMsgResult {
+  string resId = 3;
+  bytes payload = 4;
+}

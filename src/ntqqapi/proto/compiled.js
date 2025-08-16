@@ -778,7 +778,7 @@ export const Msg = $root.Msg = (() => {
          * Properties of a RoutingHead.
          * @memberof Msg
          * @interface IRoutingHead
-         * @property {number|Long|null} [fromUin] RoutingHead fromUin
+         * @property {number|null} [fromUin] RoutingHead fromUin
          * @property {string|null} [fromUid] RoutingHead fromUid
          * @property {number|null} [fromAppid] RoutingHead fromAppid
          * @property {number|null} [fromInstid] RoutingHead fromInstid
@@ -805,7 +805,7 @@ export const Msg = $root.Msg = (() => {
 
         /**
          * RoutingHead fromUin.
-         * @member {number|Long|null|undefined} fromUin
+         * @member {number|null|undefined} fromUin
          * @memberof Msg.RoutingHead
          * @instance
          */
@@ -931,7 +931,7 @@ export const Msg = $root.Msg = (() => {
             if (!writer)
                 writer = $Writer.create();
             if (message.fromUin != null && Object.hasOwnProperty.call(message, "fromUin"))
-                writer.uint32(/* id 1, wireType 0 =*/8).uint64(message.fromUin);
+                writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.fromUin);
             if (message.fromUid != null && Object.hasOwnProperty.call(message, "fromUid"))
                 writer.uint32(/* id 2, wireType 2 =*/18).string(message.fromUid);
             if (message.fromAppid != null && Object.hasOwnProperty.call(message, "fromAppid"))
@@ -970,7 +970,7 @@ export const Msg = $root.Msg = (() => {
                     break;
                 switch (tag >>> 3) {
                 case 1: {
-                        message.fromUin = reader.uint64();
+                        message.fromUin = reader.uint32();
                         break;
                     }
                 case 2: {
@@ -1141,7 +1141,7 @@ export const Msg = $root.Msg = (() => {
          * Properties of a Group.
          * @memberof Msg
          * @interface IGroup
-         * @property {number|Long|null} [groupCode] Group groupCode
+         * @property {number|null} [groupCode] Group groupCode
          * @property {number|null} [groupType] Group groupType
          * @property {number|Long|null} [groupInfoSeq] Group groupInfoSeq
          * @property {string|null} [groupCard] Group groupCard
@@ -1169,7 +1169,7 @@ export const Msg = $root.Msg = (() => {
 
         /**
          * Group groupCode.
-         * @member {number|Long|null|undefined} groupCode
+         * @member {number|null|undefined} groupCode
          * @memberof Msg.Group
          * @instance
          */
@@ -1309,7 +1309,7 @@ export const Msg = $root.Msg = (() => {
             if (!writer)
                 writer = $Writer.create();
             if (message.groupCode != null && Object.hasOwnProperty.call(message, "groupCode"))
-                writer.uint32(/* id 1, wireType 0 =*/8).uint64(message.groupCode);
+                writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.groupCode);
             if (message.groupType != null && Object.hasOwnProperty.call(message, "groupType"))
                 writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.groupType);
             if (message.groupInfoSeq != null && Object.hasOwnProperty.call(message, "groupInfoSeq"))
@@ -1350,7 +1350,7 @@ export const Msg = $root.Msg = (() => {
                     break;
                 switch (tag >>> 3) {
                 case 1: {
-                        message.groupCode = reader.uint64();
+                        message.groupCode = reader.uint32();
                         break;
                     }
                 case 2: {
@@ -1422,7 +1422,7 @@ export const Msg = $root.Msg = (() => {
          * @property {number|null} [c2cCmd] ContentHead c2cCmd
          * @property {number|Long|null} [random] ContentHead random
          * @property {number|Long|null} [msgSeq] ContentHead msgSeq
-         * @property {number|Long|null} [msgTime] ContentHead msgTime
+         * @property {number|null} [msgTime] ContentHead msgTime
          * @property {number|null} [pkgNum] ContentHead pkgNum
          * @property {number|null} [pkgIndex] ContentHead pkgIndex
          * @property {number|null} [divSeq] ContentHead divSeq
@@ -1489,7 +1489,7 @@ export const Msg = $root.Msg = (() => {
 
         /**
          * ContentHead msgTime.
-         * @member {number|Long|null|undefined} msgTime
+         * @member {number|null|undefined} msgTime
          * @memberof Msg.ContentHead
          * @instance
          */
@@ -1655,7 +1655,7 @@ export const Msg = $root.Msg = (() => {
             if (message.msgSeq != null && Object.hasOwnProperty.call(message, "msgSeq"))
                 writer.uint32(/* id 5, wireType 0 =*/40).uint64(message.msgSeq);
             if (message.msgTime != null && Object.hasOwnProperty.call(message, "msgTime"))
-                writer.uint32(/* id 6, wireType 0 =*/48).uint64(message.msgTime);
+                writer.uint32(/* id 6, wireType 0 =*/48).uint32(message.msgTime);
             if (message.pkgNum != null && Object.hasOwnProperty.call(message, "pkgNum"))
                 writer.uint32(/* id 7, wireType 0 =*/56).uint32(message.pkgNum);
             if (message.pkgIndex != null && Object.hasOwnProperty.call(message, "pkgIndex"))
@@ -1714,7 +1714,7 @@ export const Msg = $root.Msg = (() => {
                         break;
                     }
                 case 6: {
-                        message.msgTime = reader.uint64();
+                        message.msgTime = reader.uint32();
                         break;
                     }
                 case 7: {
@@ -10553,6 +10553,477 @@ export const Action = $root.Action = (() => {
         };
 
         return PullPicsResp;
+    })();
+
+    Action.RecvLongMsgReq = (function() {
+
+        /**
+         * Properties of a RecvLongMsgReq.
+         * @memberof Action
+         * @interface IRecvLongMsgReq
+         * @property {Action.IRecvLongMsgInfo|null} [info] RecvLongMsgReq info
+         * @property {Action.ILongMsgSettings|null} [settings] RecvLongMsgReq settings
+         */
+
+        /**
+         * Constructs a new RecvLongMsgReq.
+         * @memberof Action
+         * @classdesc Represents a RecvLongMsgReq.
+         * @implements IRecvLongMsgReq
+         * @constructor
+         * @param {Action.IRecvLongMsgReq=} [properties] Properties to set
+         */
+        function RecvLongMsgReq(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * RecvLongMsgReq info.
+         * @member {Action.IRecvLongMsgInfo|null|undefined} info
+         * @memberof Action.RecvLongMsgReq
+         * @instance
+         */
+        RecvLongMsgReq.prototype.info = null;
+
+        /**
+         * RecvLongMsgReq settings.
+         * @member {Action.ILongMsgSettings|null|undefined} settings
+         * @memberof Action.RecvLongMsgReq
+         * @instance
+         */
+        RecvLongMsgReq.prototype.settings = null;
+
+        /**
+         * Encodes the specified RecvLongMsgReq message. Does not implicitly {@link Action.RecvLongMsgReq.verify|verify} messages.
+         * @function encode
+         * @memberof Action.RecvLongMsgReq
+         * @static
+         * @param {Action.IRecvLongMsgReq} message RecvLongMsgReq message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        RecvLongMsgReq.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.info != null && Object.hasOwnProperty.call(message, "info"))
+                $root.Action.RecvLongMsgInfo.encode(message.info, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            if (message.settings != null && Object.hasOwnProperty.call(message, "settings"))
+                $root.Action.LongMsgSettings.encode(message.settings, writer.uint32(/* id 15, wireType 2 =*/122).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a RecvLongMsgReq message from the specified reader or buffer.
+         * @function decode
+         * @memberof Action.RecvLongMsgReq
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Action.RecvLongMsgReq} RecvLongMsgReq
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        RecvLongMsgReq.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Action.RecvLongMsgReq();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.info = $root.Action.RecvLongMsgInfo.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 15: {
+                        message.settings = $root.Action.LongMsgSettings.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for RecvLongMsgReq
+         * @function getTypeUrl
+         * @memberof Action.RecvLongMsgReq
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        RecvLongMsgReq.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Action.RecvLongMsgReq";
+        };
+
+        return RecvLongMsgReq;
+    })();
+
+    Action.RecvLongMsgInfo = (function() {
+
+        /**
+         * Properties of a RecvLongMsgInfo.
+         * @memberof Action
+         * @interface IRecvLongMsgInfo
+         * @property {Action.ILongMsgPeer|null} [peer] RecvLongMsgInfo peer
+         * @property {string|null} [resId] RecvLongMsgInfo resId
+         * @property {boolean|null} [acquire] RecvLongMsgInfo acquire
+         */
+
+        /**
+         * Constructs a new RecvLongMsgInfo.
+         * @memberof Action
+         * @classdesc Represents a RecvLongMsgInfo.
+         * @implements IRecvLongMsgInfo
+         * @constructor
+         * @param {Action.IRecvLongMsgInfo=} [properties] Properties to set
+         */
+        function RecvLongMsgInfo(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * RecvLongMsgInfo peer.
+         * @member {Action.ILongMsgPeer|null|undefined} peer
+         * @memberof Action.RecvLongMsgInfo
+         * @instance
+         */
+        RecvLongMsgInfo.prototype.peer = null;
+
+        /**
+         * RecvLongMsgInfo resId.
+         * @member {string} resId
+         * @memberof Action.RecvLongMsgInfo
+         * @instance
+         */
+        RecvLongMsgInfo.prototype.resId = "";
+
+        /**
+         * RecvLongMsgInfo acquire.
+         * @member {boolean} acquire
+         * @memberof Action.RecvLongMsgInfo
+         * @instance
+         */
+        RecvLongMsgInfo.prototype.acquire = false;
+
+        /**
+         * Encodes the specified RecvLongMsgInfo message. Does not implicitly {@link Action.RecvLongMsgInfo.verify|verify} messages.
+         * @function encode
+         * @memberof Action.RecvLongMsgInfo
+         * @static
+         * @param {Action.IRecvLongMsgInfo} message RecvLongMsgInfo message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        RecvLongMsgInfo.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.peer != null && Object.hasOwnProperty.call(message, "peer"))
+                $root.Action.LongMsgPeer.encode(message.peer, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            if (message.resId != null && Object.hasOwnProperty.call(message, "resId"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.resId);
+            if (message.acquire != null && Object.hasOwnProperty.call(message, "acquire"))
+                writer.uint32(/* id 3, wireType 0 =*/24).bool(message.acquire);
+            return writer;
+        };
+
+        /**
+         * Decodes a RecvLongMsgInfo message from the specified reader or buffer.
+         * @function decode
+         * @memberof Action.RecvLongMsgInfo
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Action.RecvLongMsgInfo} RecvLongMsgInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        RecvLongMsgInfo.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Action.RecvLongMsgInfo();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.peer = $root.Action.LongMsgPeer.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 2: {
+                        message.resId = reader.string();
+                        break;
+                    }
+                case 3: {
+                        message.acquire = reader.bool();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for RecvLongMsgInfo
+         * @function getTypeUrl
+         * @memberof Action.RecvLongMsgInfo
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        RecvLongMsgInfo.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Action.RecvLongMsgInfo";
+        };
+
+        return RecvLongMsgInfo;
+    })();
+
+    Action.RecvLongMsgResp = (function() {
+
+        /**
+         * Properties of a RecvLongMsgResp.
+         * @memberof Action
+         * @interface IRecvLongMsgResp
+         * @property {Action.IRecvLongMsgResult|null} [result] RecvLongMsgResp result
+         * @property {Action.ILongMsgSettings|null} [settings] RecvLongMsgResp settings
+         */
+
+        /**
+         * Constructs a new RecvLongMsgResp.
+         * @memberof Action
+         * @classdesc Represents a RecvLongMsgResp.
+         * @implements IRecvLongMsgResp
+         * @constructor
+         * @param {Action.IRecvLongMsgResp=} [properties] Properties to set
+         */
+        function RecvLongMsgResp(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * RecvLongMsgResp result.
+         * @member {Action.IRecvLongMsgResult|null|undefined} result
+         * @memberof Action.RecvLongMsgResp
+         * @instance
+         */
+        RecvLongMsgResp.prototype.result = null;
+
+        /**
+         * RecvLongMsgResp settings.
+         * @member {Action.ILongMsgSettings|null|undefined} settings
+         * @memberof Action.RecvLongMsgResp
+         * @instance
+         */
+        RecvLongMsgResp.prototype.settings = null;
+
+        /**
+         * Encodes the specified RecvLongMsgResp message. Does not implicitly {@link Action.RecvLongMsgResp.verify|verify} messages.
+         * @function encode
+         * @memberof Action.RecvLongMsgResp
+         * @static
+         * @param {Action.IRecvLongMsgResp} message RecvLongMsgResp message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        RecvLongMsgResp.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.result != null && Object.hasOwnProperty.call(message, "result"))
+                $root.Action.RecvLongMsgResult.encode(message.result, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            if (message.settings != null && Object.hasOwnProperty.call(message, "settings"))
+                $root.Action.LongMsgSettings.encode(message.settings, writer.uint32(/* id 15, wireType 2 =*/122).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a RecvLongMsgResp message from the specified reader or buffer.
+         * @function decode
+         * @memberof Action.RecvLongMsgResp
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Action.RecvLongMsgResp} RecvLongMsgResp
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        RecvLongMsgResp.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Action.RecvLongMsgResp();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.result = $root.Action.RecvLongMsgResult.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 15: {
+                        message.settings = $root.Action.LongMsgSettings.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for RecvLongMsgResp
+         * @function getTypeUrl
+         * @memberof Action.RecvLongMsgResp
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        RecvLongMsgResp.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Action.RecvLongMsgResp";
+        };
+
+        return RecvLongMsgResp;
+    })();
+
+    Action.RecvLongMsgResult = (function() {
+
+        /**
+         * Properties of a RecvLongMsgResult.
+         * @memberof Action
+         * @interface IRecvLongMsgResult
+         * @property {string|null} [resId] RecvLongMsgResult resId
+         * @property {Uint8Array|null} [payload] RecvLongMsgResult payload
+         */
+
+        /**
+         * Constructs a new RecvLongMsgResult.
+         * @memberof Action
+         * @classdesc Represents a RecvLongMsgResult.
+         * @implements IRecvLongMsgResult
+         * @constructor
+         * @param {Action.IRecvLongMsgResult=} [properties] Properties to set
+         */
+        function RecvLongMsgResult(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * RecvLongMsgResult resId.
+         * @member {string} resId
+         * @memberof Action.RecvLongMsgResult
+         * @instance
+         */
+        RecvLongMsgResult.prototype.resId = "";
+
+        /**
+         * RecvLongMsgResult payload.
+         * @member {Uint8Array} payload
+         * @memberof Action.RecvLongMsgResult
+         * @instance
+         */
+        RecvLongMsgResult.prototype.payload = $util.newBuffer([]);
+
+        /**
+         * Encodes the specified RecvLongMsgResult message. Does not implicitly {@link Action.RecvLongMsgResult.verify|verify} messages.
+         * @function encode
+         * @memberof Action.RecvLongMsgResult
+         * @static
+         * @param {Action.IRecvLongMsgResult} message RecvLongMsgResult message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        RecvLongMsgResult.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.resId != null && Object.hasOwnProperty.call(message, "resId"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.resId);
+            if (message.payload != null && Object.hasOwnProperty.call(message, "payload"))
+                writer.uint32(/* id 4, wireType 2 =*/34).bytes(message.payload);
+            return writer;
+        };
+
+        /**
+         * Decodes a RecvLongMsgResult message from the specified reader or buffer.
+         * @function decode
+         * @memberof Action.RecvLongMsgResult
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Action.RecvLongMsgResult} RecvLongMsgResult
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        RecvLongMsgResult.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Action.RecvLongMsgResult();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 3: {
+                        message.resId = reader.string();
+                        break;
+                    }
+                case 4: {
+                        message.payload = reader.bytes();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for RecvLongMsgResult
+         * @function getTypeUrl
+         * @memberof Action.RecvLongMsgResult
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        RecvLongMsgResult.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Action.RecvLongMsgResult";
+        };
+
+        return RecvLongMsgResult;
     })();
 
     return Action;

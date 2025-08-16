@@ -2,7 +2,7 @@ syntax = "proto3";
 package Msg;
 
 message RoutingHead {
-  optional uint64 fromUin = 1;
+  optional uint32 fromUin = 1;
   optional string fromUid = 2;
   optional uint32 fromAppid = 3;
   optional uint32 fromInstid = 4;
@@ -17,7 +17,7 @@ message C2c {
 }
 
 message Group {
-  optional uint64 groupCode = 1;
+  optional uint32 groupCode = 1;
   optional uint32 groupType = 2;
   optional uint64 groupInfoSeq = 3;
   optional string groupCard = 4;
@@ -34,7 +34,7 @@ message ContentHead {
   optional uint32 c2cCmd = 3;
   optional uint64 random = 4;
   optional uint64 msgSeq = 5;
-  optional uint64 msgTime = 6;
+  optional uint32 msgTime = 6;
   optional uint32 pkgNum = 7;
   optional uint32 pkgIndex = 8;
   optional uint32 divSeq = 9;
