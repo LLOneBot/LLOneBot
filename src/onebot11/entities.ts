@@ -29,7 +29,7 @@ import { encodeCQCode } from './cqcode'
 import { OB11GroupIncreaseEvent } from './event/notice/OB11GroupIncreaseEvent'
 import { OB11GroupUploadNoticeEvent } from './event/notice/OB11GroupUploadNoticeEvent'
 import { OB11GroupNoticeEvent } from './event/notice/OB11GroupNoticeEvent'
-import { calcQQLevel } from '../common/utils/misc'
+import { calcQQLevel, filterNullable } from '../common/utils/misc'
 import { OB11GroupTitleEvent } from './event/notice/OB11GroupTitleEvent'
 import { OB11GroupDecreaseEvent } from './event/notice/OB11GroupDecreaseEvent'
 import { OB11FriendAddNoticeEvent } from './event/notice/OB11FriendAddNoticeEvent'
@@ -665,7 +665,7 @@ export namespace OB11Entities {
   }
 
   export function friendsV2(raw: SimpleInfo[]): OB11User[] {
-    return raw.map(friendV2)
+    return filterNullable(raw).map(friendV2)
   }
 
   export function groupMemberRole(role: number): OB11GroupMemberRole {

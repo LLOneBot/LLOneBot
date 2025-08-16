@@ -441,16 +441,9 @@ class OneBot11Adapter extends Service {
       }
       else if (msgType === 528 && subType === 321) {
         // 私聊撤回戳一戳，不再从这里解析，应从 nt/message-deleted 事件中解析
-        const fromUin: string = sysMsg.routingHead?.fromUin.low
-        const toUin: string = sysMsg.routingHead?.toUin.low
       }
       else if (msgType === 732 && subType === 21) {
         // 撤回群戳一戳，不再从这里解析，应从 nt/message-deleted 事件中解析
-        const fromUin: string = sysMsg.routingHead?.fromUin.low
-        const toUin: string = sysMsg.routingHead?.toUin.low  // 这个一直都是bot uin
-
-        // 这是个 tlv 格式数据
-        const content = sysMsg.body?.msgContent
       }
     })
 
