@@ -242,6 +242,8 @@ class Core extends Service {
             for(const _msg of r.msgList) {
               this.ctx.parallel('nt/message-deleted', _msg)
             }
+          }).catch(e=>{
+            this.ctx.logger.error('获取被撤回戳一戳消息失败', e, { peer, msgId })
           })
         }
         else{

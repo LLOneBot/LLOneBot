@@ -1,3 +1,12 @@
+V5.8.0
+更新时间 2025-8-24
+
+* 修复`receiveOfflineMsg`不生效
+* 修复接受撤回的戳一戳消息可能导致崩溃
+* 支持加载类似 LiteLoaderQQNT 的 js 插件，详情见 <https://github.com/linyuchen/PMHQ/blob/main/doc/plugin.md>
+
+=================
+
 V5.7.2
 更新时间 2025-8-23
 
