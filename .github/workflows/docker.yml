@@ -70,7 +70,7 @@ jobs:
             --platform linux/amd64,linux/arm64 \
             -t "$username/llonebot:$version" \
             -t "$username/llonebot:latest" \
-            -f docker/llonebot/Dockerfile \
+            -f docker/Dockerfile \
             --push \
             .
 
