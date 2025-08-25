@@ -24,7 +24,7 @@ RUN apk add unzip wget
 
 WORKDIR /app/llonebot
 
-COPY docker/llonebot/startup.sh /startup.sh
+COPY docker/startup.sh /startup.sh
 
 RUN chmod +x /startup.sh
 
