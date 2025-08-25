@@ -1,0 +1,82 @@
+name: Build and Push LLOneBot Docker Image
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag for the Docker image'
+        required: false
+        type: string
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history and tags
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            # Extract version from release tag (remove 'v' prefix if present)
+            version="${{ github.event.release.tag_name }}"
+            version=${version#v}
+            echo "Version from release: $version"
+          else
+            # Manual trigger - check if version is provided
+            input_version="${{ github.event.inputs.version }}"
+            if [ -n "$input_version" ] && [ "$input_version" != "" ]; then
+              # Use provided version
+              version="$input_version"
+              echo "Version from manual input: $version"
+            else
+              # Get latest tag if no version provided
+              latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+              if [ -n "$latest_tag" ]; then
+                version=${latest_tag#v}
+                echo "Version from latest tag: $version (tag: $latest_tag)"
+              else
+                # Fallback to default if no tags exist
+                version="5.8.0"
+                echo "No tags found, using fallback version: $version"
+              fi
+            fi
+          fi
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Build and push LLOneBot Docker image
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          username="${{ secrets.DOCKER_USERNAME }}"
+          echo "Building LLOneBot with version: $version"
+          docker buildx build \
+            --progress=plain \
+            --build-arg LLONEBOT_VERSION="$version" \
+            --platform linux/amd64,linux/arm64 \
+            -t "$username/llonebot:$version" \
+            -t "$username/llonebot:latest" \
+            -f docker/llonebot/Dockerfile \
+            --push \
+            .
+
+      - name: Output build summary
+        run: |
+          echo "✅ Successfully built and pushed LLOneBot Docker image"
+          echo "📦 Image tags:"
+          echo "  - ${{ secrets.DOCKER_USERNAME }}/llonebot:${{ steps.version.outputs.version }}"
+          echo "  - ${{ secrets.DOCKER_USERNAME }}/llonebot:latest"
