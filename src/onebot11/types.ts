@@ -30,6 +30,7 @@ export interface OB11GroupMember {
   user_id: number
   nickname: string
   card: string
+  card_or_nickname: string
   sex: OB11UserSex
   age: number
   join_time: number
