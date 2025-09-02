@@ -155,7 +155,7 @@ export class PMHQ {
 
     this.ws.onerror = (error) => {
       selfInfo.online = false
-      console.error('PMHQ WebSocket 连接错误', '正在重连...')
+      console.error('PMHQ WebSocket 连接错误，可能 QQ 未登录', '正在等待 QQ 登录进行重连...')
       reconnect()
     }
 
