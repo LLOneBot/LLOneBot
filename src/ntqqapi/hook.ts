@@ -2,8 +2,10 @@ import { randomUUID } from 'node:crypto'
 import { Awaitable } from 'cosmokit'
 import { NTMethod } from './ntcall'
 import { pmhq } from '@/ntqqapi/native/pmhq'
+import { NodeIKernelLoginListener } from '@/ntqqapi/services/NodeIKernelLoginService'
 
 export enum ReceiveCmdS {
+  LOGIN_QR_CODE = 'nodeIKernelLoginListener/onQRCodeGetPicture',
   RECENT_CONTACT = 'nodeIKernelRecentContactListener/onRecentContactListChangedVer2',
   UPDATE_MSG = 'nodeIKernelMsgListener/onMsgInfoListUpdate',
   UPDATE_ACTIVE_MSG = 'nodeIKernelMsgListener/onActiveMsgInfoUpdate',
@@ -69,12 +71,29 @@ export function startHook() {
   })
 }
 
+export interface NTListener{
+  nodeIKernelLoginListener: NodeIKernelLoginListener
+}
 
-export function registerReceiveHook<PayloadType>(
-  method: string | string[],
-  hookFunc: (payload: PayloadType) => Awaitable<void>,
+// 辅助类型：从method字符串推断出对应的payload类型
+export type InferPayloadFromMethod<T extends string> = 
+  T extends `${infer S}/${infer M}`
+    ? S extends keyof NTListener
+      ? M extends keyof NTListener[S]
+        ? NTListener[S][M] extends (...args: any) => unknown
+          ? Parameters<NTListener[S][M]>[0]
+          : never
+        : never
+      : never
+    : never
+
+export function registerReceiveHook<
+  PayloadType = any,
+  Method extends string = string
+>(
+  method: Method | Method[],
+  hookFunc: (payload: InferPayloadFromMethod<Method> extends never ? PayloadType : InferPayloadFromMethod<Method>) => Awaitable<void>,
 ): string {
-
   const id = randomUUID()
   if (!Array.isArray(method)) {
     method = [method]

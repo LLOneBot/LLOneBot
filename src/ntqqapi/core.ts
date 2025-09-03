@@ -30,6 +30,7 @@ import {
 import { logSummaryMessage } from '@/ntqqapi/log'
 import { setFfmpegPath } from 'fluent-ffmpeg'
 import { setFFMpegPath } from '@/common/utils/ffmpeg'
+import { NodeIKernelLoginListener, OnQRCodeLoginSucceedParameter } from '@/ntqqapi/services/NodeIKernelLoginService'
 
 declare module 'cordis' {
   interface Context {
@@ -37,6 +38,7 @@ declare module 'cordis' {
   }
 
   interface Events {
+    'nt/login-qrcode': (input: OnQRCodeLoginSucceedParameter) => void
     'nt/message-created': (input: RawMessage) => void
     'nt/message-deleted': (input: RawMessage) => void
     'nt/message-sent': (input: RawMessage) => void
@@ -175,6 +177,9 @@ class Core extends Service {
   }
 
   private registerListener() {
+    registerReceiveHook(ReceiveCmdS.LOGIN_QR_CODE, (data)=>{
+      this.ctx.parallel('nt/login-qrcode', data)
+    })
     registerReceiveHook<{ status: number }>(ReceiveCmdS.SELF_STATUS, (info) => {
       Object.assign(selfInfo, { online: info.status !== 20 })
     })

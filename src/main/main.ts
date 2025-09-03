@@ -23,6 +23,7 @@ import {
   NTQQFileCacheApi,
   NTQQFriendApi,
   NTQQGroupApi,
+  NTLoginApi,
   NTQQMsgApi,
   NTQQUserApi,
   NTQQWebApi,
@@ -65,6 +66,7 @@ async function onLoad() {
   ctx.plugin(NTQQFileCacheApi)
   ctx.plugin(NTQQFriendApi)
   ctx.plugin(NTQQGroupApi)
+  ctx.plugin(NTLoginApi)
   ctx.plugin(NTQQMsgApi)
   ctx.plugin(NTQQUserApi)
   ctx.plugin(NTQQWebApi)
@@ -74,18 +76,18 @@ async function onLoad() {
   let started = false
 
   ctx.logger.info(`LLOneBot ${version}`)
-  const pmhqSelfInfo = await pmhq.call('getSelfInfo', [])
-  const self = Object.assign(selfInfo, {
-    uin: pmhqSelfInfo.uin,
-    uid: pmhqSelfInfo.uid,
-    nick: pmhqSelfInfo.nickName,
-    online: true,
-  })
-  if (!self.nick) {
-    ctx.ntUserApi.getSelfNick().then(nick => {
-      self.nick = nick
-    }).catch(e => ctx.logger.error('获取bot昵称失败', e))
-  }
+  // const pmhqSelfInfo = await pmhq.call('getSelfInfo', [])
+  // const self = Object.assign(selfInfo, {
+  //   uin: pmhqSelfInfo.uin,
+  //   uid: pmhqSelfInfo.uid,
+  //   nick: pmhqSelfInfo.nickName,
+  //   online: true,
+  // })
+  // if (!self.nick) {
+  //   ctx.ntUserApi.getSelfNick().then(nick => {
+  //     self.nick = nick
+  //   }).catch(e => ctx.logger.error('获取bot昵称失败', e))
+  // }
   // log('process pid', process.pid)
   const configUtil = getConfigUtil()
   const config = configUtil.getConfig()
@@ -128,4 +130,8 @@ async function onLoad() {
 }
 
 
-onLoad().then().catch(e=>console.log(e))
+try {
+  onLoad().then().catch(e => console.log(e))
+}catch (e) {
+  console.error(e)
+}

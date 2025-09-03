@@ -166,7 +166,7 @@ export class PMHQ {
     }
 
     this.ws.onopen = () => {
-      selfInfo.online = true
+      // selfInfo.online = true
       console.info('PMHQ WebSocket 连接成功')
     }
   }

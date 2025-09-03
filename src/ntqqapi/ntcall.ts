@@ -1,4 +1,5 @@
 import { ReceiveCmdS, registerReceiveHook, removeReceiveHook } from './hook'
+import type { NTListener, InferPayloadFromMethod } from './hook'
 import {
   NodeIKernelBuddyService,
   NodeIKernelProfileService,
@@ -16,6 +17,7 @@ import {
 } from './services'
 import { pmhq } from '@/ntqqapi/native/pmhq'
 import { NodeIKernelFlashTransferService } from '@/ntqqapi/services/NodeIKernelFlashTransferService'
+import { NodeIKernelLoginService, NodeIKernelLoginListener } from '@/ntqqapi/services/NodeIKernelLoginService'
 
 export enum NTMethod {
   ACTIVE_CHAT_PREVIEW = 'nodeIKernelMsgService/getAioFirstViewLatestMsgsAndAddActiveChat', // 激活聊天窗口，有时候必须这样才能收到消息, 并返回最新预览消息
@@ -52,6 +54,7 @@ export enum NTMethod {
 
 
 interface NTService {
+  nodeIKernelLoginService: NodeIKernelLoginService
   nodeIKernelBuddyService: NodeIKernelBuddyService
   nodeIKernelProfileService: NodeIKernelProfileService
   nodeIKernelGroupService: NodeIKernelGroupService
@@ -91,8 +94,33 @@ const NT_SERVICE_TO_PMHQ: Record<string, string> = {
   'nodeIKernelFlashTransferService': 'getFlashTransferService',
 }
 
+// 函数重载：当提供resultCmd时，自动从resultCmd推断返回类型
+export function invoke<
+  ResultCmd extends string,
+  S extends keyof NTService = any,
+  M extends keyof NTService[S] & string = any,
+  P extends Parameters<Extract<NTService[S][M], (...args: any) => unknown>> = any
+>(
+  method: Extract<unknown, `${S}/${M}`> | string, 
+  args: P, 
+  options: InvokeOptions<any> & { resultCmd: ResultCmd }
+): Promise<InferPayloadFromMethod<ResultCmd> extends never ? any : InferPayloadFromMethod<ResultCmd>>
+
+// 函数重载：当不提供resultCmd时，使用原来的类型推断
 export function invoke<
   R extends Awaited<ReturnType<Extract<NTService[S][M], (...args: any) => unknown>>>,
+  S extends keyof NTService = any,
+  M extends keyof NTService[S] & string = any,
+  P extends Parameters<Extract<NTService[S][M], (...args: any) => unknown>> = any
+>(
+  method: Extract<unknown, `${S}/${M}`> | string, 
+  args: P, 
+  options?: InvokeOptions<R>
+): Promise<R>
+
+// 实际实现
+export function invoke<
+  R = any,
   S extends keyof NTService = any,
   M extends keyof NTService[S] & string = any,
   P extends Parameters<Extract<NTService[S][M], (...args: any) => unknown>> = any
