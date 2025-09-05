@@ -6,8 +6,9 @@ import { Config, WebUIConfig } from '@/common/types'
 import { Server } from 'http'
 import { Context, Service } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
-import { getAvailablePort, recordPort } from '@/common/utils/port'
+import { getAvailablePort } from '@/common/utils/port'
 import { OnQRCodeLoginSucceedParameter } from '@/ntqqapi/services/NodeIKernelLoginService'
+import { pmhq } from '@/ntqqapi/native/pmhq'
 
 const app = express()
 const __filename = fileURLToPath(import.meta.url)
@@ -163,10 +164,7 @@ export class WebUIServer extends Service {
 
     let port = this.config.port ?? 3080
     port = await getAvailablePort(port)
-    recordPort(
-      selfInfo.uin,
-      { webUIPort: port },
-    ).catch((err: Error) => {
+    pmhq.tellPort(port).catch((err: Error) => {
       this.ctx.logger.error('记录WebUI端口失败:', err)
     })
     const host = this.config.onlyLocalhost ? '127.0.0.1' : ''

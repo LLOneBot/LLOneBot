@@ -56,16 +56,16 @@ interface PMHQReqCall {
   }
 }
 
-interface PMHQReqSavePort {
-  type: 'save_port',
+interface PMHQReqTellPort {
+  type: 'tell_port',
   data: {
     echo?: string
     webui_port: number
   }
 }
 
-interface PMHQResSavePort {
-  type: 'save_port',
+interface PMHQResTellPort {
+  type: 'tell_port',
   data: {
     echo?: string
     success: boolean
@@ -73,9 +73,9 @@ interface PMHQResSavePort {
 }
 
 
-export type PMHQRes = PMHQResSendPB | PMHQResRecvPB | PMHQResOn | PMHQResCall | PMHQResSavePort
+export type PMHQRes = PMHQResSendPB | PMHQResRecvPB | PMHQResOn | PMHQResCall | PMHQResTellPort
 
-export type PMHQReq = PMHQReqSendPB | PMHQReqCall | PMHQReqSavePort
+export type PMHQReq = PMHQReqSendPB | PMHQReqCall | PMHQReqTellPort
 
 interface ResListener<R extends PMHQRes> {
   (data: R): void
@@ -213,6 +213,17 @@ export class PMHQ {
       }
       check()
     })
+  }
+
+  public async tellPort(webuiPort: number){
+    const payload: PMHQReqTellPort = {
+      type: 'tell_port',
+      data: {
+        webui_port: webuiPort,
+      },
+    }
+    const result = ((await this.wsSend(payload, 5000)) as PMHQResTellPort).data?.success
+    return result
   }
 
   public async wsSend<R extends PMHQRes>(data: PMHQReq, timeout = 10000): Promise<R> {
