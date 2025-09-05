@@ -1,7 +1,7 @@
 <template>
   <!-- Show QQLogin if QQ not online -->
-  <QQLogin v-if="!isQQOnline" @login="handleLogin" />
-  
+  <QQLogin v-if="showLogin" @login="handleLogin" />
+
   <!-- Main app content when QQ is online -->
   <el-container v-else class="main-container">
     <el-header class="header">
@@ -34,7 +34,7 @@
       </el-row>
     </el-main>
   </el-container>
-  
+
   <!-- Token Dialog - always rendered -->
   <TokenDialog
     v-model:visible="showTokenDialog"
@@ -58,12 +58,13 @@ import { Config } from '@common/types'
 import { version } from '../../version'
 import About from '@/components/About.vue'
 import QQLogin from './components/QQLogin.vue'
-import { apiFetch, setPasswordPromptHandler } from './utils/api'
+import { apiFetch, setPasswordPromptHandler, setTokenStorage } from './utils/api'
 import './App.css'
 
 // QQ login status
 const currentUser = ref(null)
 const isQQOnline = ref(false)
+const showLogin = ref(false)
 
 // Token logic
 const tokenKey = 'webui_token'
@@ -116,27 +117,6 @@ const accountUin = ref('')
 
 const ob11ConfigFormRef = ref()
 
-async function setToken(newToken: string) {
-  // 先请求后端
-  try {
-    const resp = await fetch('/api/set-token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: newToken }),
-    })
-    const data = await resp.json()
-    if (!data.success) {
-      throw new Error(data.message || '设置密码失败')
-    }
-    token.value = newToken
-    localStorage.setItem(tokenKey, newToken)
-    ElMessage.success('密码设置成功')
-  } catch (e: any) {
-    ElMessage.error(e.message || '设置密码失败')
-    throw e
-  }
-}
-
 // 弹出密码输入框，直到用户输入非空密码并点击确定/回车才resolve
 async function promptPassword(tip: string): Promise<string> {
   return new Promise<string>((resolve) => {
@@ -176,10 +156,12 @@ async function checkQQLoginStatus() {
     const resp = await apiFetch('/api/login-info')
     const data = await resp.json()
     if (data.success && data.data) {
-      isQQOnline.value = data.data.online || false
-      if (data.data.online) {
-        accountNick.value = data.data.nick || ''
-        accountUin.value = data.data.uin || ''
+      const selfInfo = data.data.selfInfo
+      isQQOnline.value = selfInfo.online || false
+      if (selfInfo.online) {
+        accountNick.value = selfInfo.nick || ''
+        accountUin.value = selfInfo.uin || ''
+
       }
       return isQQOnline.value
     } else {
@@ -266,21 +248,36 @@ function handleLogin(loginData: any) {
   }
   isQQOnline.value = true
   ElMessage.success(`${loginData.account?.nickname || loginData.account?.nick || 'QQ'} 登录成功`)
-  
+
   // Load config after successful QQ login
   fetchConfig()
 }
 
 // 页面加载时检查QQ登录状态
 onMounted(async () => {
+  // 判断url中是否有token参数，有则设置
+  const urlParams = new URLSearchParams(window.location.search)
+  const urlToken = urlParams.get('token')
+  console.log('URL token:', urlToken)
+  if (urlToken) {
+    setTokenStorage(urlToken)
+    // 刷新页面去掉url中的token参数
+    const newUrl = window.location.origin + window.location.pathname
+    window.history.replaceState({}, document.title, newUrl)
+  }
   // 等待下一个tick，确保组件完全渲染，密码处理器已设置
   await nextTick()
-  
+
   // 现在检查QQ登录状态，如果没有token会自动弹出密码输入框
   const qqOnline = await checkQQLoginStatus()
   if (qqOnline) {
+    showLogin.value = false
     // QQ已登录，加载配置
     await fetchConfig()
+  }
+  else{
+    // QQ未登录，显示登录组件
+    showLogin.value = true
   }
   // 如果QQ未登录，会显示QQLogin组件
 })

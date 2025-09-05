@@ -91,7 +91,7 @@ export class WebUIServer extends Service {
 
     // 获取账号信息接口
     this.app.get('/api/login-info', (req, res) => {
-      res.json({ success: true, data: selfInfo })
+      res.json({ success: true, data: {selfInfo, webuiPort: this.config.port} })
     })
 
     // 获取登录二维码
@@ -186,7 +186,7 @@ export class WebUIServer extends Service {
   }
 
   restart() {
-    this.stop()
+    setTimeout(()=>this.stop(), 5000)
     this.start()
   }
 }

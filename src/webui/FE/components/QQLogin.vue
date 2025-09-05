@@ -112,7 +112,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { ArrowDown, Refresh, Close } from '@element-plus/icons-vue'
-import { apiGet, apiPost } from '../utils/api'
+import { apiGet, apiPost, getToken } from '../utils/api'
 
 // Define emits
 const emit = defineEmits<{
@@ -354,8 +354,17 @@ async function pollLoginStatus(): Promise<void> {
     try {
       const result = await apiGet('/api/login-info')
 
-      if (result.success && result.data && result.data.online === true) {
+      if (result.success && result.data && result.data.selfInfo.online === true) {
         stopLoginPolling()
+        // 判断当前url的端口是否和返回的一致，不一致则附带token跳转
+        const currentPort = window.location.port
+        const webuiPort = result.data.webuiPort
+        if (webuiPort && currentPort !== String(webuiPort)) {
+          const url = `${window.location.protocol}//${window.location.hostname}:${webuiPort}${window.location.pathname}?token=${getToken()}`
+          console.log(`当前端口(${currentPort})和WebUI端口(${webuiPort})不一致，跳转并附带token, url: ${url}`)
+          window.location.href = url
+          return false // 页面会跳转，不继续执行
+        }
         ElMessage.success('登录成功！正在跳转到主页面...')
         if (loginMode.value === 'qr') {
           qrStatus.value = 'success'
