@@ -1,114 +1,118 @@
 <template>
-  <div class="qq-login-container">
+  <div class='qq-login-container'>
     <!-- QQ Logo -->
-    <div class="login-content">
+    <div class='login-content'>
       <!-- Quick Login Mode -->
-      <div v-if="loginMode === 'quick'" class="quick-login">
+      <div v-if="loginMode === 'quick'" class='quick-login'>
         <!-- Single Account Display -->
-        <div v-if="!showAccountList && selectedAccount" class="account-display" @click="toggleAccountList">
-          <div class="account-avatar">
-            <img :src="selectedAccount.faceUrl" :alt="selectedAccount.nickName" />
+        <div v-if='!showAccountList && selectedAccount' class='account-display' @click='toggleAccountList'>
+          <div class='account-avatar'>
+            <img :src='selectedAccount.faceUrl' :alt='selectedAccount.nickName' />
           </div>
-          <div class="account-name">{{ selectedAccount.nickName }}</div>
-          <el-icon v-if="accounts.length > 1" class="dropdown-icon" :class="{ rotated: showAccountList }">
+          <div class='account-name'>{{ selectedAccount.nickName }}</div>
+          <el-icon v-if='accounts.length > 1' class='dropdown-icon' :class='{ rotated: showAccountList }'>
             <ArrowDown />
           </el-icon>
         </div>
 
         <!-- Account List -->
-        <div v-else class="account-list">
+        <div v-else class='account-list'>
           <div
-            v-for="account in accounts"
-            :key="account.uin"
-            class="account-item"
-            @click="selectAccount(account)"
+            v-for='account in accounts'
+            :key='account.uin'
+            class='account-item'
+            @click='selectAccount(account)'
           >
-            <div class="account-avatar">
-              <img :src="account.faceUrl" :alt="account.nickName" />
+            <div class='account-avatar'>
+              <img :src='account.faceUrl' :alt='account.nickName' />
             </div>
-            <div class="account-name">{{ account.nickName }}</div>
+            <div class='account-name'>{{ account.nickName }}</div>
           </div>
         </div>
 
         <!-- Login Button -->
         <el-button
-          v-if="!showAccountList"
-          type="primary"
-          size="large"
-          class="login-button"
-          :loading="loginLoading"
-          :disabled="!selectedAccount"
-          @click="handleQuickLogin"
+          v-if='!showAccountList'
+          type='primary'
+          size='large'
+          class='login-button'
+          :loading='loginLoading'
+          :disabled='!selectedAccount'
+          @click='handleQuickLogin'
         >
           登录
         </el-button>
 
         <!-- Action Links -->
-        <div class="action-links">
+        <div class='action-links'>
           <el-link @click="loginMode = 'qr'">扫码登录</el-link>
-          <el-link @click="showRemoveAccount = true">移除账号</el-link>
+          <el-link @click='showRemoveAccount = true'>移除账号</el-link>
         </div>
       </div>
 
       <!-- QR Code Login Mode -->
-      <div v-else class="qr-login">
-        <div class="qr-code-container">
-          <div class="qr-code">
+      <div v-else class='qr-login'>
+        <div class='qr-code-container'>
+          <div class='qr-code'>
             <!-- QR Code placeholder - replace with actual QR code -->
-            <canvas ref="qrCanvas" width="200" height="200"></canvas>
+            <canvas ref='qrCanvas' width='200' height='200'></canvas>
             <!-- QR Code refresh overlay if expired -->
-            <div v-if="qrExpired" class="qr-refresh-overlay" @click="refreshQrCode">
-              <el-icon><Refresh /></el-icon>
+            <div v-if='qrExpired' class='qr-refresh-overlay' @click='refreshQrCode'>
+              <el-icon>
+                <Refresh />
+              </el-icon>
               <div>点击刷新</div>
             </div>
           </div>
           <!-- QQ Penguin Logo in center -->
-<!--          <div class="qr-center-logo">-->
-<!--            <div class="penguin-icon">🐧</div>-->
-<!--          </div>-->
+          <!--          <div class="qr-center-logo">-->
+          <!--            <div class="penguin-icon">🐧</div>-->
+          <!--          </div>-->
         </div>
-        <div class="qr-tip">请使用手机QQ扫码登录</div>
+        <div class='qr-tip'>请使用手机QQ扫码登录</div>
 
         <!-- QR Status Messages -->
-        <div v-if="qrStatus" class="qr-status" :class="qrStatusClass">
+        <div v-if='qrStatus' class='qr-status' :class='qrStatusClass'>
           {{ qrStatusText }}
         </div>
       </div>
 
       <!-- Mode Switch Links -->
-      <div class="mode-switch">
+      <div class='mode-switch'>
         <el-link
           v-if="loginMode === 'qr'"
           @click="loginMode = 'quick'"
-          class="switch-link"
+          class='switch-link'
         >
           快速登录
         </el-link>
       </div>
     </div>
     <!-- Remove Account Dialog -->
-    <el-dialog v-model="showRemoveAccount" title="移除账号" width="400px">
+    <el-dialog v-model='showRemoveAccount' title='移除账号' width='400px'>
       <div>选择要移除的账号:</div>
-      <div class="remove-account-list">
+      <div class='remove-account-list'>
         <div
-          v-for="account in accounts"
-          :key="account.uin"
-          class="remove-account-item"
-          @click="removeAccount(account.uin)"
+          v-for='account in accounts'
+          :key='account.uin'
+          class='remove-account-item'
+          @click='removeAccount(account.uin)'
         >
-          <img :src="account.faceUrl" :alt="account.nickName" class="small-avatar" />
+          <img :src='account.faceUrl' :alt='account.nickName' class='small-avatar' />
           <span>{{ account.nickName }}</span>
-          <el-icon class="remove-icon"><Close /></el-icon>
+          <el-icon class='remove-icon'>
+            <Close />
+          </el-icon>
         </div>
       </div>
       <template #footer>
-        <el-button @click="showRemoveAccount = false">取消</el-button>
+        <el-button @click='showRemoveAccount = false'>取消</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang='ts'>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { ArrowDown, Refresh, Close } from '@element-plus/icons-vue'
@@ -138,6 +142,7 @@ interface QRCodeData {
 
 interface LoginInfo {
   online: boolean
+
   [key: string]: any
 }
 
@@ -198,7 +203,8 @@ async function handleQuickLogin() {
       ElMessage.info(`正在登录 ${selectedAccount.value.nickName}...`)
       // 开始轮询登录状态
       await pollLoginStatus()
-    } else {
+    }
+    else {
       throw new Error(result.message || '登录失败')
     }
   } catch (error: any) {
@@ -216,7 +222,8 @@ function removeAccount(uin: string) {
     const removedAccount = accounts.value.splice(index, 1)[0]
     if (selectedAccount.value?.uin === uin && accounts.value.length > 0) {
       selectedAccount.value = accounts.value[0]
-    } else if (selectedAccount.value?.uin === uin) {
+    }
+    else if (selectedAccount.value?.uin === uin) {
       selectedAccount.value = null
     }
     ElMessage.success(`已移除账号 ${removedAccount.nickName}`)
@@ -251,7 +258,8 @@ async function generateQrCode() {
       // 二维码生成成功后，开始轮询登录状态
       ElMessage.info('请使用手机QQ扫码登录')
       await pollLoginStatus()
-    } else {
+    }
+    else {
       throw new Error(result.message || '获取二维码失败')
     }
   } catch (error: any) {
@@ -310,13 +318,17 @@ async function fetchQuickLoginList() {
     console.log('Quick login list response:', result)
 
     if (result.success && result.data && result.data.LocalLoginInfoList) {
-      accounts.value = result.data.LocalLoginInfoList.filter(item=>item.isQuickLogin)
+      accounts.value = result.data.LocalLoginInfoList.filter(item => item.isQuickLogin)
       console.log('Accounts loaded:', accounts.value)
 
       if (accounts.value.length > 0 && !selectedAccount.value) {
         selectedAccount.value = accounts.value[0]
       }
-    } else {
+      else{
+        loginMode.value = 'qr'
+      }
+    }
+    else {
       console.warn('No quick login accounts available:', result.message)
       accounts.value = []
     }
@@ -429,7 +441,8 @@ onUnmounted(() => {
 watch(loginMode, async (newMode) => {
   if (newMode === 'qr') {
     setTimeout(() => generateQrCode(), 100) // Delay to ensure canvas is ready
-  } else if (qrRefreshInterval) {
+  }
+  else if (qrRefreshInterval) {
     clearInterval(qrRefreshInterval)
   }
 
