@@ -48,6 +48,9 @@ export interface OB11GroupMember {
   is_robot?: boolean
   qage?: number
   group_name?: string // 群名称
+  birthday_year?: number // 生日年份
+  birthday_month?: number // 生日月份
+  birthday_day?: number // 生日日期
 }
 
 export interface OB11Group {

@@ -50,6 +50,9 @@ class GetGroupMemberInfo extends BaseAction<Payload, OB11GroupMember> {
         ret.sex = OB11Entities.sex(info.simpleInfo.baseInfo.sex)
         ret.qq_level = info.commonExt?.qqLevel && calcQQLevel(info.commonExt.qqLevel) || 0
         ret.age = info.simpleInfo.baseInfo.age ?? 0
+        ret.birthday_year = info.simpleInfo.baseInfo.birthday_year
+        ret.birthday_month = info.simpleInfo.baseInfo.birthday_month
+        ret.birthday_day = info.simpleInfo.baseInfo.birthday_day
       }
       return ret
     }
