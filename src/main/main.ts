@@ -31,7 +31,7 @@ import {
 } from '../ntqqapi/api'
 import { existsSync, mkdirSync } from 'node:fs'
 import { version } from '../version'
-import { WebUIServer } from '../webui/BE/server'
+import { WebUIConfigServer, WebUIEntryServer } from '../webui/BE/server'
 import { setFFMpegPath } from '@/common/utils/ffmpeg'
 import { pmhq } from '@/ntqqapi/native/pmhq'
 
@@ -82,6 +82,8 @@ async function onLoad() {
     selfInfo.online = true
     ctx.ntUserApi.getUserSimpleInfo(selfInfo.uid).then(userInfo => {
       selfInfo.nick = userInfo.coreInfo.nick
+    }).catch(e=>{
+      ctx.logger.warn('获取登录号昵称失败', e)
     })
     config = getConfigUtil().getConfig()
     getConfigUtil().listenChange(c=>{
@@ -122,7 +124,8 @@ async function onLoad() {
     ffmpeg: config.ffmpeg,
     onlyLocalhost: config.onlyLocalhost,
   })
-  ctx.plugin(WebUIServer, {...config.webui, onlyLocalhost: config.onlyLocalhost})
+  ctx.plugin(WebUIConfigServer, {...config.webui, onlyLocalhost: config.onlyLocalhost})
+  ctx.plugin(WebUIEntryServer)
 
   ctx.start()
   started = true
