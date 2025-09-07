@@ -106,6 +106,7 @@ class OB11Http {
         this.server.close((err) => {
           if (err) {
             this.ctx.logger.error(`OneBot V11 HTTP Server closing ${err}`)
+            this.server = undefined
             return resolve(false)
           }
           this.ctx.logger.info('OneBot V11 HTTP Server closed')
