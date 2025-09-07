@@ -215,7 +215,6 @@ async function handleQuickLogin() {
   }
 }
 
-
 function removeAccount(uin: string) {
   const index = accounts.value.findIndex(acc => acc.uin === uin)
   if (index > -1) {
@@ -324,7 +323,7 @@ async function fetchQuickLoginList() {
       if (accounts.value.length > 0 && !selectedAccount.value) {
         selectedAccount.value = accounts.value[0]
       }
-      else{
+      else {
         loginMode.value = 'qr'
       }
     }
@@ -365,15 +364,15 @@ async function pollLoginStatus(): Promise<void> {
 
     try {
       const result = await apiGet('/api/login-info')
-
-      if (result.success && result.data && result.data.selfInfo.online === true) {
+      const data = result.data
+      if (result.success && data.online === true) {
+        const { jumpPort } = data
         stopLoginPolling()
         // 判断当前url的端口是否和返回的一致，不一致则附带token跳转
         const currentPort = window.location.port
-        const webuiPort = result.data.webuiPort
-        if (webuiPort && currentPort !== String(webuiPort)) {
-          const url = `${window.location.protocol}//${window.location.hostname}:${webuiPort}${window.location.pathname}?token=${getToken()}`
-          console.log(`当前端口(${currentPort})和WebUI端口(${webuiPort})不一致，跳转并附带token, url: ${url}`)
+        if (jumpPort && currentPort !== String(jumpPort)) {
+          const url = `${window.location.protocol}//${window.location.hostname}:${jumpPort}${window.location.pathname}?token=${getToken()}`
+          console.log(`当前端口(${currentPort})和WebUI端口(${jumpPort})不一致，跳转 url: ${url}`)
           window.location.href = url
           return false // 页面会跳转，不继续执行
         }

@@ -1,7 +1,8 @@
 import express, { Application, Express, NextFunction, Request, Response } from 'express'
+import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { getConfigUtil } from '@/common/config'
+import { getConfigUtil, WebUIEntryConfig, webuiEntryConfigUtil } from '@/common/config'
 import { Config, WebUIConfig } from '@/common/types'
 import { Server } from 'http'
 import { Context, Service } from 'cordis'
@@ -10,7 +11,6 @@ import { getAvailablePort } from '@/common/utils/port'
 import { OnQRCodeLoginSucceedParameter } from '@/ntqqapi/services/NodeIKernelLoginService'
 import { pmhq } from '@/ntqqapi/native/pmhq'
 
-const app = express()
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -20,24 +20,28 @@ if (!import.meta.env) {
   feDistPath = path.join(__dirname, '../../../dist/webui/')
 }
 
+declare module 'cordis' {
+  interface Context {
+    webuiConfigServer: WebUIConfigServer
+    webUIEntryServer: WebUIEntryServer
+  }
+}
+
 export interface WebUIServerConfig extends WebUIConfig {
   onlyLocalhost: boolean
 }
 
-export class WebUIServer extends Service {
-  static inject = ['ntLoginApi']
-  private server: Server | null = null
-  private app: Express = express()
+abstract class WebUIServerBase extends Service {
+  protected server: Server | null = null
+  protected app: Express = express()
+  abstract appName: string
 
-  constructor(ctx: Context, public config: WebUIServerConfig) {
-    super(ctx)
+  protected initServer() {
     this.app.use(express.static(feDistPath))
     this.app.use(express.json())
-
-    // token 校验中间件
+    this.app.use(cors())
     this.app.use('/api', (req: Request, res: Response, next: NextFunction) => {
-      const config = getConfigUtil().getConfig()
-      const token = config.webui?.token
+      const token = webuiEntryConfigUtil.getConfig().token
       if (!token) {
         if (req.path === '/set-token') return next()
         res.status(401).json({ success: false, message: '请先设置WebUI密码' })
@@ -50,15 +54,32 @@ export class WebUIServer extends Service {
       }
       next()
     })
+    // 设置token接口
+    this.app.post('/api/set-token', (req: Request, res: Response) => {
+      const { token } = req.body
+      if (!token) {
+        res.status(400).json({ success: false, message: 'Token不能为空' })
+        return
+      }
+      const config = webuiEntryConfigUtil.getConfig()
+      config.token = token
+      webuiEntryConfigUtil.writeConfig(config)
+      res.json({ success: true, message: 'Token设置成功' })
+    })
 
-    // 获取配置接口
     this.app.get('/api/config/', (req, res) => {
       try {
         const config = getConfigUtil().getConfig()
-        const { nick, uin } = selfInfo
-        res.json({ success: true, data: { config, selfInfo: { nick, uin } } })
+        res.json({
+          success: true,
+          data: {
+            config,
+            selfInfo,
+            loginWebUIPort: webuiEntryConfigUtil.getConfig().port,
+          },
+        })
       } catch (e) {
-        res.status(500).json({ success: false, message: '获取配置失败', error: String(e) })
+        res.status(500).json({ success: false, message: '获取配置失败', error: e })
       }
     })
 
@@ -72,28 +93,9 @@ export class WebUIServer extends Service {
         getConfigUtil().setConfig(newConfig)
         res.json({ success: true, message: '配置保存成功' })
       } catch (e) {
-        res.status(500).json({ success: false, message: '保存配置失败', error: String(e) })
+        res.status(500).json({ success: false, message: '保存配置失败', error: e })
       }
     })
-
-    // 设置token接口
-    this.app.post('/api/set-token', (req: Request, res: Response) => {
-      const { token } = req.body
-      if (!token) {
-        res.status(400).json({ success: false, message: 'Token不能为空' })
-        return
-      }
-      const config = getConfigUtil().getConfig()
-      config.webui.token = token
-      getConfigUtil().setConfig(config)
-      res.json({ success: true, message: 'Token设置成功' })
-    })
-
-    // 获取账号信息接口
-    this.app.get('/api/login-info', (req, res) => {
-      res.json({ success: true, data: {selfInfo, webuiPort: this.config.port} })
-    })
-
     // 获取登录二维码
     this.app.get('/api/login-qrcode', async (req, res) => {
       this.ctx.ntLoginApi.getLoginQrCode().then(data => {
@@ -102,11 +104,10 @@ export class WebUIServer extends Service {
             data,
           })
         },
-      ).catch(e=>{
-        res.status(500).json({ success: false, message: '获取登录二维码失败', error: String(e) })
+      ).catch(e => {
+        res.status(500).json({ success: false, message: '获取登录二维码失败', error: e })
       })
     })
-
     // 获取快速登录账号列表
     this.app.get('/api/quick-login-list', async (req, res) => {
       this.ctx.ntLoginApi.getQuickLoginList().then(data => {
@@ -115,11 +116,10 @@ export class WebUIServer extends Service {
             data,
           })
         },
-      ).catch(e=>{
-        res.status(500).json({ success: false, message: '获取快速登录账号列表失败', error: String(e) })
+      ).catch(e => {
+        res.status(500).json({ success: false, message: '获取快速登录账号列表失败', error: e })
       })
     })
-
     // 快速登录
     this.app.post('/api/quick-login', async (req, res) => {
       const { uin } = req.body
@@ -130,18 +130,62 @@ export class WebUIServer extends Service {
       this.ctx.ntLoginApi.quickLoginWithUin(uin).then((data) => {
           res.json({
             success: true,
-            data
+            data,
           })
         },
-      ).catch(e=>{
-        res.status(500).json({ success: false, message: '快速登录失败', error: String(e) })
+      ).catch(e => {
+        res.status(500).json({ success: false, message: '快速登录失败', error: e })
       })
     })
-
+    // 获取账号信息接口
+    this.app.get('/api/login-info', (req, res) => {
+      res.json({ success: true, data: {...selfInfo, jumpPort: this.getJumpPort()} })
+    })
     this.app.get('/', (req, res) => {
       res.sendFile(path.join(feDistPath, 'index.html'))
     })
+  }
 
+  abstract getHostPort(): { host: string, port: number }
+
+  abstract getJumpPort(): number | undefined
+
+  async startServer() {
+    const { host, port } = this.getHostPort()
+    const availablePort = await getAvailablePort(port)
+    this.server = this.app.listen(availablePort, host, () => {
+      this.ctx.logger.info(`${this.appName} 端口: ${port}`)
+    })
+    this.server.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        this.ctx.logger.error(`${this.appName} 端口 ${port} 被占用，启动失败！`)
+      }
+      else {
+        this.ctx.logger.error(`${this.appName} 启动失败:`, err)
+      }
+    })
+    return availablePort
+  }
+
+  stop() {
+    this.server?.close()
+  }
+
+  restart() {
+    this.stop()
+    this.start()
+  }
+}
+
+export class WebUIConfigServer extends WebUIServerBase {
+  appName = '配置页 Webui'
+  public port?: number = undefined
+  static inject = ['ntLoginApi']
+
+  constructor(ctx: Context, public config: WebUIServerConfig) {
+    super(ctx, 'webuiConfigServer', true)
+    // 获取配置接口
+    this.initServer()
     // 监听 config 更新事件
     ctx.on('llob/config-updated', (newConfig: Config) => {
       const oldConfig = { ...this.config }
@@ -155,39 +199,45 @@ export class WebUIServer extends Service {
       }
     })
   }
+  getJumpPort(): number | undefined {
+    return undefined
+  }
 
-  // Override the base Service.start() signature to match expected arguments
+  getHostPort(): { host: string; port: number } {
+    const host = this.config.onlyLocalhost ? '127.0.0.1' : ''
+    return { host, port: this.config.port }
+  }
+
   async start() {
     if (!this.config?.enable) {
       return
     }
+    this.port = await this.startServer()
+  }
+}
 
-    let port = this.config.port ?? 3080
-    port = await getAvailablePort(port)
+export class WebUIEntryServer extends WebUIServerBase {
+  static inject = ['ntLoginApi', 'webuiConfigServer']
+  appName = '登录页 WebUI'
+
+  constructor(ctx: Context, private ntLoginApi: any) {
+    super(ctx, 'webUIEntryServer', true)
+    this.initServer()
+  }
+  getJumpPort(): number | undefined {
+    return this.ctx.webuiConfigServer.port
+  }
+
+  async start() {
+    const port = await super.startServer()
     pmhq.tellPort(port).catch((err: Error) => {
       this.ctx.logger.error('记录WebUI端口失败:', err)
     })
-    const host = this.config.onlyLocalhost ? '127.0.0.1' : ''
-    this.server = this.app.listen(port, host, () => {
-      this.ctx.logger.info(`WebUI 端口: ${port}`)
-    })
-    this.server.on('error', (err: any) => {
-      if (err.code === 'EADDRINUSE') {
-        this.ctx.logger.error(`WebUI 端口 ${port} 被占用，启动失败！`)
-      }
-      else {
-        this.ctx.logger.error('WebUI 启动失败:', err)
-      }
-    })
   }
 
-  stop() {
-    this.server?.close()
-  }
-
-  restart() {
-    setTimeout(()=>this.stop(), 5000)
-    this.start()
+  getHostPort(): { host: string; port: number } {
+    const config = webuiEntryConfigUtil.getConfig()
+    return { host: config.host, port: config.port }
   }
 }
 
