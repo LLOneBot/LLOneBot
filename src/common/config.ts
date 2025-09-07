@@ -30,7 +30,6 @@ const satoriDefault: SatoriConfig = {
 const webuiDefault: WebUIConfig = {
   enable: true,
   port: 3080,
-  token: '',
 }
 export const defaultConfig: Config = {
   webui: webuiDefault,
@@ -151,3 +150,47 @@ export function getConfigUtil(force = false) {
   }
   return globalConfigUtil
 }
+
+export interface WebUIEntryConfig{
+  host: string,
+  port: number,
+  token: string
+}
+
+class WebUIEntryConfigUtil{
+  private path = path.join(DATA_DIR, `webui_entry.json`)
+  private defaultConfig: WebUIEntryConfig = {
+    host: '127.0.0.1',
+    port: 3070,
+    token: ''
+  }
+  constructor() {
+
+  }
+  writeConfig(config: WebUIEntryConfig) {
+    try {
+      fs.writeFileSync(this.path, JSON.stringify(config, null, 2), 'utf-8')
+    }catch (e) {
+      console.error('写入 Web 登录 QQ 配置文件失败', e)
+    }
+  }
+  getConfig(): WebUIEntryConfig {
+    if (!fs.existsSync(this.path)) {
+      this.writeConfig(this.defaultConfig)
+      return this.defaultConfig
+    }
+    const data = fs.readFileSync(this.path, 'utf-8')
+    let jsonData: WebUIEntryConfig = this.defaultConfig
+    try {
+      jsonData = JSON5.parse(data)
+      // console.info('Web 登录 QQ 配置加载成功')
+      return jsonData
+    }
+    catch (e) {
+      console.error('Web 登录 QQ 配置文件内容不合格，使用内置默认配置', e)
+      return this.defaultConfig
+    }
+  }
+}
+
+export const webuiEntryConfigUtil = new WebUIEntryConfigUtil()
