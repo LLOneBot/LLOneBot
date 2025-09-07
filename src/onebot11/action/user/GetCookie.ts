@@ -17,6 +17,10 @@ export class GetCookies extends BaseAction<Payload, Response> {
   })
 
   protected async _handle(payload: Payload) {
+    const blackList = ['pay.qq.com']
+    if (blackList.includes(payload.domain)) {
+      throw new Error('该域名禁止获取cookie')
+    }
     const cookiesObject = await this.ctx.ntUserApi.getCookies(payload.domain)
     //把获取到的cookiesObject转换成 k=v; 格式字符串拼接在一起
     const cookies = Object.entries(cookiesObject).map(([key, value]) => `${key}=${value}`).join('; ')
