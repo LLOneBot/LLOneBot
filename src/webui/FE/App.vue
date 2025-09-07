@@ -1,8 +1,5 @@
 <template>
-  <!-- Show QQLogin if QQ not online -->
-  <QQLogin v-if="showLogin" @login="handleLogin" />
-
-  <!-- Main app content when QQ is online -->
+  <QQLogin v-if='showLogin'/>
   <el-container v-else class="main-container">
     <el-header class="header">
       <h2 style="display: inline-block">LLTwoBot {{ version }}</h2>
@@ -58,7 +55,7 @@ import { Config } from '@common/types'
 import { version } from '../../version'
 import About from '@/components/About.vue'
 import QQLogin from './components/QQLogin.vue'
-import { apiFetch, setPasswordPromptHandler, setTokenStorage } from './utils/api'
+import { apiFetch, getToken, setPasswordPromptHandler, setTokenStorage } from './utils/api'
 import './App.css'
 
 // QQ login status
@@ -150,31 +147,6 @@ async function promptPassword(tip: string): Promise<string> {
 console.log('设置密码提示处理器')
 setPasswordPromptHandler(promptPassword)
 
-// 检查QQ登录状态
-async function checkQQLoginStatus() {
-  try {
-    const resp = await apiFetch('/api/login-info')
-    const data = await resp.json()
-    if (data.success && data.data) {
-      const selfInfo = data.data.selfInfo
-      isQQOnline.value = selfInfo.online || false
-      if (selfInfo.online) {
-        accountNick.value = selfInfo.nick || ''
-        accountUin.value = selfInfo.uin || ''
-
-      }
-      return isQQOnline.value
-    } else {
-      isQQOnline.value = false
-      return false
-    }
-  } catch (error: any) {
-    console.error('检查QQ登录状态失败:', error)
-    isQQOnline.value = false
-    return false
-  }
-}
-
 // 获取配置
 async function fetchConfig() {
   try {
@@ -187,6 +159,7 @@ async function fetchConfig() {
         form.value = data.data.config
         accountNick.value = data.data.selfInfo.nick || ''
         accountUin.value = data.data.selfInfo.uin || ''
+        return data.data.selfInfo.online
       } else {
         form.value = data.data
         accountNick.value = ''
@@ -203,6 +176,7 @@ async function fetchConfig() {
   } finally {
     loading.value = false
   }
+  return false
 }
 
 // 保存配置
@@ -269,11 +243,9 @@ onMounted(async () => {
   await nextTick()
 
   // 现在检查QQ登录状态，如果没有token会自动弹出密码输入框
-  const qqOnline = await checkQQLoginStatus()
+  const qqOnline = await fetchConfig()
   if (qqOnline) {
     showLogin.value = false
-    // QQ已登录，加载配置
-    await fetchConfig()
   }
   else{
     // QQ未登录，显示登录组件
