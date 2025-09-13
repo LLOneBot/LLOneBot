@@ -186,3 +186,14 @@ message PrivateFileResponseDownload {
   bytes downloadUrl = 8;
   string downloadDns = 11;
 }
+
+// OidbSvcTrpcTcp.0xeb7_1
+message GroupClockIn {
+  GroupClockInBody body = 2;
+}
+
+message GroupClockInBody {
+  string uin = 1;
+  string groupCode = 2;
+  string appVersion = 3;
+}

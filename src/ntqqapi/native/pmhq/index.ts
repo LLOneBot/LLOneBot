@@ -601,6 +601,21 @@ export class PMHQ {
     const { fileName } = file.body!.metadata!
     return `https://${download?.downloadDns}/ftn_handler/${Buffer.from(download!.downloadUrl!).toString('hex')}/?fname=${encodeURIComponent(fileName!)}`
   }
+
+  async groupClockIn(groupCode: string) {
+    const body = Oidb.GroupClockIn.encode({
+      body: {
+        uin: selfInfo.uin,
+        groupCode
+      }
+    }).finish()
+    const data = Oidb.Base.encode({
+      command: 0xeb7,
+      subCommand: 1,
+      body,
+    }).finish()
+    await this.httpSendPB('OidbSvcTrpcTcp.0xeb7_1', data)
+  }
 }
 
 export const pmhq = new PMHQ()
