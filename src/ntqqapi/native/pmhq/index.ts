@@ -324,7 +324,7 @@ export class PMHQ {
   async getRKey() {
     const hexStr = '08e7a00210ca01221c0a130a05080110ca011206a80602b006011a02080122050a030a1400'
     const data = Buffer.from(hexStr, 'hex')
-    const resp = await this.wsSendPB('OidbSvcTrpcTcp.0xed3_1', data)
+    const resp = await this.wsSendPB('OidbSvcTrpcTcp.0x9067_202', data)
     const rkeyBody = Oidb.Base.decode(Buffer.from(resp.pb, 'hex')).body
     const rkeyItems = Oidb.GetRKeyResponseBody.decode(rkeyBody).result!.rkeyItems!
     return {
