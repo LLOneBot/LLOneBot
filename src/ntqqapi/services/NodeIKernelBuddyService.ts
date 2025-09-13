@@ -29,4 +29,6 @@ export interface NodeIKernelBuddyService {
     tempBlock: boolean
     tempBothDel: boolean
   }): Promise<GeneralCallResult>
+
+  clearBuddyReqUnreadCnt(): Promise<GeneralCallResult>
 }

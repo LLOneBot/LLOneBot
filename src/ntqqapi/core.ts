@@ -45,9 +45,9 @@ declare module 'cordis' {
     'nt/friend-request': (input: FriendRequest) => void
     'nt/group-member-info-updated': (input: { groupCode: string, members: GroupMember[] }) => void
     'nt/system-message-created': (input: Uint8Array) => void
-    'nt/flash-file-uploading': (input: {fileSet: FlashFileSetInfo} & FlashFileUploadingInfo) => void
+    'nt/flash-file-uploading': (input: { fileSet: FlashFileSetInfo } & FlashFileUploadingInfo) => void
     'nt/flash-file-upload-status': (input: FlashFileSetInfo) => void
-    'nt/flash-file-download-status': (input: {status: FlashFileDownloadStatus, info: FlashFileSetInfo}) => void
+    'nt/flash-file-download-status': (input: { status: FlashFileDownloadStatus, info: FlashFileSetInfo }) => void
     'nt/flash-file-downloading': (input: [fileSetId: string, info: FlashFileDownloadingInfo]) => void
   }
 }
@@ -118,7 +118,7 @@ class Core extends Service {
       this.messageSentCount++
       ctx.logger.info('消息发送', peer)
       deleteAfterSentFiles.map(path => {
-          unlink(path).then().catch(e=>{})
+        unlink(path).then().catch(e => { })
       })
       return returnMsg
     }
@@ -167,7 +167,7 @@ class Core extends Service {
       setTimeout(() => {
         for (const path of allPaths) {
           if (path) {
-            unlink(path).then(() => this.ctx.logger.info('删除文件成功', path)).catch(e=>{})
+            unlink(path).then(() => this.ctx.logger.info('删除文件成功', path)).catch(e => { })
           }
         }
       }, this.config.autoDeleteFileSecond! * 1000)
@@ -239,15 +239,15 @@ class Core extends Service {
       for (const msgId of msgIds) {
         const msg = this.ctx.store.getMsgCache(msgId)
         if (!msg) {
-          this.ctx.ntMsgApi.getMsgsByMsgId(peer, [msgId]).then(r=>{
-            for(const _msg of r.msgList) {
+          this.ctx.ntMsgApi.getMsgsByMsgId(peer, [msgId]).then(r => {
+            for (const _msg of r.msgList) {
               this.ctx.parallel('nt/message-deleted', _msg)
             }
-          }).catch(e=>{
+          }).catch(e => {
             this.ctx.logger.error('获取被撤回戳一戳消息失败', e, { peer, msgId })
           })
         }
-        else{
+        else {
           this.ctx.parallel('nt/message-deleted', msg)
         }
       }
@@ -286,8 +286,9 @@ class Core extends Service {
     })
 
     registerReceiveHook<FriendRequestNotify>(ReceiveCmdS.FRIEND_REQUEST, payload => {
+      this.ctx.ntFriendApi.clearBuddyReqUnreadCnt()
       for (const req of payload.buddyReqs) {
-        if (!!req.isInitiator || (req.isDecide && req.reqType !== BuddyReqType.MeInitiatorWaitPeerConfirm)) {
+        if (!req.isUnread || req.isInitiator || (req.isDecide && req.reqType !== BuddyReqType.MeInitiatorWaitPeerConfirm)) {
           continue
         }
         if (+req.reqTime < this.startupTime) {
@@ -322,17 +323,17 @@ class Core extends Service {
       this.ctx.parallel('nt/flash-file-downloading', [fileSetId, info])
     })
 
-    registerReceiveHook<{fileSet: FlashFileSetInfo} & FlashFileUploadingInfo>(ReceiveCmdS.FLASH_FILE_UPLOADING, payload => {
+    registerReceiveHook<{ fileSet: FlashFileSetInfo } & FlashFileUploadingInfo>(ReceiveCmdS.FLASH_FILE_UPLOADING, payload => {
       this.ctx.parallel('nt/flash-file-uploading', payload)
     })
 
     registerReceiveHook<[type: number, groups: GroupSimpleInfo[]]>(ReceiveCmdS.GROUPS, async (data) => {
       const [type, groups] = data
-      if (type !== 3){
+      if (type !== 3) {
         return
       }
       for (const group of groups) {
-        if (!group.groupOwnerId.memberUid){
+        if (!group.groupOwnerId.memberUid) {
           // 群被解散
           this.ctx.parallel('nt/group-dismiss', group)
         }

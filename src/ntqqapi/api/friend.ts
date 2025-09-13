@@ -85,4 +85,8 @@ export class NTQQFriendApi extends Service {
   async setBuddyCategory(uid: string, categoryId: number) {
     return await invoke('nodeIKernelBuddyService/setBuddyCategory', [uid, categoryId])
   }
+
+  async clearBuddyReqUnreadCnt() {
+    return await invoke('nodeIKernelBuddyService/clearBuddyReqUnreadCnt', [])
+  }
 }
