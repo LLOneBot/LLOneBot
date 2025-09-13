@@ -14,8 +14,6 @@ declare module 'cordis' {
 }
 
 export class NTQQUserApi extends Service {
-  static inject = ['ntFriendApi', 'ntGroupApi']
-
   constructor(protected ctx: Context) {
     super(ctx, 'ntUserApi', true)
   }
