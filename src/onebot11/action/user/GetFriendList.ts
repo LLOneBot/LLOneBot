@@ -16,6 +16,6 @@ export class GetFriendList extends BaseAction<Payload, OB11User[]> {
 
   protected async _handle(payload: Payload) {
     const buddyList = await this.ctx.ntFriendApi.getBuddyV2(payload.no_cache)
-    return OB11Entities.friendsV2(buddyList.values().toArray())
+    return OB11Entities.friends(buddyList.values().toArray())
   }
 }

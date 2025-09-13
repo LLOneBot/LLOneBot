@@ -25,7 +25,7 @@ export class GetFriendWithCategory extends BaseAction<void, Category[]> {
         categoryMbCount: item.categroyMbCount,
         onlineCount: item.onlineCount,
         buddyList: item.buddyList.map(buddy => {
-          return OB11Entities.friendV2(buddy)
+          return OB11Entities.friend(buddy)
         })
       }
     })

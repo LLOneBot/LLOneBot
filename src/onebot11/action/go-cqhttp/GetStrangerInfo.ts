@@ -9,13 +9,13 @@ interface Payload {
 }
 
 interface Response extends OB11User {
+  qid: string
+  level: number
+  login_days: number
   reg_time: number
   long_nick: string
   city: string
   country: string
-  birthday_year: number
-  birthday_month: number
-  birthday_day: number
 }
 
 export class GetStrangerInfo extends BaseAction<Payload, Response> {
@@ -27,7 +27,7 @@ export class GetStrangerInfo extends BaseAction<Payload, Response> {
   protected async _handle(payload: Payload) {
     const uin = payload.user_id.toString()
     const data = await this.ctx.ntUserApi.getUserDetailInfoByUin(uin)
-    const resp = {
+    const resp: Response = {
       user_id: parseInt(data.detail.uin) || 0,
       nickname: data.detail.simpleInfo.coreInfo.nick,
       sex: OB11Entities.sex(data.detail.simpleInfo.baseInfo.sex),

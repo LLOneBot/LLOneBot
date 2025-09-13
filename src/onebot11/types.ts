@@ -7,10 +7,10 @@ export interface OB11User {
   nickname: string
   remark?: string
   sex?: OB11UserSex
-  level?: number
+  birthday_year?: number
+  birthday_month?: number
+  birthday_day?: number
   age?: number
-  qid?: string
-  login_days?: number
 }
 
 export enum OB11UserSex {
@@ -160,25 +160,25 @@ export interface OB11MessageKeyboard {
   type: OB11MessageDataType.Keyboard
   data: {
     rows: {
-    buttons: {
-      id: string;
-      render_data: {
-        label: string;
-        visited_label: string;
-        style: number;
-      };
-      action: {
-        type: number;
-        permission: {
-          type: number;
-          specify_role_ids: string[];
-          specify_user_ids: string[];
+      buttons: {
+        id: string;
+        render_data: {
+          label: string;
+          visited_label: string;
+          style: number;
         };
-        unsupport_tips: string;
-        data: string;
-        reply: boolean;
-        enter: boolean;
-      };
+        action: {
+          type: number;
+          permission: {
+            type: number;
+            specify_role_ids: string[];
+            specify_user_ids: string[];
+          };
+          unsupport_tips: string;
+          data: string;
+          reply: boolean;
+          enter: boolean;
+        };
       }[];
     }[];
   }

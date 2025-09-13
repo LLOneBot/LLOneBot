@@ -639,34 +639,21 @@ export namespace OB11Entities {
     }
   }
 
-  export function friend(friend: User): OB11User {
+  export function friend(raw: SimpleInfo): OB11User {
     return {
-      user_id: parseInt(friend.uin),
-      nickname: friend.nick,
-      remark: friend.remark,
-      sex: sex(friend.sex!),
-      level: (friend.qqLevel && calcQQLevel(friend.qqLevel)) || 0,
-    }
-  }
-
-  export function friends(friends: User[]): OB11User[] {
-    return friends.map(friend)
-  }
-
-  export function friendV2(raw: SimpleInfo): OB11User {
-    return {
-      ...omit(raw.baseInfo, ['richBuffer', 'phoneNum']),
-      ...omit(raw.coreInfo, ['nick']),
       user_id: parseInt(raw.coreInfo.uin),
       nickname: raw.coreInfo.nick,
       remark: raw.coreInfo.remark || raw.coreInfo.nick,
       sex: sex(raw.baseInfo.sex),
-      level: 0
+      birthday_year: raw.baseInfo.birthday_year,
+      birthday_month: raw.baseInfo.birthday_month,
+      birthday_day: raw.baseInfo.birthday_day,
+      age: raw.baseInfo.age
     }
   }
 
-  export function friendsV2(raw: SimpleInfo[]): OB11User[] {
-    return raw.map(friendV2)
+  export function friends(raw: SimpleInfo[]): OB11User[] {
+    return raw.map(friend)
   }
 
   export function groupMemberRole(role: number): OB11GroupMemberRole {
