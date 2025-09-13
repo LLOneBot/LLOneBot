@@ -666,7 +666,7 @@ export namespace OB11Entities {
   }
 
   export function friendsV2(raw: SimpleInfo[]): OB11User[] {
-    return filterNullable(raw).map(friendV2)
+    return raw.map(friendV2)
   }
 
   export function groupMemberRole(role: number): OB11GroupMemberRole {
