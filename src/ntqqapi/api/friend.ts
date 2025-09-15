@@ -1,8 +1,6 @@
 import { CategoryFriend, SimpleInfo } from '../types'
-import { ReceiveCmdS } from '../hook'
 import { invoke, NTMethod } from '../ntcall'
 import { Context, Service } from 'cordis'
-import { uidUinBidiMap } from '@/ntqqapi/cache'
 
 declare module 'cordis' {
   interface Context {
@@ -11,6 +9,8 @@ declare module 'cordis' {
 }
 
 export class NTQQFriendApi extends Service {
+  static inject = ['ntUserApi']
+
   constructor(protected ctx: Context) {
     super(ctx, 'ntFriendApi', true)
   }
@@ -33,9 +33,10 @@ export class NTQQFriendApi extends Service {
     return data
   }
 
-  async getBuddyV2(refresh = false): Promise<SimpleInfo[]> {
-    const data = await this.getBuddyV2WithCate(refresh)
-    return data.flatMap((item: CategoryFriend) => item.buddyList)
+  async getBuddyV2(refresh: boolean) {
+    const res = await invoke('nodeIKernelBuddyService/getBuddyListV2', [refresh, 0])
+    const uids = res.data.filter(e => e.categoryId !== 9999).flatMap(e => e.buddyUids)
+    return await this.ctx.ntUserApi.getCoreAndBaseInfo(uids)
   }
 
   async getBuddyV2WithCate(refresh = false): Promise<CategoryFriend[]> {
@@ -84,5 +85,9 @@ export class NTQQFriendApi extends Service {
 
   async setBuddyCategory(uid: string, categoryId: number) {
     return await invoke('nodeIKernelBuddyService/setBuddyCategory', [uid, categoryId])
+  }
+
+  async clearBuddyReqUnreadCnt() {
+    return await invoke('nodeIKernelBuddyService/clearBuddyReqUnreadCnt', [])
   }
 }

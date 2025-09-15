@@ -1,6 +1,5 @@
 import { BaseAction, Schema } from '../BaseAction'
 import { ActionName } from '../types'
-import { selfInfo } from '@/common/globalVars'
 
 interface Payload {
   group_id: number | string
@@ -12,8 +11,8 @@ export class SendGroupSign extends BaseAction<Payload, null> {
     group_id: Schema.union([Number, String]).required(),
   })
 
-  async _handle() {
-    throw new Error('暂未实现群签到功能')
+  async _handle(payload: Payload) {
+    await this.ctx.app.pmhq.groupClockIn(String(payload.group_id))
     return null
   }
 }

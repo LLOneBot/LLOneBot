@@ -124,8 +124,7 @@ class Core extends Service {
       this.messageSentCount++
       ctx.logger.info('消息发送', peer)
       deleteAfterSentFiles.map(path => {
-        unlink(path).then().catch(e => {
-        })
+        unlink(path).then().catch(e => { })
       })
       return returnMsg
     }
@@ -174,8 +173,7 @@ class Core extends Service {
       setTimeout(() => {
         for (const path of allPaths) {
           if (path) {
-            unlink(path).then(() => this.ctx.logger.info('删除文件成功', path)).catch(e => {
-            })
+            unlink(path).then(() => this.ctx.logger.info('删除文件成功', path)).catch(e => { })
           }
         }
       }, this.config.autoDeleteFileSecond! * 1000)
@@ -247,19 +245,19 @@ class Core extends Service {
     registerReceiveHook<[Peer, string[]]>(ReceiveCmdS.DELETE_MSG, payload => {
       // 撤回普通消息不会经过这里
       // 撤回戳一戳会经过这里
-      const [peer, msgIds] = payload
+      const [peer, msgIds] = payload;
       for (const msgId of msgIds) {
         const msg = this.ctx.store.getMsgCache(msgId)
         if (!msg) {
-          this.ctx.ntMsgApi.getMsgsByMsgId(peer, [msgId]).then(r => {
-            for (const _msg of r.msgList) {
+          this.ctx.ntMsgApi.getMsgsByMsgId(peer, [msgId]).then(r=>{
+            for(const _msg of r.msgList) {
               this.ctx.parallel('nt/message-deleted', _msg)
             }
-          }).catch(e => {
+          }).catch(e=>{
             this.ctx.logger.error('获取被撤回戳一戳消息失败', e, { peer, msgId })
           })
         }
-        else {
+        else{
           this.ctx.parallel('nt/message-deleted', msg)
         }
       }
@@ -298,8 +296,9 @@ class Core extends Service {
     })
 
     registerReceiveHook<FriendRequestNotify>(ReceiveCmdS.FRIEND_REQUEST, payload => {
+      this.ctx.ntFriendApi.clearBuddyReqUnreadCnt()
       for (const req of payload.buddyReqs) {
-        if (!!req.isInitiator || (req.isDecide && req.reqType !== BuddyReqType.MeInitiatorWaitPeerConfirm)) {
+        if (!req.isUnread || req.isInitiator || (req.isDecide && req.reqType !== BuddyReqType.MeInitiatorWaitPeerConfirm)) {
           continue
         }
         if (+req.reqTime < this.startupTime) {
@@ -318,7 +317,7 @@ class Core extends Service {
       this.ctx.ntFileApi.getFlashFileInfo(fileSetId).then(info => {
         this.ctx.parallel('nt/flash-file-download-status', {
           status,
-          info,
+          info
         })
       }).catch(err => {
         this.ctx.logger.error(err, { fileSetId })
@@ -334,9 +333,7 @@ class Core extends Service {
       this.ctx.parallel('nt/flash-file-downloading', [fileSetId, info])
     })
 
-    registerReceiveHook<{
-      fileSet: FlashFileSetInfo
-    } & FlashFileUploadingInfo>(ReceiveCmdS.FLASH_FILE_UPLOADING, payload => {
+    registerReceiveHook<{ fileSet: FlashFileSetInfo } & FlashFileUploadingInfo>(ReceiveCmdS.FLASH_FILE_UPLOADING, payload => {
       this.ctx.parallel('nt/flash-file-uploading', payload)
     })
 

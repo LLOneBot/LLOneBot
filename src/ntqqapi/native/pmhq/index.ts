@@ -352,12 +352,13 @@ export class PMHQ {
   async getRKey() {
     const hexStr = '08e7a00210ca01221c0a130a05080110ca011206a80602b006011a02080122050a030a1400'
     const data = Buffer.from(hexStr, 'hex')
-    const resp = await this.wsSendPB('OidbSvcTrpcTcp.0xed3_1', data)
+    const resp = await this.wsSendPB('OidbSvcTrpcTcp.0x9067_202', data)
     const rkeyBody = Oidb.Base.decode(Buffer.from(resp.pb, 'hex')).body
     const rkeyItems = Oidb.GetRKeyResponseBody.decode(rkeyBody).result!.rkeyItems!
     return {
       privateRKey: rkeyItems[0].rkey!,
       groupRKey: rkeyItems[1].rkey!,
+      expiredTime: rkeyItems[0].createTime! + rkeyItems[0].ttlSec!
     }
   }
 
@@ -627,6 +628,21 @@ export class PMHQ {
     const { download } = file.body!.result!.extra!
     const { fileName } = file.body!.metadata!
     return `https://${download?.downloadDns}/ftn_handler/${Buffer.from(download!.downloadUrl!).toString('hex')}/?fname=${encodeURIComponent(fileName!)}`
+  }
+
+  async groupClockIn(groupCode: string) {
+    const body = Oidb.GroupClockIn.encode({
+      body: {
+        uin: selfInfo.uin,
+        groupCode
+      }
+    }).finish()
+    const data = Oidb.Base.encode({
+      command: 0xeb7,
+      subCommand: 1,
+      body,
+    }).finish()
+    await this.httpSendPB('OidbSvcTrpcTcp.0xeb7_1', data)
   }
 }
 
