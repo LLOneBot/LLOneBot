@@ -14,7 +14,7 @@ import SQLiteDriver from '@minatojs/driver-sqlite'
 import Store from './store'
 import { Config as LLOBConfig } from '../common/types'
 import { ReceiveCmdS, registerReceiveHook, startHook } from '../ntqqapi/hook'
-import { defaultConfig, getConfigUtil } from '../common/config'
+import { getConfigUtil } from '../common/config'
 import { Context } from 'cordis'
 import { llonebotError, selfInfo, LOG_DIR, DATA_DIR, TEMP_DIR, dbDir } from '../common/globalVars'
 import { logFileName } from '../common/utils/legacyLog'
@@ -31,9 +31,10 @@ import {
 } from '../ntqqapi/api'
 import { existsSync, mkdirSync } from 'node:fs'
 import { version } from '../version'
-import { WebUIConfigServer, WebUIEntryServer } from '../webui/BE/server'
+import { WebUIServer } from '../webui/BE/server'
 import { setFFMpegPath } from '@/common/utils/ffmpeg'
 import { pmhq } from '@/ntqqapi/native/pmhq'
+import { defaultConfig } from '@/common/defaultConfig'
 
 declare module 'cordis' {
   interface Events {
@@ -70,8 +71,8 @@ async function onLoad() {
     enable: config.log!,
     filename: logFileName,
   })
-  ctx.plugin(WebUIConfigServer, { ...config.webui, onlyLocalhost: config.onlyLocalhost })
-  ctx.plugin(WebUIEntryServer)
+
+  ctx.plugin(WebUIServer, { ...config.webui, onlyLocalhost: config.onlyLocalhost })
 
   const loadPluginAfterLogin = () => {
     ctx.plugin(Database)
@@ -96,7 +97,6 @@ async function onLoad() {
     ctx.plugin(Store, {
       msgCacheExpire: config.msgCacheExpire! * 1000,
     })
-
   }
 
   let started = false

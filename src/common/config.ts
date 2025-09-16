@@ -1,59 +1,22 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import JSON5 from 'json5'
-import { Config, OB11Config, SatoriConfig, WebUIConfig } from './types'
+import { Config, OB11Config, SatoriConfig } from './types'
 import { DATA_DIR, selfInfo } from './globalVars'
 import { mergeNewProperties } from './utils/misc'
 import { fileURLToPath } from 'node:url'
-
-const ob11Default: OB11Config = {
-  enable: true,
-  token: '',
-  httpPort: 3000,
-  httpPostUrls: [],
-  httpSecret: '',
-  wsPort: 3001,
-  wsReverseUrls: [],
-  enableHttp: true,
-  enableHttpPost: true,
-  enableWs: true,
-  enableWsReverse: true,
-  messagePostFormat: 'array',
-  enableHttpHeart: false,
-  reportSelfMessage: false,
-}
-const satoriDefault: SatoriConfig = {
-  enable: false,
-  port: 5600,
-  token: '',
-}
-const webuiDefault: WebUIConfig = {
-  enable: true,
-  port: 3080,
-}
-export const defaultConfig: Config = {
-  webui: webuiDefault,
-  onlyLocalhost: true,
-  satori: satoriDefault,
-  ob11: ob11Default,
-  heartInterval: 60000,
-  enableLocalFile2Url: false,
-  debug: false,
-  log: true,
-  autoDeleteFile: false,
-  autoDeleteFileSecond: 60,
-  musicSignUrl: 'https://llob.linyuchen.net/sign/music',
-  msgCacheExpire: 120,
-  ffmpeg: '',
-  receiveOfflineMsg: false,
-}
+import { defaultConfig } from '@/common/defaultConfig'
 
 export class ConfigUtil {
-  private readonly configPath: string
+  private configPath: string | undefined
   private config: Config | null = null
   private watch = false
 
-  constructor(configPath: string) {
+  constructor(configPath?: string) {
+    this.configPath = configPath
+  }
+
+  setConfigPath(configPath: string) {
     this.configPath = configPath
   }
 
@@ -61,14 +24,16 @@ export class ConfigUtil {
     console.log('配置文件位于', this.configPath)
 
     this.setConfig(this.getConfig())
-    fs.watchFile(this.configPath, { persistent: true, interval: 1000 }, () => {
-      if (!this.watch) {
-        return
-      }
-      console.log('配置重載')
-      const c = this.reloadConfig()
-      cb(c)
-    })
+    if (this.configPath) {
+      fs.watchFile(this.configPath, { persistent: true, interval: 1000 }, () => {
+        if (!this.watch) {
+          return
+        }
+        console.log('配置重載')
+        const c = this.reloadConfig()
+        cb(c)
+      })
+    }
   }
 
   getConfig(cache = true) {
@@ -80,7 +45,7 @@ export class ConfigUtil {
   }
 
   reloadConfig(): Config {
-    if (!fs.existsSync(this.configPath)) {
+    if (this.configPath && !fs.existsSync(this.configPath)) {
       const defaultConfigPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'default_config.json')
       const defaultConfigData = fs.readFileSync(defaultConfigPath, 'utf-8')
       try {
@@ -93,23 +58,29 @@ export class ConfigUtil {
       return this.config!
     }
     else {
-      const data = fs.readFileSync(this.configPath, 'utf-8')
-      let jsonData: Config = defaultConfig
-      try {
-        jsonData = JSON5.parse(data)
-        console.info('配置加载成功')
-      } catch (e) {
-        console.error(`${this.configPath} json 内容不合格`, e)
+      if (this.configPath) {
+        const data = fs.readFileSync(this.configPath, 'utf-8')
+        let jsonData: Config = defaultConfig
+        try {
+          jsonData = JSON5.parse(data)
+          console.info('配置加载成功')
+          mergeNewProperties(defaultConfig, jsonData)
+          this.checkOldConfig(jsonData.ob11, jsonData.ob11, 'wsReverseUrls', 'wsHosts')
+          this.checkOldConfig(jsonData.ob11, jsonData.ob11, 'httpPostUrls', 'httpHosts')
+          this.checkOldConfig(jsonData, jsonData.ob11, 'onlyLocalhost', 'listenLocalhost')
+          this.setConfig(jsonData)
+          this.config = jsonData
+          return this.config
+        } catch (e) {
+          console.error(`${this.configPath} json 内容不合格`, e)
+          this.config = defaultConfig
+          return this.config
+        }
+      }
+      else {
         this.config = defaultConfig
         return this.config
       }
-      mergeNewProperties(defaultConfig, jsonData)
-      this.checkOldConfig(jsonData.ob11, jsonData.ob11, 'wsReverseUrls', 'wsHosts')
-      this.checkOldConfig(jsonData.ob11, jsonData.ob11, 'httpPostUrls', 'httpHosts')
-      this.checkOldConfig(jsonData, jsonData.ob11, 'onlyLocalhost', 'listenLocalhost')
-      this.setConfig(jsonData)
-      this.config = jsonData
-      return this.config
     }
   }
 
@@ -119,6 +90,9 @@ export class ConfigUtil {
   }
 
   writeConfig(config: Config, watch = false) {
+    if (!this.configPath) {
+      return
+    }
     this.watch = watch
     fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), 'utf-8')
     setTimeout(() => {
@@ -144,53 +118,31 @@ export class ConfigUtil {
 let globalConfigUtil: ConfigUtil | null = null
 
 export function getConfigUtil(force = false) {
-  const configFilePath = path.join(DATA_DIR, `config_${selfInfo.uin}.json`)
+  const configFilePath = selfInfo.uin ? path.join(DATA_DIR, `config_${selfInfo.uin}.json`) : undefined
   if (!globalConfigUtil || force) {
     globalConfigUtil = new ConfigUtil(configFilePath)
   }
   return globalConfigUtil
 }
 
-export interface WebUIEntryConfig{
-  host: string,
-  port: number,
-  token: string
-}
+class WebUITokenUtil {
+  private token: string = ''
 
-class WebUIEntryConfigUtil{
-  private path = path.join(DATA_DIR, `webui_entry.json`)
-  private defaultConfig: WebUIEntryConfig = {
-    host: '127.0.0.1',
-    port: 3070,
-    token: ''
+  constructor(private readonly tokenPath: string) {
+    this.tokenPath = tokenPath
   }
-  constructor() {
-
+  getToken() {
+    if (!this.token) {
+      if (fs.existsSync(this.tokenPath)) {
+        this.token = fs.readFileSync(this.tokenPath, 'utf-8')
+      }
+    }
+    return this.token
   }
-  writeConfig(config: WebUIEntryConfig) {
-    try {
-      fs.writeFileSync(this.path, JSON.stringify(config, null, 2), 'utf-8')
-    }catch (e) {
-      console.error('写入 Web 登录 QQ 配置文件失败', e)
-    }
-  }
-  getConfig(): WebUIEntryConfig {
-    if (!fs.existsSync(this.path)) {
-      this.writeConfig(this.defaultConfig)
-      return this.defaultConfig
-    }
-    const data = fs.readFileSync(this.path, 'utf-8')
-    let jsonData: WebUIEntryConfig = this.defaultConfig
-    try {
-      jsonData = JSON5.parse(data)
-      // console.info('Web 登录 QQ 配置加载成功')
-      return jsonData
-    }
-    catch (e) {
-      console.error('Web 登录 QQ 配置文件内容不合格，使用内置默认配置', e)
-      return this.defaultConfig
-    }
+  setToken(token: string) {
+    this.token = token.trim()
+    fs.writeFileSync(this.tokenPath, token, 'utf-8')
   }
 }
 
-export const webuiEntryConfigUtil = new WebUIEntryConfigUtil()
+export const webuiTokenUtil = new WebUITokenUtil(path.join(DATA_DIR, 'webui_token.txt'))

@@ -70,10 +70,10 @@
     <el-row :gutter="16">
       <el-col :span="12">
         <el-form-item label="webui 密码">
-          <el-input v-model="form.webui.token"
+          <el-input v-model="token"
                     show-password
-                    @change='handleWebuiToken'
-                    placeholder="请输入密码" clearable />
+                    placeholder="请输入密码" 
+                    clearable />
         </el-form-item>
       </el-col>
     </el-row>
@@ -82,15 +82,28 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
-const props = defineProps<{ modelValue: any }>()
+
+const props = defineProps<{ 
+  modelValue: any, 
+  webuiToken?: string 
+}>()
+
+const emit = defineEmits<{
+  'update:modelValue': [value: any]
+  'update:webuiToken': [value: string]
+}>()
+
+// 表单数据的双向绑定
 const form = computed({
   get: () => props.modelValue,
-  set: (val) => props.modelValue.value = val
+  set: (val) => emit('update:modelValue', val)
 })
-function handleWebuiToken(v: string){
 
-}
+// webuiToken 的计算属性，自动处理双向绑定
+const token = computed({
+  get: () => props.webuiToken || '',
+  set: (val) => emit('update:webuiToken', val)
+})
 </script>
 <style scoped>
 .info-icon {

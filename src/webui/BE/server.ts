@@ -2,14 +2,15 @@ import express, { Application, Express, NextFunction, Request, Response } from '
 import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { getConfigUtil, WebUIEntryConfig, webuiEntryConfigUtil } from '@/common/config'
+import { getConfigUtil, webuiTokenUtil } from '@/common/config'
 import { Config, WebUIConfig } from '@/common/types'
 import { Server } from 'http'
 import { Context, Service } from 'cordis'
-import { selfInfo } from '@/common/globalVars'
+import { selfInfo, LOG_DIR } from '@/common/globalVars'
 import { getAvailablePort } from '@/common/utils/port'
-import { OnQRCodeLoginSucceedParameter } from '@/ntqqapi/services/NodeIKernelLoginService'
 import { pmhq } from '@/ntqqapi/native/pmhq'
+import { ReqConfig, ResConfig } from './types'
+import { appendFileSync } from 'node:fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -22,14 +23,53 @@ if (!import.meta.env) {
 
 declare module 'cordis' {
   interface Context {
-    webuiConfigServer: WebUIConfigServer
-    webUIEntryServer: WebUIEntryServer
+    webuiServer: WebUIServer
   }
 }
 
 export interface WebUIServerConfig extends WebUIConfig {
   onlyLocalhost: boolean
 }
+
+// 全局密码错误记录
+interface GlobalLoginAttempt {
+  consecutiveFailures: number
+  lockedUntil: number | null
+  lastAttempt: number
+}
+
+// 全局登录失败记录（不基于IP）
+let globalLoginAttempt: GlobalLoginAttempt = {
+  consecutiveFailures: 0,
+  lockedUntil: null,
+  lastAttempt: 0
+}
+
+// 确保日志目录存在
+
+const accessLogPath = path.join(LOG_DIR, 'webui_access.log')
+
+// 记录访问日志
+function logAccess(ip: string, method: string, path: string, status: number, message?: string) {
+  const timestamp = new Date().toISOString()
+  const logEntry = `${timestamp} | IP: ${ip} | ${method} ${path} | Status: ${status}${message ? ` | ${message}` : ''}\n`
+  try {
+    appendFileSync(accessLogPath, logEntry)
+  } catch (err) {
+    console.error('写入访问日志失败:', err)
+  }
+}
+
+// 清理过期的锁定（每小时执行一次）
+setInterval(() => {
+  if (globalLoginAttempt.lockedUntil) {
+    const now = Date.now()
+    if (now >= globalLoginAttempt.lockedUntil) {
+      globalLoginAttempt.consecutiveFailures = 0
+      globalLoginAttempt.lockedUntil = null
+    }
+  }
+}, 60 * 60 * 1000)
 
 abstract class WebUIServerBase extends Service {
   protected server: Server | null = null
@@ -41,17 +81,74 @@ abstract class WebUIServerBase extends Service {
     this.app.use(express.json())
     this.app.use(cors())
     this.app.use('/api', (req: Request, res: Response, next: NextFunction) => {
-      const token = webuiEntryConfigUtil.getConfig().token
+      // 获取客户端IP地址
+      const clientIp = req.ip || req.socket.remoteAddress || 'unknown'
+
+      const token = webuiTokenUtil.getToken()
       if (!token) {
         if (req.path === '/set-token') return next()
+        logAccess(clientIp, req.method, req.path, 401, '未设置密码')
         res.status(401).json({ success: false, message: '请先设置WebUI密码' })
         return
       }
-      const reqToken = req.headers['x-webui-token'] || req.body?.token || req.query?.token
+
+      // 检查是否被全局锁定
+      if (globalLoginAttempt.lockedUntil) {
+        const now = Date.now()
+        if (now < globalLoginAttempt.lockedUntil) {
+          const remainingMinutes = Math.ceil((globalLoginAttempt.lockedUntil - now) / (60 * 1000))
+          logAccess(clientIp, req.method, req.path, 403, `账户锁定中，剩余${remainingMinutes}分钟`)
+          res.status(403).json({
+            success: false,
+            message: `密码错误次数过多，请在 ${remainingMinutes} 分钟后重试`,
+            locked: true,
+            remainingMinutes
+          })
+          return
+        } else {
+          // 锁定时间已过，重置记录
+          globalLoginAttempt.consecutiveFailures = 0
+          globalLoginAttempt.lockedUntil = null
+        }
+      }
+
+      const reqToken = req.headers['x-webui-token'] || req.query?.token
       if (reqToken !== token) {
-        res.status(403).json({ success: false, message: 'Token校验失败' })
+        // 记录失败尝试
+        globalLoginAttempt.consecutiveFailures++
+        globalLoginAttempt.lastAttempt = Date.now()
+
+        // 如果连续失败次数达到3次，锁定1小时
+        if (globalLoginAttempt.consecutiveFailures >= 3) {
+          globalLoginAttempt.lockedUntil = Date.now() + (60 * 60 * 1000) // 1小时
+          logAccess(clientIp, req.method, req.path, 403, `密码连续错误3次，账户锁定1小时`)
+          res.status(403).json({
+            success: false,
+            message: '密码连续错误3次，账户已被锁定1小时',
+            locked: true,
+            remainingMinutes: 60
+          })
+          return
+        }
+
+        const remainingAttempts = 3 - globalLoginAttempt.consecutiveFailures
+        logAccess(clientIp, req.method, req.path, 403, `Token验证失败，剩余${remainingAttempts}次尝试`)
+        res.status(403).json({
+          success: false,
+          message: `Token校验失败，剩余尝试次数：${remainingAttempts}`,
+          remainingAttempts
+        })
         return
       }
+
+      // 登录成功，重置失败记录
+      if (globalLoginAttempt.consecutiveFailures > 0) {
+        logAccess(clientIp, req.method, req.path, 200, '登录成功，重置失败计数')
+        globalLoginAttempt.consecutiveFailures = 0
+        globalLoginAttempt.lockedUntil = null
+      }
+
+      logAccess(clientIp, req.method, req.path, 200)
       next()
     })
     // 设置token接口
@@ -61,28 +158,21 @@ abstract class WebUIServerBase extends Service {
         res.status(400).json({ success: false, message: 'Token不能为空' })
         return
       }
-      const config = webuiEntryConfigUtil.getConfig()
-      config.token = token
-      webuiEntryConfigUtil.writeConfig(config)
+      webuiTokenUtil.setToken(token)
       res.json({ success: true, message: 'Token设置成功' })
     })
 
     this.app.get('/api/config/', (req, res) => {
       try {
         const config = getConfigUtil().getConfig()
+        const resJson : ResConfig = {
+          token: webuiTokenUtil.getToken(),
+          config,
+          selfInfo
+        }
         res.json({
           success: true,
-          data: {
-            config: {
-              ...config,
-              webui: {
-                ...config.webui,
-                token: webuiEntryConfigUtil.getConfig().token
-              }
-            },
-            selfInfo,
-            loginWebUIPort: webuiEntryConfigUtil.getConfig().port,
-          },
+          data: resJson
         })
       } catch (e) {
         res.status(500).json({ success: false, message: '获取配置失败', error: e })
@@ -92,15 +182,10 @@ abstract class WebUIServerBase extends Service {
     // 保存配置接口
     this.app.post('/api/config', (req, res) => {
       try {
-        const config = req.body as Config
+        const {token, config} = req.body as ReqConfig
         const oldConfig = getConfigUtil().getConfig()
         const newConfig = { ...oldConfig, ...config }
-        const webuiEntryConfig = webuiEntryConfigUtil.getConfig()
-        // @ts-ignore
-        webuiEntryConfig.token = newConfig.webui.token
-        webuiEntryConfigUtil.writeConfig(webuiEntryConfig)
-        // @ts-ignore
-        delete newConfig.webui['token']
+        webuiTokenUtil.setToken(token!)
         this.ctx.parallel('llob/config-updated', newConfig).then()
         getConfigUtil().setConfig(newConfig)
         res.json({ success: true, message: '配置保存成功' })
@@ -143,6 +228,7 @@ abstract class WebUIServerBase extends Service {
           res.json({
             success: true,
             data,
+            message: data.loginErrorInfo.errMsg
           })
         },
       ).catch(e => {
@@ -151,7 +237,7 @@ abstract class WebUIServerBase extends Service {
     })
     // 获取账号信息接口
     this.app.get('/api/login-info', (req, res) => {
-      res.json({ success: true, data: {...selfInfo, jumpPort: this.getJumpPort()} })
+      res.json({ success: true, data: selfInfo })
     })
     this.app.get('/', (req, res) => {
       res.sendFile(path.join(feDistPath, 'index.html'))
@@ -159,8 +245,6 @@ abstract class WebUIServerBase extends Service {
   }
 
   abstract getHostPort(): { host: string, port: number }
-
-  abstract getJumpPort(): number | undefined
 
   async startServer() {
     const { host, port } = this.getHostPort()
@@ -189,13 +273,13 @@ abstract class WebUIServerBase extends Service {
   }
 }
 
-export class WebUIConfigServer extends WebUIServerBase {
-  appName = '配置页 Webui'
+export class WebUIServer extends WebUIServerBase {
+  appName = 'Webui'
   public port?: number = undefined
   static inject = ['ntLoginApi']
 
   constructor(ctx: Context, public config: WebUIServerConfig) {
-    super(ctx, 'webuiConfigServer', true)
+    super(ctx, 'webuiServer', true)
     // 获取配置接口
     this.initServer()
     // 监听 config 更新事件
@@ -211,9 +295,6 @@ export class WebUIConfigServer extends WebUIServerBase {
       }
     })
   }
-  getJumpPort(): number | undefined {
-    return undefined
-  }
 
   getHostPort(): { host: string; port: number } {
     const host = this.config.onlyLocalhost ? '127.0.0.1' : ''
@@ -225,31 +306,9 @@ export class WebUIConfigServer extends WebUIServerBase {
       return
     }
     this.port = await this.startServer()
-  }
-}
-
-export class WebUIEntryServer extends WebUIServerBase {
-  static inject = ['ntLoginApi', 'webuiConfigServer']
-  appName = '登录页 WebUI'
-
-  constructor(ctx: Context, private ntLoginApi: any) {
-    super(ctx, 'webUIEntryServer', true)
-    this.initServer()
-  }
-  getJumpPort(): number | undefined {
-    return this.ctx.webuiConfigServer.port
-  }
-
-  async start() {
-    const port = await super.startServer()
-    pmhq.tellPort(port).catch((err: Error) => {
-      this.ctx.logger.error('记录WebUI端口失败:', err)
+    pmhq.tellPort(this.port).catch((err: Error) => {
+      this.ctx.logger.error('记录 WebUI 端口失败:', err)
     })
-  }
-
-  getHostPort(): { host: string; port: number } {
-    const config = webuiEntryConfigUtil.getConfig()
-    return { host: config.host, port: config.port }
   }
 }
 

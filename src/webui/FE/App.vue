@@ -1,27 +1,27 @@
 <template>
-  <QQLogin v-if='showLogin'/>
-  <el-container v-else class="main-container">
-    <el-header class="header">
-      <h2 style="display: inline-block">LLTwoBot {{ version }}</h2>
+  <QQLogin v-if='showLogin' />
+  <el-container v-else class='main-container'>
+    <el-header class='header'>
+      <h2 style='display: inline-block'>LLTwoBot {{ version }}</h2>
     </el-header>
-    <el-main v-loading="loading">
-      <el-row :gutter="24" justify="center">
-        <el-col :xs="24" :sm="22" :md="20" :lg="16" :xl="12">
-          <el-card shadow="hover" class="config-card">
-            <AccountInfo :accountNick="accountNick" :accountUin="accountUin" />
-            <el-menu mode="horizontal" :default-active="activeIndex" @select="handleSelect">
-              <el-menu-item index="1">OneBot 11 配置</el-menu-item>
-              <el-menu-item index="2">Satori 配置</el-menu-item>
-              <el-menu-item index="3">其他配置</el-menu-item>
-              <el-menu-item index="4">关于</el-menu-item>
+    <el-main v-loading='loading'>
+      <el-row :gutter='24' justify='center'>
+        <el-col :xs='24' :sm='22' :md='20' :lg='16' :xl='12'>
+          <el-card shadow='hover' class='config-card'>
+            <AccountInfo :accountNick='accountNick' :accountUin='accountUin' />
+            <el-menu mode='horizontal' :default-active='activeIndex' @select='handleSelect'>
+              <el-menu-item index='1'>OneBot 11 配置</el-menu-item>
+              <el-menu-item index='2'>Satori 配置</el-menu-item>
+              <el-menu-item index='3'>其他配置</el-menu-item>
+              <el-menu-item index='4'>关于</el-menu-item>
             </el-menu>
-            <el-form :model="form" label-width="160px" size="large" class="config-form">
-              <Ob11ConfigForm ref="ob11ConfigFormRef" v-if="activeIndex === '1'" v-model="form.ob11" />
-              <SatoriConfigForm v-if="activeIndex === '2'" v-model="form.satori" />
-              <OtherConfigForm v-if="activeIndex === '3'" v-model="form" />
+            <el-form :model='form' label-width='160px' size='large' class='config-form'>
+              <Ob11ConfigForm ref='ob11ConfigFormRef' v-if="activeIndex === '1'" v-model='form.ob11' />
+              <SatoriConfigForm v-if="activeIndex === '2'" v-model='form.satori' />
+              <OtherConfigForm v-if="activeIndex === '3'" v-model='form' v-model:webui-token='tokenRef' />
               <About v-if="activeIndex === '4'" />
-              <el-form-item class="form-actions" v-if="activeIndex != '4'">
-                <el-button type="primary" @click="onSave" size="large" style="float: right" :loading="loading">
+              <el-form-item class='form-actions' v-if="activeIndex != '4'">
+                <el-button type='primary' @click='onSave' size='large' style='float: right' :loading='loading'>
                   保存配置
                 </el-button>
               </el-form-item>
@@ -34,16 +34,16 @@
 
   <!-- Token Dialog - always rendered -->
   <TokenDialog
-    v-model:visible="showTokenDialog"
-    v-model:tokenInput="tokenInput"
-    :loading="tokenDialogLoading"
-    :error="tokenDialogError"
-    @confirm="handleTokenDialogConfirm"
-    @close="handleTokenDialogClose"
+    v-model:visible='showTokenDialog'
+    v-model:tokenInput='tokenInput'
+    :loading='tokenDialogLoading'
+    :error='tokenDialogError'
+    @confirm='handleTokenDialogConfirm'
+    @close='handleTokenDialogClose'
   />
 </template>
 
-<script setup lang="ts">
+<script setup lang='ts'>
 import { ref, onMounted, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import AccountInfo from './components/AccountInfo.vue'
@@ -51,12 +51,13 @@ import Ob11ConfigForm from './components/Ob11ConfigForm.vue'
 import SatoriConfigForm from './components/SatoriConfigForm.vue'
 import OtherConfigForm from './components/OtherConfigForm.vue'
 import TokenDialog from './components/TokenDialog.vue'
-import { Config } from '@common/types'
 import { version } from '../../version'
 import About from '@/components/About.vue'
 import QQLogin from './components/QQLogin.vue'
 import { apiFetch, getToken, setPasswordPromptHandler, setTokenStorage } from './utils/api'
 import './App.css'
+import { ReqConfig, ResConfig } from '../BE/types'
+import { defaultConfig } from '../../common/defaultConfig'
 
 // QQ login status
 const currentUser = ref(null)
@@ -65,48 +66,15 @@ const showLogin = ref(false)
 
 // Token logic
 const tokenKey = 'webui_token'
-const token = ref(localStorage.getItem(tokenKey) || '')
 const showTokenDialog = ref(false)
 const tokenInput = ref('')
 const tokenDialogLoading = ref(false)
 const tokenDialogError = ref('')
-
-const defaultConfig: Config = {
-  satori: { enable: false, port: 5600, token: '' },
-  ob11: {
-    enable: true,
-    token: '',
-    httpPort: 3000,
-    httpPostUrls: [],
-    httpSecret: '',
-    wsPort: 3001,
-    wsReverseUrls: [],
-    enableHttp: true,
-    enableHttpPost: true,
-    enableWs: true,
-    enableWsReverse: false,
-    messagePostFormat: 'array',
-    enableHttpHeart: false,
-    reportSelfMessage: true,
-  },
-  heartInterval: 60000,
-  enableLocalFile2Url: false,
-  debug: false,
-  log: true,
-  autoDeleteFile: false,
-  autoDeleteFileSecond: 60,
-  musicSignUrl: '',
-  msgCacheExpire: 120,
-  onlyLocalhost: true,
-  webui: {
-    enable: true,
-    token: '',
-    port: 3080,
-  },
-  receiveOfflineMsg: false,
-}
+const tokenRef = ref()
+tokenRef.value = getToken()
 
 const form = ref(JSON.parse(JSON.stringify(defaultConfig)))
+
 const activeIndex = ref('1')
 const loading = ref(false)
 const accountNick = ref('')
@@ -151,23 +119,17 @@ setPasswordPromptHandler(promptPassword)
 async function fetchConfig() {
   try {
     loading.value = true
-    const resp = await apiFetch('/api/config')
-    const data = await resp.json()
+    const data = await apiFetch<ResConfig>('/api/config')
     if (data.success) {
-      // 兼容新格式
-      if (data.data.config && data.data.selfInfo) {
-        form.value = data.data.config
-        accountNick.value = data.data.selfInfo.nick || ''
-        accountUin.value = data.data.selfInfo.uin || ''
-        return data.data.selfInfo.online
-      } else {
-        form.value = data.data
-        accountNick.value = ''
-        accountUin.value = ''
-      }
-      console.log('config接口返回:', data)
+      const { config, selfInfo, token } = data.data
+      tokenRef.value = token
+      form.value = config
+      accountNick.value = selfInfo.nick || ''
+      accountUin.value = selfInfo.uin || ''
       ElMessage.success('配置加载成功')
-    } else {
+      return data.data.selfInfo.online
+    }
+    else {
       throw new Error(data.message || '获取配置失败')
     }
   } catch (error: any) {
@@ -184,22 +146,26 @@ async function onSave() {
   if (ob11ConfigFormRef.value && !ob11ConfigFormRef.value.saveInputting()) {
     return
   }
-  if (!form.value.webui.token) {
+  if (!tokenRef.value) {
     return ElMessage.error('WebUI 密码不能为空')
   }
   try {
     loading.value = true
-    const resp = await apiFetch('/api/config', {
+    const postData: ReqConfig = {
+      token: tokenRef.value,
+      config: form.value,
+    }
+    const data = await apiFetch('/api/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form.value),
+      body: JSON.stringify(postData),
     })
-    const data = await resp.json()
     if (data.success) {
       localStorage.setItem(tokenKey, form.value.webui.token)
-      token.value = form.value.webui.token
       ElMessage.success('配置保存成功')
-    } else {
+      setTokenStorage(tokenRef.value)
+    }
+    else {
       throw new Error(data.message || '保存配置失败')
     }
   } catch (error: any) {
@@ -247,7 +213,7 @@ onMounted(async () => {
   if (qqOnline) {
     showLogin.value = false
   }
-  else{
+  else {
     // QQ未登录，显示登录组件
     showLogin.value = true
   }
@@ -259,7 +225,8 @@ function handleSelect(key: string) {
 }
 
 // 修改handleTokenDialogConfirm为let变量，便于promptPassword里动态赋值
-let handleTokenDialogConfirm = async () => {}
+let handleTokenDialogConfirm = async () => {
+}
 
 function handleTokenDialogClose() {
   tokenDialogError.value = ''

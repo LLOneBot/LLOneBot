@@ -52,8 +52,14 @@ async function promptPassword(tip: string): Promise<string> {
   return result
 }
 
+export interface ApiResponse<T> {
+  success: boolean
+  message?: string
+  data?: T
+}
+
 // 封装的API请求函数
-export async function apiFetch(url: string, options: any = {}, port?: number): Promise<Response> {
+export async function apiFetch<T>(url: string, options: any = {}, port?: number): Promise<ApiResponse<T>> {
   console.log('apiFetch 调用:', url, '，当前有token:', !!getToken())
   options.headers = options.headers || {}
   let token = getToken()
@@ -69,7 +75,7 @@ export async function apiFetch(url: string, options: any = {}, port?: number): P
 
   // 如果不是401/403，直接返回
   if (resp.status !== 401 && resp.status !== 403) {
-    return resp
+    return resp.json()
   }
 
   while (resp.status === 401 || resp.status === 403) {
@@ -88,7 +94,8 @@ export async function apiFetch(url: string, options: any = {}, port?: number): P
       }
     } else if (resp.status === 403) {
       removeToken()
-      const inputPwd = await promptPassword('密码校验失败，请输入密码')
+      const err = (await resp.json()).message
+      const inputPwd = await promptPassword('密码校验失败，' + err)
       // 403时只保存本地密码，不调用setToken
       setTokenStorage(inputPwd)
       token = inputPwd
@@ -99,24 +106,24 @@ export async function apiFetch(url: string, options: any = {}, port?: number): P
     resp = await fetch(url, options)
 
     if (resp.status !== 401 && resp.status !== 403) {
-      return resp
+      return resp.json()
     }
   }
 
-  return resp
-}
-
-// 便捷的API调用方法
-export async function apiGet(url: string, port?: number): Promise<any> {
-  const resp = await apiFetch(url, {}, port)
   return resp.json()
 }
 
-export async function apiPost(url: string, data: any, port?: number): Promise<any> {
-  const resp = await apiFetch(url, {
+// 便捷的API调用方法
+export async function apiGet<T>(url: string, port?: number) {
+  const resp = await apiFetch<T>(url, {}, port)
+  return resp
+}
+
+export async function apiPost<T>(url: string, data: any, port?: number) {
+  const resp = await apiFetch<T>(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   }, port)
-  return resp.json()
+  return resp
 }

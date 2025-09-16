@@ -8,6 +8,6 @@
     },
     "types": ["vite/client"]
   },
-  "include": ["./**/*", "../../common/*", "../../version.ts"],
+  "include": ["./**/*", "../../**/*"],
   "exclude": ["node_modules"]
 }

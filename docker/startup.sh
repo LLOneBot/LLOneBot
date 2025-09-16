@@ -40,6 +40,17 @@ sed -i "/\"satori\": {/,/}/ {
 sed -i "s/\"onlyLocalhost\":\s*true/\"onlyLocalhost\": false/g" "$FILE"
 sed -i "s|\"ffmpeg\":\s*\"\"|\"ffmpeg\": \"/usr/bin/ffmpeg\"|g" "$FILE"
 
+WEBUI_ENTRY_FILE='/app/data/webui_entry.json'
+
+# Check dir
+if [ ! -d "/app/data" ]; then
+  mkdir /app/data
+fi
+
+if [ ! -f "$WEBUI_ENTRY_FILE" ]; then
+  echo echo "{\"host\":\"0.0.0.0\",\"port\":3070,\"token\": \"${WEBUI_TOKEN}\"}" > "$WEBUI_ENTRY_FILE"
+fi
+
 port="13000"
 host="pmhq"
 if [ -n "$pmhq_port" ]; then

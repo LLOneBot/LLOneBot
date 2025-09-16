@@ -117,6 +117,12 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { ArrowDown, Refresh, Close } from '@element-plus/icons-vue'
 import { apiGet, apiPost, getToken } from '../utils/api'
+import {
+  GetLoginListResult,
+  OnQRCodeLoginSucceedParameter,
+  QuickLoginResult,
+} from '../../../ntqqapi/services/NodeIKernelLoginService'
+import { SelfInfo } from '../../../ntqqapi/types'
 
 // Define emits
 const emit = defineEmits<{
@@ -138,12 +144,6 @@ interface QRCodeData {
   qrcodeUrl: string
   expireTime: number
   pollTimeInterval: number
-}
-
-interface LoginInfo {
-  online: boolean
-
-  [key: string]: any
 }
 
 const loginMode = ref<'quick' | 'qr'>('quick')
@@ -197,18 +197,18 @@ async function handleQuickLogin() {
 
   loginLoading.value = true
   try {
-    const result = await apiPost('/api/quick-login', { uin: selectedAccount.value.uin })
-
-    if (result.data.result === '0') {
+    const resp = await apiPost<QuickLoginResult>('/api/quick-login', { uin: selectedAccount.value.uin })
+    const data = resp.data
+    if (data.result === '0') {
       ElMessage.info(`正在登录 ${selectedAccount.value.nickName}...`)
       // 开始轮询登录状态
       await pollLoginStatus()
     }
     else {
-      throw new Error(result.message || '登录失败')
+      throw new Error(data.loginErrorInfo.errMsg || '登录失败')
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '登录失败')
+    ElMessage.error(error.message)
     console.error('Quick login error:', error)
     loginMode.value = 'qr'
   } finally {
@@ -235,7 +235,7 @@ async function generateQrCode() {
   if (!qrCanvas.value) return
 
   try {
-    const result = await apiGet('/api/login-qrcode')
+    const result = await apiGet<OnQRCodeLoginSucceedParameter>('/api/login-qrcode')
 
     if (result.success && result.data) {
       qrCodeData.value = result.data
@@ -314,7 +314,7 @@ async function refreshQrCode() {
 
 async function fetchQuickLoginList() {
   try {
-    const result = await apiGet('/api/quick-login-list')
+    const result = await apiGet<GetLoginListResult>('/api/quick-login-list')
     console.log('Quick login list response:', result)
 
     if (result.success && result.data && result.data.LocalLoginInfoList) {
@@ -364,37 +364,24 @@ async function pollLoginStatus(): Promise<void> {
     attempts++
 
     try {
-      const result = await apiGet('/api/login-info')
+      const result = await apiGet<SelfInfo>('/api/login-info')
       const data = result.data
       if (result.success && data.online === true) {
-        const { jumpPort } = data
         stopLoginPolling()
-        // 判断当前url的端口是否和返回的一致，不一致则附带token跳转
-        const currentPort = window.location.port
-        if (jumpPort && currentPort !== String(jumpPort)) {
-          const url = `${window.location.protocol}//${window.location.hostname}:${jumpPort}${window.location.pathname}?token=${getToken()}`
-          console.log(`当前端口(${currentPort})和WebUI端口(${jumpPort})不一致，跳转 url: ${url}`)
-          window.location.href = url
-          return false // 页面会跳转，不继续执行
+        ElMessage.success('登录成功！正在跳转到主页面...')
+        if (loginMode.value === 'qr') {
+          qrStatus.value = 'success'
         }
-        else {
-          ElMessage.success('登录成功！正在跳转到主页面...')
-          if (loginMode.value === 'qr') {
-            qrStatus.value = 'success'
-          }
-          setTimeout(()=>{
-            // 刷新页面
-            window.location.reload()
-          })
-        }
-
-        // 延迟一下让用户看到成功消息
-        // setTimeout(() => {
-        //   emitLogin(loginMode.value, selectedAccount.value || undefined)
-        // }, 1000)
-
+        setTimeout(() => {
+          // 刷新页面
+          window.location.reload()
+        }, 1000)
       }
 
+      // 延迟一下让用户看到成功消息
+      // setTimeout(() => {
+      //   emitLogin(loginMode.value, selectedAccount.value || undefined)
+      // }, 1000)
       // 继续轮询
       loginPollingInterval = setTimeout(poll, 3000) // 每3秒轮询一次
 
