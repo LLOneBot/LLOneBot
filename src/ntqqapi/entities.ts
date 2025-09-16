@@ -68,7 +68,7 @@ export namespace SendElement {
   export async function pic(ctx: Context, picPath: string, summary = '', subType: 0 | 1 = 0, isFlashPic?: boolean): Promise<SendPicElement> {
     const { md5, fileName, path, fileSize } = await ctx.ntFileApi.uploadFile(picPath, ElementType.Pic, subType)
     if (fileSize === 0) {
-      throw '文件异常，大小为 0'
+      throw new Error('文件异常，大小为 0')
     }
     const imageSize = await ctx.ntFileApi.getImageSize(picPath)
     const picElement = {
@@ -214,7 +214,7 @@ export namespace SendElement {
       throw new Error('文件异常，大小为 0')
     }
     if (converted) {
-        unlink(silkPath).then().catch(e=>{})
+      unlink(silkPath).then().catch(e => { })
     }
     return {
       elementType: ElementType.Ptt,

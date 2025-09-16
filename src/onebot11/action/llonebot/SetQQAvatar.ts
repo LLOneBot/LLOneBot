@@ -19,22 +19,18 @@ export default class SetQQAvatar extends BaseAction<Payload, null> {
       await checkFileReceived(path, 5000) // 文件不存在QQ会崩溃，需要提前判断
       const ret = await this.ctx.ntUserApi.setSelfAvatar(path)
       if (!isLocal) {
-          unlink(path).then().catch(err => {})
+        unlink(path).then().catch(err => { })
       }
       if (!ret) {
-        throw `头像${payload.file}设置失败,api无返回`
+        throw new Error(`头像${payload.file}设置失败，API无返回`)
       }
       if ((ret.result as number) === 1004022) {
-        throw `头像${payload.file}设置失败，文件可能不是图片格式`
+        throw new Error(`头像${payload.file}设置失败，文件可能不是图片格式`)
       } else if (ret.result !== 0) {
-        throw `头像${payload.file}设置失败,未知的错误,${ret['result']}:${ret['errMsg']}`
+        throw new Error(`头像${payload.file}设置失败，未知的错误，${ret.result}:${ret.errMsg}`)
       }
     } else {
-      if (!isLocal) {
-        unlink(path).then().catch(e => {
-          this.ctx.logger.error(`头像${payload.file}设置失败,无法获取头像,文件可能不存在`)
-        })
-      }
+      throw new Error(`头像${payload.file}设置失败，无法获取头像，文件可能不存在`)
     }
     return null
   }

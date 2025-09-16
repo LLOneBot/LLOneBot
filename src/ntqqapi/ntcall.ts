@@ -121,7 +121,7 @@ export function invoke<
           breakLength: Infinity,
           maxArrayLength: 220
         })
-        reject(`invoke timeout, ${funcName}, ${display}`)
+        reject(new Error(`invoke timeout, ${funcName}, ${display}`))
       }, timeout)
     }
     if (options.resultCmd) {
