@@ -31,8 +31,14 @@ export class GroupEssenceEvent extends OB11GroupNoticeEvent {
       chatType: ChatType.Group,
       peerUid: groupCode
     }
-    const essence = await ctx.ntGroupApi.queryCachedEssenceMsg(groupCode, msgSeq, msgRandom)
-    const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, msgSeq, '0')
+    let essence
+    try {
+      essence = await ctx.ntGroupApi.queryCachedEssenceMsg(groupCode, msgSeq, msgRandom)
+    }catch (e: any) {
+      ctx.logger.error('获取群精华消息失败', e.message)
+      return
+    }
+    const { msgList } = await ctx.ntMsgApi.queryFirstMsgBySeq(peer, msgSeq)
     const sourceMsg = msgList.find(e => e.msgRandom === msgRandom)
     if (!sourceMsg) return
     return new GroupEssenceEvent(
