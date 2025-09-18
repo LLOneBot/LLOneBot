@@ -54,12 +54,20 @@ export class GetGroupMsgHistory extends BaseAction<Payload, Response> {
     }
 
     const messages: OB11Message[] = []
-    let seq = payload.message_seq
+    let seq = parseInt(String(payload.message_seq)) || 0
     let count = +payload.count
 
     while (count > 0) {
       const res = await this.getMessage(peer, count, seq)
-      if (!res || res.length == 0) continue
+      if (!res || res.length === 0) {
+        if (seq === 0) {
+          break
+        }
+        else{
+          seq = seq - 1
+          continue
+        }
+      }
       seq = res[0].message_seq - 1
       count -= res.length
       messages.unshift(...res)
