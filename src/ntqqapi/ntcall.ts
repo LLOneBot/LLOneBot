@@ -1,6 +1,6 @@
 import { inspect } from 'node:util'
 import { ReceiveCmdS, registerReceiveHook, removeReceiveHook } from './hook'
-import type { NTListener, InferPayloadFromMethod } from './hook'
+import type { InferPayloadFromMethod } from './hook'
 import {
   NodeIKernelBuddyService,
   NodeIKernelProfileService,
@@ -18,7 +18,8 @@ import {
 } from './services'
 import { pmhq } from '@/ntqqapi/native/pmhq'
 import { NodeIKernelFlashTransferService } from '@/ntqqapi/services/NodeIKernelFlashTransferService'
-import { NodeIKernelLoginService, NodeIKernelLoginListener } from '@/ntqqapi/services/NodeIKernelLoginService'
+import { NodeIKernelLoginService } from '@/ntqqapi/services/NodeIKernelLoginService'
+import { DetailedError } from '@/common/utils'
 
 export enum NTMethod {
   ACTIVE_CHAT_PREVIEW = 'nodeIKernelMsgService/getAioFirstViewLatestMsgsAndAddActiveChat', // 激活聊天窗口，有时候必须这样才能收到消息, 并返回最新预览消息
@@ -133,14 +134,14 @@ export function invoke<
   const methodName = splitMethod.slice(1).join('/')
   const pmhqService = NT_SERVICE_TO_PMHQ[serviceName]
   let funcName = ''
-  if (pmhqService){
+  if (pmhqService) {
     if (NOT_SESSION_SERVICES.includes(serviceName))
       funcName = `${pmhqService}.${methodName}`
     else {
       funcName = `wrapperSession.${pmhqService}().${methodName}`
     }
   }
-  else{}
+  else { }
   if (!pmhqService) {
     funcName = method
     // console.error('unknown service:', serviceName);
@@ -172,7 +173,26 @@ export function invoke<
         removeReceiveHook(hookId)
         timeoutId && clearTimeout(timeoutId)
       })
-      pmhq.call(funcName, args, timeout).then(r => firstResult = r).catch(reject)
+      pmhq.call(funcName, args, timeout).then(r => {
+        firstResult = r
+        if (r.result !== 0) {
+          const displayReq = inspect(args, {
+            depth: 10,
+            compact: true,
+            breakLength: Infinity,
+            maxArrayLength: 220
+          })
+          const displayRes = inspect(r, {
+            depth: 10,
+            compact: true,
+            breakLength: Infinity,
+            maxArrayLength: 220
+          })
+          reject(new DetailedError(`invoke failed, ${funcName}, ${displayReq}, ${displayRes}`, r))
+          removeReceiveHook(hookId)
+          timeoutId && clearTimeout(timeoutId)
+        }
+      }).catch(reject)
     }
     else {
       pmhq.call(funcName, args, timeout).then(r => {
