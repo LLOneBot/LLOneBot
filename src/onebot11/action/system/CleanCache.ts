@@ -4,12 +4,12 @@ import fs from 'node:fs'
 import Path from 'node:path'
 import { ChatCacheListItemBasic, CacheFileType } from '@/ntqqapi/types'
 
-export default class CleanCache extends BaseAction<void, void> {
+export default class CleanCache extends BaseAction<void, null> {
   actionName = ActionName.CleanCache
 
-  protected async _handle(): Promise<void> {
-    return
-    const cacheFilePaths: string[] = []
+  protected async _handle() {
+    return null
+    /*const cacheFilePaths: string[] = []
 
     await this.ctx.ntFileCacheApi.setCacheSilentScan(false)
 
@@ -53,7 +53,7 @@ export default class CleanCache extends BaseAction<void, void> {
     }
 
     // 一并清除
-    await this.ctx.ntFileCacheApi.clearChatCache(chatCacheList, cacheFileList)
+    await this.ctx.ntFileCacheApi.clearChatCache(chatCacheList, cacheFileList)*/
   }
 }
 
