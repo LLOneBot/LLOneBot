@@ -4,7 +4,7 @@ import crypto from 'node:crypto'
 import express, { Express, Request, Response, NextFunction } from 'express'
 import { BaseAction } from '../action/BaseAction'
 import { Context } from 'cordis'
-import { llonebotError, selfInfo } from '@/common/globalVars'
+import { selfInfo } from '@/common/globalVars'
 import { OB11Response } from '../action/OB11Response'
 import { OB11BaseEvent } from '../event/OB11BaseEvent'
 import { handleQuickOperation, QuickOperationEvent } from '../helper/quickOperation'
@@ -48,7 +48,6 @@ class OB11Http {
         res.send(`LLOneBot server 已启动`)
       })
       const host = this.config.listenLocalhost ? '127.0.0.1' : ''
-      llonebotError.httpServerError = ''
       this.expressAPP.get('/_events', (req: Request, res: Response) => {
         res.setHeader('Content-Type', 'text/event-stream; charset=utf-8')
         res.setHeader('Cache-Control', 'no-cache')
@@ -90,7 +89,6 @@ class OB11Http {
       }
     } catch (e) {
       this.ctx.logger.error('OneBot V11 HTTP服务启动失败', e)
-      llonebotError.httpServerError = 'HTTP服务启动失败, ' + e
     }
   }
 

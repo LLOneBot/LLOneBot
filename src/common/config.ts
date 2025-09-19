@@ -104,12 +104,12 @@ export class ConfigUtil {
     }, 3000)
   }
 
-  private migrateWebUIToken(webuiConfig: WebUIConfig & {token?: string}) {
-    if (webuiConfig.token && !webuiTokenUtil.getToken()) {
-      webuiTokenUtil.setToken(webuiConfig.token)
-      delete webuiConfig['token']
+  private migrateWebUIToken(oldWebuiConfig: WebUIConfig & {token?: string}) {
+    if (oldWebuiConfig.token && !webuiTokenUtil.getToken()) {
+      webuiTokenUtil.setToken(oldWebuiConfig.token)
+      delete oldWebuiConfig['token']
     }
-    return webuiConfig
+    return oldWebuiConfig
   }
 
   private checkOldConfig(

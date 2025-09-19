@@ -1,7 +1,6 @@
 import { BaseAction } from '../action/BaseAction'
 import { Context } from 'cordis'
 import { WebSocket, WebSocketServer } from 'ws'
-import { llonebotError } from '@/common/globalVars'
 import { IncomingMessage } from 'node:http'
 import { OB11Return, OB11Message } from '../types'
 import { OB11Response } from '../action/OB11Response'
@@ -28,7 +27,6 @@ class OB11WebSocket {
       port: this.config.port,
       maxPayload: 1024 * 1024 * 1024
     })
-    llonebotError.wsServerError = ''
     this.wsServer.on('error', (err: Error) => {
       this.ctx.logger.error('OneBot V11 正向 WS 错误', err)
     })
@@ -40,7 +38,6 @@ class OB11WebSocket {
 
   public stop() {
     return new Promise<boolean>((resolve) => {
-      llonebotError.wsServerError = ''
       this.ctx.logger.info('OneBot V11 WebSocket Server closing...')
       this.wsClients.forEach(({ socket }) => {
         try {

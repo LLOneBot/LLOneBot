@@ -16,7 +16,7 @@ import { Config as LLOBConfig } from '../common/types'
 import { ReceiveCmdS, registerReceiveHook, startHook } from '../ntqqapi/hook'
 import { getConfigUtil } from '../common/config'
 import { Context } from 'cordis'
-import { llonebotError, selfInfo, LOG_DIR, DATA_DIR, TEMP_DIR, dbDir } from '../common/globalVars'
+import { selfInfo, LOG_DIR, DATA_DIR, TEMP_DIR, dbDir } from '../common/globalVars'
 import { logFileName } from '../common/utils/legacyLog'
 import {
   NTQQFileApi,
@@ -156,14 +156,13 @@ async function onLoad() {
     })
   }
 
-  ctx.logger.info(`LLOneBot ${version}`)
+  ctx.logger.info(`LLTwoBot ${version}`)
   // setFFMpegPath(config.ffmpeg || '')
   startHook()
   ctx.start().catch(e=> {
     console.error('Start error:', e)
   })
   started = true
-  llonebotError.otherError = ''
 }
 
 

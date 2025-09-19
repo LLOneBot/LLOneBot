@@ -5,13 +5,6 @@ import * as os from 'node:os'
 import fs from 'fs'
 import { existsSync, mkdirSync } from 'node:fs'
 
-export const llonebotError: LLOneBotError = {
-  ffmpegError: '',
-  httpServerError: '',
-  wsServerError: '',
-  otherError: 'LLOneBot 未能正常启动，请检查日志查看错误',
-}
-
 export const DATA_DIR: string = path.resolve('data')
 export const TEMP_DIR: string = path.join(DATA_DIR, 'temp')
 export const LOG_DIR = path.join(DATA_DIR, 'logs')
