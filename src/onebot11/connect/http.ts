@@ -45,7 +45,7 @@ class OB11Http {
       return
     try {
       this.expressAPP.get('/', (req: Request, res: Response) => {
-        res.send(`LLOneBot server 已启动`)
+        res.send(`LLTwoBot server 已启动`)
       })
       const host = this.config.listenLocalhost ? '127.0.0.1' : ''
       this.expressAPP.get('/_events', (req: Request, res: Response) => {

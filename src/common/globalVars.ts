@@ -1,4 +1,3 @@
-import { LLOneBotError } from './types'
 import { SelfInfo } from '../ntqqapi/types'
 import path from 'node:path'
 import * as os from 'node:os'

@@ -378,7 +378,7 @@ export interface OB11PostSendMsg {
 }
 
 export interface OB11Version {
-  app_name: 'LLOneBot'
+  app_name: 'LLTwoBot'
   app_version: string
   protocol_version: 'v11'
 }

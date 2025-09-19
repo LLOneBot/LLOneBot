@@ -1,6 +1,6 @@
 {
-  "name": "llonebot",
-  "version": "5.0.0",
+  "name": "lltwobot",
+  "version": "6.0.0",
   "type": "module",
   "description": "",
   "main": "dist/llonebot.js",

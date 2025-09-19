@@ -54,12 +54,6 @@ export interface CheckVersion {
   version: string
 }
 
-export interface LLOneBotError {
-  httpServerError?: string
-  wsServerError?: string
-  ffmpegError?: string
-  otherError?: string
-}
 
 export interface FileCache {
   fileName: string

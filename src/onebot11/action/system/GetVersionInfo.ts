@@ -8,7 +8,7 @@ export default class GetVersionInfo extends BaseAction<null, OB11Version> {
 
   protected async _handle(): Promise<OB11Version> {
     return {
-      app_name: 'LLOneBot',
+      app_name: 'LLTwoBot',
       protocol_version: 'v11',
       app_version: version,
     }

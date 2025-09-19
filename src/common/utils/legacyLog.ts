@@ -4,7 +4,7 @@ import { getConfigUtil } from '../config'
 import { LOG_DIR } from '../globalVars'
 import { inspect } from 'node:util'
 
-export const logFileName = `llonebot-${new Date().toLocaleString('zh-CN')}.log`.replace(/\//g, '-').replace(/:/g, '-')
+export const logFileName = `lltwobot-${new Date().toLocaleString('zh-CN')}.log`.replace(/\//g, '-').replace(/:/g, '-')
 
 export function log(...msg: unknown[]) {
   if (!getConfigUtil().getConfig().log) {

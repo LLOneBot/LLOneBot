@@ -1,5 +1,5 @@
 {
-  "name": "llonebot-webui",
+  "name": "lltwobot-webui",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -16,4 +16,4 @@
     "vite": "^4.0.0",
     "@vitejs/plugin-vue": "^4.0.0"
   }
-} 
+}
