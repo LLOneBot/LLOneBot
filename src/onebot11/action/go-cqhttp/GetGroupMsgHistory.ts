@@ -44,7 +44,7 @@ export class GetGroupMsgHistory extends BaseAction<Payload, Response> {
       }
       return OB11Entities.message(this.ctx, rawMsg)
     }))
-    return filterNullable(ob11MsgList)
+    return { list: filterNullable(ob11MsgList), seq: +msgList[0].msgSeq }
   }
 
   protected async _handle(payload: Payload): Promise<Response> {
@@ -54,23 +54,15 @@ export class GetGroupMsgHistory extends BaseAction<Payload, Response> {
     }
 
     const messages: OB11Message[] = []
-    let seq = parseInt(String(payload.message_seq)) || 0
+    let seq = payload.message_seq
     let count = +payload.count
 
     while (count > 0) {
       const res = await this.getMessage(peer, count, seq)
-      if (!res || res.length === 0) {
-        if (seq === 0) {
-          break
-        }
-        else{
-          seq = seq - 1
-          continue
-        }
-      }
-      seq = res[0].message_seq - 1
-      count -= res.length
-      messages.unshift(...res)
+      if (!res) break
+      seq = res.seq - 1
+      count -= res.list.length
+      messages.unshift(...res.list)
     }
 
     if (payload.reverseOrder) messages.reverse()
