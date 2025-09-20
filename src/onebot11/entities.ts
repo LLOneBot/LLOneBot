@@ -167,7 +167,7 @@ export namespace OB11Entities {
           const record = msg.records.find(msgRecord => msgRecord.msgId === replyElement.sourceMsgIdInRecords)
           const senderUid = replyElement.senderUidStr || record?.senderUid
           if (!record || !replyMsgTime || !senderUid) {
-            ctx.logger.error('找不到回复消息')
+            ctx.logger.error('找不到回复消息', replyElement)
             continue
           }
           const { msgList } = await ctx.ntMsgApi.getMsgsBySeqAndCount(peer, replayMsgSeq, 1, true, true)
