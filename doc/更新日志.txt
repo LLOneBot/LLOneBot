@@ -1,3 +1,13 @@
+V6.0.0
+更新时间 2025-9-20
+
+* 修复没有捕获异常导致程序崩溃
+* 修复 API `get_group_msg_history` `get_friend_msg_history` 返回内容不正确
+* 支持 QQ 无头模式，pmhq_config.json 配置项 `headless`，设置为 true 后启用
+* WebUI 新增快速登录和扫码登录
+* Docker 不再使用 VNC
+
+=================
 V5.10.0
 更新时间 2025-9-14
 
