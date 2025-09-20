@@ -5,6 +5,9 @@ import fs from 'fs'
 import { existsSync, mkdirSync } from 'node:fs'
 
 export const DATA_DIR: string = path.resolve('data')
+if (!existsSync(DATA_DIR)) {
+  mkdirSync(DATA_DIR)
+}
 export const TEMP_DIR: string = path.join(DATA_DIR, 'temp')
 export const LOG_DIR = path.join(DATA_DIR, 'logs')
 
