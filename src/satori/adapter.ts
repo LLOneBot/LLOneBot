@@ -123,8 +123,26 @@ class SatoriAdapter extends Service {
   }
 
   start() {
+    this.ctx.on('llob/config-updated', async input => {
+      const old = omit(this.config, ['ffmpeg'])
+      const inputSatoriConfig = {
+        ...input.satori,
+        onlyLocalhost: input.onlyLocalhost
+      }
+      if (!isDeepStrictEqual(old, inputSatoriConfig)) {
+        await this.server.stop()
+        this.server.updateConfig(inputSatoriConfig)
+        if (inputSatoriConfig.enable) {
+          this.server.start()
+        }
+      }
+      Object.assign(this.config, {...inputSatoriConfig, ffmpeg: input.ffmpeg })
+    })
     if(this.config.enable){
       this.server.start()
+    }
+    else{
+      return
     }
     this.ctx.on('nt/message-created', async input => {
       const event = await this.handleMessage(input)
@@ -157,22 +175,6 @@ class SatoriAdapter extends Service {
       if (event) {
         this.server.dispatch(event)
       }
-    })
-
-    this.ctx.on('llob/config-updated', async input => {
-      const old = omit(this.config, ['ffmpeg'])
-      const inputSatoriConfig = {
-        ...input.satori,
-        onlyLocalhost: input.onlyLocalhost
-      }
-      if (!isDeepStrictEqual(old, inputSatoriConfig)) {
-        await this.server.stop()
-        this.server.updateConfig(inputSatoriConfig)
-        if (inputSatoriConfig.enable) {
-          this.server.start()
-        }
-      }
-      Object.assign(this.config, {...inputSatoriConfig, ffmpeg: input.ffmpeg })
     })
   }
 
