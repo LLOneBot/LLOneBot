@@ -642,7 +642,17 @@ export namespace OB11Entities {
       birthday_year: raw.baseInfo.birthday_year,
       birthday_month: raw.baseInfo.birthday_month,
       birthday_day: raw.baseInfo.birthday_day,
-      age: raw.baseInfo.age
+      age: raw.baseInfo.age,
+      // API 数据变动尽量遵循只增不删的原则
+      // 一些非标准字段以前存在过就不能去掉，否则下游会报错
+      // 文档就不必透出非标准字段
+      qid: raw.baseInfo.qid,
+      longNick: raw.baseInfo.longNick,
+      level: 0,
+      eMail: raw.baseInfo.eMail,
+      uid: raw.uid || '',
+      categoryId: raw.baseInfo.categoryId,
+      richTime: raw.baseInfo.richTime,
     }
   }
 

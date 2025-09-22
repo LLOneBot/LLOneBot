@@ -11,6 +11,14 @@ export interface OB11User {
   birthday_month?: number
   birthday_day?: number
   age?: number
+  // 以下是 OB11 非标准字段
+  qid: string,
+  longNick: string,  // 个性签名
+  level: number  // 拿不到，一直是 0
+  eMail: string
+  uid: string
+  categoryId: number
+  richTime: number // 暂时未知其含义
 }
 
 export enum OB11UserSex {
