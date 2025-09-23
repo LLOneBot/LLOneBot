@@ -175,7 +175,7 @@ export function invoke<
       })
       pmhq.call(funcName, args, timeout).then(r => {
         firstResult = r
-        if (r.result !== 0) {
+        if (parseInt(r.result) !== 0) {
           const displayReq = inspect(args, {
             depth: 10,
             compact: true,
