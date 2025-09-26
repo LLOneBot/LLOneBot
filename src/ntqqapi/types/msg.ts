@@ -601,17 +601,6 @@ export interface QueryMsgsParams {
   isIncludeCurrent: boolean
 }
 
-export interface TmpChatInfoApi extends GeneralCallResult {
-  tmpChatInfo?: {
-    chatType: number
-    fromNick: string
-    groupCode: string
-    peerUid: string
-    sessionType: number
-    sig: string
-  }
-}
-
 export interface GetFileListParam {
   sortType: number
   fileCount: number

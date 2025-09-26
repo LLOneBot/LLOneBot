@@ -1,4 +1,4 @@
-import { ElementType, MessageElement, Peer, RawMessage, QueryMsgsParams, TmpChatInfoApi } from '@/ntqqapi/types'
+import { ElementType, MessageElement, Peer, RawMessage, QueryMsgsParams } from '@/ntqqapi/types'
 import { GeneralCallResult } from './common'
 
 export interface NodeIKernelMsgService {
@@ -96,7 +96,16 @@ export interface NodeIKernelMsgService {
 
   getMultiMsg(...args: unknown[]): Promise<GeneralCallResult & { msgList: RawMessage[] }>
 
-  getTempChatInfo(chatType: number, uid: string): Promise<TmpChatInfoApi>
+  getTempChatInfo(chatType: number, uid: string): Promise<GeneralCallResult & {
+    tmpChatInfo: {
+      sessionType: number
+      chatType: number
+      peerUid: string
+      groupCode: string
+      fromNick: string
+      sig: {}
+    }
+  }>
 
   sendSsoCmdReqByContend(ssoCmd: string, content: string): Promise<GeneralCallResult & { rsp: string }>
 
