@@ -14,7 +14,7 @@
     "compile:proto": "pbjs --no-create --no-convert --no-delimited --no-verify -t static-module -w es6 -p src/ntqqapi/proto -o src/ntqqapi/proto/compiled.js profileLikeTip.proto groupNotify.proto message.proto richMedia.proto oidb.proto action.proto && pbts --main -o src/ntqqapi/proto/compiled.d.ts src/ntqqapi/proto/compiled.js"
   },
   "author": "",
-  "license": "MIT",
+  "license": "GPL-2.0",
   "dependencies": {
     "@minatojs/driver-sqlite": "^4.6.0",
     "@satorijs/element": "^3.1.8",
