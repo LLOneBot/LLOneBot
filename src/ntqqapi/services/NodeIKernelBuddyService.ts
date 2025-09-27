@@ -36,4 +36,6 @@ export interface NodeIKernelBuddyService {
   setBuddyCategory(uid: string, categoryId: number): Promise<GeneralCallResult>
 
   getDoubtBuddyReq(reqId: string, reqNum: number, cookie: string): Promise<GeneralCallResult>
+
+  approvalDoubtBuddyReq(uid: string, groupId: string, remark: string): Promise<GeneralCallResult>
 }

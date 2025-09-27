@@ -102,4 +102,8 @@ export class NTQQFriendApi extends Service {
       }
     )
   }
+
+  async approvalDoubtBuddyReq(uid: string) {
+    return await invoke('nodeIKernelBuddyService/approvalDoubtBuddyReq', [uid, '', ''])
+  }
 }
