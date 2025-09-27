@@ -1,7 +1,7 @@
 import { unlink } from 'node:fs/promises'
 import { statSync } from 'node:fs'
 import { Service, Context } from 'cordis'
-import { registerReceiveHook, ReceiveCmdS, registerCallHook } from './hook'
+import { registerReceiveHook, ReceiveCmdS } from './hook'
 import { Config as LLOBConfig } from '../common/types'
 import {
   RawMessage,
@@ -11,14 +11,12 @@ import {
   GroupMember,
   BuddyReqType,
   GrayTipElementSubType,
-  CategoryFriend,
-  SimpleInfo,
   ChatType,
   Peer,
   SendMessageElement,
   ElementType, GroupSimpleInfo,
 } from './types'
-import { dbDir, selfInfo } from '../common/globalVars'
+import { selfInfo } from '../common/globalVars'
 import { version } from '../version'
 import { pmhq } from './native/pmhq'
 import {
@@ -28,12 +26,8 @@ import {
   FlashFileUploadingInfo,
 } from '@/ntqqapi/types/flashfile'
 import { logSummaryMessage } from '@/ntqqapi/log'
-import { setFfmpegPath } from 'fluent-ffmpeg'
 import { setFFMpegPath } from '@/common/utils/ffmpeg'
-import { NodeIKernelLoginListener, OnQRCodeLoginSucceedParameter } from '@/ntqqapi/services/NodeIKernelLoginService'
-import { getConfigUtil } from '@/common/config'
-import SQLiteDriver from '@minatojs/driver-sqlite'
-import path from 'node:path'
+import { OnQRCodeLoginSucceedParameter } from '@/ntqqapi/listeners/NodeIKernelLoginListener'
 
 declare module 'cordis' {
   interface Context {
