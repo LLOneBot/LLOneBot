@@ -123,7 +123,7 @@ class OB11WebSocket {
     }
     const action = this.config.actionMap.get(receive.action!)!
     if (!action) {
-      return this.reply(socket, OB11Response.error('API 不存在', 1404, receive.echo))
+      return this.reply(socket, OB11Response.error(`${receive.action} API 不存在`, 1404, receive.echo))
     }
     const handleResult = await action.websocketHandle(receive.params, receive.echo)
     this.reply(socket, handleResult)
@@ -223,7 +223,7 @@ class OB11WebSocketReverse {
     }
     const action = this.config.actionMap.get(receive.action!)!
     if (!action) {
-      return this.reply(this.wsClient!, OB11Response.error('API 不存在', 1404, receive.echo))
+      return this.reply(this.wsClient!, OB11Response.error(`${receive.action} API 不存在`, 1404, receive.echo))
     }
     const handleResult = await action.websocketHandle(receive.params, receive.echo)
     this.reply(this.wsClient!, handleResult)

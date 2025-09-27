@@ -144,8 +144,8 @@ export interface SimpleInfo {
   status: UserStatus | null
   vasInfo: VasInfo | null
   relationFlags: RelationFlags | null
-  otherFlags: unknown | null
-  intimate: unknown | null
+  otherFlags: unknown
+  intimate: unknown
 }
 
 interface RelationFlags {

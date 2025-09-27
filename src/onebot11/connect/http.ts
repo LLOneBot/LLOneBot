@@ -74,7 +74,7 @@ class OB11Http {
       this.ctx.logger.info(`OneBot V11 HTTP SSE started ${host}:${this.config.port}/_events`)
       try {
         this.server = this.expressAPP.listen(this.config.port, host, (err) => {
-          if (err){
+          if (err) {
             this.ctx.logger.error('OneBot V11 HTTP server start error:', err)
           }
           this.ctx.logger.info(`OneBot V11 HTTP server started ${host}:${this.config.port}`)
@@ -84,7 +84,7 @@ class OB11Http {
           this.sockets.add(socket)
           socket.on('close', () => this.sockets.delete(socket))
         })
-      }catch (e) {
+      } catch (e) {
         this.ctx.logger.error(`OneBot V11 HTTP server error ${host}:${this.config.port}`, e)
       }
     } catch (e) {
@@ -176,11 +176,12 @@ class OB11Http {
       payload = { ...req.query, ...req.body }
     }
     this.ctx.logger.info('收到 HTTP 请求', req.url, payload)
-    const action = this.config.actionMap.get(req.path.replaceAll('/', ''))
+    const actionName = req.path.replaceAll('/', '')
+    const action = this.config.actionMap.get(actionName)
     if (action) {
       res.json(await action.handle(payload))
     } else {
-      res.status(404).json(OB11Response.error('API 不存在', 404))
+      res.status(404).json(OB11Response.error(`${actionName} API 不存在`, 404))
     }
   }
 }
