@@ -139,7 +139,7 @@ export interface NodeIKernelGroupService {
 
   getGroupShutUpMemberList(groupCode: string): Promise<void | GeneralCallResult>
 
-  getAllMemberList(groupCode: string, force: boolean): Promise<{
+  getAllMemberList(groupCode: string, forceFetch: boolean): Promise<{
     errCode: number
     errMsg: string
     result: {
