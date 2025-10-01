@@ -100,7 +100,13 @@ async function onLoad() {
   }
 
   let started = false
-  const pmhqSelfInfo: { uin: string, uid: string, online: boolean } = await pmhq.call('getSelfInfo', [])
+  let pmhqSelfInfo = { ...selfInfo }
+  try {
+    pmhqSelfInfo = await pmhq.call('getSelfInfo', [])
+    ctx.logger.info('获取账号信息状态', pmhqSelfInfo)
+  } catch (e) {
+    ctx.logger.error('获取登录状态失败，等待登录成功中...', e)
+  }
   if (pmhqSelfInfo.online) {
     selfInfo.uin = pmhqSelfInfo.uin
     selfInfo.uid = pmhqSelfInfo.uid
@@ -110,7 +116,7 @@ async function onLoad() {
     }).catch(e => {
       ctx.logger.warn('获取登录号昵称失败', e)
     })
-    config = getConfigUtil().getConfig()
+    config = getConfigUtil(true).getConfig()
     getConfigUtil().listenChange(c => {
       ctx.parallel('llob/config-updated', c)
     })
@@ -159,7 +165,7 @@ async function onLoad() {
   ctx.logger.info(`LLTwoBot ${version}`)
   // setFFMpegPath(config.ffmpeg || '')
   startHook()
-  ctx.start().catch(e=> {
+  ctx.start().catch(e => {
     console.error('Start error:', e)
   })
   started = true
