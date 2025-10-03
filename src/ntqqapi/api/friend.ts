@@ -33,8 +33,8 @@ export class NTQQFriendApi extends Service {
     return data
   }
 
-  async getBuddyV2(refresh: boolean) {
-    const res = await invoke('nodeIKernelBuddyService/getBuddyListV2', [refresh, 0])
+  async getBuddyV2(forceRefresh: boolean) {
+    const res = await invoke('nodeIKernelBuddyService/getBuddyListV2', [forceRefresh, 0])
     const uids = res.data.filter(e => e.categoryId !== 9999).flatMap(e => e.buddyUids)
     return await this.ctx.ntUserApi.getCoreAndBaseInfo(uids)
   }

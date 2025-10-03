@@ -3,7 +3,6 @@ import {
   GroupSimpleInfo,
   GroupMember,
   GroupMemberRole,
-  GroupNotifies,
   GroupRequestOperateTypes,
   GetFileListParam,
   PublishGroupBulletinReq,
@@ -15,11 +14,6 @@ import {
 } from '../types'
 import { invoke, NTMethod } from '../ntcall'
 import { Service, Context } from 'cordis'
-import { Field } from 'minato'
-import number = Field.number
-import boolean = Field.boolean
-import string = Field.string
-import { uidUinBidiMap } from '@/ntqqapi/cache'
 
 declare module 'cordis' {
   interface Context {
@@ -32,13 +26,13 @@ export class NTQQGroupApi extends Service {
     super(ctx, 'ntGroupApi', true)
   }
 
-  async getGroups(): Promise<GroupSimpleInfo[]> {
+  async getGroups(forceFetch = true): Promise<GroupSimpleInfo[]> {
     const result = await invoke<[
       updateType: number,
       groupList: GroupSimpleInfo[]
     ]>(
       'nodeIKernelGroupService/getGroupList',
-      [true],
+      [forceFetch],
       {
         resultCmd: 'nodeIKernelGroupListener/onGroupListUpdate',
       },
@@ -46,8 +40,8 @@ export class NTQQGroupApi extends Service {
     return result[1]
   }
 
-  async getGroupMembers(groupCode: string, force: boolean = true): Promise<Map<string, GroupMember>> {
-    const data = await invoke(NTMethod.GROUP_MEMBERS, [groupCode, force])
+  async getGroupMembers(groupCode: string, forceFetch: boolean = true): Promise<Map<string, GroupMember>> {
+    const data = await invoke(NTMethod.GROUP_MEMBERS, [groupCode, forceFetch])
     if (data.errCode !== 0) {
       throw new Error('获取群成员列表出错, ' + data.errMsg)
     }
