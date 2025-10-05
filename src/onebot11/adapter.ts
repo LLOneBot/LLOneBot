@@ -236,12 +236,9 @@ class OneBot11Adapter extends Service {
     //     this.dispatch(privateEvent)
     //   }
     // })
-    const oriMessageId = this.ctx.store.getShortIdByMsgInfo(peer, message.msgId)
-    if (!oriMessageId) {
-      return
-    }
+    const shortId = this.ctx.store.createMsgShortId(peer, message.msgId)
 
-    OB11Entities.recallEvent(this.ctx, message, oriMessageId).then((recallEvent) => {
+    OB11Entities.recallEvent(this.ctx, message, shortId).then((recallEvent) => {
       if (recallEvent) {
         this.dispatch(recallEvent)
       }

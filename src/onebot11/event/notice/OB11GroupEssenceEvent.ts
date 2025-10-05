@@ -34,7 +34,7 @@ export class GroupEssenceEvent extends OB11GroupNoticeEvent {
     let essence
     try {
       essence = await ctx.ntGroupApi.queryCachedEssenceMsg(groupCode, msgSeq, msgRandom)
-    }catch (e: any) {
+    } catch (e: any) {
       ctx.logger.error('获取群精华消息失败', e.message)
       return
     }
@@ -43,7 +43,7 @@ export class GroupEssenceEvent extends OB11GroupNoticeEvent {
     if (!sourceMsg) return
     return new GroupEssenceEvent(
       parseInt(groupCode),
-      ctx.store.getShortIdByMsgInfo(peer, sourceMsg.msgId)!,
+      ctx.store.createMsgShortId(peer, sourceMsg.msgId),
       parseInt(essence.items[0]?.msgSenderUin ?? sourceMsg.senderUin),
       parseInt(essence.items[0]?.opUin ?? '0'),
     )

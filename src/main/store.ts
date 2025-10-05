@@ -77,11 +77,10 @@ class Store extends Service {
     // OneBot 11 要求 message_id 为 int32
     const cacheKey = `${msgId}|${peer.chatType}|${peer.peerUid}`
     const existingShortId = this.getShortIdByMsgInfo(peer, msgId)
-    if (existingShortId){
+    if (existingShortId) {
       return existingShortId
     }
     const hash = createHash('md5').update(cacheKey).digest()
-    hash[0] &= 0x7f //保证shortId为正数
     const shortId = hash.readInt32BE()
     this.cache.set(cacheKey, shortId)
     this.ctx.database.upsert('message', [{
@@ -89,7 +88,7 @@ class Store extends Service {
       shortId,
       chatType: peer.chatType,
       peerUid: peer.peerUid
-    }], 'shortId').then().catch(e=>this.ctx.logger.error('createMsgShortId database error:', e))
+    }], 'shortId').then().catch(e => this.ctx.logger.error('createMsgShortId database error:', e))
     return shortId
   }
 
@@ -136,7 +135,7 @@ class Store extends Service {
       return existingFile
     }
     this.ctx.database.upsert('file_v2', [data], 'fileUuid').then()
-      .catch(e=>this.ctx.logger.error('addFileCache database error:', e))
+      .catch(e => this.ctx.logger.error('addFileCache database error:', e))
   }
 
   getFileCacheByName(fileName: string) {
@@ -174,7 +173,7 @@ class Store extends Service {
 
   addMultiMsgInfo(rootMsgId: string, parentMsgId: string, peerUid: string) {
     this.ctx.database.upsert('forward', [{ rootMsgId, parentMsgId, peerUid }]).then()
-      .catch(e=>this.ctx.logger.error('addMultiMsgInfo database error:', e))
+      .catch(e => this.ctx.logger.error('addMultiMsgInfo database error:', e))
   }
 
   getMultiMsgInfo(parentMsgId: string) {
