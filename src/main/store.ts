@@ -74,15 +74,14 @@ class Store extends Service {
   }
 
   createMsgShortId(peer: Peer, msgId: string): number {
-    // OneBot 11 要求 message_id 为 int32
-    const cacheKey = `${msgId}|${peer.chatType}|${peer.peerUid}`
     const existingShortId = this.getShortIdByMsgInfo(peer, msgId)
     if (existingShortId) {
       return existingShortId
     }
-    const hash = createHash('md5').update(cacheKey).digest()
-    const shortId = hash.readInt32BE()
-    this.cache.set(cacheKey, shortId)
+    const key = `${msgId}|${peer.chatType}|${peer.peerUid}`
+    const hash = createHash('md5').update(key).digest()
+    const shortId = hash.readInt32BE() // OneBot 11 要求 message_id 为 int32
+    this.cache.set(key, shortId)
     this.ctx.database.upsert('message', [{
       msgId,
       shortId,
