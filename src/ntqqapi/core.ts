@@ -37,6 +37,7 @@ declare module 'cordis' {
   interface Events {
     'nt/login-qrcode': (input: OnQRCodeLoginSucceedParameter) => void
     'nt/message-created': (input: RawMessage) => void
+    'nt/offline-message-created': (input: RawMessage) => void
     'nt/message-deleted': (input: RawMessage) => void
     'nt/message-sent': (input: RawMessage) => void
     'nt/group-notify': (input: { notify: GroupNotify, doubt: boolean }) => void
@@ -127,8 +128,8 @@ class Core extends Service {
   private handleMessage(msgList: RawMessage[]) {
     for (const message of msgList) {
       const msgTime = parseInt(message.msgTime)
-      // 过滤启动之前的消息
-      if (!this.config.receiveOfflineMsg && msgTime < this.startupTime) {
+      if (msgTime < this.startupTime) {
+        this.ctx.parallel('nt/offline-message-created', message)
         continue
       }
       if (message.senderUin && message.senderUin !== '0') {

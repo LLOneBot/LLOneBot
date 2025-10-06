@@ -10,17 +10,19 @@ import { OB11HeartbeatEvent } from '../event/meta/OB11HeartbeatEvent'
 import { selfInfo } from '@/common/globalVars'
 import { OB11BaseEvent } from '../event/OB11BaseEvent'
 import { version } from '../../version'
+import { WsConnectConfig, WsReverseConnectConfig } from '@/common/types'
 
 class OB11WebSocket {
   private wsServer?: WebSocketServer
   private wsClients: { socket: WebSocket; emitEvent: boolean }[] = []
+  private activated: boolean = false
 
   constructor(protected ctx: Context, public config: OB11WebSocket.Config) {
   }
 
   public start() {
     if (this.wsServer) return
-    const host = this.config.listenLocalhost ? '127.0.0.1' : ''
+    const host = this.config.onlyLocalhost ? '127.0.0.1' : ''
     this.ctx.logger.info(`OneBot V11 WebSocket server started ${host}:${this.config.port}`)
     this.wsServer = new WebSocketServer({
       host,
@@ -34,6 +36,7 @@ class OB11WebSocket {
       this.authorize(socket, req)
       this.connect(socket, req)
     })
+    this.activated = true
   }
 
   public stop() {
@@ -60,10 +63,12 @@ class OB11WebSocket {
       } else {
         resolve(true)
       }
+      this.activated = false
     })
   }
 
   public async emitEvent(event: OB11BaseEvent) {
+    if (!this.activated) return
     this.wsClients.forEach(({ socket, emitEvent }) => {
       if (emitEvent && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify(event))
@@ -71,6 +76,29 @@ class OB11WebSocket {
         this.ctx.logger.info('WebSocket 事件上报', socket.url ?? '', eventName)
       }
     })
+  }
+
+  public async emitMessageLikeEvent(event: OB11BaseEvent, self: boolean, offline: boolean) {
+    if (self && !this.config.reportSelfMessage) {
+      return
+    }
+    if (offline && !this.config.reportOfflineMessage) {
+      return
+    }
+    if (event.post_type === 'message' || event.post_type === 'message_sent') {
+      const msg = event as OB11Message
+      if (!this.config.debug && msg.message.length === 0) {
+        return
+      }
+      if (!this.config.debug) {
+        delete msg.raw
+      }
+      if (this.config.messageFormat === 'string') {
+        msg.message = msg.raw_message
+        msg.message_format = 'string'
+      }
+    }
+    await this.emitEvent(event)
   }
 
   public updateConfig(config: Partial<OB11WebSocket.Config>) {
@@ -167,40 +195,65 @@ class OB11WebSocket {
 }
 
 namespace OB11WebSocket {
-  export interface Config {
-    port: number
-    heartInterval: number
-    token?: string
+  export interface Config extends WsConnectConfig {
     actionMap: Map<string, BaseAction<unknown, unknown>>
-    listenLocalhost: boolean
+    onlyLocalhost: boolean
   }
 }
 
 class OB11WebSocketReverse {
-  private running: boolean = false
+  private activated: boolean = false
   private wsClient?: WebSocket
 
   constructor(protected ctx: Context, public config: OB11WebSocketReverse.Config) {
   }
 
   public start() {
-    if (!this.running) {
-      this.running = true
+    if (!this.activated) {
+      this.activated = true
       this.tryConnect()
     }
   }
 
   public stop() {
-    this.running = false
+    this.activated = false
     this.wsClient?.close()
   }
 
-  public emitEvent(event: OB11BaseEvent) {
+  public async emitEvent(event: OB11BaseEvent) {
+    if (!this.activated) return
     if (this.wsClient && this.wsClient.readyState === WebSocket.OPEN) {
       this.wsClient.send(JSON.stringify(event))
       const eventName = event.getSummaryEventName()
       this.ctx.logger.info('WebSocket 事件上报', this.wsClient.url ?? '', eventName)
     }
+  }
+
+  public async emitMessageLikeEvent(event: OB11BaseEvent, self: boolean, offline: boolean) {
+    if (self && !this.config.reportSelfMessage) {
+      return
+    }
+    if (offline && !this.config.reportOfflineMessage) {
+      return
+    }
+    if (event.post_type === 'message' || event.post_type === 'message_sent') {
+      const msg = event as OB11Message
+      if (!this.config.debug && msg.message.length === 0) {
+        return
+      }
+      if (!this.config.debug) {
+        delete msg.raw
+      }
+      if (this.config.messageFormat === 'string') {
+        msg.message = msg.raw_message
+        msg.message_format = 'string'
+      }
+    }
+    await this.emitEvent(event)
+  }
+
+  public updateConfig(config: Partial<OB11WebSocketReverse.Config>) {
+    Object.assign(this.config, config)
   }
 
   private reply(socket: WebSocket, data: OB11Return<unknown> | OB11BaseEvent | OB11Message) {
@@ -230,7 +283,7 @@ class OB11WebSocketReverse {
   }
 
   private tryConnect() {
-    if (this.wsClient && !this.running) {
+    if (this.wsClient && !this.activated) {
       return
     }
     this.wsClient = new WebSocket(this.config.url, {
@@ -273,8 +326,8 @@ class OB11WebSocketReverse {
 
     this.wsClient.on('close', () => {
       disposeHeartBeat()
-      this.ctx.logger.info(`The websocket connection: ${this.config.url} closed${this.running ? ', trying reconnecting...' : ''}`)
-      if (this.running) {
+      this.ctx.logger.info(`The websocket connection: ${this.config.url} closed${this.activated ? ', trying reconnecting...' : ''}`)
+      if (this.activated) {
         this.ctx.setTimeout(() => this.tryConnect(), 3000)
       }
     })
@@ -282,60 +335,9 @@ class OB11WebSocketReverse {
 }
 
 namespace OB11WebSocketReverse {
-  export interface Config {
-    url: string
-    heartInterval: number
-    token?: string
+  export interface Config extends WsReverseConnectConfig {
     actionMap: Map<string, BaseAction<unknown, unknown>>
   }
 }
 
-class OB11WebSocketReverseManager {
-  private list: OB11WebSocketReverse[] = []
-
-  constructor(protected ctx: Context, public config: OB11WebSocketReverseManager.Config) {
-  }
-
-  public async start() {
-    if (this.list.length > 0) {
-      return
-    }
-    for (const url of this.config.hosts) {
-      const ws = new OB11WebSocketReverse(this.ctx, { ...this.config, url })
-      ws.start()
-      this.list.push(ws)
-    }
-  }
-
-  public stop() {
-    for (const ws of this.list) {
-      try {
-        ws.stop()
-      } catch (e) {
-        this.ctx.logger.error('反向 WebSocket 关闭:', (e as Error).stack)
-      }
-    }
-    this.list.length = 0
-  }
-
-  public async emitEvent(event: OB11BaseEvent | OB11Message) {
-    for (const ws of this.list) {
-      ws.emitEvent(event)
-    }
-  }
-
-  public updateConfig(config: Partial<OB11WebSocketReverseManager.Config>) {
-    Object.assign(this.config, config)
-  }
-}
-
-namespace OB11WebSocketReverseManager {
-  export interface Config {
-    hosts: string[]
-    heartInterval: number
-    token?: string
-    actionMap: Map<string, BaseAction<unknown, unknown>>
-  }
-}
-
-export { OB11WebSocket, OB11WebSocketReverseManager }
+export { OB11WebSocket, OB11WebSocketReverse }

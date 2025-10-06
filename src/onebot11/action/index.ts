@@ -1,4 +1,5 @@
 import type Adapter from '../adapter'
+import { BaseAction } from './BaseAction'
 import GetMsg from './msg/GetMsg'
 import GetLoginInfo from './system/GetLoginInfo'
 import { GetFriendList } from './user/GetFriendList'
@@ -219,7 +220,7 @@ export function initActionMap(adapter: Adapter) {
     new SetQQProfile(adapter),
     new SetGroupPortrait(adapter),
   ]
-  const actionMap = new Map()
+  const actionMap: Map<string, BaseAction<any, unknown>> = new Map()
   for (const action of actionHandlers) {
     actionMap.set(action.actionName, action)
     actionMap.set(action.actionName + '_async', action)

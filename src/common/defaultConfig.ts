@@ -2,19 +2,52 @@ import { Config, OB11Config, SatoriConfig, WebUIConfig } from '@/common/types'
 
 const ob11Default: OB11Config = {
   enable: true,
-  token: '',
-  httpPort: 3000,
-  httpPostUrls: [],
-  httpSecret: '',
-  wsPort: 3001,
-  wsReverseUrls: [],
-  enableHttp: true,
-  enableHttpPost: true,
-  enableWs: true,
-  enableWsReverse: true,
-  messagePostFormat: 'array',
-  enableHttpHeart: false,
-  reportSelfMessage: false,
+  connect: [
+    {
+      type: 'ws',
+      enable: true,
+      port: 3001,
+      heartInterval: 60000,
+      token: '',
+      reportSelfMessage: false,
+      reportOfflineMessage: false,
+      messageFormat: 'array',
+      debug: false
+    },
+    {
+      type: 'ws-reverse',
+      enable: false,
+      url: '',
+      heartInterval: 60000,
+      token: '',
+      reportSelfMessage: false,
+      reportOfflineMessage: false,
+      messageFormat: 'array',
+      debug: false
+    },
+    {
+      type: 'http',
+      enable: true,
+      port: 3000,
+      token: '',
+      reportSelfMessage: false,
+      reportOfflineMessage: false,
+      messageFormat: 'array',
+      debug: false
+    },
+    {
+      type: 'http-post',
+      enable: false,
+      url: '',
+      enableHeart: false,
+      heartInterval: 60000,
+      token: '',
+      reportSelfMessage: false,
+      reportOfflineMessage: false,
+      messageFormat: 'array',
+      debug: false
+    }
+  ]
 }
 const satoriDefault: SatoriConfig = {
   enable: false,
@@ -30,14 +63,11 @@ export const defaultConfig: Config = {
   onlyLocalhost: true,
   satori: satoriDefault,
   ob11: ob11Default,
-  heartInterval: 60000,
   enableLocalFile2Url: false,
-  debug: false,
   log: true,
   autoDeleteFile: false,
   autoDeleteFileSecond: 60,
   musicSignUrl: 'https://llob.linyuchen.net/sign/music',
   msgCacheExpire: 120,
   ffmpeg: '',
-  receiveOfflineMsg: false,
 }

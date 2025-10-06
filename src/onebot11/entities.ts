@@ -42,7 +42,6 @@ import { Dict } from 'cosmokit'
 import { Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
 import { pathToFileURL } from 'node:url'
-import OneBot11Adapter from './adapter'
 import { OB11GroupRequestEvent } from '@/onebot11/event/request/OB11GroupRequest'
 
 export namespace OB11Entities {
@@ -53,10 +52,6 @@ export namespace OB11Entities {
     peer?: Peer,
   ): Promise<OB11Message | undefined> {
     if (!msg.senderUin || msg.senderUin === '0' || msg.msgType === 1) return //跳过空消息
-    const {
-      debug,
-      messagePostFormat,
-    } = ctx.config as OneBot11Adapter.Config
     const selfUin = selfInfo.uin
     const msgShortId = ctx.store.createMsgShortId({
       chatType: msg.chatType,
@@ -78,16 +73,14 @@ export namespace OB11Entities {
       raw_message: '',
       font: 14,
       sub_type: 'friend',
-      message: messagePostFormat === 'string' ? '' : [],
-      message_format: messagePostFormat === 'string' ? 'string' : 'array',
+      message: [],
+      message_format: 'array',
       post_type: selfUin === msg.senderUin ? EventType.MESSAGE_SENT : EventType.MESSAGE,
       getSummaryEventName(): string {
         return this.post_type + '.' + this.message_type
       }
     }
-    if (debug) {
-      resMsg.raw = msg
-    }
+    resMsg.raw = msg
     if (msg.chatType === ChatType.Group) {
       resMsg.sub_type = 'normal'
       resMsg.group_id = parseInt(msg.peerUin)
@@ -461,14 +454,11 @@ export namespace OB11Entities {
       }
       if (messageSegment) {
         const cqCode = encodeCQCode(messageSegment)
-        if (messagePostFormat === 'array') {
-          (resMsg.message as OB11MessageData[]).push(messageSegment)
+        if (typeof resMsg.message === 'object') {
+          resMsg.message.push(messageSegment)
         }
         resMsg.raw_message += cqCode
       }
-    }
-    if (messagePostFormat === 'string') {
-      resMsg.message = resMsg.raw_message
     }
     return resMsg
   }

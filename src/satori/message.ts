@@ -144,7 +144,11 @@ export class MessageEncoder {
     let srcPeer: NT.Peer
     let needSendSelf = false
     for (const { peer } of nodeMsgIds) {
-      srcPeer ??= { chatType: peer.chatType, peerUid: peer.peerUid }
+      srcPeer ??= {
+        chatType: peer.chatType,
+        peerUid: peer.peerUid,
+        guildId: ''
+      }
       if (srcPeer.peerUid !== peer.peerUid) {
         needSendSelf = true
         break
