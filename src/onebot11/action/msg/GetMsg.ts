@@ -2,6 +2,7 @@ import { BaseAction } from '../BaseAction'
 import { OB11Message } from '../../types'
 import { OB11Entities } from '../../entities'
 import { ActionName } from '../types'
+import { ParseMessageConfig } from '@/onebot11/types'
 
 export interface PayloadType {
   message_id: number | string
@@ -12,7 +13,7 @@ export type ReturnDataType = OB11Message
 class GetMsg extends BaseAction<PayloadType, OB11Message> {
   actionName = ActionName.GetMsg
 
-  protected async _handle(payload: PayloadType) {
+  protected async _handle(payload: PayloadType, config: ParseMessageConfig) {
     if (!payload.message_id) {
       throw new Error('参数message_id不能为空')
     }
@@ -28,7 +29,7 @@ class GetMsg extends BaseAction<PayloadType, OB11Message> {
       }
       msg = res.msgList[0]
     }
-    const retMsg = await OB11Entities.message(this.ctx, msg)
+    const retMsg = await OB11Entities.message(this.ctx, msg, undefined, undefined, config)
     if (!retMsg) {
       throw new Error('消息为空')
     }

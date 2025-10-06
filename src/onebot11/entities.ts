@@ -43,6 +43,7 @@ import { Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
 import { pathToFileURL } from 'node:url'
 import { OB11GroupRequestEvent } from '@/onebot11/event/request/OB11GroupRequest'
+import { ParseMessageConfig } from './types'
 
 export namespace OB11Entities {
   export async function message(
@@ -50,6 +51,7 @@ export namespace OB11Entities {
     msg: RawMessage,
     rootMsgID?: string,
     peer?: Peer,
+    config?: ParseMessageConfig
   ): Promise<OB11Message | undefined> {
     if (!msg.senderUin || msg.senderUin === '0' || msg.msgType === 1) return //跳过空消息
     const selfUin = selfInfo.uin
@@ -80,7 +82,9 @@ export namespace OB11Entities {
         return this.post_type + '.' + this.message_type
       }
     }
-    resMsg.raw = msg
+    if (!config || config.debug) {
+      resMsg.raw = msg
+    }
     if (msg.chatType === ChatType.Group) {
       resMsg.sub_type = 'normal'
       resMsg.group_id = parseInt(msg.peerUin)
@@ -459,6 +463,10 @@ export namespace OB11Entities {
         }
         resMsg.raw_message += cqCode
       }
+    }
+    if (config?.messageFormat === 'string') {
+      resMsg.message = resMsg.raw_message
+      resMsg.message_format = 'string'
     }
     return resMsg
   }

@@ -208,7 +208,10 @@ class OB11Http {
     const actionName = req.path.replaceAll('/', '')
     const action = this.config.actionMap.get(actionName)
     if (action) {
-      res.json(await action.handle(payload))
+      res.json(await action.handle(payload, {
+        messageFormat: this.config.messageFormat,
+        debug: this.config.debug
+      }))
     } else {
       res.status(404).json(OB11Response.error(`${actionName} API 不存在`, 404))
     }

@@ -4,6 +4,7 @@ import { ActionName } from '../types'
 import { ChatType, Peer, RawMessage } from '@/ntqqapi/types'
 import { OB11Entities } from '@/onebot11/entities'
 import { filterNullable, parseBool } from '@/common/utils/misc'
+import { ParseMessageConfig } from '@/onebot11/types'
 
 interface Payload {
   user_id: number | string
@@ -25,7 +26,7 @@ export class GetFriendMsgHistory extends BaseAction<Payload, Response> {
     reverseOrder: Schema.union([Boolean, Schema.transform(String, parseBool)]).default(false)
   })
 
-  private async getMessage(peer: Peer, count: number, seq?: number | string) {
+  private async getMessage(config: ParseMessageConfig, peer: Peer, count: number, seq?: number | string) {
     let msgList: RawMessage[]
     if (!seq || +seq === 0) {
       msgList = (await this.ctx.ntMsgApi.getAioFirstViewLatestMsgs(peer, count)).msgList
@@ -41,12 +42,12 @@ export class GetFriendMsgHistory extends BaseAction<Payload, Response> {
           rawMsg = msg
         }
       }
-      return OB11Entities.message(this.ctx, rawMsg)
+      return OB11Entities.message(this.ctx, rawMsg, undefined, undefined, config)
     }))
     return { list: filterNullable(ob11MsgList), seq: +msgList[0].msgSeq }
   }
 
-  async _handle(payload: Payload): Promise<Response> {
+  async _handle(payload: Payload, config: ParseMessageConfig): Promise<Response> {
     const uid = await this.ctx.ntUserApi.getUidByUin(payload.user_id.toString())
     if (!uid) throw new Error(`无法获取用户信息`)
     const isBuddy = await this.ctx.ntFriendApi.isBuddy(uid)
@@ -61,7 +62,7 @@ export class GetFriendMsgHistory extends BaseAction<Payload, Response> {
     let count = +payload.count
 
     while (count > 0) {
-      const res = await this.getMessage(peer, count, seq)
+      const res = await this.getMessage(config, peer, count, seq)
       if (!res) break
       seq = res.seq - 1
       count -= res.list.length

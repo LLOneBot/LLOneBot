@@ -6,6 +6,7 @@ import { filterNullable } from '@/common/utils/misc'
 import { message2List } from '@/onebot11/helper/createMessage'
 import { decodeMultiMessage } from '@/onebot11/helper/decodeMultiMessage'
 import { Msg } from '@/ntqqapi/proto/compiled'
+import { ParseMessageConfig } from '@/onebot11/types'
 
 interface Payload {
   message_id: string // long msg id，gocq
@@ -23,7 +24,7 @@ export class GetForwardMsg extends BaseAction<Payload, Response> {
     id: Schema.string()
   })
 
-  protected async _handle(payload: Payload) {
+  protected async _handle(payload: Payload, config: ParseMessageConfig) {
     const msgId = payload.id || payload.message_id
     if (!msgId) {
       throw Error('message_id不能为空')
@@ -61,7 +62,7 @@ export class GetForwardMsg extends BaseAction<Payload, Response> {
     }
     const messages: (OB11ForwardMessage | undefined)[] = await Promise.all(
       data.msgList.map(async (msg) => {
-        const res = await OB11Entities.message(this.ctx, msg, rootMsgId, peer)
+        const res = await OB11Entities.message(this.ctx, msg, rootMsgId, peer, config)
         if (res) {
           const segments = message2List(res.message)
           for (const item of segments) {
