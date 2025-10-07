@@ -1,68 +1,40 @@
-// API 相关类型
+// 直接从后端导出类型定义，避免代码重复
+import type { Config as BackendConfig, WebUIConfig as BackendWebUIConfig } from '@common/types'
+
+export type {
+  OB11Config,
+  SatoriConfig,
+  BaseConnectConfig,
+  WsConnectConfig,
+  WsReverseConnectConfig,
+  HttpConnectConfig,
+  HttpPostConnectConfig,
+} from '@common/types'
+
+// 从后端类型导出（使用相对路径）
+export type { SelfInfo } from '../../../../ntqqapi/types/user'
+export type { ResConfig, ReqConfig } from '../../../BE/types'
+
+// 前端使用的 WebUIConfig 类型（只包含 token）
+export interface WebUIConfig {
+  token: string
+}
+
+// 前端使用的 Config 类型（webui 字段使用前端版本）
+export type Config = Omit<BackendConfig, 'webui'> & {
+  webui: WebUIConfig
+}
+
+// 连接配置联合类型
+export type ConnectConfig = 
+  | import('@common/types').WsConnectConfig 
+  | import('@common/types').WsReverseConnectConfig 
+  | import('@common/types').HttpConnectConfig 
+  | import('@common/types').HttpPostConnectConfig
+
+// API 响应类型（前端特有）
 export interface ApiResponse<T = any> {
-  success: boolean;
-  message?: string;
-  data: T;
-}
-
-export interface ResConfig {
-  token: string;
-  config: Config;
-  selfInfo: SelfInfo;
-}
-
-export interface ReqConfig {
-  token: string;
-  config: Config;
-}
-
-export interface SelfInfo {
-  nick: string;
-  uin: string;
-  online: boolean;
-  nickname?: string;
-}
-
-// 配置类型
-export interface Config {
-  ob11: OB11Config;
-  satori: SatoriConfig;
-  heartInterval: number;
-  enableLocalFile2Url: boolean;
-  debug: boolean;
-  log: boolean;
-  autoDeleteFile: boolean;
-  autoDeleteFileSecond: number;
-  musicSignUrl: string;
-  msgCacheExpire: number;
-  receiveOfflineMsg: boolean;
-  onlyLocalhost: boolean;
-  webui: WebuiConfig;
-}
-
-export interface OB11Config {
-  enable: boolean;
-  token: string;
-  enableWs: boolean;
-  wsPort: number;
-  enableWsReverse: boolean;
-  wsReverseUrls: string[];
-  enableHttp: boolean;
-  httpPort: number;
-  enableHttpPost: boolean;
-  enableHttpHeart: boolean;
-  httpPostUrls: string[];
-  httpSecret: string;
-  messagePostFormat: 'array' | 'string';
-  reportSelfMessage: boolean;
-}
-
-export interface SatoriConfig {
-  enable: boolean;
-  port: number;
-  token: string;
-}
-
-export interface WebuiConfig {
-  token: string;
+  success: boolean
+  message?: string
+  data: T
 }

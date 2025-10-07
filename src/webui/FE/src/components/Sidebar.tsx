@@ -1,11 +1,11 @@
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  Settings, 
-  Info, 
-  Radio, 
-  Cpu, 
-  Sliders 
+import {
+  LayoutDashboard,
+  Settings,
+  Info,
+  Radio,
+  Cpu,
+  Sliders
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -27,15 +27,15 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, accountInfo }
   ];
 
   return (
-    <div className="w-64 bg-white/50 backdrop-blur-2xl h-screen flex flex-col shadow-xl border-r border-white/30">
+    <div className="w-64 bg-white/50 backdrop-blur-2xl h-screen flex flex-col shadow-xl border-r border-white/30 sticky top-0">
       {/* Logo */}
       <div className="p-6 border-b border-white/20">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center">
-            <span className="text-white font-bold text-xl">LL</span>
+            <span className="text-white font-bold text-xl">Bot</span>
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-800">LLOneBot</h1>
+            <h1 className="text-xl font-bold text-gray-800">LLTwoBot</h1>
             <p className="text-xs text-gray-500">配置管理</p>
           </div>
         </div>
@@ -70,7 +70,22 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, accountInfo }
       {accountInfo && (
         <div className="p-4 border-t border-white/20">
           <div className="flex items-center space-x-3 px-3 py-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+            <img
+              src={`https://thirdqq.qlogo.cn/g?b=qq&nk=${accountInfo.uin}&s=640`}
+              alt="头像"
+              className="w-10 h-10 rounded-full object-cover ring-2 ring-white/50"
+              onError={(e) => {
+                // 头像加载失败时显示首字母
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              }}
+            />
+            <div
+              className="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full items-center justify-center text-white font-semibold hidden"
+              style={{ display: 'none' }}
+            >
               {accountInfo.nick.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">

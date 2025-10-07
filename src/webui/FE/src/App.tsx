@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
-import OneBotConfig from './components/OneBotConfig';
+import OneBotConfigNew from './components/OneBotConfigNew';
 import OtherConfig from './components/OtherConfig';
 import TokenDialog from './components/TokenDialog';
 import { ToastContainer, showToast } from './components/Toast';
@@ -13,19 +13,52 @@ import { Save, Loader2 } from 'lucide-react';
 const defaultConfig: Config = {
   ob11: {
     enable: false,
-    token: '',
-    enableWs: false,
-    wsPort: 3001,
-    enableWsReverse: false,
-    wsReverseUrls: [],
-    enableHttp: false,
-    httpPort: 3000,
-    enableHttpPost: false,
-    enableHttpHeart: false,
-    httpPostUrls: [],
-    httpSecret: '',
-    messagePostFormat: 'array',
-    reportSelfMessage: false,
+    connect: [
+      {
+        type: 'ws',
+        enable: false,
+        port: 3001,
+        heartInterval: 30000,
+        token: '',
+        messageFormat: 'array',
+        reportSelfMessage: false,
+        reportOfflineMessage: false,
+        debug: false,
+      },
+      {
+        type: 'ws-reverse',
+        enable: false,
+        url: '',
+        heartInterval: 30000,
+        token: '',
+        messageFormat: 'array',
+        reportSelfMessage: false,
+        reportOfflineMessage: false,
+        debug: false,
+      },
+      {
+        type: 'http',
+        enable: false,
+        port: 3000,
+        token: '',
+        messageFormat: 'array',
+        reportSelfMessage: false,
+        reportOfflineMessage: false,
+        debug: false,
+      },
+      {
+        type: 'http-post',
+        enable: false,
+        url: '',
+        enableHeart: false,
+        heartInterval: 30000,
+        token: '',
+        messageFormat: 'array',
+        reportSelfMessage: false,
+        reportOfflineMessage: false,
+        debug: false,
+      },
+    ],
   },
   satori: {
     enable: false,
@@ -82,6 +115,69 @@ function App() {
     }
   }, [passwordResolve]);
 
+  // 转换旧配置到新格式
+  const migrateOldConfig = (oldConfig: any): Config => {
+    // 如果已经是新格式，直接返回
+    if (oldConfig.ob11?.connect && Array.isArray(oldConfig.ob11.connect)) {
+      return oldConfig as Config;
+    }
+
+    // 转换旧格式到新格式
+    const ob11 = oldConfig.ob11 || {};
+    return {
+      ...oldConfig,
+      ob11: {
+        enable: ob11.enable || false,
+        connect: [
+          {
+            type: 'ws',
+            enable: ob11.enableWs || false,
+            port: ob11.wsPort || 3001,
+            heartInterval: oldConfig.heartInterval || 30000,
+            token: ob11.token || '',
+            messageFormat: ob11.messagePostFormat || 'array',
+            reportSelfMessage: ob11.reportSelfMessage || false,
+            reportOfflineMessage: oldConfig.receiveOfflineMsg || false,
+            debug: oldConfig.debug || false,
+          },
+          {
+            type: 'ws-reverse',
+            enable: ob11.enableWsReverse || false,
+            url: (ob11.wsReverseUrls && ob11.wsReverseUrls[0]) || '',
+            heartInterval: oldConfig.heartInterval || 30000,
+            token: ob11.token || '',
+            messageFormat: ob11.messagePostFormat || 'array',
+            reportSelfMessage: ob11.reportSelfMessage || false,
+            reportOfflineMessage: oldConfig.receiveOfflineMsg || false,
+            debug: oldConfig.debug || false,
+          },
+          {
+            type: 'http',
+            enable: ob11.enableHttp || false,
+            port: ob11.httpPort || 3000,
+            token: ob11.token || '',
+            messageFormat: ob11.messagePostFormat || 'array',
+            reportSelfMessage: ob11.reportSelfMessage || false,
+            reportOfflineMessage: oldConfig.receiveOfflineMsg || false,
+            debug: oldConfig.debug || false,
+          },
+          {
+            type: 'http-post',
+            enable: ob11.enableHttpPost || false,
+            url: (ob11.httpPostUrls && ob11.httpPostUrls[0]) || '',
+            enableHeart: ob11.enableHttpHeart || false,
+            heartInterval: oldConfig.heartInterval || 30000,
+            token: ob11.httpSecret || '',
+            messageFormat: ob11.messagePostFormat || 'array',
+            reportSelfMessage: ob11.reportSelfMessage || false,
+            reportOfflineMessage: oldConfig.receiveOfflineMsg || false,
+            debug: oldConfig.debug || false,
+          },
+        ],
+      },
+    };
+  };
+
   // 加载配置
   useEffect(() => {
     const loadConfig = async () => {
@@ -89,7 +185,8 @@ function App() {
         setLoading(true);
         const response = await apiFetch<ResConfig>('/api/config');
         if (response.success) {
-          setConfig(response.data.config);
+          const migratedConfig = migrateOldConfig(response.data.config);
+          setConfig(migratedConfig);
           setToken(response.data.token);
           setAccountInfo({
             nick: response.data.selfInfo.nick || response.data.selfInfo.nickname || '',
@@ -105,14 +202,17 @@ function App() {
     loadConfig();
   }, []);
 
-  // 保存配置
-  const handleSave = async () => {
+  // 保存配置（直接保存新格式）
+  // configToSave: 可选，传入时使用传入的配置，否则使用当前 state
+  const handleSave = useCallback(async (configToSave?: Config) => {
     try {
       setLoading(true);
+      const finalConfig = configToSave || config;
+      console.log('Saving config:', finalConfig);
       const response = await apiFetch('/api/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, config }),
+        body: JSON.stringify({ token, config: finalConfig }),
       });
       if (response.success) {
         setTokenStorage(token);
@@ -125,15 +225,15 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [config, token]); // 依赖 config 和 token
 
   return (
     <div className="flex min-h-screen">
       {/* Animated Background */}
       <AnimatedBackground />
-      
+
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} accountInfo={accountInfo || undefined} />
-      
+
       <main className="flex-1 p-8 overflow-auto">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -146,11 +246,11 @@ function App() {
               {activeTab === 'about' && '关于'}
             </h2>
             <p className="text-white/80">
-              {activeTab === 'dashboard' && '欢迎使用 LLOneBot 配置管理系统'}
+              {activeTab === 'dashboard' && '欢迎使用 LLTwoBot 配置管理系统'}
               {activeTab === 'onebot' && '配置 OneBot 11 协议相关设置'}
               {activeTab === 'satori' && '配置 Satori 协议相关设置'}
               {activeTab === 'other' && '配置全局设置和其他选项'}
-              {activeTab === 'about' && '关于 LLOneBot 项目'}
+              {activeTab === 'about' && '关于 LLTwoBot 项目'}
             </p>
           </div>
 
@@ -212,31 +312,23 @@ function App() {
           )}
 
           {activeTab === 'onebot' && (
-            <>
-              <OneBotConfig
-                config={config.ob11}
-                onChange={(newOb11Config) => setConfig({ ...config, ob11: newOb11Config })}
-              />
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={handleSave}
-                  disabled={loading}
-                  className="btn-primary flex items-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 size={20} className="animate-spin" />
-                      保存中...
-                    </>
-                  ) : (
-                    <>
-                      <Save size={20} />
-                      保存配置
-                    </>
-                  )}
-                </button>
-              </div>
-            </>
+            <OneBotConfigNew
+              config={config.ob11}
+              onChange={(newOb11Config) => {
+                const newConfig = { ...config, ob11: newOb11Config };
+                setConfig(newConfig);
+              }}
+              onSave={(newOb11Config) => {
+                // 如果传入了新配置，使用新配置保存
+                if (newOb11Config) {
+                  const newConfig = { ...config, ob11: newOb11Config };
+                  handleSave(newConfig);
+                } else {
+                  // 否则使用当前 state
+                  handleSave();
+                }
+              }}
+            />
           )}
 
           {activeTab === 'satori' && (

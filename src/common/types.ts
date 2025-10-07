@@ -1,5 +1,6 @@
 export interface BaseConnectConfig {
   type: string
+  name?: string // 自定义名称
   enable: boolean
   token: string
   reportSelfMessage: boolean
