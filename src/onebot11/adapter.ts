@@ -256,7 +256,9 @@ class OneBot11Adapter extends Service {
 
   private async handleConfigUpdated(config: LLOBConfig) {
     for (const item of this.connect) {
-      await item.stop()
+      if (item.config.enable) {
+        await item.stop()
+      }
     }
     if (config.ob11.enable) {
       this.connect = config.ob11.connect.map(item => {
