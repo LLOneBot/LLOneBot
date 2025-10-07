@@ -176,9 +176,18 @@ function App() {
   // 加载中
   if (checkingLogin) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 size={48} className="animate-spin text-blue-500" />
-      </div>
+      <>
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 size={48} className="animate-spin text-blue-500" />
+        </div>
+        
+        {/* Password Dialog - 支持加载时的 401 设置密码 */}
+        <TokenDialog
+          visible={showPasswordDialog}
+          onConfirm={handlePasswordConfirm}
+          error={passwordError}
+        />
+      </>
     );
   }
 
@@ -187,6 +196,14 @@ function App() {
     return (
       <>
         <QQLogin onLoginSuccess={handleLoginSuccess} />
+        
+        {/* Password Dialog - 支持 401 设置密码 */}
+        <TokenDialog
+          visible={showPasswordDialog}
+          onConfirm={handlePasswordConfirm}
+          error={passwordError}
+        />
+        
         <ToastContainer />
       </>
     );
