@@ -60,7 +60,6 @@ function App() {
         const response = await apiFetch<ResConfig>('/api/config');
         if (response.success && response.data.selfInfo.online) {
           setIsLoggedIn(true);
-          setToken(response.data.token);
           setAccountInfo({
             nick: response.data.selfInfo.nick || '',
             uin: response.data.selfInfo.uin,
