@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { OB11Config, ConnectConfig, WsConnectConfig, WsReverseConnectConfig, HttpConnectConfig, HttpPostConnectConfig } from '../types';
-import { Radio, Wifi, Globe, Send, X, Settings, Plus, Trash2, Edit2 } from 'lucide-react';
+import { Radio, Wifi, Globe, Send, X, Settings, Plus, Trash2, Edit2, Eye, EyeOff } from 'lucide-react';
 
 interface OneBotConfigProps {
   config: OB11Config;
@@ -16,6 +16,7 @@ const OneBotConfigNew: React.FC<OneBotConfigProps> = ({ config, onChange, onSave
   const [isNewAdapter, setIsNewAdapter] = useState(false); // 标记是否为新建适配器
   const [editingName, setEditingName] = useState(false); // 标记是否正在编辑名称
   const [tempName, setTempName] = useState(''); // 临时名称
+  const [showToken, setShowToken] = useState(false); // 显示/隐藏Token
 
   const adapterInfo = {
     'ws': { icon: Radio, name: 'WebSocket正向', desc: '提供WebSocket服务器' },
@@ -30,6 +31,7 @@ const OneBotConfigNew: React.FC<OneBotConfigProps> = ({ config, onChange, onSave
     setIsNewAdapter(false); // 编辑现有适配器
     setEditingName(false);
     setTempName(adapter.name || '');
+    setShowToken(false); // 重置Token显示状态
     setShowDialog(true);
   };
 
@@ -130,6 +132,7 @@ const OneBotConfigNew: React.FC<OneBotConfigProps> = ({ config, onChange, onSave
     setSelectedAdapter(newAdapter);
     setSelectedAdapterIndex(-1); // 新建时索引设为-1
     setIsNewAdapter(true); // 标记为新建适配器
+    setShowToken(false); // 重置Token显示状态
     setShowDialog(true);
 
     // 注意：这里不添加到数组，只有点击保存按钮才真正添加
@@ -213,10 +216,19 @@ const OneBotConfigNew: React.FC<OneBotConfigProps> = ({ config, onChange, onSave
                   }`}>
                     {adapter.enable ? '已启用' : '未启用'}
                   </span>
-                  {(adapter.type === 'ws' || adapter.type === 'http') && adapter.enable && (
-                    <span className="text-sm text-gray-600">
-                      端口: {(adapter as WsConnectConfig | HttpConnectConfig).port}
-                    </span>
+                  {adapter.enable && (
+                    <>
+                      {(adapter.type === 'ws' || adapter.type === 'http') && (
+                        <span className="text-sm text-gray-600">
+                          端口: {(adapter as WsConnectConfig | HttpConnectConfig).port}
+                        </span>
+                      )}
+                      {(adapter.type === 'ws-reverse' || adapter.type === 'http-post') && (
+                        <span className="text-sm text-gray-600 truncate max-w-[180px]" title={(adapter as WsReverseConnectConfig | HttpPostConnectConfig).url || '未配置'}>
+                          URL: {(adapter as WsReverseConnectConfig | HttpPostConnectConfig).url || '未配置'}
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -428,13 +440,22 @@ const OneBotConfigNew: React.FC<OneBotConfigProps> = ({ config, onChange, onSave
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Token</label>
-                    <input
-                      type="password"
-                      value={selectedAdapter.token}
-                      onChange={(e) => updateSelectedAdapter('token', e.target.value)}
-                      placeholder="访问令牌"
-                      className="input-field"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showToken ? 'text' : 'password'}
+                        value={selectedAdapter.token}
+                        onChange={(e) => updateSelectedAdapter('token', e.target.value)}
+                        placeholder="访问令牌"
+                        className="input-field pr-12"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowToken(!showToken)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                      >
+                        {showToken ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
                   </div>
 
                   <div>

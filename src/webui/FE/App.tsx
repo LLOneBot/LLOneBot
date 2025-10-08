@@ -3,13 +3,15 @@ import Sidebar from './components/Sidebar';
 import OneBotConfigNew from './components/OneBotConfigNew';
 import OtherConfig from './components/OtherConfig';
 import TokenDialog from './components/TokenDialog';
+import ChangePasswordDialog from './components/ChangePasswordDialog';
 import QQLogin from './components/QQLogin';
 import { ToastContainer, showToast } from './components/Toast';
 import AnimatedBackground from './components/AnimatedBackground';
 import { Config, ResConfig } from './types';
 import { apiFetch, getToken, setPasswordPromptHandler, setTokenStorage } from './utils/api';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, Settings, Eye, EyeOff } from 'lucide-react';
 import { defaultConfig } from '../../common/defaultConfig'
+import { version } from '../../version'
 
 
 function App() {
@@ -23,6 +25,8 @@ function App() {
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [passwordResolve, setPasswordResolve] = useState<((value: string) => void) | null>(null);
+  const [showSatoriToken, setShowSatoriToken] = useState(false);
+  const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false);
 
   // 设置密码提示处理器
   useEffect(() => {
@@ -161,17 +165,17 @@ function App() {
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-white mb-2">
               {activeTab === 'dashboard' && 'Dashboard'}
-              {activeTab === 'onebot' && 'OneBot 11 配置'}
-              {activeTab === 'satori' && 'Satori 配置'}
-              {activeTab === 'other' && '其他配置'}
-              {activeTab === 'about' && '关于'}
+              {/*{activeTab === 'onebot' && 'OneBot 11 配置'}*/}
+              {/*{activeTab === 'satori' && 'Satori 配置'}*/}
+              {/*{activeTab === 'other' && '其他配置'}*/}
+              {/*{activeTab === 'about' && '关于'}*/}
             </h2>
             <p className="text-white/80">
               {activeTab === 'dashboard' && '欢迎使用 LLTwoBot 配置管理系统'}
-              {activeTab === 'onebot' && '配置 OneBot 11 协议相关设置'}
-              {activeTab === 'satori' && '配置 Satori 协议相关设置'}
-              {activeTab === 'other' && '配置全局设置和其他选项'}
-              {activeTab === 'about' && '关于 LLTwoBot 项目'}
+              {/*{activeTab === 'onebot' && '配置 OneBot 11 协议相关设置'}*/}
+              {/*{activeTab === 'satori' && '配置 Satori 协议相关设置'}*/}
+              {/*{activeTab === 'other' && '配置全局设置和其他选项'}*/}
+              {/*{activeTab === 'about' && '关于 LLTwoBot 项目'}*/}
             </p>
           </div>
 
@@ -254,62 +258,90 @@ function App() {
 
           {activeTab === 'satori' && (
             <div className="card p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Satori 协议</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">启用 Satori</span>
-                    <input
-                      type="checkbox"
-                      checked={config.satori.enable}
-                      onChange={(e) => setConfig({
-                        ...config,
-                        satori: { ...config.satori, enable: e.target.checked }
-                      })}
-                      className="w-12 h-6 rounded-full bg-gray-300 relative cursor-pointer appearance-none
-                        checked:bg-gradient-to-r checked:from-blue-500 checked:to-purple-600
-                        transition-colors duration-200 ease-in-out
-                        before:content-[''] before:absolute before:top-0.5 before:left-0.5
-                        before:w-5 before:h-5 before:rounded-full before:bg-white
-                        before:transition-transform before:duration-200
-                        checked:before:translate-x-6"
-                    />
-                  </label>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                  <Settings size={24} className="text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Satori 端口
-                  </label>
-                  <input
-                    type="number"
-                    value={config.satori.port}
-                    onChange={(e) => setConfig({
-                      ...config,
-                      satori: { ...config.satori, port: parseInt(e.target.value) }
-                    })}
-                    min="1"
-                    max="65535"
-                    className="input-field"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Satori Token
-                  </label>
-                  <input
-                    type="password"
-                    value={config.satori.token}
-                    onChange={(e) => setConfig({
-                      ...config,
-                      satori: { ...config.satori, token: e.target.value }
-                    })}
-                    placeholder="Satori Token"
-                    className="input-field"
-                  />
+                  <h3 className="text-lg font-semibold text-gray-800">Satori 协议</h3>
+                  <p className="text-sm text-gray-600">配置 Satori 协议相关设置</p>
                 </div>
               </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl hover:bg-gray-100/50 transition-colors">
+                  <div>
+                    <div className="text-sm font-medium text-gray-800">启用 Satori 协议</div>
+                    <div className="text-xs text-gray-500 mt-0.5">开启后将支持 Satori 协议连接</div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={config.satori.enable}
+                    onChange={(e) => setConfig({
+                      ...config,
+                      satori: { ...config.satori, enable: e.target.checked }
+                    })}
+                    className="w-12 h-6 rounded-full bg-gray-300 relative cursor-pointer appearance-none
+                      checked:bg-gradient-to-r checked:from-blue-500 checked:to-purple-600
+                      transition-colors duration-200 ease-in-out
+                      before:content-[''] before:absolute before:top-0.5 before:left-0.5
+                      before:w-5 before:h-5 before:rounded-full before:bg-white
+                      before:transition-transform before:duration-200
+                      checked:before:translate-x-6"
+                  />
+                </div>
+
+                {config.satori.enable && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Satori 端口
+                      </label>
+                      <input
+                        type="number"
+                        value={config.satori.port}
+                        onChange={(e) => setConfig({
+                          ...config,
+                          satori: { ...config.satori, port: parseInt(e.target.value) }
+                        })}
+                        min="1"
+                        max="65535"
+                        placeholder="5500"
+                        className="input-field"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Satori 服务监听端口（1-65535）</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Satori Token
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showSatoriToken ? 'text' : 'password'}
+                          value={config.satori.token}
+                          onChange={(e) => setConfig({
+                            ...config,
+                            satori: { ...config.satori, token: e.target.value }
+                          })}
+                          placeholder="请输入 Satori Token"
+                          className="input-field pr-12"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowSatoriToken(!showSatoriToken)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                        >
+                          {showSatoriToken ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">用于 Satori 连接验证的 Token</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <div className="mt-6 flex justify-end">
-                <button onClick={handleSave} disabled={loading} className="btn-primary flex items-center gap-2">
+                <button onClick={() => handleSave()} disabled={loading} className="btn-primary flex items-center gap-2">
                   {loading ? (
                     <>
                       <Loader2 size={20} className="animate-spin" />
@@ -328,14 +360,20 @@ function App() {
 
           {activeTab === 'other' && (
             <>
-              <OtherConfig
-                config={config}
-                token={token}
-                onChange={setConfig}
-                onTokenChange={setToken}
-              />
-              <div className="mt-6 flex justify-end">
-                <button onClick={handleSave} disabled={loading} className="btn-primary flex items-center gap-2">
+              <div className="pb-24">
+                <OtherConfig
+                  config={config}
+                  onChange={setConfig}
+                  onOpenChangePassword={() => setShowChangePasswordDialog(true)}
+                />
+              </div>
+              {/* 固定在底部的保存按钮 */}
+              <div className="fixed bottom-8 right-8 z-40">
+                <button
+                  onClick={() => handleSave()}
+                  disabled={loading}
+                  className="btn-primary flex items-center gap-2 shadow-2xl hover:shadow-3xl"
+                >
                   {loading ? (
                     <>
                       <Loader2 size={20} className="animate-spin" />
@@ -354,38 +392,105 @@ function App() {
 
           {activeTab === 'about' && (
             <div className="space-y-6">
-              <div className="card p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">GitHub</h3>
-                <a
-                  href="https://github.com/LLOneBot/LLOneBot"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-700 hover:underline"
-                >
-                  https://github.com/LLOneBot/LLOneBot
-                </a>
+              {/* 项目信息 */}
+              <div className="card p-8 text-center">
+                <div className="w-20 h-20 rounded-3xl overflow-hidden mx-auto mb-6 shadow-lg">
+                  <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover" />
+                </div>
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">Lucky Lillia TwoBot</h1>
+                <p className="text-gray-600 mb-6">使你的 QQNT 支持 OneBot 11 协议 和 Satori 协议进行 QQ 机器人开发</p>
+                <div className="flex items-center justify-center gap-4">
+                  <a
+                    href="https://github.com/LLOneBot/LLOneBot"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-6 py-2.5 bg-gray-800 text-white rounded-xl hover:bg-gray-900 transition-colors flex items-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+                    </svg>
+                    GitHub
+                  </a>
+                  <a
+                    href="https://llonebot.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all flex items-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    文档
+                  </a>
+                </div>
               </div>
-              <div className="card p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">文档</h3>
-                <a
-                  href="https://llonebot.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-700 hover:underline"
-                >
-                  https://llonebot.com
-                </a>
+
+              {/* 社区 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="card p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M16.5 3c-1.862 0-3.505.928-4.5 2.344C11.005 3.928 9.362 3 7.5 3 4.462 3 2 5.462 2 8.5c0 4.171 4.912 8.213 6.281 9.49a2.94 2.94 0 0 0 2.438.94 2.94 2.94 0 0 0 2.438-.94C14.588 16.713 19.5 12.671 19.5 8.5 19.5 5.462 17.038 3 16.5 3z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">Telegram 群</h3>
+                      <p className="text-sm text-gray-600"></p>
+                    </div>
+                  </div>
+                  <a
+                    href="https://t.me/+nLZEnpne-pQ1OWFl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-700 hover:underline text-sm break-all"
+                  >
+                    https://t.me/+nLZEnpne-pQ1OWFl
+                  </a>
+                </div>
+
+                <div className="card p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M16.5 3c-1.862 0-3.505.928-4.5 2.344C11.005 3.928 9.362 3 7.5 3 4.462 3 2 5.462 2 8.5c0 4.171 4.912 8.213 6.281 9.49a2.94 2.94 0 0 0 2.438.94 2.94 2.94 0 0 0 2.438-.94C14.588 16.713 19.5 12.671 19.5 8.5 19.5 5.462 17.038 3 16.5 3z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">QQ 群</h3>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <a
+                      href="https://qm.qq.com/q/EZndy3xntQ"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className=" text-blue-600 hover:text-blue-700 hover:underline"
+                    >
+                      545402644
+                    </a>
+                  </div>
+                </div>
               </div>
+
+              {/* 版本信息 */}
               <div className="card p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">QQ 群</h3>
-                <a
-                  href="https://qm.qq.com/q/EZndy3xntQ"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-2xl font-bold text-blue-600 hover:text-blue-700 hover:underline"
-                >
-                  545402644
-                </a>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-800">版本信息</div>
+                      <div className="text-xs text-gray-500">LLTwoBot {version}</div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    WebUI Powered by  <span className="font-semibold text-purple-600">React + Tailwind</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -407,6 +512,17 @@ function App() {
         visible={showPasswordDialog}
         onConfirm={handlePasswordConfirm}
         error={passwordError}
+      />
+
+      {/* Change Password Dialog */}
+      <ChangePasswordDialog
+        visible={showChangePasswordDialog}
+        onClose={() => setShowChangePasswordDialog(false)}
+        onSuccess={() => {
+          // 密码修改成功后，更新 token 状态
+          // 注意：set-token API 不返回新 token，我们需要重新获取配置
+          window.location.reload();
+        }}
       />
 
       {/* Toast Container */}

@@ -17,7 +17,6 @@ export type { ResConfig, ReqConfig } from '../../BE/types'
 
 // 前端使用的 WebUIConfig 类型（只包含 token）
 export interface WebUIConfig {
-  token: string,
   enable: boolean
 }
 

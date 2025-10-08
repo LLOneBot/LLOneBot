@@ -347,7 +347,12 @@ const QQLogin: React.FC<QQLoginProps> = ({ onLoginSuccess }) => {
             )}
 
             {/* Action Links */}
-            <div className="flex gap-6">
+            <div className="flex gap-6 justify-center">
+              {!showAccountList && (
+                <button onClick={toggleAccountList} className="text-blue-600 text-sm hover:underline">
+                  切换账号
+                </button>
+              )}
               <button onClick={() => setLoginMode('qr')} className="text-blue-600 text-sm hover:underline">
                 扫码登录
               </button>

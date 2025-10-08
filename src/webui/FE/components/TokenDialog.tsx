@@ -85,9 +85,15 @@ const TokenDialog: React.FC<TokenDialogProps> = ({ visible, onConfirm, onClose, 
                 ref={inputRef}
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // 只允许数字和英文字母
+                  if (/^[a-zA-Z0-9]*$/.test(value)) {
+                    setPassword(value);
+                  }
+                }}
                 onKeyPress={handleKeyPress}
-                placeholder="请输入密码"
+                placeholder="请输入密码（仅支持数字和英文）"
                 className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
                 autoComplete="off"
               />

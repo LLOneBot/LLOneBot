@@ -1,12 +1,12 @@
-import React from 'react';
+import React from 'react'
 import {
   LayoutDashboard,
   Settings,
   Info,
   Radio,
   Cpu,
-  Sliders
-} from 'lucide-react';
+  Sliders,
+} from 'lucide-react'
 
 interface SidebarProps {
   activeTab: string;
@@ -24,31 +24,29 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, accountInfo }
     { id: 'satori', icon: Cpu, label: 'Satori' },
     { id: 'other', icon: Sliders, label: '其他配置' },
     { id: 'about', icon: Info, label: '关于' },
-  ];
+  ]
 
   return (
-    <div className="w-64 bg-white/50 backdrop-blur-2xl h-screen flex flex-col shadow-xl border-r border-white/30 sticky top-0">
+    <div
+      className='w-64 bg-white/50 backdrop-blur-2xl h-screen flex flex-col shadow-xl border-r border-white/30 sticky top-0'>
       {/* Logo */}
-      <div className="p-6 border-b border-white/20">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center">
-            <span className="text-white font-bold text-xl">Bot</span>
+      <div className='p-6 border-b border-white/20'>
+        <div className='flex items-center gap-4'>
+          <div className='w-12 h-12 rounded-2xl overflow-hidden shadow-lg flex-shrink-0'>
+            <img src='/logo.jpg' alt='Logo' className='w-full h-full object-cover' />
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-800">LLTwoBot</h1>
-            <p className="text-xs text-gray-500">WebUI</p>
+          <div className='flex-1 min-w-0'>
+            <h1 className='text-xl font-bold text-gray-800 truncate'>LLTwoBot</h1>
+            <p className='text-xs text-gray-500'>WebUI</p>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
-          页面
-        </p>
+      <nav className='flex-1 p-4 space-y-1'>
         {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
+          const Icon = item.icon
+          const isActive = activeTab === item.id
           return (
             <button
               key={item.id}
@@ -60,45 +58,45 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, accountInfo }
               }`}
             >
               <Icon size={20} />
-              <span className="font-medium">{item.label}</span>
+              <span className='font-medium'>{item.label}</span>
             </button>
-          );
+          )
         })}
       </nav>
 
       {/* Account Info */}
       {accountInfo && (
-        <div className="p-4 border-t border-white/20">
-          <div className="flex items-center space-x-3 px-3 py-2">
+        <div className='p-4 border-t border-white/20'>
+          <div className='flex items-center space-x-3 px-3 py-2'>
             <img
               src={`https://thirdqq.qlogo.cn/g?b=qq&nk=${accountInfo.uin}&s=640`}
-              alt="头像"
-              className="w-10 h-10 rounded-full object-cover ring-2 ring-white/50"
+              alt='头像'
+              className='w-10 h-10 rounded-full object-cover ring-2 ring-white/50'
               onError={(e) => {
                 // 头像加载失败时显示首字母
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'flex';
+                const target = e.target as HTMLImageElement
+                target.style.display = 'none'
+                const fallback = target.nextElementSibling as HTMLElement
+                if (fallback) fallback.style.display = 'flex'
               }}
             />
             <div
-              className="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full items-center justify-center text-white font-semibold hidden"
+              className='w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full items-center justify-center text-white font-semibold hidden'
               style={{ display: 'none' }}
             >
               {accountInfo.nick.charAt(0).toUpperCase()}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
+            <div className='flex-1 min-w-0'>
+              <p className='text-sm font-medium text-gray-900 truncate'>
                 {accountInfo.nick}
               </p>
-              <p className="text-xs text-gray-500 truncate">{accountInfo.uin}</p>
+              <p className='text-xs text-gray-500 truncate'>{accountInfo.uin}</p>
             </div>
           </div>
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Sidebar;
+export default Sidebar
