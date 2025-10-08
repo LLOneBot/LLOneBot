@@ -72,9 +72,9 @@ export class ConfigUtil {
       try {
         jsonData = JSON5.parse(data)
         console.info('配置加载成功')
+        jsonData = this.migrateConfig(jsonData)
         mergeNewProperties(defaultConfig, jsonData)
         jsonData.webui = this.migrateWebUIToken(jsonData.webui)
-        jsonData = this.migrateConfig(jsonData)
         jsonData = this.cleanupConfig(defaultConfig, jsonData);
         this.setConfig(jsonData)
         this.config = jsonData
