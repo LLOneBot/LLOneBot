@@ -64,6 +64,7 @@ function App() {
             nick: response.data.selfInfo.nick || '',
             uin: response.data.selfInfo.uin,
           });
+          setConfig(response.data.config)
         } else {
           setIsLoggedIn(false);
         }
@@ -83,11 +84,11 @@ function App() {
     try {
       setLoading(true);
       const finalConfig = configToSave || config;
-      console.log('Saving config:', finalConfig);
+      // console.log('Saving config:', finalConfig);
       const response = await apiFetch('/api/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, config: finalConfig }),
+        body: JSON.stringify({ config: finalConfig }),
       });
       if (response.success) {
         setTokenStorage(token);
