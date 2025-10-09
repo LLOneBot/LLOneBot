@@ -83,8 +83,6 @@ async function onLoad() {
     ctx.plugin(OneBot11Adapter, {
       ...config.ob11,
       onlyLocalhost: config.onlyLocalhost,
-      heartInterval: config.heartInterval,
-      debug: config.debug!,
       musicSignUrl: config.musicSignUrl,
       enableLocalFile2Url: config.enableLocalFile2Url!,
       ffmpeg: config.ffmpeg,
