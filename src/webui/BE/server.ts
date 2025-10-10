@@ -5,12 +5,14 @@ import { fileURLToPath } from 'url'
 import { getConfigUtil, webuiTokenUtil } from '@/common/config'
 import { Config, WebUIConfig } from '@/common/types'
 import { Server } from 'http'
+import { Socket } from 'net'
 import { Context, Service } from 'cordis'
 import { selfInfo, LOG_DIR } from '@/common/globalVars'
 import { getAvailablePort } from '@/common/utils/port'
 import { pmhq } from '@/ntqqapi/native/pmhq'
 import { ReqConfig, ResConfig } from './types'
 import { appendFileSync } from 'node:fs'
+import { sleep } from '@/common/utils'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -72,12 +74,34 @@ setInterval(() => {
   }
 }, 60 * 60 * 1000)
 
-abstract class WebUIServerBase extends Service {
-  protected server: Server | null = null
-  protected app: Express = express()
-  abstract appName: string
+export class WebUIServer extends Service {
+  private server: Server | null = null
+  private app: Express = express()
+  private connections = new Set<Socket>()
+  private currentPort?: number
+  public port?: number = undefined
+  static inject = ['ntLoginApi']
 
-  protected initServer() {
+  constructor(ctx: Context, public config: WebUIServerConfig) {
+    super(ctx, 'webuiServer', true)
+    // 初始化服务器路由
+    this.initServer()
+    // 监听 config 更新事件
+    ctx.on('llob/config-updated', (newConfig: Config) => {
+      const oldConfig = { ...this.config }
+      this.setConfig(newConfig)
+      const forcePort = (oldConfig.port === newConfig.webui?.port) ? this.currentPort : undefined
+      if (oldConfig.onlyLocalhost != newConfig.onlyLocalhost
+        || oldConfig.enable != newConfig.webui?.enable
+        || oldConfig.port != newConfig.webui?.port
+      ) {
+        this.ctx.logger.info('WebUI 配置已更新:', this.config)
+        setTimeout(() => this.restart(forcePort), 1000)
+      }
+    })
+  }
+
+  private initServer() {
     this.app.use(express.static(feDistPath))
     this.app.use(express.json())
     this.app.use(cors())
@@ -252,62 +276,81 @@ abstract class WebUIServerBase extends Service {
     })
   }
 
-  abstract getHostPort(): { host: string, port: number }
+  private getHostPort(): { host: string; port: number } {
+    const host = this.config.onlyLocalhost ? '127.0.0.1' : ''
+    return { host, port: this.config.port }
+  }
 
-  async startServer() {
+  private async startServer(forcePort?: number) {
     const { host, port } = this.getHostPort()
-    console.log(`Starting server: ${host}:${port}`)
-    const availablePort = await getAvailablePort(port)
-    this.server = this.app.listen(availablePort, host, () => {
-      this.ctx.logger.info(`${this.appName} 端口: ${port}`)
+    const targetPort = forcePort !== undefined ? forcePort : await getAvailablePort(port)
+    this.server = this.app.listen(targetPort, host, () => {
+      this.currentPort = targetPort
+      this.ctx.logger.info(`Webui 服务器已启动 ${host}:${targetPort}`)
     })
+
+    // 跟踪所有连接，以便在停止时能够关闭它们
+    this.server.on('connection', (conn) => {
+      this.connections.add(conn)
+      conn.on('close', () => {
+        this.connections.delete(conn)
+      })
+    })
+
     this.server.on('error', (err: any) => {
       if (err.code === 'EADDRINUSE') {
-        this.ctx.logger.error(`${this.appName} 端口 ${port} 被占用，启动失败！`)
+        this.ctx.logger.error(`Webui 端口 ${targetPort} 被占用，启动失败！`)
       }
       else {
-        this.ctx.logger.error(`${this.appName} 启动失败:`, err)
+        this.ctx.logger.error(`Webui 启动失败:`, err)
       }
     })
-    return availablePort
+    return targetPort
   }
 
   stop() {
-    this.server?.close()
-  }
+    return new Promise<void>((resolve) => {
+      if (this.server) {
+        // 先关闭所有现有连接
+        if (this.connections.size > 0) {
+          this.ctx.logger.info(`Webui 正在关闭 ${this.connections.size} 个连接...`)
+          for (const conn of this.connections) {
+            conn.destroy()
+          }
+          this.connections.clear()
+        }
 
-  restart() {
-    this.stop()
-    this.start()
-  }
-}
-
-export class WebUIServer extends WebUIServerBase {
-  appName = 'Webui'
-  public port?: number = undefined
-  static inject = ['ntLoginApi']
-
-  constructor(ctx: Context, public config: WebUIServerConfig) {
-    super(ctx, 'webuiServer', true)
-    // 获取配置接口
-    this.initServer()
-    // 监听 config 更新事件
-    ctx.on('llob/config-updated', (newConfig: Config) => {
-      const oldConfig = { ...this.config }
-      this.config = { onlyLocalhost: newConfig.onlyLocalhost, ...newConfig.webui }
-      if (oldConfig.onlyLocalhost != newConfig.onlyLocalhost
-        || oldConfig.enable != newConfig.webui?.enable
-        || oldConfig.port != newConfig.webui?.port
-      ) {
-        this.ctx.logger.info('WebUI 配置已更新:', this.config)
-        this.restart()
+        // 然后关闭服务器
+        this.server.close((err) => {
+          if (err) {
+            this.ctx.logger.error(`Webui 停止时出错:`, err)
+          }
+          else {
+            this.ctx.logger.info(`Webui 服务器已停止`)
+          }
+          this.server = null
+          // 不清空 currentPort，以便 restart 时复用
+          resolve()
+        })
+      }
+      else {
+        this.ctx.logger.info(`Webui 服务器未运行`)
+        resolve()
       }
     })
   }
 
-  getHostPort(): { host: string; port: number } {
-    const host = this.config.onlyLocalhost ? '127.0.0.1' : ''
-    return { host, port: this.config.port }
+  async restart(forcePort?: number) {
+    await this.stop()
+    // 等待端口完全释放（Windows 上需要）
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    await this.startWithPort(forcePort)
+  }
+
+  private setConfig(newConfig: Config) {
+    const oldConfig = { ...this.config }
+    this.config = { onlyLocalhost: newConfig.onlyLocalhost, ...newConfig.webui }
+
   }
 
   async start() {
@@ -315,6 +358,16 @@ export class WebUIServer extends WebUIServerBase {
       return
     }
     this.port = await this.startServer()
+    pmhq.tellPort(this.port).catch((err: Error) => {
+      this.ctx.logger.error('记录 WebUI 端口失败:', err)
+    })
+  }
+
+  private async startWithPort(forcePort?: number): Promise<void> {
+    if (!this.config?.enable) {
+      return
+    }
+    this.port = await this.startServer(forcePort)
     pmhq.tellPort(this.port).catch((err: Error) => {
       this.ctx.logger.error('记录 WebUI 端口失败:', err)
     })

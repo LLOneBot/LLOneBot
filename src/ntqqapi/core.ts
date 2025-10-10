@@ -68,7 +68,6 @@ class Core extends Service {
   public start() {
     this.startupTime = Math.trunc(Date.now() / 1000)
     this.registerListener()
-    this.ctx.logger.info(`LLTwoBot/${version}`)
     this.ctx.on('llob/config-updated', input => {
       Object.assign(this.config, input)
       setFFMpegPath(input.ffmpeg || '')

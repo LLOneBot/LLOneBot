@@ -1,6 +1,6 @@
 import React from 'react'
 import { Config } from '../types'
-import { Globe, FileText, Trash2, Music, Lock, Clock, Shield, Edit } from 'lucide-react'
+import { Globe, FileText, Trash2, Music, Lock, Clock, Shield, Edit, Paperclip } from 'lucide-react'
 
 interface OtherConfigProps {
   config: Config;
@@ -57,6 +57,29 @@ const OtherConfig: React.FC<OtherConfigProps> = ({ config, onChange, onOpenChang
             className='flex items-center justify-between p-4 bg-gray-50/50 rounded-xl hover:bg-gray-100/50 transition-colors'>
             <div className='flex items-center gap-3'>
               <Globe size={20} className='text-blue-600' />
+              <div>
+                <div className='text-sm font-medium text-gray-800'>只监听本地地址</div>
+                <div className='text-xs text-gray-500 mt-0.5'>取消后可能会暴露在公网</div>
+              </div>
+            </div>
+            <input
+              type='checkbox'
+              checked={config.onlyLocalhost}
+              onChange={(e) => handleChange('onlyLocalhost', e.target.checked)}
+              className="w-12 h-6 rounded-full bg-gray-300 relative cursor-pointer appearance-none
+                checked:bg-gradient-to-r checked:from-blue-500 checked:to-purple-600
+                transition-colors duration-200 ease-in-out
+                before:content-[''] before:absolute before:top-0.5 before:left-0.5
+                before:w-5 before:h-5 before:rounded-full before:bg-white
+                before:transition-transform before:duration-200
+                checked:before:translate-x-6"
+            />
+          </div>
+          <div
+            className='flex items-center justify-between p-4 bg-gray-50/50 rounded-xl hover:bg-gray-100/50 transition-colors'>
+            <div className='flex items-center gap-3'>
+              {/*<FileText size={20} className='text-blue-600' />*/}
+              <Paperclip size={20} className='text-blue-600'/>
               <div>
                 <div className='text-sm font-medium text-gray-800'>本地文件转URL</div>
                 <div className='text-xs text-gray-500 mt-0.5'>启用后可将本地文件转换为URL链接</div>
