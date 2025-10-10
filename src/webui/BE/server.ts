@@ -6,6 +6,7 @@ import { getConfigUtil, webuiTokenUtil } from '@/common/config'
 import { Config, WebUIConfig } from '@/common/types'
 import { Server } from 'http'
 import { Socket } from 'net'
+import { hashPassword } from './passwordHash'
 import { Context, Service } from 'cordis'
 import { selfInfo, LOG_DIR } from '@/common/globalVars'
 import { getAvailablePort } from '@/common/utils/port'
@@ -146,7 +147,10 @@ export class WebUIServer extends Service {
         })
         return
       }
-      if (reqToken !== token) {
+      
+      // 将存储的明文密码 hash 后与前端传来的 hash 对比
+      const hashedToken = hashPassword(token)
+      if (reqToken !== hashedToken) {
         // 记录失败尝试
         globalLoginAttempt.consecutiveFailures++
         globalLoginAttempt.lastAttempt = Date.now()

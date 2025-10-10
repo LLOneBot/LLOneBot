@@ -8,7 +8,7 @@ import QQLogin from './components/QQLogin';
 import { ToastContainer, showToast } from './components/Toast';
 import AnimatedBackground from './components/AnimatedBackground';
 import { Config, ResConfig } from './types';
-import { apiFetch, getToken, setPasswordPromptHandler, setTokenStorage } from './utils/api';
+import { apiFetch, setPasswordPromptHandler } from './utils/api';
 import { Save, Loader2, Settings, Eye, EyeOff } from 'lucide-react';
 import { defaultConfig } from '../../common/defaultConfig'
 import { version } from '../../version'
@@ -21,7 +21,6 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [checkingLogin, setCheckingLogin] = useState(true);
   const [accountInfo, setAccountInfo] = useState<{ nick: string; uin: string } | null>(null);
-  const [token, setToken] = useState(getToken() || '');
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [passwordResolve, setPasswordResolve] = useState<((value: string) => void) | null>(null);
@@ -91,7 +90,6 @@ function App() {
         body: JSON.stringify({ config: finalConfig }),
       });
       if (response.success) {
-        setTokenStorage(token);
         showToast('配置保存成功', 'success');
       } else {
         showToast('保存失败：' + response.message, 'error');
@@ -101,7 +99,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [config, token]); // 依赖 config 和 token
+  }, [config]); // 依赖 config
 
   // 登录成功回调
   const handleLoginSuccess = useCallback(() => {

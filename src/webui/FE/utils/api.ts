@@ -1,7 +1,11 @@
 import { ApiResponse } from '../types';
-import { showToast } from '../components/Toast'
+import { showToast } from '../components/Toast';
+import { hashPassword } from './passwordHash';
+import { getCookie, setCookie } from './cookie';
 
 const TOKEN_KEY = 'webui_token';
+const TOKEN_EXPIRY_DAYS = 30; // Cookie 过期天数
+
 let passwordPromptHandler: ((tip: string) => Promise<string>) | null = null;
 
 export function setPasswordPromptHandler(handler: (tip: string) => Promise<string>) {
@@ -9,11 +13,11 @@ export function setPasswordPromptHandler(handler: (tip: string) => Promise<strin
 }
 
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  return getCookie(TOKEN_KEY);
 }
 
 export function setTokenStorage(token: string) {
-  localStorage.setItem(TOKEN_KEY, token);
+  setCookie(TOKEN_KEY, token, TOKEN_EXPIRY_DAYS);
 }
 
 export async function apiFetch<T = any>(
@@ -49,7 +53,7 @@ export async function apiFetch<T = any>(
         throw new Error('密码不能为空');
       }
 
-      // 调用设置密码接口
+      // 调用设置密码接口（传送明文）
       const setTokenResponse = await fetch('/api/set-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -60,10 +64,12 @@ export async function apiFetch<T = any>(
         throw new Error('设置密码失败');
       }
 
-      setTokenStorage(newPassword.trim());
+      // 存储 hash 后的密码
+      const hashedPassword = await hashPassword(newPassword.trim());
+      setTokenStorage(hashedPassword);
 
-      // 重新请求原接口
-      response = await makeRequest(newPassword.trim());
+      // 重新请求原接口（使用 hash）
+      response = await makeRequest(hashedPassword);
     }
 
     // 403: 密码错误或账户锁定，需要重新输入
@@ -96,10 +102,12 @@ export async function apiFetch<T = any>(
             throw new Error('密码不能为空');
           }
 
-          setTokenStorage(newPassword.trim());
+          // 存储 hash 后的密码
+          const hashedPassword = await hashPassword(newPassword.trim());
+          setTokenStorage(hashedPassword);
 
-          // 重新请求
-          response = await makeRequest(newPassword.trim());
+          // 重新请求（使用 hash）
+          response = await makeRequest(hashedPassword);
 
           if (response.status === 200) {
             console.log('Authentication successful!');
