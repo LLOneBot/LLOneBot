@@ -30,9 +30,9 @@ RUN chmod +x /startup.sh
 
 #RUN wget https://github.com/LLOneBot/LLOneBot/releases/download/v$LLONEBOT_VERSION/LLOneBot.zip -O /app/llonebot.zip
 
-COPY /dist/llonebot.zip /app/llonebot.zip
+COPY /dist /app/llonebot
 
-RUN unzip /app/llonebot.zip -d /app/llonebot \
-    && rm /app/llonebot.zip
+#RUN unzip /app/llonebot.zip -d /app/llonebot \
+#    && rm /app/llonebot.zip
 
 ENTRYPOINT ["/startup.sh"]
