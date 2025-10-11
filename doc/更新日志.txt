@@ -1,7 +1,8 @@
 V6.3.3
 更新时间 2025-10-11
 
-* 修复
+* 修复局域网访问 WebUI 失败的问题
+* 修复获取群成员列表 `get_group_member_list` 报错 Data Not Existed
 
 =================
 V6.3.2
