@@ -23,7 +23,12 @@ class GetGroupMemberList extends BaseAction<Payload, OB11GroupMember[]> {
     try {
       groupMembers = await this.ctx.ntGroupApi.getGroupMembers(groupCode, payload.no_cache)
     }catch (e) {
-      groupMembers = await this.ctx.ntGroupApi.getGroupMembers(groupCode, true)
+      if (!payload.no_cache) {
+        groupMembers = await this.ctx.ntGroupApi.getGroupMembers(groupCode, true)
+      }
+      else{
+        throw e
+      }
     }
     for (let i = 0; i < 5; i++) {
       if (groupMembers.size > 0) {
