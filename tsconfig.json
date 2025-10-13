@@ -19,6 +19,9 @@
       ],
       "@/ntqqapi/*": [
         "./src/ntqqapi/*"
+      ],
+      "@/milky/*": [
+        "./src/milky/*"
       ]
     },
     "noEmit": true
