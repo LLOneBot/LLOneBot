@@ -1,8 +1,9 @@
 import { MilkyConfig } from '@/milky/common/config';
 import type { MilkyAdapter } from '@/milky/adapter';
+import { Context } from 'cordis';
 
 export class MilkyWebhookHandler {
-    constructor(readonly milkyAdapter: MilkyAdapter, readonly config: MilkyConfig['webhook']) {}
+    constructor(readonly milkyAdapter: MilkyAdapter, readonly ctx: Context, readonly config: MilkyConfig['webhook']) {}
 
     async broadcast(msg: string) {
         if (this.config.urls.length === 0) {
@@ -18,14 +19,14 @@ export class MilkyWebhookHandler {
                     body: msg,
                 });
             } catch (e) {
-                this.milkyAdapter.ctx.logger.logWarn(
+                this.ctx.logger.warn(
                     'MilkyWebhook',
                     `Failed to send message to ${url}: ${e instanceof Error ? e.stack : e}`
                 );
                 throw e;
             }
         }));
-        this.milkyAdapter.ctx.logger.logDebug(
+        this.ctx.logger.debug(
             'MilkyWebhook',
             `Broadcasted message to ${sendResult.filter(result => result.status === 'fulfilled').length} URLs`
         );

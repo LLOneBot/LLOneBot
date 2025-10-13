@@ -1,7 +1,7 @@
 import { IncomingMessage, IncomingSegment, IncomingForwardedMessage } from '@saltify/milky-types';
 import { transformFriend, transformGroup, transformGroupMember } from '@/milky/transform/entity';
 import { RawMessage, ElementType, AtType } from '@/ntqqapi/types';
-import { SimpleInfo, CategoryFriend, GroupMember, Group } from '@/ntqqapi/types';
+import { SimpleInfo, CategoryFriend, GroupMember, GroupSimpleInfo } from '@/ntqqapi/types';
 
 export function transformIncomingPrivateMessage(
     friend: SimpleInfo,
@@ -20,7 +20,7 @@ export function transformIncomingPrivateMessage(
 }
 
 export function transformIncomingGroupMessage(
-    group: Group,
+    group: GroupSimpleInfo,
     member: GroupMember,
     message: RawMessage,
 ): IncomingMessage {
@@ -42,19 +42,19 @@ export function transformIncomingSegments(message: RawMessage): IncomingSegment[
     for (const element of message.elements) {
         switch (element.elementType) {
             case ElementType.Text:
-                if (element.textElement.atType === AtType.All) {
+                if (element.textElement?.atType === AtType.All) {
                     segments.push({
                         type: 'mention_all',
                         data: {} as Record<string, never>,
                     });
-                } else if (element.textElement.atType === AtType.One) {
+                } else if (element.textElement?.atType === AtType.One) {
                     segments.push({
                         type: 'mention',
                         data: {
                             user_id: parseInt(element.textElement.atUid || element.textElement.atNtUid || '0'),
                         },
                     });
-                } else if (element.textElement.content) {
+                } else if (element.textElement?.content) {
                     segments.push({
                         type: 'text',
                         data: {
@@ -68,12 +68,12 @@ export function transformIncomingSegments(message: RawMessage): IncomingSegment[
                 segments.push({
                     type: 'image',
                     data: {
-                        resource_id: element.picElement.fileUuid,
-                        width: element.picElement.picWidth,
-                        height: element.picElement.picHeight,
-                        temp_url: element.picElement.sourcePath,
-                        summary: element.picElement.summary || '',
-                        sub_type: element.picElement.picSubType === 1 ? 'sticker' : 'normal',
+                        resource_id: element.picElement!.fileUuid,
+                        width: element.picElement!.picWidth,
+                        height: element.picElement!.picHeight,
+                        temp_url: element.picElement!.sourcePath,
+                        summary: '', // TODO: resolve summary
+                        sub_type: element.picElement!.picSubType === 1 ? 'sticker' : 'normal',
                     },
                 });
                 break;
@@ -82,7 +82,7 @@ export function transformIncomingSegments(message: RawMessage): IncomingSegment[
                 segments.push({
                     type: 'face',
                     data: {
-                        face_id: element.faceElement.faceIndex.toString(),
+                        face_id: element.faceElement!.faceIndex.toString(),
                     },
                 });
                 break;
@@ -91,7 +91,7 @@ export function transformIncomingSegments(message: RawMessage): IncomingSegment[
                 segments.push({
                     type: 'reply',
                     data: {
-                        message_seq: parseInt(element.replyElement.replayMsgSeq),
+                        message_seq: parseInt(element.replyElement!.replayMsgSeq),
                     },
                 });
                 break;
@@ -100,9 +100,9 @@ export function transformIncomingSegments(message: RawMessage): IncomingSegment[
                 segments.push({
                     type: 'record',
                     data: {
-                        resource_id: element.pttElement.fileUuid,
-                        temp_url: element.pttElement.filePath,
-                        duration: element.pttElement.duration,
+                        resource_id: element.pttElement!.fileUuid,
+                        temp_url: element.pttElement!.filePath,
+                        duration: element.pttElement!.duration,
                     },
                 });
                 break;
@@ -111,11 +111,11 @@ export function transformIncomingSegments(message: RawMessage): IncomingSegment[
                 segments.push({
                     type: 'video',
                     data: {
-                        resource_id: element.videoElement.fileUuid,
-                        width: element.videoElement.videoMd5 ? 0 : element.videoElement.thumbWidth || 0,
-                        height: element.videoElement.videoMd5 ? 0 : element.videoElement.thumbHeight || 0,
-                        duration: element.videoElement.videoMd5 ? 0 : parseInt(element.videoElement.fileDuration || '0'),
-                        temp_url: element.videoElement.filePath,
+                        resource_id: element.videoElement!.fileUuid!,
+                        width: element.videoElement!.thumbWidth!,
+                        height: element.videoElement!.thumbHeight!,
+                        duration: 0, // TODO: resolve duration
+                        temp_url: element.videoElement!.filePath,
                     },
                 });
                 break;

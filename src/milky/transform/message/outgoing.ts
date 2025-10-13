@@ -51,11 +51,17 @@ export async function transformOutgoingMessage(
                 const videoBuffer = await resolveMilkyUri(segment.data.uri);
                 const tempPath = path.join(TEMP_DIR, `video-${randomUUID()}`);
                 await writeFile(tempPath, videoBuffer);
-                const videoElement = await SendElement.video(ctx, tempPath, '', 0);
+                let thumbTempPath: string | undefined = undefined;
+                if (segment.data.thumb_uri) {
+                    const thumbBuffer = await resolveMilkyUri(segment.data.thumb_uri);
+                    const thumbTempPath = path.join(TEMP_DIR, `thumb-${randomUUID()}`);
+                    await writeFile(thumbTempPath, thumbBuffer);
+                }
+                const videoElement = await SendElement.video(ctx, tempPath, thumbTempPath);
                 elements.push(videoElement);
             }
         } catch (error) {
-            ctx.logger.logError('MilkyTransform', `Failed to transform segment ${segment.type}: ${error}`);
+            ctx.logger.error('MilkyTransform', `Failed to transform segment ${segment.type}: ${error}`);
         }
     }
 

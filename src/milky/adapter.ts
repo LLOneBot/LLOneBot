@@ -54,8 +54,8 @@ export class MilkyAdapter extends Service {
             ...FileApi,
         ]);
 
-        this.httpHandler = new MilkyHttpHandler(this, config.http);
-        this.webhookHandler = new MilkyWebhookHandler(this, config.webhook);
+        this.httpHandler = new MilkyHttpHandler(this, ctx, config.http);
+        this.webhookHandler = new MilkyWebhookHandler(this, ctx, config.webhook);
 
         ctx.logger.info('Milky adapter initialized');
     }
