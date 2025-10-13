@@ -88,7 +88,7 @@ export const GetMessage = defineApi(
         const rawMsg = msgResult.msgList[0];
         if (payload.message_scene === 'friend') {
             const friends = await ctx.ntFriendApi.getBuddyList();
-            const friend = friends.find((f: any) => f.uin === rawMsg.peerUin);
+            const friend = friends.find(f => f.uin === rawMsg.peerUin);
             
             if (!friend) {
                 return Failed(-404, 'Friend not found');
@@ -154,7 +154,7 @@ export const GetHistoryMessages = defineApi(
         
         if (payload.message_scene === 'friend') {
             const friends = await ctx.ntFriendApi.getBuddyList();
-            const friend = friends.find((f: any) => f.uin === payload.peer_id.toString());
+            const friend = friends.find(f => f.uin === payload.peer_id.toString());
             
             if (!friend) {
                 return Failed(-404, 'Friend not found');

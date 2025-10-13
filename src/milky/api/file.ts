@@ -12,6 +12,8 @@ import {
     CreateGroupFolderOutput,
     RenameGroupFolderInput,
     DeleteGroupFolderInput,
+    GroupFileEntity,
+    GroupFolderEntity,
 } from '@saltify/milky-types';
 import z from 'zod';
 import { defineApi, Failed, Ok } from '@/milky/common/api';
@@ -59,8 +61,8 @@ export const GetGroupFiles = defineApi(
     GetGroupFilesInput,
     GetGroupFilesOutput,
     async (ctx, payload) => {
-        const allFiles: any[] = [];
-        const allFolders: any[] = [];
+        const allFiles: GroupFileEntity[] = [];
+        const allFolders: GroupFolderEntity[] = [];
         let startIndex = 0;
         let isEnd = false;
         

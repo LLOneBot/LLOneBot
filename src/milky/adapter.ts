@@ -12,7 +12,18 @@ import { FileApi } from './api/file';
 import path from 'node:path';
 import { writeFile, unlink } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
-import { TEMP_DIR } from '@/common/globalVars';
+import { selfInfo, TEMP_DIR } from '@/common/globalVars';
+import {
+    transformPrivateMessageCreated,
+    transformGroupMessageCreated,
+    transformPrivateMessageDeleted,
+    transformGroupMessageDeleted,
+    transformGroupNotify,
+    transformFriendRequestEvent,
+    transformGroupMemberInfoUpdated,
+    transformGroupDismiss,
+} from './transform/event';
+import { ChatType } from '@/ntqqapi/types';
 
 declare module 'cordis' {
     interface Context {
@@ -71,8 +82,7 @@ export class MilkyAdapter extends Service {
     }
 
     emitEvent<E extends keyof MilkyEventTypes>(eventName: E, data: MilkyEventTypes[E]) {
-        const selfInfo = (this.ctx as any).ntUserApi?.selfInfo;
-        const selfUin = selfInfo?.uin || '0';
+        const selfUin = selfInfo.uin;
         const eventString = JSON.stringify({
             time: Math.floor(Date.now() / 1000),
             self_id: parseInt(selfUin),
@@ -98,8 +108,114 @@ export class MilkyAdapter extends Service {
     }
 
     private setupEventListeners() {
-        // Event listeners would be set up here based on the actual LLOneBot event system
-        // For now, this is a placeholder for future implementation
+        // Listen to NTQQ message created events
+        this.ctx.on('nt/message-created', async (message) => {
+            if (message.chatType === ChatType.C2C) {
+                // Private message
+                const eventData = await transformPrivateMessageCreated(this.ctx, message);
+                if (eventData) {
+                    this.emitEvent('message_receive', eventData);
+                }
+            } else if (message.chatType === ChatType.Group) {
+                // Group message
+                const eventData = await transformGroupMessageCreated(this.ctx, message);
+                if (eventData) {
+                    this.emitEvent('message_receive', eventData);
+                }
+            }
+        });
+
+        // Listen to NTQQ offline message created events
+        this.ctx.on('nt/offline-message-created', async (message) => {
+            if (message.chatType === ChatType.C2C) {
+                const eventData = await transformPrivateMessageCreated(this.ctx, message);
+                if (eventData) {
+                    this.emitEvent('message_receive', eventData);
+                }
+            } else if (message.chatType === ChatType.Group) {
+                const eventData = await transformGroupMessageCreated(this.ctx, message);
+                if (eventData) {
+                    this.emitEvent('message_receive', eventData);
+                }
+            }
+        });
+
+        // Listen to NTQQ message deleted events
+        this.ctx.on('nt/message-deleted', async (message) => {
+            if (message.chatType === ChatType.C2C) {
+                const eventData = await transformPrivateMessageDeleted(this.ctx, message);
+                if (eventData) {
+                    this.emitEvent('message_recall', eventData);
+                }
+            } else if (message.chatType === ChatType.Group) {
+                const eventData = await transformGroupMessageDeleted(this.ctx, message);
+                if (eventData) {
+                    this.emitEvent('message_recall', eventData);
+                }
+            }
+        });
+
+        // Listen to NTQQ message sent events (self messages)
+        this.ctx.on('nt/message-sent', async (message) => {
+            if (message.chatType === ChatType.C2C) {
+                const eventData = await transformPrivateMessageCreated(this.ctx, message);
+                if (eventData) {
+                    this.emitEvent('message_receive', eventData);
+                }
+            } else if (message.chatType === ChatType.Group) {
+                const eventData = await transformGroupMessageCreated(this.ctx, message);
+                if (eventData) {
+                    this.emitEvent('message_receive', eventData);
+                }
+            }
+        });
+
+        // Listen to NTQQ group notify events
+        this.ctx.on('nt/group-notify', async ({ notify, doubt }) => {
+            const result = await transformGroupNotify(this.ctx, notify);
+            if (result) {
+                this.emitEvent(result.eventType, result.data);
+            }
+        });
+
+        // Listen to NTQQ friend request events
+        this.ctx.on('nt/friend-request', async (request) => {
+            const eventData = await transformFriendRequestEvent(this.ctx, request);
+            if (eventData) {
+                this.emitEvent('friend_request', eventData);
+            }
+        });
+
+        // Listen to NTQQ group member info updated events
+        this.ctx.on('nt/group-member-info-updated', async (data) => {
+            // TODO: Implement group member info updated event transformation
+            const eventData = await transformGroupMemberInfoUpdated(this.ctx, data);
+            if (eventData) {
+                // this.emitEvent(eventData.eventType, eventData.data);
+            }
+        });
+
+        // Listen to NTQQ group dismiss events
+        this.ctx.on('nt/group-dismiss', async (group) => {
+            // TODO: Implement group dismiss event transformation
+            const eventData = await transformGroupDismiss(this.ctx, group);
+            if (eventData) {
+                // this.emitEvent('group_disbanded', eventData);
+            }
+        });
+
+        // TODO: Listen to flash file events
+        // this.ctx.on('nt/flash-file-uploading', async (data) => { ... });
+        // this.ctx.on('nt/flash-file-upload-status', async (data) => { ... });
+        // this.ctx.on('nt/flash-file-download-status', async (data) => { ... });
+        // this.ctx.on('nt/flash-file-downloading', async (data) => { ... });
+
+        // TODO: Listen to system message events
+        // this.ctx.on('nt/system-message-created', async (data) => { ... });
+
+        // TODO: Listen to QR code login events
+        // this.ctx.on('nt/login-qrcode', async (data) => { ... });
+
         this.ctx.logger.info('Milky event listeners set up');
     }
 }
