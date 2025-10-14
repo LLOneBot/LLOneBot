@@ -237,6 +237,7 @@ function App() {
           {activeTab === 'onebot' && (
             <OneBotConfigNew
               config={config.ob11}
+              globalConfig={config}
               onChange={(newOb11Config) => {
                 const newConfig = { ...config, ob11: newOb11Config };
                 setConfig(newConfig);
@@ -339,7 +340,14 @@ function App() {
               </div>
 
               <div className="mt-6 flex justify-end">
-                <button onClick={() => handleSave()} disabled={loading} className="btn-primary flex items-center gap-2">
+                <button onClick={() => {
+                  // 检查：如果 onlyLocalhost 为 false 且 satori 启用，token 必须设置
+                  if (!config.onlyLocalhost && config.satori.enable && !config.satori.token?.trim()) {
+                    showToast('当"只监听本地地址"关闭时，必须设置 Satori Token！', 'error');
+                    return;
+                  }
+                  handleSave();
+                }} disabled={loading} className="btn-primary flex items-center gap-2">
                   {loading ? (
                     <>
                       <Loader2 size={20} className="animate-spin" />
@@ -497,7 +505,7 @@ function App() {
 
       {/* Loading Overlay */}
       {loading && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center" style={{ zIndex: 9000 }}>
           <div className="bg-white rounded-2xl p-6 shadow-2xl">
             <Loader2 size={48} className="animate-spin text-blue-600 mx-auto" />
             <p className="mt-4 text-gray-700">加载中...</p>

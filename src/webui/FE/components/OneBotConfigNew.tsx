@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { OB11Config, ConnectConfig, WsConnectConfig, WsReverseConnectConfig, HttpConnectConfig, HttpPostConnectConfig } from '../types';
+import { OB11Config, ConnectConfig, WsConnectConfig, WsReverseConnectConfig, HttpConnectConfig, HttpPostConnectConfig, Config } from '../types';
 import { Radio, Wifi, Globe, Send, X, Settings, Plus, Trash2, Edit2, Eye, EyeOff } from 'lucide-react';
 import Portal from './Portal';
+import { showToast } from './Toast';
 
 interface OneBotConfigProps {
   config: OB11Config;
   onChange: (config: OB11Config) => void;
   onSave: (config?: OB11Config) => void; // 可以接受新配置
+  globalConfig: Config; // 全局配置，用于检查 onlyLocalhost
 }
 
-const OneBotConfigNew: React.FC<OneBotConfigProps> = ({ config, onChange, onSave }) => {
+const OneBotConfigNew: React.FC<OneBotConfigProps> = ({ config, onChange, onSave, globalConfig }) => {
   const [selectedAdapter, setSelectedAdapter] = useState<ConnectConfig | null>(null);
   const [selectedAdapterIndex, setSelectedAdapterIndex] = useState<number>(-1);
   const [showDialog, setShowDialog] = useState(false);
@@ -58,6 +60,12 @@ const OneBotConfigNew: React.FC<OneBotConfigProps> = ({ config, onChange, onSave
 
   const handleSaveAdapter = () => {
     if (!selectedAdapter) return;
+
+    // 检查：如果 onlyLocalhost 为 false，token 必须设置
+    if (!globalConfig.onlyLocalhost && !selectedAdapter.token?.trim()) {
+      showToast('当"只监听本地地址"关闭时，必须设置 Token！', 'error');
+      return;
+    }
 
     let newConnect: ConnectConfig[];
 
@@ -253,7 +261,7 @@ const OneBotConfigNew: React.FC<OneBotConfigProps> = ({ config, onChange, onSave
       {/* 配置弹窗 */}
       {showDialog && selectedAdapter && (
         <Portal>
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4" style={{ zIndex: 9000 }}>
           <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col border border-white/50">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/20">
@@ -578,7 +586,7 @@ const OneBotConfigNew: React.FC<OneBotConfigProps> = ({ config, onChange, onSave
       {/* 添加适配器对话框 */}
       {showAddDialog && (
         <Portal>
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4" style={{ zIndex: 9000 }}>
           <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-md border border-white/50">
             <div className="flex items-center justify-between p-6 border-b border-white/20">
               <h3 className="text-xl font-semibold text-gray-900">选择适配器类型</h3>
