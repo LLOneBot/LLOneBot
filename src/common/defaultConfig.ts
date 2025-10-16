@@ -5,7 +5,7 @@ const ob11Default: OB11Config = {
   connect: [
     {
       type: 'ws',
-      enable: true,
+      enable: false,
       port: 3001,
       heartInterval: 60000,
       token: '',
@@ -27,7 +27,7 @@ const ob11Default: OB11Config = {
     },
     {
       type: 'http',
-      enable: true,
+      enable: false,
       port: 3000,
       token: '',
       reportSelfMessage: false,
