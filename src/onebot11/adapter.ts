@@ -317,7 +317,9 @@ class OneBot11Adapter extends Service {
       if (input.senderUid === selfInfo.uid) {
         this.handleMsg(input, true, false)
       }
-      this.handleMsg(input, false, false)
+      else{
+        this.handleMsg(input, false, false)
+      }
     })
     this.ctx.on('nt/offline-message-created', (input: RawMessage) => {
       // 其他终端自己发送的消息会进入这里
