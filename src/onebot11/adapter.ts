@@ -486,6 +486,15 @@ class OneBot11Adapter extends Service {
       )
       this.dispatch(event)
     })
+
+    this.ctx.on('nt/group-quit', async (group) => {
+      const event = new OB11GroupDecreaseEvent(
+        Number(group.groupCode),
+        Number(selfInfo.uin),
+        Number(selfInfo.uin),
+      )
+      this.dispatch(event)
+    })
   }
 }
 

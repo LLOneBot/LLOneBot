@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { Awaitable } from 'cosmokit'
 import { NTMethod } from './ntcall'
 import { pmhq } from '@/ntqqapi/native/pmhq'
-import { NodeIKernelLoginListener, NodeIKernelBuddyListener } from '@/ntqqapi/listeners'
+import { NodeIKernelLoginListener, NodeIKernelBuddyListener, NodeIKernelGroupListener } from '@/ntqqapi/listeners'
 
 export enum ReceiveCmdS {
   INIT = 'nodeIQQNTWrapperSessionListener/onSessionInitComplete',
@@ -19,6 +19,7 @@ export enum ReceiveCmdS {
   GROUPS = 'nodeIKernelGroupListener/onGroupListUpdate',
   GROUPS_STORE = 'onGroupListUpdate',
   GROUP_MEMBER_INFO_UPDATE = 'nodeIKernelGroupListener/onMemberInfoChange',
+  GROUP_DETAIL_INFO_UPDATE = 'nodeIKernelGroupListener/onGroupDetailInfoChange',
   FRIENDS = 'nodeIKernelBuddyListener/onBuddyListChange',
   MEDIA_DOWNLOAD_COMPLETE = 'nodeIKernelMsgListener/onRichMediaDownloadComplete',
   UNREAD_GROUP_NOTIFY = 'nodeIKernelGroupListener/onGroupNotifiesUnreadCountUpdated',
@@ -75,6 +76,7 @@ export function startHook() {
 export interface NTListener {
   nodeIKernelLoginListener: NodeIKernelLoginListener
   nodeIKernelBuddyListener: NodeIKernelBuddyListener
+  nodeIKernelGroupListener: NodeIKernelGroupListener
 }
 
 // 辅助类型：从method字符串推断出对应的payload类型
