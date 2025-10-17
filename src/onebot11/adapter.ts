@@ -103,21 +103,7 @@ class OneBot11Adapter extends Service {
   private async handleGroupNotify(notify: GroupNotify, doubt: boolean) {
     try {
       const flag = `${notify.group.groupCode}|${notify.seq}|${notify.type}|${doubt ? '1' : '0'}`
-      if ([GroupNotifyType.MemberLeaveNotifyAdmin, GroupNotifyType.KickMemberNotifyAdmin].includes(notify.type)) {
-        if (notify.user2.uid) {
-          this.ctx.logger.info('有群成员被踢', notify.group.groupCode, notify.user1.uid, notify.user2.uid)
-          const memberUin = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
-          const adminUin = await this.ctx.ntUserApi.getUinByUid(notify.user2.uid)
-          const event = new OB11GroupDecreaseEvent(
-            parseInt(notify.group.groupCode),
-            parseInt(memberUin),
-            parseInt(adminUin),
-            'kick',
-          )
-          this.dispatch(event)
-        }
-      }
-      else if (notify.type === GroupNotifyType.RequestJoinNeedAdminiStratorPass && notify.status === GroupNotifyStatus.Unhandle) {
+      if (notify.type === GroupNotifyType.RequestJoinNeedAdminiStratorPass && notify.status === GroupNotifyStatus.Unhandle) {
         this.ctx.logger.info('有加群请求')
         const requestUin = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
         const event = new OB11GroupRequestEvent(
@@ -317,7 +303,7 @@ class OneBot11Adapter extends Service {
       if (input.senderUid === selfInfo.uid) {
         this.handleMsg(input, true, false)
       }
-      else{
+      else {
         this.handleMsg(input, false, false)
       }
     })
@@ -364,12 +350,20 @@ class OneBot11Adapter extends Service {
       }
       else if (msgType === 34) {
         const tip = SysMsg.GroupMemberChange.decode(sysMsg.body!.msgContent!)
-        if (tip.type !== 130) return // adminUid: 0
-        this.ctx.logger.info('群成员减少', tip)
-        const memberUin = await this.ctx.ntUserApi.getUinByUid(tip.memberUid)
-        const userId = Number(memberUin)
-        const event = new OB11GroupDecreaseEvent(tip.groupCode, userId, userId)
-        this.dispatch(event)
+        if (tip.type === 130) {
+          this.ctx.logger.info('群成员减少', tip)
+          const memberUin = await this.ctx.ntUserApi.getUinByUid(tip.memberUid)
+          const userId = Number(memberUin)
+          const event = new OB11GroupDecreaseEvent(tip.groupCode, userId, userId)
+          this.dispatch(event)
+        } else if (tip.type === 131) {
+          if (tip.memberUid === selfInfo.uid) return
+          this.ctx.logger.info('有群成员被踢', tip)
+          const memberUin = await this.ctx.ntUserApi.getUinByUid(tip.memberUid)
+          const adminUin = await this.ctx.ntUserApi.getUinByUid(tip.adminUid.match(/\x18([^\x18\x10]+)\x10/)![1])
+          const event = new OB11GroupDecreaseEvent(tip.groupCode, +memberUin, +adminUin, 'kick')
+          this.dispatch(event)
+        }
       }
       else if (msgType === 528 && subType === 321) {
         // 私聊撤回戳一戳，不再从这里解析，应从 nt/message-deleted 事件中解析
