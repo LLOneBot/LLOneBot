@@ -305,7 +305,7 @@ class OB11WebSocketReverse {
         'X-Self-ID': selfInfo.uin,
         'Authorization': `Bearer ${this.config.token}`,
         'x-client-role': 'Universal', // koishi-adapter-onebot 需要这个字段
-        'User-Agent': `LLTwoBot/${version}`,
+        'User-Agent': `LLOneBot/${version}`,
       },
     })
     this.ctx.logger.info('Trying to connect to the websocket server: ' + this.config.url)
