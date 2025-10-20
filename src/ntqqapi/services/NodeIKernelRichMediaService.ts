@@ -2,7 +2,10 @@ import { GetFileListParam, Peer } from '../types'
 import { GeneralCallResult } from './common'
 
 export interface NodeIKernelRichMediaService {
-  getVideoPlayUrlV2(peer: Peer, msgId: string, elemId: string, videoCodecFormat: number, exParams: { downSourceType: number, triggerType: number }): Promise<GeneralCallResult & {
+  getVideoPlayUrlV2(peer: Peer, msgId: string, elemId: string, videoCodecFormat: number, exParams: {
+    downSourceType: number,
+    triggerType: number
+  }): Promise<GeneralCallResult & {
     urlResult: {
       v4IpUrl: []
       v6IpUrl: []
@@ -15,7 +18,9 @@ export interface NodeIKernelRichMediaService {
     }
   }>
 
-  deleteGroupFolder(groupCode: string, folderId: string): Promise<GeneralCallResult & { groupFileCommonResult: { retCode: number, retMsg: string, clientWording: string } }>
+  deleteGroupFolder(groupCode: string, folderId: string): Promise<GeneralCallResult & {
+    groupFileCommonResult: { retCode: number, retMsg: string, clientWording: string }
+  }>
 
   createGroupFolder(groupCode: string, folderName: string): Promise<GeneralCallResult & {
     resultWithGroupItem: {
@@ -119,5 +124,14 @@ export interface NodeIKernelRichMediaService {
       }
     }
   }>
+
+  transGroupFile(groupCode: string, fileId: string): Promise<GeneralCallResult & {
+    transGroupFileResult: {
+      result: { retCode: number, retMsg: 'ok' | unknown, clientWording: string },
+      saveBusId: number,
+      saveFilePath: string
+    }
+  }>
+
 }
 

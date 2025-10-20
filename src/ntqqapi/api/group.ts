@@ -351,4 +351,11 @@ export class NTQQGroupApi extends Service {
       newFolderName,
     ])
   }
+
+  async setGroupFileForever(groupId: string, fileId: string){
+    return await invoke('nodeIKernelRichMediaService/transGroupFile', [
+      groupId,
+      fileId
+    ])
+  }
 }
