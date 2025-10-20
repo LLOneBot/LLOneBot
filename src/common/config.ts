@@ -49,7 +49,7 @@ export class ConfigUtil {
     const _defaultConfig = { ...defaultConfig }
     const defaultConfigFromFile = fs.readFileSync(this.defaultConfigPath, 'utf-8')
     try {
-      const parsedDefaultConfig = JSON5.parse(defaultConfigFromFile)
+      const parsedDefaultConfig: Config = JSON5.parse(defaultConfigFromFile)
       Object.assign(_defaultConfig, parsedDefaultConfig)
     } catch (e) {
       console.error('解析 default_config.json 错误', e)
@@ -153,7 +153,7 @@ export class ConfigUtil {
   private migrateConfig(oldConfig: any): Config {
     let migratedConfig = oldConfig;
 
-    if (!oldConfig.ob11?.connect || !Array.isArray(oldConfig.ob11.connect)) {
+    if (!Array.isArray(oldConfig.ob11.connect)) {
       const ob11 = oldConfig.ob11 || {};
       migratedConfig = {
         ...oldConfig,
