@@ -362,10 +362,16 @@ class OneBot11Adapter extends Service {
           if (tip.memberUid === selfInfo.uid) return
           this.ctx.logger.info('有群成员被踢', tip)
           const memberUin = await this.ctx.ntUserApi.getUinByUid(tip.memberUid)
-          const adminUidMatch = tip.adminUid.match(/\x18([^\x18\x10]+)\x10/)
           let adminUin = '0'
-          if (adminUidMatch){
-            adminUin = await this.ctx.ntUserApi.getUinByUid(adminUidMatch[1])
+          let adminUid = tip.adminUid
+          if (adminUid) {
+            const adminUidMatch = tip.adminUid.match(/\x18([^\x18\x10]+)\x10/)
+            if (adminUidMatch) {
+              adminUid = adminUidMatch[1]
+            }
+          }
+          if (adminUid){
+            adminUin = await this.ctx.ntUserApi.getUinByUid(adminUid)
           }
           const event = new OB11GroupDecreaseEvent(tip.groupCode, +memberUin, +adminUin, 'kick')
           this.dispatch(event)
