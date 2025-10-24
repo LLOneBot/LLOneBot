@@ -169,7 +169,7 @@ function App() {
               {/*{activeTab === 'about' && '关于'}*/}
             </h2>
             <p className="text-white/80">
-              {activeTab === 'dashboard' && '欢迎使用 LLTwoBot 配置管理系统'}
+              {activeTab === 'dashboard' && '欢迎使用 LLTwoBot'}
               {/*{activeTab === 'onebot' && '配置 OneBot 11 协议相关设置'}*/}
               {/*{activeTab === 'satori' && '配置 Satori 协议相关设置'}*/}
               {/*{activeTab === 'other' && '配置全局设置和其他选项'}*/}
