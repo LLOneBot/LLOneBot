@@ -17,7 +17,7 @@ export class BatchDeleteGroupMember extends BaseAction<Payload, null> {
     const groupCode = payload.group_id.toString()
     const memberUinList = payload.user_ids.map(id => id.toString())
     const memberUids = await Promise.all(memberUinList.map(async uin => {
-      return await this.ctx.ntUserApi.getUidByUin(uin)
+      return await this.ctx.ntUserApi.getUidByUin(uin, groupCode)
     }))
     await this.ctx.ntGroupApi.kickMember(groupCode, memberUids)
     return null

@@ -1,4 +1,4 @@
-import { MiniProfile, ProfileBizType, SimpleInfo, UserDetailInfo, UserDetailSource } from '../types'
+import { GroupMember, MiniProfile, ProfileBizType, SimpleInfo, UserDetailInfo, UserDetailSource } from '../types'
 import { invoke } from '../ntcall'
 import { RequestUtil } from '@/common/utils/request'
 import { Time } from 'cosmokit'
@@ -14,6 +14,8 @@ declare module 'cordis' {
 }
 
 export class NTQQUserApi extends Service {
+  static inject = ['ntGroupApi']
+
   constructor(protected ctx: Context) {
     super(ctx, 'ntUserApi', true)
   }
@@ -28,7 +30,7 @@ export class NTQQUserApi extends Service {
     )
   }
 
-  async getUidByUin(uin: string) {
+  async getUidByUin(uin: string, groupCode?: string) {
     const uid = uidUinBidiMap.getKey(uin)
     if (uid) return uid
 
@@ -43,7 +45,18 @@ export class NTQQUserApi extends Service {
         return (await invoke('nodeIKernelProfileService/getUidByUin', ['FriendsServiceImpl', [uin]]))?.get(uin)
       },
       async () => {
-        return (await this.getUserDetailInfoByUin(uin)).detail!.uid
+        return (await this.getUserDetailInfoByUin(uin)).detail.uid
+      },
+      async () => {
+        if (groupCode) {
+          let groupMembers: Map<string, GroupMember>
+          try {
+            groupMembers = await this.ctx.ntGroupApi.getGroupMembers(groupCode, false)
+          } catch (e) {
+            groupMembers = await this.ctx.ntGroupApi.getGroupMembers(groupCode, true)
+          }
+          return groupMembers.values().find(e => e.uin === uin)?.uid
+        }
       }
     ]
 

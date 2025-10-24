@@ -159,7 +159,8 @@ export class MessageEncoder {
       for (const { msgId, peer } of nodeMsgIds) {
         const srcPeer = {
           peerUid: peer.peerUid,
-          chatType: peer.chatType
+          chatType: peer.chatType,
+          guildId: ''
         }
         const clonedMsg = await this.forward(msgId, srcPeer, selfPeer)
         if (clonedMsg) {
@@ -198,7 +199,7 @@ export class MessageEncoder {
       if (attrs.type === 'all') {
         this.elements.push(SendElement.at('', '', NT.AtType.All, '@全体成员'))
       } else {
-        const uid = await this.ctx.ntUserApi.getUidByUin(attrs.id) ?? ''
+        const uid = await this.ctx.ntUserApi.getUidByUin(attrs.id, this.peer.peerUid) ?? ''
         const display = attrs.name ? '@' + attrs.name : ''
         this.elements.push(SendElement.at(attrs.id, uid, NT.AtType.One, display))
       }
