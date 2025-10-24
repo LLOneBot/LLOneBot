@@ -30,7 +30,10 @@ export class SatoriServer {
     if (!handler) {
       throw new Error(`Unsupported OB11 action: ${action}`)
     }
-    return handler.handle(params)
+    return handler.handle(params, {
+      messageFormat: 'array',
+      debug: false
+    })
   }
 
   private async handleOneBotRequest(req: Request, res: Response) {
