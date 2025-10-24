@@ -19,6 +19,7 @@ declare module 'cordis' {
     forward: {
       rootMsgId: string
       parentMsgId: string
+      chatType: number
       peerUid: string
     }
   }
@@ -67,6 +68,7 @@ class Store extends Service {
     this.ctx.model.extend('forward', {
       rootMsgId: 'string(24)',
       parentMsgId: 'string(24)',
+      chatType: 'unsigned',
       peerUid: 'string(24)'
     }, {
       primary: 'parentMsgId'
@@ -170,8 +172,13 @@ class Store extends Service {
     return this.messages.get(msgId)
   }
 
-  addMultiMsgInfo(rootMsgId: string, parentMsgId: string, peerUid: string) {
-    this.ctx.database.upsert('forward', [{ rootMsgId, parentMsgId, peerUid }]).then()
+  addMultiMsgInfo(rootMsgId: string, parentMsgId: string, peer: Peer) {
+    this.ctx.database.upsert('forward', [{
+      rootMsgId,
+      parentMsgId,
+      chatType: peer.chatType,
+      peerUid: peer.peerUid
+    }]).then()
       .catch(e => this.ctx.logger.error('addMultiMsgInfo database error:', e))
   }
 
