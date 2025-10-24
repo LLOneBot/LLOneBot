@@ -276,25 +276,27 @@ export class NTQQGroupApi extends Service {
   }
 
   async searchMember(groupCode: string, keyword: string) {
+    // 须在获取群成员列表后使用
     const sceneId = await invoke(NTMethod.GROUP_MEMBER_SCENE, [
       groupCode,
       'groupMemberList_MainWindow'
     ])
-    const data = await invoke<{
-      sceneId: string
-      keyword: string
+    const data = await invoke<[
+      sceneId: string,
+      keyword: string,
+      ids: { uid: string, index: number }[],
       infos: Map<string, GroupMember>
-    }>(
+    ]>(
       'nodeIKernelGroupService/searchMember',
-      [{ sceneId, keyword }],
+      [ sceneId, keyword ],
       {
         resultCmd: 'nodeIKernelGroupListener/onSearchMemberChange',
         resultCb: payload => {
-          return payload.sceneId === sceneId && payload.keyword === keyword
+          return payload[0] === sceneId && payload[1] === keyword
         },
       },
     )
-    return data.infos
+    return data[3]
   }
 
   async getGroupFileCount(groupId: string) {
