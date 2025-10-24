@@ -4,13 +4,10 @@ import { Context } from 'cordis'
 import { OB11MessageData, OB11MessageDataType } from '../types'
 import { encodeCQCode } from '../cqcode'
 
-export async function decodeMultiMessage(ctx: Context, items: Msg.PbMultiMsgItem[]) {
+export async function decodeMultiMessage(ctx: Context, items: Msg.PbMultiMsgItem[], messageFormat: 'string' | 'array') {
   return await Promise.all(items[0].buffer!.msg!.map(async msg => {
-    const {
-      messagePostFormat,
-    } = ctx.config as OneBot11Adapter.Config
     const { body, contentHead, routingHead } = msg
-    let content: string | OB11MessageData[] = messagePostFormat === 'string' ? '' : []
+    let content: string | OB11MessageData[] = messageFormat === 'string' ? '' : []
     for (const element of body!.richText!.elems!) {
       let segment: OB11MessageData | undefined
       if (element.text) {
@@ -54,7 +51,7 @@ export async function decodeMultiMessage(ctx: Context, items: Msg.PbMultiMsgItem
         user_id: routingHead!.fromUin!
       },
       time: contentHead!.msgTime!,
-      message_format: messagePostFormat === 'string' ? 'string' : 'array',
+      message_format: messageFormat === 'string' ? 'string' : 'array',
       message_type: routingHead?.group ? 'group' : 'private'
     }
   }))
