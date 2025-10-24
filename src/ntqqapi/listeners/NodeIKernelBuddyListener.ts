@@ -1,5 +1,5 @@
 export interface NodeIKernelBuddyListener {
-  onDoubtBuddyReqChange(arg: {
+  onDoubtBuddyReqChange(data: {
     reqId: string
     cookie: string
     doubtList: {
