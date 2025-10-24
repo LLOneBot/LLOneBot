@@ -369,8 +369,6 @@ class OneBot11Adapter extends Service {
             if (adminUidMatch) {
               adminUid = adminUidMatch[1]
             }
-          }
-          if (adminUid){
             adminUin = await this.ctx.ntUserApi.getUinByUid(adminUid)
           }
           const event = new OB11GroupDecreaseEvent(tip.groupCode, +memberUin, +adminUin, 'kick')
