@@ -1,3 +1,11 @@
+V6.5.4
+更新时间 2025-10-25
+
+* 修复 `get_forward_msg` API 可能报错
+* 修复无法获取用户在私聊中嵌套2层后发到群里的聊天记录 #639
+* `get_friend_list` API 删除如下字段:
+`longNick`, `level`, `eMail`, `uid`, `categoryId`, `richTime`
+=================
 V6.5.3
 更新时间 2025-10-24
 
