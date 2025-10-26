@@ -51,7 +51,7 @@ export class NTQQGroupApi extends Service {
   async getGroupMember(groupCode: string, uid: string, forceUpdate = false) {
     const data = await invoke<[
       groupCode: string,
-      unknown: number,
+      dataSource: number,
       members: Map<string, GroupMember>
     ]>(
       'nodeIKernelGroupService/getMemberInfo',
