@@ -1,3 +1,11 @@
+V6.5.5
+更新时间 2025-10-31
+
+* 修复 `get_group_member_list` API 获取群成员列表可能不完整
+* 修复 `get_group_member_info` API 获取群成员 QQ 等级可能为 0
+* 修复 `move_group_file` API 移动群文件时报错
+* `upload_private_file` API 上传私聊文件返回 `file_id`
+=================
 V6.5.4
 更新时间 2025-10-25
 
