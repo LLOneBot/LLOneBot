@@ -1,7 +1,8 @@
 import { selfInfo } from '@/common/globalVars'
-import { RequestUtil } from '@/common/utils/request'
+import { HttpUtil } from '@/common/utils/request'
 import { Context, Service } from 'cordis'
 import { Dict } from 'cosmokit'
+import fs from 'node:fs/promises'
 
 declare module 'cordis' {
   interface Context {
@@ -45,12 +46,17 @@ export class NTQQWebApi extends Service {
     return (hash & 0x7FFFFFFF).toString()
   }
 
+  private cookieToString(cookieObject: Dict) {
+    return Object.entries(cookieObject).map(([key, value]) => `${key}=${value}`).join('; ')
+  }
+
+
   async getGroupHonorInfo(groupCode: string, getType: string) {
     const getDataInternal = async (groupCode: string, type: number) => {
       const url = 'https://qun.qq.com/interactive/honorlist?gc=' + groupCode + '&type=' + type
       let resJson
       try {
-        const res = await RequestUtil.HttpGetText(url, 'GET', '', { 'Cookie': cookieStr })
+        const res = await HttpUtil.getText(url, 'GET', '', { 'Cookie': cookieStr })
         const match = res.match(/window\.__INITIAL_STATE__=(.*?);/)
         if (match) {
           resJson = JSON.parse(match[1].trim())
@@ -162,9 +168,6 @@ export class NTQQWebApi extends Service {
     return honorInfo
   }
 
-  private cookieToString(cookieObject: Dict) {
-    return Object.entries(cookieObject).map(([key, value]) => `${key}=${value}`).join('; ')
-  }
 
   async batchDeleteGroupMember(groupCode: string, memberUinList: string[]) {
     const cookieObject = await this.ctx.ntUserApi.getCookies('qun.qq.com')
@@ -207,9 +210,76 @@ export class NTQQWebApi extends Service {
       headers: {
         'User-Agent': 'Reqable/2.30.1',
         'Referer': 'https://cgi.vip.qq.com/',
-        'Cookie': cookie
-      }
+        'Cookie': cookie,
+      },
     })
     return await response.json()
+  }
+
+  async uploadGroupAlbum(groupCode: string, selfUin: string,
+                         filePath: string, fileName: string,
+                         albumID: string, albumName: string,
+  ) {
+    const domain = 'h5.qzone.qq.com'
+    const cookiesObject = await this.ctx.ntUserApi.getCookies(domain)
+    const gtk = this.genBkn(cookiesObject.skey)
+    const uuid = crypto.randomUUID().replace(/-/g, '').toLowerCase()
+    // const uuid = cookiesObject.tgw_l7_route
+    const getSessionUrl = `https://${domain}/webapp/json/sliceUpload/FileBatchControl/${uuid}?g_tk=${gtk}`
+    const fileSize = (await fs.stat(filePath)).size
+    const timestamp = Math.floor(Date.now() / 1000)
+    // cookiesObject.p_skey = cookiesObject.pt4_token
+    const getSessionPostData = {
+      'control_req': [{
+        'uin': selfUin,
+        'token': {
+          'type': 4,
+          // 'data': cookiesObject.pt4_token,
+          'data': cookiesObject.p_skey,
+          'appid': 5,
+        },
+        'appid': 'qun',
+        'checksum': 'cf9ad4fa700b2b5705bc8bd5562f1176',
+        'check_type': 0,
+        'file_len': fileSize,
+        'env': { 'refer': 'qzone', 'deviceInfo': 'h5' },
+        'model': 0,
+        'biz_req': {
+          'sPicTitle': fileName,
+          'sPicDesc': '',
+          'sAlbumName': albumName,
+          'sAlbumID': albumID,
+          'iAlbumTypeID': 0,
+          'iBitmap': 0,
+          'iUploadType': 0,
+          'iUpPicType': 0,
+          'iBatchID': timestamp,
+          'sPicPath': '',
+          'iPicWidth': 0,
+          'iPicHight': 0,
+          'iWaterType': 0,
+          'iDistinctUse': 0,
+          'iNeedFeeds': 1,
+          'iUploadTime': timestamp,
+          'mapExt': { 'appid': 'qun', 'userid': groupCode },
+          'stExtendInfo': { 'mapParams': { 'photo_num': '1', 'video_num': '0', 'batch_num': '1' } },
+        },
+        'session': '',
+        'asy_upload': 0,
+        'cmd': 'FileUpload',
+      }],
+    }
+    // 发送 post 请求
+    const res = await HttpUtil.post(getSessionUrl, getSessionPostData, this.cookieToString(cookiesObject))
+    const resJson: {
+      ret: number,
+      msg: string
+      data: {
+        session: string,
+      }
+    } = await res.json()
+    const sessionId = resJson.data?.session
+    // 开始上传
+
   }
 }

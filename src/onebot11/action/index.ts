@@ -107,10 +107,12 @@ import { GetPrivateFileUrl } from './llonebot/file/GetPrivateFileUrl'
 import { GetDoubtFriendsAddRequest } from './llonebot/user/GetDoubtFriendsAddRequest'
 import { SetDoubtFriendsAddRequest } from './llonebot/user/SetDoubtFriendsAddRequest'
 import { SetGroupFileForever } from '@/onebot11/action/llonebot/file/SetGroupFileForever'
+import { UploadGroupAlbum } from '@/onebot11/action/llonebot/group/UploadGroupAlbum'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
     // llonebot
+    new UploadGroupAlbum(adapter),
     new SetGroupFileForever(adapter),
     new BatchDeleteGroupMember(adapter),
     new GetFlashFileInfo(adapter),

@@ -2,9 +2,8 @@ import https from 'node:https'
 import http from 'node:http'
 import { Dict } from 'cosmokit'
 
-export class RequestUtil {
-  // 适用于获取服务器下发cookies时获取，仅GET
-  static async HttpsGetCookies(url: string): Promise<{ [key: string]: string }> {
+export class HttpUtil {
+  static async getCookies(url: string): Promise<{ [key: string]: string }> {
     const client = url.startsWith('https') ? https : http
     return new Promise((resolve, reject) => {
       client.get(url, (res) => {
@@ -13,7 +12,7 @@ export class RequestUtil {
           if (res.statusCode === 301 || res.statusCode === 302) {
             if (res.headers.location) {
               const redirectUrl = new URL(res.headers.location, url)
-              RequestUtil.HttpsGetCookies(redirectUrl.href).then((redirectCookies) => {
+              HttpUtil.getCookies(redirectUrl.href).then((redirectCookies) => {
                 // 合并重定向过程中的cookies
                 //log('redirectCookies', redirectCookies)
                 cookies = { ...cookies, ...redirectCookies }
@@ -47,8 +46,7 @@ export class RequestUtil {
     })
   }
 
-  // 请求和回复都是JSON data传原始内容 自动编码json
-  static async HttpGetJson<T>(url: string, method: string = 'GET', data?: unknown, headers: Record<string, string> = {}, isJsonRet: boolean = true, isArgJson: boolean = true): Promise<T> {
+  static async getJson<T>(url: string, method: string = 'GET', data?: unknown, headers: Record<string, string> = {}, isJsonRet: boolean = true, isArgJson: boolean = true): Promise<T> {
     const option = new URL(url)
     const protocol = url.startsWith('https://') ? https : http
     const options = {
@@ -97,8 +95,30 @@ export class RequestUtil {
     })
   }
 
-  // 请求返回都是原始内容
-  static async HttpGetText(url: string, method: string = 'GET', data?: unknown, headers: Record<string, string> = {}) {
-    return this.HttpGetJson<string>(url, method, data, headers, false, false)
+  static async getText(url: string, method: string = 'GET', data?: unknown, headers: Record<string, string> = {}) {
+    return this.getJson<string>(url, method, data, headers, false, false)
+  }
+
+  static async post(url: string, data: Dict = {}, cookies: string = '', headers: Record<string, string> = {}) {
+    const _headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) QQ/9.9.23-41857 Chrome/138.0.7204.35 Electron/37.1.0 Safari/537.36 OS/win32,x64,10.0.26100,Windows 11 Pro QQAppId/537320161',
+      'Cookie': cookies,
+      'Content-Type': 'application/json',
+      'origin': url.startsWith('https') ? 'https://' + new URL(url).hostname : 'http://' + new URL(url).hostname,
+      ...headers,
+    }
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: _headers,
+        body: JSON.stringify(data),
+      })
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status} statusText: ${response.statusText}`)
+      }
+      return response
+    } catch (error) {
+      throw error
+    }
   }
 }

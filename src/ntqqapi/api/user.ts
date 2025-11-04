@@ -1,6 +1,6 @@
 import { MiniProfile, ProfileBizType, SimpleInfo, UserDetailInfo, UserDetailSource } from '../types'
 import { invoke } from '../ntcall'
-import { RequestUtil } from '@/common/utils/request'
+import { HttpUtil } from '@/common/utils/request'
 import { Time } from 'cosmokit'
 import { Context, Service } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
@@ -171,7 +171,7 @@ export class NTQQUserApi extends Service {
     }
     const uin = selfInfo.uin
     const requestUrl = 'https://ssl.ptlogin2.qq.com/jump?ptlang=1033&clientuin=' + uin + '&clientkey=' + clientKeyData.clientKey + '&u1=https%3A%2F%2F' + domain + '%2F' + uin + '%2Finfocenter&keyindex=19%27'
-    const cookies: { [key: string]: string } = await RequestUtil.HttpsGetCookies(requestUrl)
+    const cookies: { [key: string]: string } = await HttpUtil.getCookies(requestUrl)
     return cookies
   }
 
