@@ -340,7 +340,7 @@ export class NTQQWebApi extends Service {
 
       const uploadResJson = await uploadRes.json()
       if (uploadResJson.ret !== 0) {
-        throw new Error(`群相册分片上传失败 (seq: ${slice.seq}): ${uploadResJson.msg}`)
+        throw new Error(`群相册分片上传失败 (seq: ${slice.seq}): ${uploadResJson.msg}, file: ${filePath}`)
       }
 
       completedSlices++
