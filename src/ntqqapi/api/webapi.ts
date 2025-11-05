@@ -217,14 +217,13 @@ export class NTQQWebApi extends Service {
     return await response.json()
   }
 
-  async uploadGroupAlbum(groupCode: string, selfUin: string,
-                         filePath: string, fileName: string,
-                         albumID: string, albumName: string,
+  async uploadGroupAlbum(groupCode: string,
+                         filePath: string,
+                         albumID: string,
   ) {
     const domain = 'h5.qzone.qq.com'
     const cookiesObject = await this.ctx.ntUserApi.getCookies(domain)
     const gtk = this.genBkn(cookiesObject.skey)
-    const uuid = crypto.randomUUID().replace(/-/g, '').toLowerCase()
 
     // 读取文件并计算 MD5
     const fileBuffer = await fs.readFile(filePath)
@@ -236,7 +235,7 @@ export class NTQQWebApi extends Service {
 
     const getSessionPostData = {
       'control_req': [{
-        'uin': selfUin,
+        'uin': selfInfo.uin,
         'token': {
           'type': 4,
           'data': cookiesObject.p_skey,
@@ -249,7 +248,7 @@ export class NTQQWebApi extends Service {
         'env': { 'refer': 'qzone', 'deviceInfo': 'h5' },
         'model': 0,
         'biz_req': {
-          'sPicTitle': fileName,
+          'sPicTitle': '',
           'sPicDesc': '',
           // 'sAlbumName': albumName,
           'sAlbumName': '',
@@ -290,8 +289,8 @@ export class NTQQWebApi extends Service {
       throw new Error(`获取上传 session 失败: ${resJson.msg}`)
     }
 
-    const sessionId = resJson.data?.session
-    const sliceSize = resJson.data?.slice_size || 16384
+    const sessionId = resJson.data.session
+    const sliceSize = resJson.data.slice_size
 
     // 分片上传文件
     let offset = 0
@@ -304,7 +303,7 @@ export class NTQQWebApi extends Service {
       const uploadUrl = `https://${domain}/webapp/json/sliceUpload/FileUpload?seq=${seq}&retry=0&offset=${offset}&end=${end}&total=${fileSize}&type=form&g_tk=${gtk}`
 
       const formData = new FormData()
-      formData.append('uin', selfUin)
+      formData.append('uin', selfInfo.uin)
       formData.append('appid', 'qun')
       formData.append('data', new Blob([chunk]))
       formData.append('session', sessionId)

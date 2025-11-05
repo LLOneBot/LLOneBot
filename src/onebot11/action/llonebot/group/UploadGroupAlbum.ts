@@ -12,6 +12,6 @@ export class UploadGroupAlbum extends BaseAction<Payload, unknown> {
   actionName = ActionName.UploadGroupAlbum
 
   protected async _handle(payload: Payload): Promise<unknown> {
-    return this.ctx.ntWebApi.uploadGroupAlbum(payload.group_id.toString(), selfInfo.uin.toString(), payload.file, 'test', payload.album_id, 'test')
+    return this.ctx.ntWebApi.uploadGroupAlbum(payload.group_id.toString(), payload.file, payload.album_id)
   }
 }
