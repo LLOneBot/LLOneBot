@@ -291,28 +291,41 @@ export class NTQQWebApi extends Service {
 
     const sessionId = resJson.data.session
     const sliceSize = resJson.data.slice_size
-
-    // 分片上传文件
+    // 分片上传文件 - 并发上传
+    const uploadTasks: Promise<void>[] = []
     let offset = 0
     let seq = 1
+    const concurrency = 10
 
+    // 生成所有分片任务
+    const slices: Array<{ offset: number; end: number; seq: number; chunk: Buffer }> = []
     while (offset < fileSize) {
       const end = Math.min(offset + sliceSize, fileSize)
       const chunk = fileBuffer.slice(offset, end)
+      slices.push({ offset, end, seq, chunk })
+      offset = end
+      seq++
+    }
 
-      const uploadUrl = `https://${domain}/webapp/json/sliceUpload/FileUpload?seq=${seq}&retry=0&offset=${offset}&end=${end}&total=${fileSize}&type=form&g_tk=${gtk}`
+    // 进度跟踪
+    let completedSlices = 0
+    const totalSlices = slices.length
+
+    // 并发上传函数
+    const uploadSlice = async (slice: { offset: number; end: number; seq: number; chunk: Buffer }) => {
+      const uploadUrl = `https://${domain}/webapp/json/sliceUpload/FileUpload?seq=${slice.seq}&retry=0&offset=${slice.offset}&end=${slice.end}&total=${fileSize}&type=form&g_tk=${gtk}`
 
       const formData = new FormData()
       formData.append('uin', selfInfo.uin)
       formData.append('appid', 'qun')
-      formData.append('data', new Blob([chunk]))
+      formData.append('data', new Blob([slice.chunk]))
       formData.append('session', sessionId)
-      formData.append('offset', offset.toString())
+      formData.append('offset', slice.offset.toString())
       formData.append('checksum', '')
       formData.append('check_type', '0')
       formData.append('retry', '0')
-      formData.append('seq', seq.toString())
-      formData.append('end', end.toString())
+      formData.append('seq', slice.seq.toString())
+      formData.append('end', slice.end.toString())
       formData.append('cmd', 'FileUpload')
       formData.append('slice_size', sliceSize.toString())
       formData.append('biz_req.iUploadType', '0')
@@ -324,16 +337,21 @@ export class NTQQWebApi extends Service {
         },
         body: formData,
       })
-      // this.ctx.logger.info('uploadRes:', uploadRes.status, await uploadRes.text())
+
       const uploadResJson = await uploadRes.json()
       if (uploadResJson.ret !== 0) {
-        throw new Error(`群相册分片上传失败 (seq: ${seq}): ${uploadResJson.msg}`)
+        throw new Error(`群相册分片上传失败 (seq: ${slice.seq}): ${uploadResJson.msg}`)
       }
 
-      this.ctx.logger.info(`群相册上传进度: ${end}/${fileSize} (${Math.round(end / fileSize * 100)}%)`)
+      completedSlices++
+      const progress = Math.round((completedSlices / totalSlices) * 100)
+      this.ctx.logger.info(`群相册上传进度: ${completedSlices}/${totalSlices} 片 (${progress}%)`)
+    }
 
-      offset = end
-      seq++
+    // 使用并发控制上传
+    for (let i = 0; i < slices.length; i += concurrency) {
+      const batch = slices.slice(i, i + concurrency)
+      await Promise.all(batch.map(slice => uploadSlice(slice)))
     }
 
     this.ctx.logger.info('群相册上传完成')
