@@ -1,6 +1,7 @@
 import { BaseAction } from '../../BaseAction'
 import { ActionName } from '../../types'
 import { selfInfo } from '@/common/globalVars'
+import { uri2local } from '@/common/utils'
 
 interface Payload {
   group_id: string,
@@ -12,6 +13,7 @@ export class UploadGroupAlbum extends BaseAction<Payload, unknown> {
   actionName = ActionName.UploadGroupAlbum
 
   protected async _handle(payload: Payload): Promise<unknown> {
-    return this.ctx.ntWebApi.uploadGroupAlbum(payload.group_id.toString(), payload.file, payload.album_id)
+    const filePath = (await uri2local(this.ctx, payload.file)).path
+    return this.ctx.ntWebApi.uploadGroupAlbum(payload.group_id.toString(), filePath, payload.album_id)
   }
 }
