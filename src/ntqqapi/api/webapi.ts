@@ -345,7 +345,7 @@ export class NTQQWebApi extends Service {
 
       completedSlices++
       const progress = Math.round((completedSlices / totalSlices) * 100)
-      this.ctx.logger.info(`群相册上传进度: ${completedSlices}/${totalSlices} 片 (${progress}%)`)
+      // this.ctx.logger.info(`群相册上传进度: ${completedSlices}/${totalSlices} 片 (${progress}%)`)
     }
 
     // 使用并发控制上传
