@@ -1,3 +1,10 @@
+V6.6.0
+更新时间 2025-11-
+
+* 新增上传群相册 API `upload_group_album`
+* 新增获取群相册列表 API `get_group_album_list`
+* 新增创建群相册列表 API `create_group_album`
+=================
 V6.5.7
 更新时间 2025-11-04
 
