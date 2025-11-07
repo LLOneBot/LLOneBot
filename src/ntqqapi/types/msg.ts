@@ -174,6 +174,10 @@ export interface PttElement {
   voiceType: number // 0
   waveAmplitudes: number[]
   autoConvertText: number
+  storeID: number
+  otherBusinessInfo: {
+    aiVoiceType: number
+  }
 }
 
 export interface ArkElement {

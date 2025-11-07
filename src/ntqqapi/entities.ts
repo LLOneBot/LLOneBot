@@ -234,6 +234,10 @@ export namespace SendElement {
         fileSubId: '',
         playState: 1,
         autoConvertText: 0,
+        storeID: 0,
+        otherBusinessInfo: {
+          aiVoiceType: 0
+        }
       },
     }
   }
