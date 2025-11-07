@@ -241,7 +241,7 @@ export class PMHQ {
       }, timeout)
       const listenerId = this.addResListener<R>((res => {
         if (!res.data) {
-          console.error(`PMHQ WS send error: payload ${data}, response ${res}`)
+          console.error(`PMHQ WS send error: payload ${JSON.stringify(data)}, response ${JSON.stringify(res)}`)
         }
         if (res.data?.echo == echo) {
           resolve(res)
