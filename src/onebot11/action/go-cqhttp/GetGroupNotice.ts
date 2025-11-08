@@ -6,6 +6,7 @@ interface Payload {
 }
 
 interface Notice {
+  notice_id: string
   sender_id: number
   publish_time: number
   message: {
@@ -29,6 +30,7 @@ export class GetGroupNotice extends BaseAction<Payload, Notice[]> {
     const result: Notice[] = []
     for (const feed of data.feeds) {
       result.push({
+        notice_id: feed.feedId,
         sender_id: +feed.uin,
         publish_time: +feed.publishTime,
         message: {
