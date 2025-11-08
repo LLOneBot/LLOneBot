@@ -110,6 +110,7 @@ import { SetGroupFileForever } from '@/onebot11/action/llonebot/file/SetGroupFil
 import { UploadGroupAlbum } from '@/onebot11/action/llonebot/group/GroupAlbum/UploadGroupAlbum'
 import { GetGroupAlbumList } from '@/onebot11/action/llonebot/group/GroupAlbum/GetGroupAlbumList'
 import { CreateGroupAlbum } from '@/onebot11/action/llonebot/group/GroupAlbum/CreateGroupAlbum'
+import { DeleteGroupNotice } from './llonebot/group/DeleteGroupNotice'
 
 export function initActionMap(adapter: Adapter) {
   const actionHandlers = [
@@ -158,6 +159,7 @@ export function initActionMap(adapter: Adapter) {
     new GetPrivateFileUrl(adapter),
     new GetDoubtFriendsAddRequest(adapter),
     new SetDoubtFriendsAddRequest(adapter),
+    new DeleteGroupNotice(adapter),
     // onebot11
     new SendLike(adapter),
     new GetMsg(adapter),

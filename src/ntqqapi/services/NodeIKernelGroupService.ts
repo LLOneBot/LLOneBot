@@ -3,7 +3,8 @@ import {
   GroupMemberRole,
   GroupNotifyType,
   GroupRequestOperateTypes,
-  GroupMsgMask
+  GroupMsgMask,
+  PublishGroupBulletinReq
 } from '@/ntqqapi/types'
 import { GeneralCallResult } from './common'
 
@@ -95,9 +96,9 @@ export interface NodeIKernelGroupService {
     }
   ): Promise<GeneralCallResult>
 
-  publishGroupBulletin(groupCode: string, pskey: string, data: unknown): Promise<GeneralCallResult>
+  publishGroupBulletin(groupCode: string, psKey: string, req: PublishGroupBulletinReq): Promise<GeneralCallResult>
 
-  uploadGroupBulletinPic(groupCode: string, pskey: string, imagePath: string): Promise<{
+  uploadGroupBulletinPic(groupCode: string, psKey: string, path: string): Promise<{
     errCode: number
     errMsg: string
     picInfo?: {
@@ -154,4 +155,6 @@ export interface NodeIKernelGroupService {
   }>
 
   setGroupMsgMask(groupCode: string, msgMask: GroupMsgMask): Promise<GeneralCallResult>
+
+  deleteGroupBulletin(groupCode: string, psKey: string, feedsId: string): Promise<GeneralCallResult>
 }

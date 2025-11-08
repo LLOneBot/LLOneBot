@@ -1,5 +1,3 @@
-import { GetGroupAlbumList } from '@/onebot11/action/llonebot/group/GroupAlbum/CreateGroupAlbum'
-
 export type BaseCheckResult = ValidCheckResult | InvalidCheckResult
 
 export interface ValidCheckResult {
@@ -59,6 +57,7 @@ export enum ActionName {
   GetPrivateFileUrl = 'get_private_file_url',
   GetDoubtFriendsAddRequest = 'get_doubt_friends_add_request',
   SetDoubtFriendsAddRequest = 'set_doubt_friends_add_request',
+  DeleteGroupNotice = '_delete_group_notice',
   // onebot 11
   SendLike = 'send_like',
   GetLoginInfo = 'get_login_info',
