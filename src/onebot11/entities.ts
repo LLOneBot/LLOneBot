@@ -36,7 +36,6 @@ import { OB11GroupRecallNoticeEvent } from './event/notice/OB11GroupRecallNotice
 import { OB11FriendPokeEvent, OB11GroupPokeEvent } from './event/notice/OB11PokeEvent'
 import { OB11BaseNoticeEvent } from './event/notice/OB11BaseNoticeEvent'
 import { GroupBanEvent } from './event/notice/OB11GroupBanEvent'
-import { GroupMsgEmojiLikeEvent } from './event/notice/OB11MsgEmojiLikeEvent'
 import { GroupEssenceEvent } from './event/notice/OB11GroupEssenceEvent'
 import { Dict } from 'cosmokit'
 import { Context } from 'cordis'
@@ -88,7 +87,7 @@ export namespace OB11Entities {
       resMsg.raw_pb = ''
       const uniqueId = `${msg.peerUin}_${msg.msgRandom}_${msg.msgSeq}`
       const msgPB = msgPBMap.get(uniqueId)
-      if (msgPB){
+      if (msgPB) {
         resMsg.raw_pb = msgPB
       }
     }
@@ -623,10 +622,7 @@ export namespace OB11Entities {
           }
         } else if (grayTipElement.subElementType === GrayTipElementSubType.XmlMsg) {
           const xmlElement = grayTipElement.xmlElement!
-          if (xmlElement.templId === '10382') {
-            ctx.logger.info('收到表情回应我的消息', xmlElement.templParam)
-            return await GroupMsgEmojiLikeEvent.parse(ctx, xmlElement, msg.peerUid)
-          } else if (xmlElement.templId === '10179' || xmlElement.templId === '10180') {
+          if (xmlElement.templId === '10179' || xmlElement.templId === '10180') {
             ctx.logger.info('收到新人被邀请进群消息', xmlElement)
             const invitor = xmlElement.templParam.get('invitor')
             const invitee = xmlElement.templParam.get('invitee')

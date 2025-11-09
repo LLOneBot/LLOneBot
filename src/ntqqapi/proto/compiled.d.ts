@@ -1575,6 +1575,357 @@ export namespace Msg {
          */
         public static getTypeUrl(typeUrlPrefix?: string): string;
     }
+
+    /** Properties of a PushMsg. */
+    interface IPushMsg {
+
+        /** PushMsg message */
+        message?: (Msg.IMessage|null);
+    }
+
+    /** Represents a PushMsg. */
+    class PushMsg implements IPushMsg {
+
+        /**
+         * Constructs a new PushMsg.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Msg.IPushMsg);
+
+        /** PushMsg message. */
+        public message?: (Msg.IMessage|null);
+
+        /**
+         * Encodes the specified PushMsg message. Does not implicitly {@link Msg.PushMsg.verify|verify} messages.
+         * @param message PushMsg message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Msg.IPushMsg, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a PushMsg message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns PushMsg
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Msg.PushMsg;
+
+        /**
+         * Gets the default type url for PushMsg
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a NotifyMessageBody. */
+    interface INotifyMessageBody {
+
+        /** NotifyMessageBody groupCode */
+        groupCode?: (number|null);
+
+        /** NotifyMessageBody field13 */
+        field13?: (number|null);
+
+        /** NotifyMessageBody reaction */
+        reaction?: (Msg.IGroupReaction|null);
+    }
+
+    /** Represents a NotifyMessageBody. */
+    class NotifyMessageBody implements INotifyMessageBody {
+
+        /**
+         * Constructs a new NotifyMessageBody.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Msg.INotifyMessageBody);
+
+        /** NotifyMessageBody groupCode. */
+        public groupCode: number;
+
+        /** NotifyMessageBody field13. */
+        public field13: number;
+
+        /** NotifyMessageBody reaction. */
+        public reaction?: (Msg.IGroupReaction|null);
+
+        /**
+         * Encodes the specified NotifyMessageBody message. Does not implicitly {@link Msg.NotifyMessageBody.verify|verify} messages.
+         * @param message NotifyMessageBody message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Msg.INotifyMessageBody, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a NotifyMessageBody message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns NotifyMessageBody
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Msg.NotifyMessageBody;
+
+        /**
+         * Gets the default type url for NotifyMessageBody
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a GroupReaction. */
+    interface IGroupReaction {
+
+        /** GroupReaction data */
+        data?: (Msg.IGroupReactionData|null);
+    }
+
+    /** Represents a GroupReaction. */
+    class GroupReaction implements IGroupReaction {
+
+        /**
+         * Constructs a new GroupReaction.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Msg.IGroupReaction);
+
+        /** GroupReaction data. */
+        public data?: (Msg.IGroupReactionData|null);
+
+        /**
+         * Encodes the specified GroupReaction message. Does not implicitly {@link Msg.GroupReaction.verify|verify} messages.
+         * @param message GroupReaction message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Msg.IGroupReaction, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a GroupReaction message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns GroupReaction
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Msg.GroupReaction;
+
+        /**
+         * Gets the default type url for GroupReaction
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a GroupReactionData. */
+    interface IGroupReactionData {
+
+        /** GroupReactionData body */
+        body?: (Msg.IGroupReactionBody|null);
+    }
+
+    /** Represents a GroupReactionData. */
+    class GroupReactionData implements IGroupReactionData {
+
+        /**
+         * Constructs a new GroupReactionData.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Msg.IGroupReactionData);
+
+        /** GroupReactionData body. */
+        public body?: (Msg.IGroupReactionBody|null);
+
+        /**
+         * Encodes the specified GroupReactionData message. Does not implicitly {@link Msg.GroupReactionData.verify|verify} messages.
+         * @param message GroupReactionData message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Msg.IGroupReactionData, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a GroupReactionData message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns GroupReactionData
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Msg.GroupReactionData;
+
+        /**
+         * Gets the default type url for GroupReactionData
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a GroupReactionBody. */
+    interface IGroupReactionBody {
+
+        /** GroupReactionBody target */
+        target?: (Msg.IGroupReactionTarget|null);
+
+        /** GroupReactionBody info */
+        info?: (Msg.IGroupReactionInfo|null);
+    }
+
+    /** Represents a GroupReactionBody. */
+    class GroupReactionBody implements IGroupReactionBody {
+
+        /**
+         * Constructs a new GroupReactionBody.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Msg.IGroupReactionBody);
+
+        /** GroupReactionBody target. */
+        public target?: (Msg.IGroupReactionTarget|null);
+
+        /** GroupReactionBody info. */
+        public info?: (Msg.IGroupReactionInfo|null);
+
+        /**
+         * Encodes the specified GroupReactionBody message. Does not implicitly {@link Msg.GroupReactionBody.verify|verify} messages.
+         * @param message GroupReactionBody message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Msg.IGroupReactionBody, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a GroupReactionBody message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns GroupReactionBody
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Msg.GroupReactionBody;
+
+        /**
+         * Gets the default type url for GroupReactionBody
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a GroupReactionTarget. */
+    interface IGroupReactionTarget {
+
+        /** GroupReactionTarget sequence */
+        sequence?: (number|null);
+    }
+
+    /** Represents a GroupReactionTarget. */
+    class GroupReactionTarget implements IGroupReactionTarget {
+
+        /**
+         * Constructs a new GroupReactionTarget.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Msg.IGroupReactionTarget);
+
+        /** GroupReactionTarget sequence. */
+        public sequence: number;
+
+        /**
+         * Encodes the specified GroupReactionTarget message. Does not implicitly {@link Msg.GroupReactionTarget.verify|verify} messages.
+         * @param message GroupReactionTarget message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Msg.IGroupReactionTarget, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a GroupReactionTarget message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns GroupReactionTarget
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Msg.GroupReactionTarget;
+
+        /**
+         * Gets the default type url for GroupReactionTarget
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    /** Properties of a GroupReactionInfo. */
+    interface IGroupReactionInfo {
+
+        /** GroupReactionInfo code */
+        code?: (string|null);
+
+        /** GroupReactionInfo count */
+        count?: (number|null);
+
+        /** GroupReactionInfo operatorUid */
+        operatorUid?: (string|null);
+
+        /** GroupReactionInfo type */
+        type?: (number|null);
+    }
+
+    /** Represents a GroupReactionInfo. */
+    class GroupReactionInfo implements IGroupReactionInfo {
+
+        /**
+         * Constructs a new GroupReactionInfo.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Msg.IGroupReactionInfo);
+
+        /** GroupReactionInfo code. */
+        public code: string;
+
+        /** GroupReactionInfo count. */
+        public count: number;
+
+        /** GroupReactionInfo operatorUid. */
+        public operatorUid: string;
+
+        /** GroupReactionInfo type. */
+        public type: number;
+
+        /**
+         * Encodes the specified GroupReactionInfo message. Does not implicitly {@link Msg.GroupReactionInfo.verify|verify} messages.
+         * @param message GroupReactionInfo message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Msg.IGroupReactionInfo, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a GroupReactionInfo message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns GroupReactionInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Msg.GroupReactionInfo;
+
+        /**
+         * Gets the default type url for GroupReactionInfo
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
 }
 
 /** Namespace RichMedia. */
