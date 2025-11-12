@@ -8,6 +8,7 @@ import { selfInfo } from '@/common/globalVars'
 import { message2List, createSendElements, createPeer, CreatePeerMode } from '../../helper/createMessage'
 import { MessageEncoder } from '@/onebot11/helper/createMultiMessage'
 import { randomUUID } from 'node:crypto'
+import { OB11Entities } from '@/onebot11/entities'
 
 interface Payload {
   user_id?: string | number
@@ -46,13 +47,9 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
     }
     const peer = await createPeer(this.ctx, payload, contextMode)
 
-    const nodes = this.parseNodeContent(messages)
+    const nodes = await this.parseNodeContent(messages)
     let fake = true
     for (const node of nodes) {
-      if (node.data.id) {
-        fake = false
-        break
-      }
       if (node.data.content?.some(e => {
         return !MessageEncoder.support.includes(e.type)
       })) {
@@ -63,8 +60,34 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
     return fake ? await this.handleFakeForwardNode(peer, nodes) : await this.handleForwardNode(peer, nodes)
   }
 
-  private parseNodeContent(nodes: OB11MessageNode[]) {
-    return nodes.map(e => {
+  private async parseNodeContent(nodes: OB11MessageNode[]) {
+    return await Promise.all(nodes.map(async e => {
+      if (e.data.id) {
+        const msgInfo = await this.ctx.store.getMsgInfoByShortId(+e.data.id)
+        if (!msgInfo) {
+          throw new Error(`消息 ${e.data.id} 未找到`)
+        }
+        let msg = this.ctx.store.getMsgCache(msgInfo.msgId)
+        if (!msg) {
+          const res = await this.ctx.ntMsgApi.getMsgsByMsgId(msgInfo.peer, [msgInfo.msgId])
+          if (res.msgList.length === 0) {
+            throw new Error(`无法获取消息 ${e.data.id}`)
+          }
+          msg = res.msgList[0]
+        }
+        const obMsg = await OB11Entities.message(this.ctx, msg)
+        if (!obMsg) {
+          throw new Error(`消息 ${e.data.id} 解析失败`)
+        }
+        return {
+          type: e.type,
+          data: {
+            name: obMsg.sender.nickname,
+            uin: obMsg.sender.user_id,
+            content: obMsg.message as OB11MessageData[]
+          }
+        }
+      }
       return {
         type: e.type,
         data: {
@@ -72,7 +95,7 @@ export class SendForwardMsg extends BaseAction<Payload, Response> {
           content: e.data.content ? message2List(e.data.content) : undefined,
         },
       }
-    })
+    }))
   }
 
   private async handleFakeForwardNode(peer: Peer, nodes: OB11MessageNode[]): Promise<Response> {

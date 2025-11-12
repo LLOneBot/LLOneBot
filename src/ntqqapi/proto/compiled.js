@@ -4118,6 +4118,789 @@ export const Msg = $root.Msg = (() => {
         return SendMsgRsp;
     })();
 
+    Msg.PushMsg = (function() {
+
+        /**
+         * Properties of a PushMsg.
+         * @memberof Msg
+         * @interface IPushMsg
+         * @property {Msg.IMessage|null} [message] PushMsg message
+         */
+
+        /**
+         * Constructs a new PushMsg.
+         * @memberof Msg
+         * @classdesc Represents a PushMsg.
+         * @implements IPushMsg
+         * @constructor
+         * @param {Msg.IPushMsg=} [properties] Properties to set
+         */
+        function PushMsg(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * PushMsg message.
+         * @member {Msg.IMessage|null|undefined} message
+         * @memberof Msg.PushMsg
+         * @instance
+         */
+        PushMsg.prototype.message = null;
+
+        /**
+         * Encodes the specified PushMsg message. Does not implicitly {@link Msg.PushMsg.verify|verify} messages.
+         * @function encode
+         * @memberof Msg.PushMsg
+         * @static
+         * @param {Msg.IPushMsg} message PushMsg message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        PushMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.message != null && Object.hasOwnProperty.call(message, "message"))
+                $root.Msg.Message.encode(message.message, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a PushMsg message from the specified reader or buffer.
+         * @function decode
+         * @memberof Msg.PushMsg
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Msg.PushMsg} PushMsg
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        PushMsg.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Msg.PushMsg();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.message = $root.Msg.Message.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for PushMsg
+         * @function getTypeUrl
+         * @memberof Msg.PushMsg
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        PushMsg.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Msg.PushMsg";
+        };
+
+        return PushMsg;
+    })();
+
+    Msg.NotifyMessageBody = (function() {
+
+        /**
+         * Properties of a NotifyMessageBody.
+         * @memberof Msg
+         * @interface INotifyMessageBody
+         * @property {number|null} [groupCode] NotifyMessageBody groupCode
+         * @property {number|null} [field13] NotifyMessageBody field13
+         * @property {Msg.IGroupReaction|null} [reaction] NotifyMessageBody reaction
+         */
+
+        /**
+         * Constructs a new NotifyMessageBody.
+         * @memberof Msg
+         * @classdesc Represents a NotifyMessageBody.
+         * @implements INotifyMessageBody
+         * @constructor
+         * @param {Msg.INotifyMessageBody=} [properties] Properties to set
+         */
+        function NotifyMessageBody(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * NotifyMessageBody groupCode.
+         * @member {number} groupCode
+         * @memberof Msg.NotifyMessageBody
+         * @instance
+         */
+        NotifyMessageBody.prototype.groupCode = 0;
+
+        /**
+         * NotifyMessageBody field13.
+         * @member {number} field13
+         * @memberof Msg.NotifyMessageBody
+         * @instance
+         */
+        NotifyMessageBody.prototype.field13 = 0;
+
+        /**
+         * NotifyMessageBody reaction.
+         * @member {Msg.IGroupReaction|null|undefined} reaction
+         * @memberof Msg.NotifyMessageBody
+         * @instance
+         */
+        NotifyMessageBody.prototype.reaction = null;
+
+        /**
+         * Encodes the specified NotifyMessageBody message. Does not implicitly {@link Msg.NotifyMessageBody.verify|verify} messages.
+         * @function encode
+         * @memberof Msg.NotifyMessageBody
+         * @static
+         * @param {Msg.INotifyMessageBody} message NotifyMessageBody message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        NotifyMessageBody.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.groupCode != null && Object.hasOwnProperty.call(message, "groupCode"))
+                writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.groupCode);
+            if (message.field13 != null && Object.hasOwnProperty.call(message, "field13"))
+                writer.uint32(/* id 13, wireType 0 =*/104).uint32(message.field13);
+            if (message.reaction != null && Object.hasOwnProperty.call(message, "reaction"))
+                $root.Msg.GroupReaction.encode(message.reaction, writer.uint32(/* id 44, wireType 2 =*/354).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a NotifyMessageBody message from the specified reader or buffer.
+         * @function decode
+         * @memberof Msg.NotifyMessageBody
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Msg.NotifyMessageBody} NotifyMessageBody
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        NotifyMessageBody.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Msg.NotifyMessageBody();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 4: {
+                        message.groupCode = reader.uint32();
+                        break;
+                    }
+                case 13: {
+                        message.field13 = reader.uint32();
+                        break;
+                    }
+                case 44: {
+                        message.reaction = $root.Msg.GroupReaction.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for NotifyMessageBody
+         * @function getTypeUrl
+         * @memberof Msg.NotifyMessageBody
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        NotifyMessageBody.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Msg.NotifyMessageBody";
+        };
+
+        return NotifyMessageBody;
+    })();
+
+    Msg.GroupReaction = (function() {
+
+        /**
+         * Properties of a GroupReaction.
+         * @memberof Msg
+         * @interface IGroupReaction
+         * @property {Msg.IGroupReactionData|null} [data] GroupReaction data
+         */
+
+        /**
+         * Constructs a new GroupReaction.
+         * @memberof Msg
+         * @classdesc Represents a GroupReaction.
+         * @implements IGroupReaction
+         * @constructor
+         * @param {Msg.IGroupReaction=} [properties] Properties to set
+         */
+        function GroupReaction(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * GroupReaction data.
+         * @member {Msg.IGroupReactionData|null|undefined} data
+         * @memberof Msg.GroupReaction
+         * @instance
+         */
+        GroupReaction.prototype.data = null;
+
+        /**
+         * Encodes the specified GroupReaction message. Does not implicitly {@link Msg.GroupReaction.verify|verify} messages.
+         * @function encode
+         * @memberof Msg.GroupReaction
+         * @static
+         * @param {Msg.IGroupReaction} message GroupReaction message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        GroupReaction.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.data != null && Object.hasOwnProperty.call(message, "data"))
+                $root.Msg.GroupReactionData.encode(message.data, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a GroupReaction message from the specified reader or buffer.
+         * @function decode
+         * @memberof Msg.GroupReaction
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Msg.GroupReaction} GroupReaction
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        GroupReaction.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Msg.GroupReaction();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.data = $root.Msg.GroupReactionData.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for GroupReaction
+         * @function getTypeUrl
+         * @memberof Msg.GroupReaction
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        GroupReaction.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Msg.GroupReaction";
+        };
+
+        return GroupReaction;
+    })();
+
+    Msg.GroupReactionData = (function() {
+
+        /**
+         * Properties of a GroupReactionData.
+         * @memberof Msg
+         * @interface IGroupReactionData
+         * @property {Msg.IGroupReactionBody|null} [body] GroupReactionData body
+         */
+
+        /**
+         * Constructs a new GroupReactionData.
+         * @memberof Msg
+         * @classdesc Represents a GroupReactionData.
+         * @implements IGroupReactionData
+         * @constructor
+         * @param {Msg.IGroupReactionData=} [properties] Properties to set
+         */
+        function GroupReactionData(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * GroupReactionData body.
+         * @member {Msg.IGroupReactionBody|null|undefined} body
+         * @memberof Msg.GroupReactionData
+         * @instance
+         */
+        GroupReactionData.prototype.body = null;
+
+        /**
+         * Encodes the specified GroupReactionData message. Does not implicitly {@link Msg.GroupReactionData.verify|verify} messages.
+         * @function encode
+         * @memberof Msg.GroupReactionData
+         * @static
+         * @param {Msg.IGroupReactionData} message GroupReactionData message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        GroupReactionData.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.body != null && Object.hasOwnProperty.call(message, "body"))
+                $root.Msg.GroupReactionBody.encode(message.body, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a GroupReactionData message from the specified reader or buffer.
+         * @function decode
+         * @memberof Msg.GroupReactionData
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Msg.GroupReactionData} GroupReactionData
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        GroupReactionData.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Msg.GroupReactionData();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.body = $root.Msg.GroupReactionBody.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for GroupReactionData
+         * @function getTypeUrl
+         * @memberof Msg.GroupReactionData
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        GroupReactionData.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Msg.GroupReactionData";
+        };
+
+        return GroupReactionData;
+    })();
+
+    Msg.GroupReactionBody = (function() {
+
+        /**
+         * Properties of a GroupReactionBody.
+         * @memberof Msg
+         * @interface IGroupReactionBody
+         * @property {Msg.IGroupReactionTarget|null} [target] GroupReactionBody target
+         * @property {Msg.IGroupReactionInfo|null} [info] GroupReactionBody info
+         */
+
+        /**
+         * Constructs a new GroupReactionBody.
+         * @memberof Msg
+         * @classdesc Represents a GroupReactionBody.
+         * @implements IGroupReactionBody
+         * @constructor
+         * @param {Msg.IGroupReactionBody=} [properties] Properties to set
+         */
+        function GroupReactionBody(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * GroupReactionBody target.
+         * @member {Msg.IGroupReactionTarget|null|undefined} target
+         * @memberof Msg.GroupReactionBody
+         * @instance
+         */
+        GroupReactionBody.prototype.target = null;
+
+        /**
+         * GroupReactionBody info.
+         * @member {Msg.IGroupReactionInfo|null|undefined} info
+         * @memberof Msg.GroupReactionBody
+         * @instance
+         */
+        GroupReactionBody.prototype.info = null;
+
+        /**
+         * Encodes the specified GroupReactionBody message. Does not implicitly {@link Msg.GroupReactionBody.verify|verify} messages.
+         * @function encode
+         * @memberof Msg.GroupReactionBody
+         * @static
+         * @param {Msg.IGroupReactionBody} message GroupReactionBody message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        GroupReactionBody.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.target != null && Object.hasOwnProperty.call(message, "target"))
+                $root.Msg.GroupReactionTarget.encode(message.target, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+            if (message.info != null && Object.hasOwnProperty.call(message, "info"))
+                $root.Msg.GroupReactionInfo.encode(message.info, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a GroupReactionBody message from the specified reader or buffer.
+         * @function decode
+         * @memberof Msg.GroupReactionBody
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Msg.GroupReactionBody} GroupReactionBody
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        GroupReactionBody.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Msg.GroupReactionBody();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 2: {
+                        message.target = $root.Msg.GroupReactionTarget.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 3: {
+                        message.info = $root.Msg.GroupReactionInfo.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for GroupReactionBody
+         * @function getTypeUrl
+         * @memberof Msg.GroupReactionBody
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        GroupReactionBody.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Msg.GroupReactionBody";
+        };
+
+        return GroupReactionBody;
+    })();
+
+    Msg.GroupReactionTarget = (function() {
+
+        /**
+         * Properties of a GroupReactionTarget.
+         * @memberof Msg
+         * @interface IGroupReactionTarget
+         * @property {number|null} [sequence] GroupReactionTarget sequence
+         */
+
+        /**
+         * Constructs a new GroupReactionTarget.
+         * @memberof Msg
+         * @classdesc Represents a GroupReactionTarget.
+         * @implements IGroupReactionTarget
+         * @constructor
+         * @param {Msg.IGroupReactionTarget=} [properties] Properties to set
+         */
+        function GroupReactionTarget(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * GroupReactionTarget sequence.
+         * @member {number} sequence
+         * @memberof Msg.GroupReactionTarget
+         * @instance
+         */
+        GroupReactionTarget.prototype.sequence = 0;
+
+        /**
+         * Encodes the specified GroupReactionTarget message. Does not implicitly {@link Msg.GroupReactionTarget.verify|verify} messages.
+         * @function encode
+         * @memberof Msg.GroupReactionTarget
+         * @static
+         * @param {Msg.IGroupReactionTarget} message GroupReactionTarget message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        GroupReactionTarget.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.sequence != null && Object.hasOwnProperty.call(message, "sequence"))
+                writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.sequence);
+            return writer;
+        };
+
+        /**
+         * Decodes a GroupReactionTarget message from the specified reader or buffer.
+         * @function decode
+         * @memberof Msg.GroupReactionTarget
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Msg.GroupReactionTarget} GroupReactionTarget
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        GroupReactionTarget.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Msg.GroupReactionTarget();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.sequence = reader.uint32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for GroupReactionTarget
+         * @function getTypeUrl
+         * @memberof Msg.GroupReactionTarget
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        GroupReactionTarget.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Msg.GroupReactionTarget";
+        };
+
+        return GroupReactionTarget;
+    })();
+
+    Msg.GroupReactionInfo = (function() {
+
+        /**
+         * Properties of a GroupReactionInfo.
+         * @memberof Msg
+         * @interface IGroupReactionInfo
+         * @property {string|null} [code] GroupReactionInfo code
+         * @property {number|null} [count] GroupReactionInfo count
+         * @property {string|null} [operatorUid] GroupReactionInfo operatorUid
+         * @property {number|null} [type] GroupReactionInfo type
+         */
+
+        /**
+         * Constructs a new GroupReactionInfo.
+         * @memberof Msg
+         * @classdesc Represents a GroupReactionInfo.
+         * @implements IGroupReactionInfo
+         * @constructor
+         * @param {Msg.IGroupReactionInfo=} [properties] Properties to set
+         */
+        function GroupReactionInfo(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * GroupReactionInfo code.
+         * @member {string} code
+         * @memberof Msg.GroupReactionInfo
+         * @instance
+         */
+        GroupReactionInfo.prototype.code = "";
+
+        /**
+         * GroupReactionInfo count.
+         * @member {number} count
+         * @memberof Msg.GroupReactionInfo
+         * @instance
+         */
+        GroupReactionInfo.prototype.count = 0;
+
+        /**
+         * GroupReactionInfo operatorUid.
+         * @member {string} operatorUid
+         * @memberof Msg.GroupReactionInfo
+         * @instance
+         */
+        GroupReactionInfo.prototype.operatorUid = "";
+
+        /**
+         * GroupReactionInfo type.
+         * @member {number} type
+         * @memberof Msg.GroupReactionInfo
+         * @instance
+         */
+        GroupReactionInfo.prototype.type = 0;
+
+        /**
+         * Encodes the specified GroupReactionInfo message. Does not implicitly {@link Msg.GroupReactionInfo.verify|verify} messages.
+         * @function encode
+         * @memberof Msg.GroupReactionInfo
+         * @static
+         * @param {Msg.IGroupReactionInfo} message GroupReactionInfo message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        GroupReactionInfo.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.code != null && Object.hasOwnProperty.call(message, "code"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.code);
+            if (message.count != null && Object.hasOwnProperty.call(message, "count"))
+                writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.count);
+            if (message.operatorUid != null && Object.hasOwnProperty.call(message, "operatorUid"))
+                writer.uint32(/* id 4, wireType 2 =*/34).string(message.operatorUid);
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
+                writer.uint32(/* id 5, wireType 0 =*/40).uint32(message.type);
+            return writer;
+        };
+
+        /**
+         * Decodes a GroupReactionInfo message from the specified reader or buffer.
+         * @function decode
+         * @memberof Msg.GroupReactionInfo
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {Msg.GroupReactionInfo} GroupReactionInfo
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        GroupReactionInfo.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.Msg.GroupReactionInfo();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.code = reader.string();
+                        break;
+                    }
+                case 3: {
+                        message.count = reader.uint32();
+                        break;
+                    }
+                case 4: {
+                        message.operatorUid = reader.string();
+                        break;
+                    }
+                case 5: {
+                        message.type = reader.uint32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Gets the default type url for GroupReactionInfo
+         * @function getTypeUrl
+         * @memberof Msg.GroupReactionInfo
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        GroupReactionInfo.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/Msg.GroupReactionInfo";
+        };
+
+        return GroupReactionInfo;
+    })();
+
     return Msg;
 })();
 

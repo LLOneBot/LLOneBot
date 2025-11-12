@@ -140,3 +140,37 @@ message SendMsgRsp {
   optional uint32 timestamp = 12;
   optional int32 private_seq = 14;
 }
+
+message PushMsg {
+  Message message = 1;
+}
+
+message NotifyMessageBody {
+  uint32 groupCode = 4;
+  uint32 field13 = 13;
+  GroupReaction reaction = 44;
+}
+
+message GroupReaction {
+  GroupReactionData data = 1;
+}
+
+message GroupReactionData {
+  GroupReactionBody body = 1;
+}
+
+message GroupReactionBody {
+  GroupReactionTarget target = 2;
+  GroupReactionInfo info = 3;
+}
+
+message GroupReactionTarget {
+  uint32 sequence = 1;
+}
+
+message GroupReactionInfo {
+  string code = 1;
+  uint32 count = 3;
+  string operatorUid = 4;
+  uint32 type = 5;
+}

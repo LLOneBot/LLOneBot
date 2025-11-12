@@ -375,10 +375,16 @@ export class NTQQGroupApi extends Service {
   async createGroupAlbum(groupId: string, name: string, desc: string) {
     const seq = Date.now()
     return await invoke('nodeIKernelAlbumService/addAlbum', [seq, {
-        owner: groupId,
-        name,
-        desc,
-        createTime: '0'
+      owner: groupId,
+      name,
+      desc,
+      createTime: '0'
     }])
+  }
+
+  async deleteGroupBulletin(groupCode: string, feedsId: string) {
+    const ntUserApi = this.ctx.get('ntUserApi')!
+    const psKey = (await ntUserApi.getPSkey(['qun.qq.com'])).domainPskeyMap.get('qun.qq.com')!
+    return await invoke('nodeIKernelGroupService/deleteGroupBulletin', [groupCode, psKey, feedsId])
   }
 }
