@@ -129,7 +129,12 @@ class Core extends Service {
     for (const message of msgList) {
       const msgTime = parseInt(message.msgTime)
       if (msgTime < this.startupTime) {
-        this.ctx.parallel('nt/offline-message-created', message)
+        this.ctx.store.getShortIdByMsgId(message.msgId).then(existing=>{
+          // 已存在的离线消息不处理
+          if (!existing) {
+            this.ctx.parallel('nt/offline-message-created', message)
+          }
+        })
         continue
       }
       if (message.senderUin && message.senderUin !== '0') {
