@@ -217,7 +217,7 @@ class OneBot11Adapter extends Service {
     //     this.dispatch(privateEvent)
     //   }
     // })
-    const shortId = this.ctx.store.createMsgShortId(peer, message.msgId)
+    const shortId = this.ctx.store.createMsgShortId(message)
 
     OB11Entities.recallEvent(this.ctx, message, shortId).then((recallEvent) => {
       if (recallEvent) {
@@ -316,7 +316,9 @@ class OneBot11Adapter extends Service {
       if (input.senderUid === selfInfo.uid) {
         this.handleMsg(input, true, true)
       }
-      this.handleMsg(input, false, true)
+      else {
+        this.handleMsg(input, false, true)
+      }
     })
     this.ctx.on('nt/message-deleted', input => {
       this.handleRecallMsg(input)
@@ -525,7 +527,7 @@ class OneBot11Adapter extends Service {
               this.ctx.logger.error('解析群表情回应失败：未找到消息')
               return
             }
-            const messageId = this.ctx.store.createMsgShortId(peer, targetMsg.msgList[0].msgId)
+            const messageId = this.ctx.store.createMsgShortId(targetMsg.msgList[0])
             const event = new OB11GroupMsgEmojiLikeEvent(
               notify.groupCode,
               userId,

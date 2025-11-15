@@ -55,11 +55,7 @@ export namespace OB11Entities {
   ): Promise<OB11Message | undefined> {
     if (!msg.senderUin || msg.senderUin === '0' || msg.msgType === 1) return //跳过空消息
     const selfUin = selfInfo.uin
-    const msgShortId = ctx.store.createMsgShortId({
-      chatType: msg.chatType,
-      peerUid: msg.peerUid,
-      guildId: ''
-    }, msg.msgId)
+    const msgShortId = ctx.store.createMsgShortId(msg)
     const resMsg: OB11Message = {
       self_id: Number(selfUin),
       user_id: Number(msg.senderUin),
@@ -213,7 +209,7 @@ export namespace OB11Entities {
           messageSegment = {
             type: OB11MessageDataType.Reply,
             data: {
-              id: ctx.store.createMsgShortId(peer, replyMsg.msgId).toString()
+              id: ctx.store.createMsgShortId(replyMsg).toString()
             }
           }
         } catch (e) {

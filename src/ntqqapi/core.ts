@@ -129,21 +129,8 @@ class Core extends Service {
     for (const message of msgList) {
       const msgTime = parseInt(message.msgTime)
       if (msgTime < this.startupTime) {
-        const uniqueId = `${message.peerUid}-${message.msgSeq}-${message.msgRandom}`
-        const existing = await this.ctx.store.getShortIdByMsgId(uniqueId)
+        const existing = await this.ctx.store.checkMsgExist(message)
         if (!existing){
-          this.ctx.logger.info(uniqueId)
-          const peer = {
-            chatType: message.chatType,
-            peerUid: message.peerUin,
-            guildId: '',
-          }
-          try {
-            this.ctx.store.createMsgShortId(peer, uniqueId)
-          }catch (e) {
-            this.ctx.logger.info(e)
-          }
-          // this.ctx.logger.info(message)
           this.ctx.parallel('nt/offline-message-created', message)
         }
         continue
