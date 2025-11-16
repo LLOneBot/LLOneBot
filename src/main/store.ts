@@ -78,7 +78,7 @@ class Store extends Service {
   }
 
   getUniqueMsgId(msg: RawMessage): string {
-    return `${msg.chatType}-${msg.peerUid}-${msg.msgSeq}-${msg.msgRandom}}`
+    return `${msg.chatType}-${msg.peerUid}-${msg.msgSeq}-${msg.msgRandom}-${msg.msgTime}`
   }
 
   createMsgShortId(msg: RawMessage): number {
