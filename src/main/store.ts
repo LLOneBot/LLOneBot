@@ -33,7 +33,7 @@ interface MsgInfo {
 
 class Store extends Service {
   static inject = ['database', 'model']
-  private cache: BidiMap<string, number>
+  private cache: BidiMap<MsgInfo, number>
   private messages: Map<string, RawMessage>
 
   constructor(protected ctx: Context, public config: Store.Config) {
@@ -98,7 +98,16 @@ class Store extends Service {
     }
     const hash = createHash('md5').update(uniqueMsgId).digest()
     const shortId = hash.readInt32BE() // OneBot 11 要求 message_id 为 int32
-    this.cache.set(uniqueMsgId, shortId)
+    this.cache.set(
+      {
+        msgId: msg.msgId,
+        peer: {
+          chatType: msg.chatType,
+          peerUid: msg.peerUid,
+          guildId: ''
+        }
+      },
+      shortId)
     this.ctx.database.upsert('message', [{
       msgId: msg.msgId,
       uniqueMsgId,
@@ -112,15 +121,7 @@ class Store extends Service {
   async getMsgInfoByShortId(shortId: number): Promise<MsgInfo | undefined> {
     const data = this.cache.getKey(shortId)
     if (data) {
-      const [msgId, chatTypeStr, peerUid] = data.split('|')
-      return {
-        msgId,
-        peer: {
-          chatType: +chatTypeStr,
-          peerUid,
-          guildId: ''
-        }
-      }
+      return data
     }
     const items = await this.ctx.database.get('message', { shortId })
     if (items?.length) {
@@ -155,8 +156,7 @@ class Store extends Service {
   }
 
   getShortIdByMsgInfo(peer: Peer, msgId: string) {
-    const cacheKey = `${msgId}|${peer.chatType}|${peer.peerUid}`
-    return this.cache.getValue(cacheKey)
+    return this.cache.getValue({msgId, peer})
   }
 
   async addFileCache(data: FileCacheV2) {

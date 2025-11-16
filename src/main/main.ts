@@ -78,7 +78,7 @@ async function onLoad() {
   const loadPluginAfterLogin = () => {
     ctx.plugin(Database)
     ctx.plugin(SQLiteDriver, {
-      path: path.join(dbDir, `${selfInfo.uin}.db`),
+      path: path.join(dbDir, `${selfInfo.uin}.v2.db`),
     })
     ctx.plugin(Core, config)
     ctx.plugin(OneBot11Adapter, {
