@@ -98,6 +98,47 @@ async function onLoad() {
     })
   }
 
+  // 有这个事件表示登录成功了
+  registerReceiveHook(ReceiveCmdS.INIT, (data: [code: number, unknown: string, uid: string]) => {
+    ctx.logger.info('WrapperSession init complete')
+    if (selfInfo.online){ // 已经登录成功说明不再需要重复 init
+      return
+    }
+    selfInfo.uid = data[2]
+    selfInfo.online = true
+
+    const getSelfInfo = async () => {
+      let uin: string
+      // 循环 5次 获取uin
+      for (let i = 0; i < 5; i++) {
+        try {
+          uin = await ctx.ntUserApi.getUinByUid(data[2])
+          selfInfo.uin = uin
+          break
+        } catch (e) {
+          await sleep(1000)
+        }
+      }
+      const configUtil = getConfigUtil(true)
+      config = configUtil.getConfig()
+      ctx.parallel('llob/config-updated', config)
+      configUtil.listenChange(c => {
+        ctx.parallel('llob/config-updated', c)
+      })
+      loadPluginAfterLogin()
+      // this.ctx.database.config.path = path.join(dbDir, `${uin}.db`)
+      ctx.ntUserApi.getSelfNick().then(nick => {
+        ctx.logger.info(`获取登录号${uin}昵称成功`, nick)
+        selfInfo.nick = nick
+      }).catch(e => {
+        ctx.logger.warn('获取登录号昵称失败', e)
+      })
+    }
+    getSelfInfo().catch(e => {
+      ctx.logger.error(e)
+    })
+  })
+
   let started = false
   let pmhqSelfInfo = { ...selfInfo }
   try {
@@ -106,7 +147,7 @@ async function onLoad() {
   } catch (e) {
     ctx.logger.error('获取登录状态失败，等待登录成功中...', e)
   }
-  if (pmhqSelfInfo.online) {
+  if (pmhqSelfInfo.online && !selfInfo.online) {
     selfInfo.uin = pmhqSelfInfo.uin
     selfInfo.uid = pmhqSelfInfo.uid
     selfInfo.online = true
@@ -126,43 +167,6 @@ async function onLoad() {
     config = defaultConfig
     config.satori.enable = false
     config.ob11.enable = false
-    // 有这个事件表示登录成功了
-    registerReceiveHook(ReceiveCmdS.INIT, (data: [code: number, unknown: string, uid: string]) => {
-      ctx.logger.info('WrapperSession init complete')
-      selfInfo.uid = data[2]
-      selfInfo.online = true
-
-      const getSelfInfo = async () => {
-        let uin: string
-        // 循环 5次 获取uin
-        for (let i = 0; i < 5; i++) {
-          try {
-            uin = await ctx.ntUserApi.getUinByUid(data[2])
-            selfInfo.uin = uin
-            break
-          }catch (e) {
-            await sleep(1000)
-          }
-        }
-        const configUtil = getConfigUtil(true)
-        config = configUtil.getConfig()
-        ctx.parallel('llob/config-updated', config)
-        configUtil.listenChange(c => {
-          ctx.parallel('llob/config-updated', c)
-        })
-        loadPluginAfterLogin()
-        // this.ctx.database.config.path = path.join(dbDir, `${uin}.db`)
-        ctx.ntUserApi.getSelfNick().then(nick => {
-          ctx.logger.info(`获取登录号${uin}昵称成功`, nick)
-          selfInfo.nick = nick
-        }).catch(e => {
-          ctx.logger.warn('获取登录号昵称失败', e)
-        })
-      }
-      getSelfInfo().catch(e => {
-        ctx.logger.error(e)
-      })
-    })
   }
 
   ctx.logger.info(`LLTwoBot ${version}`)
