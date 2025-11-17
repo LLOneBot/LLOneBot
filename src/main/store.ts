@@ -92,7 +92,7 @@ class Store extends Service {
     // 这就导致每次清空数据库后收到的同一条消息的 msgId 都不一样
     // 所以这里改成用 msgSeq + msgRandom 来生成 shortId，保证清空 QQ 数据库后收到同一条消息收到 shortId 都一致
     const uniqueMsgId = this.getUniqueMsgId(msg)
-    const existingShortId = this.getShortIdByMsgInfo(peer, uniqueMsgId)
+    const existingShortId = this.getShortIdByMsgInfo(peer, msg.msgId)
     if (existingShortId) {
       return existingShortId
     }
@@ -114,7 +114,7 @@ class Store extends Service {
       shortId,
       chatType: peer.chatType,
       peerUid: peer.peerUid
-    }], 'shortId').then().catch(e => this.ctx.logger.error('createMsgShortId database error:', e))
+    }], ['msgId', 'uniqueMsgId']).then().catch(e => this.ctx.logger.error('createMsgShortId database error:', e))
     return shortId
   }
 
