@@ -120,8 +120,9 @@ class OneBot11Adapter extends Service {
         this.dispatch(event)
       }
       else if (notify.type === GroupNotifyType.InvitedByMember && notify.status === GroupNotifyStatus.Unhandle) {
-        this.ctx.logger.info('收到邀请我加群通知')
+        this.ctx.logger.info('收到邀请我加群通知, 邀请人uid:', notify.user2.uid)
         const userId = await this.ctx.ntUserApi.getUinByUid(notify.user2.uid)
+        this.ctx.logger.info('收到邀请我加群通知, 邀请人uin:', userId)
         const event = new OB11GroupRequestEvent(
           parseInt(notify.group.groupCode),
           parseInt(userId) || 0,

@@ -540,7 +540,7 @@ export namespace OB11Entities {
           if (receiverUin !== selfInfo.uin || senderUin !== msg.senderUin) {
             return
           }
-          ctx.logger.info('收到邀请我加群消息')
+          ctx.logger.info('收到邀请我加群消息', JSON.stringify(data))
           const groupCode = params.get('groupcode')
           const seq = params.get('msgseq')
           const flag = `${groupCode}|${seq}|1|0`
@@ -550,6 +550,7 @@ export namespace OB11Entities {
             flag,
             data.meta.news.desc,
             'invite',
+            Number(senderUin),
           )
         }
       }
