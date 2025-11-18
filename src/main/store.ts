@@ -35,13 +35,11 @@ class Store extends Service {
   static inject = ['database', 'model']
   private cache: BidiMap<MsgInfo, number>
   private messages: Map<string, RawMessage>
-  private pendingShortIds: Map<string, number>
 
   constructor(protected ctx: Context, public config: Store.Config) {
     super(ctx, 'store', true)
     this.cache = new BidiMap(1000)
     this.messages = new Map()
-    this.pendingShortIds = new Map()
     this.initDatabase().then().catch(console.error)
   }
 
@@ -98,38 +96,16 @@ class Store extends Service {
     if (existingShortId) {
       return existingShortId
     }
-    
-    // 检查是否正在处理相同的消息（防止并发重复插入）
-    const pending = this.pendingShortIds.get(uniqueMsgId)
-    if (pending) {
-      return pending
-    }
-    
     const hash = createHash('md5').update(uniqueMsgId).digest()
     const shortId = hash.readInt32BE() // OneBot 11 要求 message_id 为 int32
-    
-    // 立即标记为正在处理，防止并发
-    this.pendingShortIds.set(uniqueMsgId, shortId)
-    
-    this.cache.set(
-      {
-        msgId: msg.msgId,
-        peer
-      },
-      shortId)
+    this.cache.set({ msgId: msg.msgId, peer }, shortId)
     this.ctx.database.upsert('message', [{
       msgId: msg.msgId,
       uniqueMsgId,
       shortId,
       chatType: peer.chatType,
       peerUid: peer.peerUid
-    }], ['shortId']).then(() => {
-      // 延迟清理，给并发请求一点时间
-      setTimeout(() => this.pendingShortIds.delete(uniqueMsgId), 1000)
-    }).catch(e => {
-      this.ctx.logger.error('createMsgShortId database error:', e)
-      this.pendingShortIds.delete(uniqueMsgId)
-    })
+    }], ['shortId']).then().catch(e => this.ctx.logger.error('createMsgShortId database error:', e))
     return shortId
   }
 
@@ -163,11 +139,7 @@ class Store extends Service {
   async checkMsgExist(msg: RawMessage): Promise<boolean> {
     const uniqueMsgId = this.getUniqueMsgId(msg)
     const existingShortId = await this.getShortIdByUniqueMsgId(uniqueMsgId)
-    if (existingShortId) {
-      return true
-    }
-    // this.createMsgShortId(msg)
-    return false
+    return !!existingShortId
   }
 
   getShortIdByMsgInfo(peer: Peer, msgId: string) {
