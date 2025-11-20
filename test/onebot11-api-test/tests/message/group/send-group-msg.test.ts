@@ -27,12 +27,15 @@ describe('send_group_msg - 发送群消息', () => {
     teardownMessageTest(context);
   });
 
-  beforeEach(() => {
-    // 清空事件队列，避免跨测试污染
-    context.twoAccountTest.clearAllQueues();
+  beforeEach(async () => {
+    // 等待一小段时间让之前的消息处理完成
+    await new Promise(resolve => setTimeout(resolve, 50));
   });
 
   it('测试发送群文本消息', async () => {
+    // 在发送消息前清空队列，避免匹配到旧消息
+    context.twoAccountTest.clearAllQueues();
+    
     const primaryClient = context.twoAccountTest.getClient('primary');
 
     // 测试数组格式
@@ -58,7 +61,7 @@ describe('send_group_msg - 发送群消息', () => {
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
         message_id: sendResponse.data.message_id,
-    }, 10000, (event) => {
+    }, (event) => {
         return JSON.stringify(event.message) === JSON.stringify(testMessage);
     });
 
@@ -77,12 +80,15 @@ describe('send_group_msg - 发送群消息', () => {
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
         message_id: cqResponse.data.message_id,
-    }, 10000, (event) => {
+    }, (event) => {
         return event.raw_message === cqMessage;
     });
   }, 60000);
 
   it('测试发送群图片消息', async () => {
+    // 在发送消息前清空队列
+    context.twoAccountTest.clearAllQueues();
+    
     const primaryClient = context.twoAccountTest.getClient('primary');
 
     // 测试数组格式
@@ -116,10 +122,10 @@ describe('send_group_msg - 发送群消息', () => {
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
         message_id: sendResponse.data.message_id,
-    }, 150000, (event) => {
+    }, (event) => {
         const messages = Array.isArray(event.message) ? event.message : [];
         return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Image);
-    });
+    }, 150000);
 
     // 测试 CQ 码格式
     const cqMessage = `[CQ:image,file=${MediaPaths.testGifUrl}] Image via CQ code ${Date.now()}`;
@@ -137,13 +143,16 @@ describe('send_group_msg - 发送群消息', () => {
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
         message_id: cqResponse.data.message_id,
-    }, 150000, (event) => {
+    }, (event) => {
         const messages = Array.isArray(event.message) ? event.message : [];
         return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Image);
-    });
+    }, 150000);
   }, 60000);
 
   it('测试发送群语音消息', async () => {
+    // 在发送消息前清空队列
+    context.twoAccountTest.clearAllQueues();
+    
     const primaryClient = context.twoAccountTest.getClient('primary');
 
     // 测试数组格式
@@ -171,10 +180,10 @@ describe('send_group_msg - 发送群消息', () => {
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
         message_id: sendResponse.data.message_id,
-    }, 10000, (event) => {
+    }, (event) => {
         const messages = Array.isArray(event.message) ? event.message : [];
         return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Record);
-    });
+    }, 15000);
 
     // 测试 CQ 码格式
     const cqMessage = `[CQ:record,file=${MediaPaths.testAudioUrl}]`;
@@ -192,13 +201,16 @@ describe('send_group_msg - 发送群消息', () => {
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
         message_id: cqResponse.data.message_id,
-    }, 150000, (event) => {
+    }, (event) => {
         const messages = Array.isArray(event.message) ? event.message : [];
         return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Record);
-    });
+    }, 150000);
   }, 60000);
 
   it('测试发送群视频消息', async () => {
+    // 在发送消息前清空队列
+    context.twoAccountTest.clearAllQueues();
+    
     const primaryClient = context.twoAccountTest.getClient('primary');
 
     // 测试数组格式
@@ -226,10 +238,10 @@ describe('send_group_msg - 发送群消息', () => {
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
         message_id: sendResponse.data.message_id,
-    }, 150000, (event) => {
+    }, (event) => {
         const messages = Array.isArray(event.message) ? event.message : [];
         return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Video);
-    });
+    }, 150000);
 
     // 测试 CQ 码格式
     const cqMessage = `[CQ:video,file=${MediaPaths.testVideoUrl}]`;
@@ -247,13 +259,16 @@ describe('send_group_msg - 发送群消息', () => {
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
         message_id: cqResponse.data.message_id,
-    }, 150000, (event) => {
+    }, (event) => {
         const messages = Array.isArray(event.message) ? event.message : [];
         return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Video);
-    });
+    }, 150000);
   }, 60000);
 
   it('测试发送 @ 消息', async () => {
+    // 在发送消息前清空队列
+    context.twoAccountTest.clearAllQueues();
+    
     const primaryClient = context.twoAccountTest.getClient('primary');
 
     // 测试数组格式
@@ -287,7 +302,7 @@ describe('send_group_msg - 发送群消息', () => {
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
         message_id: sendResponse.data.message_id,
-    }, 10000, (event) => {
+    }, (event) => {
         const messages = Array.isArray(event.message) ? event.message : [];
         const atMessage = messages.find((msg: OB11MessageData) => msg.type === OB11MessageDataType.At);
         return !!atMessage && atMessage.type === OB11MessageDataType.At && atMessage.data.qq === String(context.secondaryUserId);
@@ -309,7 +324,7 @@ describe('send_group_msg - 发送群消息', () => {
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
         message_id: cqResponse.data.message_id,
-    }, 10000, (event) => {
+    }, (event) => {
         const messages = Array.isArray(event.message) ? event.message : [];
         const atMessage = messages.find((msg: OB11MessageData) => msg.type === OB11MessageDataType.At);
         return !!atMessage && atMessage.type === OB11MessageDataType.At && atMessage.data.qq === String(context.secondaryUserId);
@@ -317,6 +332,9 @@ describe('send_group_msg - 发送群消息', () => {
   }, 60000);
 
   it('测试发送回复消息', async () => {
+    // 在发送消息前清空队列
+    context.twoAccountTest.clearAllQueues();
+    
     const primaryClient = context.twoAccountTest.getClient('primary');
 
     // 先发送一条消息
@@ -336,7 +354,7 @@ describe('send_group_msg - 发送群消息', () => {
         sub_type: 'normal',
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
-    }, 10000);
+    });
 
     // 测试数组格式回复
     const replyMessage: OB11MessageData[] = [
@@ -369,7 +387,7 @@ describe('send_group_msg - 发送群消息', () => {
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
         message_id: replyResponse.data.message_id,
-    }, 10000, (event) => {
+    }, (event) => {
         const messages = Array.isArray(event.message) ? event.message : [];
         return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Reply);
     });
@@ -390,13 +408,16 @@ describe('send_group_msg - 发送群消息', () => {
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
         message_id: cqReplyResponse.data.message_id,
-    }, 10000, (event) => {
+    }, (event) => {
         const messages = Array.isArray(event.message) ? event.message : [];
         return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Reply);
     });
   }, 60000);
 
   it('测试发送混合消息 (文本 + @ + 图片)', async () => {
+    // 在发送消息前清空队列
+    context.twoAccountTest.clearAllQueues();
+    
     const testMessage: OB11MessageData[] = [
       {
         type: OB11MessageDataType.At,
@@ -434,18 +455,18 @@ describe('send_group_msg - 发送群消息', () => {
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
         message_id: sendResponse.data.message_id,
-    }, 150000, (event) => {
+    }, (event) => {
         const messages = Array.isArray(event.message) ? event.message : [];
         const atMessage = messages.find((msg: OB11MessageData) => msg.type === OB11MessageDataType.At);
         const hasText = messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Text);
         const hasImage = messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Image);
-        
-        return !!atMessage && 
-               atMessage.type === OB11MessageDataType.At && 
+
+        return !!atMessage &&
+               atMessage.type === OB11MessageDataType.At &&
                atMessage.data.qq === String(context.secondaryUserId) &&
-               hasText && 
+               hasText &&
                hasImage;
-    });
+    }, 150000);
   }, 60000);
 
 });
