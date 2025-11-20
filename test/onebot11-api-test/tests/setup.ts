@@ -3,9 +3,9 @@
  * 提供统一的测试初始化和清理逻辑
  */
 
-import { ConfigLoader } from '../../config/ConfigLoader.js';
-import { AccountManager } from '../../core/AccountManager.js';
-import { TwoAccountTest } from '../../utils/TwoAccountTest.js';
+import { ConfigLoader } from '../config/ConfigLoader';
+import { AccountManager } from '../core/AccountManager';
+import { TwoAccountTest } from '../utils/TwoAccountTest';
 
 /**
  * 测试上下文接口
@@ -14,7 +14,7 @@ export interface MessageTestContext {
   accountManager: AccountManager;
   twoAccountTest: TwoAccountTest;
   testTimeout: number;
-  testGroupId?: string;
+  testGroupId: string;
   primaryUserId: string;
   secondaryUserId: string;
 }
@@ -35,8 +35,6 @@ export async function setupMessageTest(): Promise<MessageTestContext> {
   // 从配置中获取用户 ID
   const primaryUserId = config.accounts.primary.user_id;
   const secondaryUserId = config.accounts.secondary.user_id;
-
-  // 从配置中获取测试群组 ID（可选）
   const testGroupId = config.test_group_id;
 
   return {

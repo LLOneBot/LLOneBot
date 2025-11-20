@@ -1,12 +1,12 @@
 /**
  * send_msg 接口测试 - 通用发送消息接口
  * 测试通用消息发送功能（支持私聊和群聊）
- * 
+ *
  * 需求: 6.1
  */
 
-import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup.js';
-import { Assertions } from '../../../utils/Assertions.js';
+import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
+import { Assertions } from '../../utils/Assertions';
 
 describe('send_msg - 通用发送消息接口', () => {
   let context: MessageTestContext;

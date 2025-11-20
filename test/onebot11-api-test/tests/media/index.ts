@@ -4,9 +4,36 @@
  */
 
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-// 获取 media 目录的绝对路径
-const mediaDir = __dirname;
+// 获取 media 目录的绝对路径 (兼容 CommonJS 和 ESM)
+const getMediaDir = (): string => {
+  try {
+    // ESM 模式 - 使用 eval 避免 TypeScript 编译时检查
+    const importMetaUrl = eval('import.meta.url');
+    if (importMetaUrl) {
+      const __filename = fileURLToPath(importMetaUrl);
+      return path.dirname(__filename);
+    }
+  } catch (e) {
+    // ESM 不可用，尝试 CommonJS
+  }
+  
+  try {
+    // CommonJS 模式
+    const dirname = eval('__dirname');
+    if (dirname) {
+      return dirname;
+    }
+  } catch (e) {
+    // CommonJS 也不可用
+  }
+  
+  // Fallback: 使用当前工作目录
+  return path.join(process.cwd(), 'tests', 'media');
+};
+
+const mediaDir = getMediaDir();
 
 /**
  * 获取媒体文件的绝对路径

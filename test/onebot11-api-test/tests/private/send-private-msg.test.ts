@@ -13,7 +13,7 @@ import {
 } from '@llonebot/onebot11/types';
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
-import { MediaPaths } from '../../media/index.js';
+import { MediaPaths } from '../media';
 
 describe('send_private_msg - 发送私聊消息', () => {
   let context: MessageTestContext;

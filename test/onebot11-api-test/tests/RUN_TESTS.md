@@ -45,17 +45,22 @@ cp config/test.config.example.json config/test.config.json
 
 **配置说明**：
 - `user_id`: 账号的 QQ 号，用于事件过滤和消息验证
-- `test_group_id`: 测试群组 ID（可选），如果不提供，测试会自动获取第一个可用群组
+- `test_group_id`: 测试群组 ID（必填），用于群组相关测试
 
 ### 3. 运行测试
 
 ```bash
-# 运行所有消息测试
+# 运行所有消息测试（并行）
 npm test -- tests/message
+
+# 运行所有消息测试（串行，推荐）
+npm run test:serial -- tests/message
 
 # 或者使用 watch 模式
 npm run test:watch -- tests/message
 ```
+
+**推荐使用串行模式**，因为测试涉及双账号交互，串行运行可以避免消息混乱和事件监听冲突。
 
 ## 分类运行测试
 
@@ -63,13 +68,13 @@ npm run test:watch -- tests/message
 
 ```bash
 # 只运行私聊消息测试
-npm test -- tests/message/private
+npm test -- tests/message/private -i
 
 # 只运行群聊消息测试
-npm test -- tests/message/group
+npm test -- tests/message/group -i
 
 # 只运行通用接口测试
-npm test -- tests/message/common
+npm test -- tests/message/common - i
 ```
 
 ### 按接口运行
@@ -174,7 +179,7 @@ xdg-open coverage/index.html
 ## 常见问题
 
 ### Q: 测试超时怎么办？
-A: 
+A:
 1. 检查网络连接是否稳定
 2. 增加配置文件中的 `timeout` 值（如改为 60000）
 3. 确认 OneBot11 服务响应正常

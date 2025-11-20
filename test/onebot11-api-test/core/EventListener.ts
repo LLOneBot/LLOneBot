@@ -136,7 +136,7 @@ export class EventListener {
    */
   private async startWebSocketListening(): Promise<void> {
     const config = this.client.getConfig();
-    
+
     // 构建 WebSocket URL
     let wsUrl = config.host;
     if (wsUrl.startsWith('http://')) {
@@ -319,7 +319,7 @@ export class EventListener {
 
     // 检查其他自定义过滤条件
     for (const key in filter) {
-      if (!['post_type', 'sub_type', 'message_type', 'notice_type', 'request_type', 
+      if (!['post_type', 'sub_type', 'message_type', 'notice_type', 'request_type',
             'user_id', 'group_id', 'message_id'].includes(key)) {
         if (event[key] !== filter[key]) {
           return false;
@@ -339,7 +339,7 @@ export class EventListener {
    * @throws {TimeoutError} 等待超时
    */
   async waitForEvent(
-    filter: EventFilter, 
+    filter: EventFilter,
     customFilter?: (event: OB11Event) => boolean,
     timeout: number = 10000
   ): Promise<OB11Event> {

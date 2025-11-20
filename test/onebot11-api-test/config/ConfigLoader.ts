@@ -19,7 +19,7 @@ export interface TestConfig {
     primary: AccountConfig;
     secondary: AccountConfig;
   };
-  test_group_id?: string;
+  test_group_id: string;
   timeout: number;
   retryAttempts: number;
 }
@@ -104,6 +104,9 @@ export class ConfigLoader {
     // 检查顶层字段
     if (!config.accounts) {
       missingFields.push('accounts');
+    }
+    if (!config.test_group_id) {
+      missingFields.push('test_group_id');
     }
     if (config.timeout === undefined) {
       missingFields.push('timeout');

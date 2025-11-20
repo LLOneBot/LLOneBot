@@ -1,12 +1,12 @@
 /**
  * get_msg 接口测试 - 获取私聊消息
  * 测试获取私聊消息功能
- * 
+ *
  * 需求: 6.1
  */
 
-import { setupMessageTest, teardownMessageTest, sleep, MessageTestContext } from '../setup.js';
-import { Assertions } from '../../../utils/Assertions.js';
+import { setupMessageTest, teardownMessageTest, sleep, MessageTestContext } from '../setup';
+import { Assertions } from '../../utils/Assertions';
 
 describe('get_msg - 获取私聊消息', () => {
   let context: MessageTestContext;

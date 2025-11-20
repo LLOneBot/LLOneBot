@@ -47,8 +47,11 @@ cp config/test.config.example.json config/test.config.json
 ## 运行测试
 
 ```bash
-# 运行所有测试
+# 运行所有测试（并行）
 npm test
+
+# 运行所有测试（串行，推荐）
+npm run test:serial
 
 # 监听模式
 npm run test:watch

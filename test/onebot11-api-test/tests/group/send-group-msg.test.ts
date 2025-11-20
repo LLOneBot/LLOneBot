@@ -14,7 +14,7 @@ import {
 } from '@llonebot/onebot11/types';
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
-import { MediaPaths } from '../../media/index.js';
+import { MediaPaths } from '../media';
 
 describe('send_group_msg - 发送群消息', () => {
   let context: MessageTestContext;
@@ -29,7 +29,7 @@ describe('send_group_msg - 发送群消息', () => {
 
   beforeEach(async () => {
     // 等待一小段时间让之前的消息处理完成
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise(resolve => setTimeout(resolve, 2000));
   });
 
   it('测试发送群文本消息', async () => {
