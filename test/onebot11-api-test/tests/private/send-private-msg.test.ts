@@ -5,7 +5,6 @@
  * 需求: 6.1
  */
 
-import { OB11MessageEvent } from '@llonebot/onebot11/event';
 import {
   OB11MessageText,
   OB11MessageDataType,
@@ -14,6 +13,7 @@ import {
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
 import { MediaPaths } from '../media';
+import { ActionName } from '../../../../src/onebot11/action/types';
 
 describe('send_private_msg - 发送私聊消息', () => {
   let context: MessageTestContext;
@@ -45,7 +45,7 @@ describe('send_private_msg - 发送私聊消息', () => {
         }
     }];
 
-    const sendResponse = await primaryClient.call('send_private_msg', {
+    const sendResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: testMessage,
     });
@@ -67,7 +67,7 @@ describe('send_private_msg - 发送私聊消息', () => {
 
     // 测试 CQ 码格式
     const cqMessage = `[CQ:face,id=178,sub_type=1] Test with emoji ${Date.now()}`;
-    const cqResponse = await primaryClient.call('send_private_msg', {
+    const cqResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: cqMessage,
     });
@@ -104,7 +104,7 @@ describe('send_private_msg - 发送私聊消息', () => {
       }
     ];
 
-    const sendResponse = await primaryClient.call('send_private_msg', {
+    const sendResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: testMessage,
     });
@@ -123,7 +123,7 @@ describe('send_private_msg - 发送私聊消息', () => {
 
     // 测试 CQ 码格式
     const cqMessage = `[CQ:image,file=${MediaPaths.testGifUrl}] Image via CQ code ${Date.now()}`;
-    const cqResponse = await primaryClient.call('send_private_msg', {
+    const cqResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: cqMessage,
     });
@@ -156,7 +156,7 @@ describe('send_private_msg - 发送私聊消息', () => {
       }
     ];
 
-    const sendResponse = await primaryClient.call('send_private_msg', {
+    const sendResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: testMessage,
     });
@@ -175,7 +175,7 @@ describe('send_private_msg - 发送私聊消息', () => {
 
     // 测试 CQ 码格式
     const cqMessage = `[CQ:record,file=${MediaPaths.testAudioUrl}]`;
-    const cqResponse = await primaryClient.call('send_private_msg', {
+    const cqResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: cqMessage,
     });
@@ -208,7 +208,7 @@ describe('send_private_msg - 发送私聊消息', () => {
       }
     ];
 
-    const sendResponse = await primaryClient.call('send_private_msg', {
+    const sendResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: testMessage,
     });
@@ -227,7 +227,7 @@ describe('send_private_msg - 发送私聊消息', () => {
 
     // 测试 CQ 码格式
     const cqMessage = `[CQ:video,file=${MediaPaths.testVideoUrl}]`;
-    const cqResponse = await primaryClient.call('send_private_msg', {
+    const cqResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: cqMessage,
     });
@@ -252,7 +252,7 @@ describe('send_private_msg - 发送私聊消息', () => {
 
     // 先发送一条消息
     const firstMessage = `Original message ${Date.now()}`;
-    const firstResponse = await primaryClient.call('send_private_msg', {
+    const firstResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: firstMessage,
     });
@@ -283,7 +283,7 @@ describe('send_private_msg - 发送私聊消息', () => {
       }
     ];
 
-    const replyResponse = await primaryClient.call('send_private_msg', {
+    const replyResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: replyMessage,
     });
@@ -302,7 +302,7 @@ describe('send_private_msg - 发送私聊消息', () => {
 
     // 测试 CQ 码格式回复
     const cqReplyMessage = `[CQ:reply,id=${originalMessageId}]Reply via CQ code ${Date.now()}`;
-    const cqReplyResponse = await primaryClient.call('send_private_msg', {
+    const cqReplyResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: cqReplyMessage,
     });
@@ -339,7 +339,7 @@ describe('send_private_msg - 发送私聊消息', () => {
     ];
     const primaryClient = context.twoAccountTest.getClient('primary');
 
-    const sendResponse = await primaryClient.call('send_private_msg', {
+    const sendResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: testMessage,
     });

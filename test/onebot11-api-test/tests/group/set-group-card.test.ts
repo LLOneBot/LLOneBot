@@ -5,6 +5,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types';
 
 describe('set_group_card - 设置群名片', () => {
   let context: MessageTestContext;
@@ -22,7 +23,7 @@ describe('set_group_card - 设置群名片', () => {
     const newCard = `TestCard_${Date.now()}`;
 
     // 设置群名片
-    const setResponse = await primaryClient.call('set_group_card', {
+    const setResponse = await primaryClient.call(ActionName.SetGroupCard, {
       group_id: context.testGroupId,
       user_id: context.primaryUserId,
       card: newCard,
@@ -34,7 +35,7 @@ describe('set_group_card - 设置群名片', () => {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // 验证群名片是否设置成功
-    const getResponse = await primaryClient.call('get_group_member_info', {
+    const getResponse = await primaryClient.call(ActionName.GetGroupMemberInfo, {
       group_id: context.testGroupId,
       user_id: context.primaryUserId,
       no_cache: true,
@@ -48,7 +49,7 @@ describe('set_group_card - 设置群名片', () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
     // 清空群名片
-    const setResponse = await primaryClient.call('set_group_card', {
+    const setResponse = await primaryClient.call(ActionName.SetGroupCard, {
       group_id: context.testGroupId,
       user_id: context.primaryUserId,
       card: '',
@@ -60,7 +61,7 @@ describe('set_group_card - 设置群名片', () => {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // 验证群名片是否清空
-    const getResponse = await primaryClient.call('get_group_member_info', {
+    const getResponse = await primaryClient.call(ActionName.GetGroupMemberInfo, {
       group_id: context.testGroupId,
       user_id: context.primaryUserId,
       no_cache: true,

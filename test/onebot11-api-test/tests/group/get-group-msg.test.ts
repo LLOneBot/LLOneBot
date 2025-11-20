@@ -7,6 +7,7 @@
 
 import { setupMessageTest, teardownMessageTest, sleep, MessageTestContext } from '../setup';
 import { Assertions } from '../../utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types';
 
 describe('get_msg - 获取群消息', () => {
   let context: MessageTestContext;
@@ -16,7 +17,7 @@ describe('get_msg - 获取群消息', () => {
 
     if (!context.testGroupId) {
       const primaryClient = context.twoAccountTest.getClient('primary');
-      const groupListResponse = await primaryClient.call('get_group_list', {});
+      const groupListResponse = await primaryClient.call(ActionName.GetGroupList, {});
 
       if (groupListResponse.retcode === 0 && groupListResponse.data.length > 0) {
         context.testGroupId = String(groupListResponse.data[0].group_id);
@@ -37,7 +38,7 @@ describe('get_msg - 获取群消息', () => {
     const testMessage = `Test get group message ${Date.now()}`;
     const primaryClient = context.twoAccountTest.getClient('primary');
 
-    const sendResponse = await primaryClient.call('send_group_msg', {
+    const sendResponse = await primaryClient.call(ActionName.SendGroupMsg, {
       group_id: context.testGroupId,
       message: testMessage,
     });
@@ -48,7 +49,7 @@ describe('get_msg - 获取群消息', () => {
     // 等待消息保存
     await sleep(1000);
 
-    const getResponse = await primaryClient.call('get_msg', {
+    const getResponse = await primaryClient.call(ActionName.GetMsg, {
       message_id: messageId,
     });
 

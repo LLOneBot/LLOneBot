@@ -7,6 +7,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types';
 
 describe('set_group_ban - 群组单人禁言', () => {
   let context: MessageTestContext;
@@ -23,7 +24,7 @@ describe('set_group_ban - 群组单人禁言', () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
     // 禁言 60 秒
-    const banResponse = await primaryClient.call('set_group_ban', {
+    const banResponse = await primaryClient.call(ActionName.SetGroupBan, {
       group_id: context.testGroupId,
       user_id: context.secondaryUserId,
       duration: 60,
@@ -35,7 +36,7 @@ describe('set_group_ban - 群组单人禁言', () => {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // 验证禁言状态
-    const memberInfo = await primaryClient.call('get_group_member_info', {
+    const memberInfo = await primaryClient.call(ActionName.GetGroupMemberInfo, {
       group_id: context.testGroupId,
       user_id: context.secondaryUserId,
       no_cache: true,
@@ -55,7 +56,7 @@ describe('set_group_ban - 群组单人禁言', () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
     // 解除禁言 (duration = 0)
-    const unbanResponse = await primaryClient.call('set_group_ban', {
+    const unbanResponse = await primaryClient.call(ActionName.SetGroupBan, {
       group_id: context.testGroupId,
       user_id: context.secondaryUserId,
       duration: 0,
@@ -67,7 +68,7 @@ describe('set_group_ban - 群组单人禁言', () => {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // 验证禁言已解除
-    const memberInfo = await primaryClient.call('get_group_member_info', {
+    const memberInfo = await primaryClient.call(ActionName.GetGroupMemberInfo, {
       group_id: context.testGroupId,
       user_id: context.secondaryUserId,
       no_cache: true,

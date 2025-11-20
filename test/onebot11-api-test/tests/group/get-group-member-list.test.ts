@@ -5,6 +5,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types';
 
 describe('get_group_member_list - 获取群成员列表', () => {
   let context: MessageTestContext;
@@ -20,7 +21,7 @@ describe('get_group_member_list - 获取群成员列表', () => {
   it('测试获取群成员列表', async () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
-    const response = await primaryClient.call('get_group_member_list', {
+    const response = await primaryClient.call(ActionName.GetGroupMemberList, {
       group_id: context.testGroupId,
     });
 

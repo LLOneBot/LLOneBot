@@ -8,6 +8,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types';
 
 describe.skip('set_group_kick - 群组踢人', () => {
   let context: MessageTestContext;
@@ -24,7 +25,7 @@ describe.skip('set_group_kick - 群组踢人', () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
     // 警告: 这会实际踢出成员
-    const response = await primaryClient.call('set_group_kick', {
+    const response = await primaryClient.call(ActionName.SetGroupKick, {
       group_id: context.testGroupId,
       user_id: context.secondaryUserId,
       reject_add_request: false,
@@ -36,7 +37,7 @@ describe.skip('set_group_kick - 群组踢人', () => {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // 验证成员已被踢出
-    const memberList = await primaryClient.call('get_group_member_list', {
+    const memberList = await primaryClient.call(ActionName.GetGroupMemberList, {
       group_id: context.testGroupId,
     });
 

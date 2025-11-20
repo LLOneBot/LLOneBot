@@ -7,6 +7,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types';
 
 describe.skip('set_group_leave - 退出群组', () => {
   let context: MessageTestContext;
@@ -23,7 +24,7 @@ describe.skip('set_group_leave - 退出群组', () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
     // 警告: 这会实际退出群组
-    const response = await primaryClient.call('set_group_leave', {
+    const response = await primaryClient.call(ActionName.SetGroupLeave, {
       group_id: context.testGroupId,
     });
 
@@ -33,7 +34,7 @@ describe.skip('set_group_leave - 退出群组', () => {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // 验证已退出群组
-    const groupList = await primaryClient.call('get_group_list', {
+    const groupList = await primaryClient.call(ActionName.GetGroupList, {
       no_cache: true,
     });
 

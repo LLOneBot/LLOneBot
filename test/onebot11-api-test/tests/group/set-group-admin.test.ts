@@ -7,6 +7,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types';
 
 describe('set_group_admin - 群组设置管理员', () => {
   let context: MessageTestContext;
@@ -22,7 +23,7 @@ describe('set_group_admin - 群组设置管理员', () => {
   it('测试设置管理员', async () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
-    const response = await primaryClient.call('set_group_admin', {
+    const response = await primaryClient.call(ActionName.SetGroupAdmin, {
       group_id: context.testGroupId,
       user_id: context.secondaryUserId,
       enable: true,
@@ -34,7 +35,7 @@ describe('set_group_admin - 群组设置管理员', () => {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // 验证管理员状态
-    const memberInfo = await primaryClient.call('get_group_member_info', {
+    const memberInfo = await primaryClient.call(ActionName.GetGroupMemberInfo, {
       group_id: context.testGroupId,
       user_id: context.secondaryUserId,
       no_cache: true,
@@ -47,7 +48,7 @@ describe('set_group_admin - 群组设置管理员', () => {
   it('测试取消管理员', async () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
-    const response = await primaryClient.call('set_group_admin', {
+    const response = await primaryClient.call(ActionName.SetGroupAdmin, {
       group_id: context.testGroupId,
       user_id: context.secondaryUserId,
       enable: false,
@@ -59,13 +60,13 @@ describe('set_group_admin - 群组设置管理员', () => {
     await new Promise(resolve => setTimeout(resolve, 2000));
         // 账号2发条消息刷新状态
     const secondaryClient = context.twoAccountTest.getClient('secondary');
-    await secondaryClient.call('send_group_msg', {
+    await secondaryClient.call(ActionName.SendGroupMsg, {
       group_id: context.testGroupId,
       message: '刷新状态',
     });
 
     // 验证管理员状态已取消
-    const memberInfo = await primaryClient.call('get_group_member_info', {
+    const memberInfo = await primaryClient.call(ActionName.GetGroupMemberInfo, {
       group_id: context.testGroupId,
       user_id: context.secondaryUserId,
       no_cache: true,

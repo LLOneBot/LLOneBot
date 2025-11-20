@@ -8,6 +8,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types';
 
 describe.skip('set_group_add_request - 处理加群请求', () => {
   let context: MessageTestContext;
@@ -26,7 +27,7 @@ describe.skip('set_group_add_request - 处理加群请求', () => {
     // 注意: 需要有实际的加群请求，flag 需要从实际事件中获取
     const testFlag = 'test_flag_from_event';
 
-    const response = await primaryClient.call('set_group_add_request', {
+    const response = await primaryClient.call(ActionName.SetGroupAddRequest, {
       flag: testFlag,
       approve: true,
     });
@@ -40,7 +41,7 @@ describe.skip('set_group_add_request - 处理加群请求', () => {
     // 注意: 需要有实际的加群请求，flag 需要从实际事件中获取
     const testFlag = 'test_flag_from_event';
 
-    const response = await primaryClient.call('set_group_add_request', {
+    const response = await primaryClient.call(ActionName.SetGroupAddRequest, {
       flag: testFlag,
       approve: false,
       reason: '测试拒绝',

@@ -7,6 +7,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types';
 
 describe('set_group_name - 设置群名称', () => {
   let context: MessageTestContext;
@@ -24,7 +25,7 @@ describe('set_group_name - 设置群名称', () => {
     const newName = `TestGroup_${Date.now()}`;
 
     // 设置群名称
-    const setResponse = await primaryClient.call('set_group_name', {
+    const setResponse = await primaryClient.call(ActionName.SetGroupName, {
       group_id: context.testGroupId,
       group_name: newName,
     });
@@ -36,7 +37,7 @@ describe('set_group_name - 设置群名称', () => {
 
     // 验证群名称是否设置成功
     const secondaryClient = context.twoAccountTest.getClient('secondary');
-    const getResponse = await secondaryClient.call('get_group_info', {
+    const getResponse = await secondaryClient.call(ActionName.GetGroupInfo, {
       group_id: context.testGroupId,
     });
 

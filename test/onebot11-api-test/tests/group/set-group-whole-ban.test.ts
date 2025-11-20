@@ -7,6 +7,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types';
 
 describe('set_group_whole_ban - 群组全员禁言', () => {
   let context: MessageTestContext;
@@ -19,7 +20,7 @@ describe('set_group_whole_ban - 群组全员禁言', () => {
     // 确保测试结束后解除全员禁言
     const primaryClient = context.twoAccountTest.getClient('primary');
     try {
-      await primaryClient.call('set_group_whole_ban', {
+      await primaryClient.call(ActionName.SetGroupWholeBan, {
         group_id: context.testGroupId,
         enable: false,
       });
@@ -32,7 +33,7 @@ describe('set_group_whole_ban - 群组全员禁言', () => {
   it('测试开启全员禁言', async () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
-    const response = await primaryClient.call('set_group_whole_ban', {
+    const response = await primaryClient.call(ActionName.SetGroupWholeBan, {
       group_id: context.testGroupId,
       enable: true,
     });
@@ -46,7 +47,7 @@ describe('set_group_whole_ban - 群组全员禁言', () => {
   it('测试关闭全员禁言', async () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
-    const response = await primaryClient.call('set_group_whole_ban', {
+    const response = await primaryClient.call(ActionName.SetGroupWholeBan, {
       group_id: context.testGroupId,
       enable: false,
     });

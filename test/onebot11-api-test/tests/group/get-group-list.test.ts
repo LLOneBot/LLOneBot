@@ -5,6 +5,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types';
 
 describe('get_group_list - 获取群列表', () => {
   let context: MessageTestContext;
@@ -20,7 +21,7 @@ describe('get_group_list - 获取群列表', () => {
   it('测试获取群列表', async () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
-    const response = await primaryClient.call('get_group_list', {});
+    const response = await primaryClient.call(ActionName.GetGroupList, {});
 
     Assertions.assertSuccess(response, 'get_group_list');
     Assertions.assertTrue(Array.isArray(response.data), 'Response should be an array');
@@ -35,7 +36,7 @@ describe('get_group_list - 获取群列表', () => {
   it('测试获取群列表 (no_cache=true)', async () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
-    const response = await primaryClient.call('get_group_list', {
+    const response = await primaryClient.call(ActionName.GetGroupList, {
       no_cache: true,
     });
 

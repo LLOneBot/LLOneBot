@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import WebSocket from 'ws';
 import { AccountConfig } from '../config/ConfigLoader.js';
+import { ActionName } from '../../../src/onebot11/action/types.js';
 
 /**
  * API 响应接口
@@ -16,7 +17,7 @@ export interface ApiResponse<T = any> {
  * WebSocket 请求接口
  */
 interface WsRequest {
-  action: string;
+  action: ActionName;
   params: any;
   echo?: string;
 }
@@ -87,7 +88,7 @@ export class ApiClient {
    * @throws {NetworkError} 网络请求失败
    * @throws {TimeoutError} 请求超时
    */
-  async callHttp(action: string, params: any = {}): Promise<ApiResponse> {
+  async callHttp(action: ActionName, params: any = {}): Promise<ApiResponse> {
     let lastError: Error | undefined;
 
     // 重试机制
@@ -318,7 +319,7 @@ export class ApiClient {
    * @throws {NetworkError} 网络请求失败
    * @throws {TimeoutError} 请求超时
    */
-  async callWs(action: string, params: any = {}): Promise<ApiResponse> {
+  async callWs(action: ActionName, params: any = {}): Promise<ApiResponse> {
     // 确保 WebSocket 已连接
     await this.connectWs();
 
@@ -368,7 +369,7 @@ export class ApiClient {
    * @param params 接口参数
    * @returns API 响应
    */
-  async call(action: string, params: any = {}): Promise<ApiResponse> {
+  async call(action: ActionName, params: any = {}): Promise<ApiResponse> {
     if (this.config.protocol === 'http') {
       return this.callHttp(action, params);
     } else if (this.config.protocol === 'ws') {

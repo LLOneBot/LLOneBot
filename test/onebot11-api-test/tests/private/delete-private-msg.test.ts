@@ -7,6 +7,7 @@
 
 import { setupMessageTest, teardownMessageTest, sleep, MessageTestContext } from '../setup';
 import { Assertions } from '../../utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types.js';
 
 describe('delete_msg - 撤回私聊消息', () => {
   let context: MessageTestContext;
@@ -23,7 +24,7 @@ describe('delete_msg - 撤回私聊消息', () => {
     const testMessage = `Test delete message ${Date.now()}`;
     const primaryClient = context.twoAccountTest.getClient('primary');
 
-    const sendResponse = await primaryClient.call('send_private_msg', {
+    const sendResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: testMessage,
     });
@@ -34,7 +35,7 @@ describe('delete_msg - 撤回私聊消息', () => {
     // 等待消息发送完成
     await sleep(1000);
 
-    const deleteResponse = await primaryClient.call('delete_msg', {
+    const deleteResponse = await primaryClient.call(ActionName.DeleteMsg, {
       message_id: messageId,
     });
 
@@ -45,7 +46,7 @@ describe('delete_msg - 撤回私聊消息', () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
     const invalidMessageId = '999999999999';
 
-    const deleteResponse = await primaryClient.call('delete_msg', {
+    const deleteResponse = await primaryClient.call(ActionName.DeleteMsg, {
       message_id: invalidMessageId,
     });
 

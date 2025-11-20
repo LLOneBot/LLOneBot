@@ -5,6 +5,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types';
 
 describe('get_group_member_info - 获取群成员信息', () => {
   let context: MessageTestContext;
@@ -20,7 +21,7 @@ describe('get_group_member_info - 获取群成员信息', () => {
   it('测试获取群成员信息', async () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
-    const response = await primaryClient.call('get_group_member_info', {
+    const response = await primaryClient.call(ActionName.GetGroupMemberInfo, {
       group_id: context.testGroupId,
       user_id: context.secondaryUserId,
     });
@@ -40,7 +41,7 @@ describe('get_group_member_info - 获取群成员信息', () => {
   it('测试获取群成员信息 (no_cache=true)', async () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
 
-    const response = await primaryClient.call('get_group_member_info', {
+    const response = await primaryClient.call(ActionName.GetGroupMemberInfo, {
       group_id: context.testGroupId,
       user_id: context.secondaryUserId,
       no_cache: true,

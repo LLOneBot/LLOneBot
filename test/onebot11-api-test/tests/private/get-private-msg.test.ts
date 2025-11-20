@@ -7,6 +7,7 @@
 
 import { setupMessageTest, teardownMessageTest, sleep, MessageTestContext } from '../setup';
 import { Assertions } from '../../utils/Assertions';
+import { ActionName } from '../../../../src/onebot11/action/types.js';
 
 describe('get_msg - 获取私聊消息', () => {
   let context: MessageTestContext;
@@ -23,7 +24,7 @@ describe('get_msg - 获取私聊消息', () => {
     const testMessage = `Test get message ${Date.now()}`;
     const primaryClient = context.twoAccountTest.getClient('primary');
 
-    const sendResponse = await primaryClient.call('send_private_msg', {
+    const sendResponse = await primaryClient.call(ActionName.SendPrivateMsg, {
       user_id: context.secondaryUserId,
       message: testMessage,
     });
@@ -34,7 +35,7 @@ describe('get_msg - 获取私聊消息', () => {
     // 等待消息保存
     await sleep(1000);
 
-    const getResponse = await primaryClient.call('get_msg', {
+    const getResponse = await primaryClient.call(ActionName.GetMsg, {
       message_id: messageId,
     });
 
@@ -52,7 +53,7 @@ describe('get_msg - 获取私聊消息', () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
     const invalidMessageId = '999999999999';
 
-    const getResponse = await primaryClient.call('get_msg', {
+    const getResponse = await primaryClient.call(ActionName.GetMsg, {
       message_id: invalidMessageId,
     });
 
