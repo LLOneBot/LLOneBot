@@ -357,6 +357,23 @@ export class Assertions {
   }
 
   /**
+   * 断言对象深度相等
+   * @param actual 实际值
+   * @param expected 期望值
+   * @param message 错误信息
+   * @throws {AssertionError} 对象不相等时抛出
+   */
+  static assertDeepEqual(actual: any, expected: any, message?: string): void {
+    if (!this.deepEqual(actual, expected)) {
+      throw new AssertionError(
+        message || 'Objects are not deeply equal',
+        expected,
+        actual
+      );
+    }
+  }
+
+  /**
    * 断言值不相等
    * @param actual 实际值
    * @param notExpected 不期望的值
@@ -492,6 +509,59 @@ export class Assertions {
   }
 
   // ========== 辅助方法 ==========
+
+  /**
+   * 深度比较两个值是否相等
+   * @param a 值 A
+   * @param b 值 B
+   * @returns 是否相等
+   */
+  private static deepEqual(a: any, b: any): boolean {
+    // 严格相等检查
+    if (a === b) return true;
+
+    // null 或 undefined 检查
+    if (a == null || b == null) return a === b;
+
+    // 类型检查
+    if (typeof a !== typeof b) return false;
+
+    // 日期对象
+    if (a instanceof Date && b instanceof Date) {
+      return a.getTime() === b.getTime();
+    }
+
+    // 正则表达式
+    if (a instanceof RegExp && b instanceof RegExp) {
+      return a.toString() === b.toString();
+    }
+
+    // 数组
+    if (Array.isArray(a) && Array.isArray(b)) {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (!this.deepEqual(a[i], b[i])) return false;
+      }
+      return true;
+    }
+
+    // 对象
+    if (typeof a === 'object' && typeof b === 'object') {
+      const keysA = Object.keys(a);
+      const keysB = Object.keys(b);
+
+      if (keysA.length !== keysB.length) return false;
+
+      for (const key of keysA) {
+        if (!keysB.includes(key)) return false;
+        if (!this.deepEqual(a[key], b[key])) return false;
+      }
+
+      return true;
+    }
+
+    return false;
+  }
 
   /**
    * 从事件中提取消息内容

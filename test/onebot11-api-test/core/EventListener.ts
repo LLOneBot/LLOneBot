@@ -38,6 +38,7 @@ export class EventListener {
     resolve: (event: OB11Event) => void;
     reject: (error: Error) => void;
     timeout: NodeJS.Timeout;
+    customFilter?: (event: OB11Event) => boolean;
   }> = [];
 
   /**
@@ -248,7 +249,7 @@ export class EventListener {
     // 检查是否有匹配的事件处理器
     for (let i = this.eventHandlers.length - 1; i >= 0; i--) {
       const handler = this.eventHandlers[i];
-      if (this.matchesFilter(event, handler.filter)) {
+      if (this.matchesFilter(event, handler.filter) && (!handler.customFilter || handler.customFilter(event))) {
         // 找到匹配的处理器
         clearTimeout(handler.timeout);
         this.eventHandlers.splice(i, 1);
@@ -332,15 +333,20 @@ export class EventListener {
   /**
    * 等待特定事件
    * @param filter 事件过滤器
-   * @param timeout 超时时间（毫秒）
+   * @param customFilter 自定义过滤函数，用于更复杂的匹配逻辑
+   * @param timeout 超时时间（毫秒），默认 10000ms
    * @returns Promise，解析为匹配的事件
    * @throws {TimeoutError} 等待超时
    */
-  async waitForEvent(filter: EventFilter, timeout: number): Promise<OB11Event> {
+  async waitForEvent(
+    filter: EventFilter, 
+    customFilter?: (event: OB11Event) => boolean,
+    timeout: number = 10000
+  ): Promise<OB11Event> {
     // 首先检查事件队列中是否已有匹配的事件
     for (let i = 0; i < this.eventQueue.length; i++) {
       const event = this.eventQueue[i];
-      if (this.matchesFilter(event, filter)) {
+      if (this.matchesFilter(event, filter) && (!customFilter || customFilter(event))) {
         // 从队列中移除该事件
         this.eventQueue.splice(i, 1);
         return event;
@@ -364,12 +370,13 @@ export class EventListener {
         ));
       }, timeout);
 
-      // 添加到处理器列表
+      // 添加到处理器列表，包含自定义过滤器
       this.eventHandlers.push({
         filter,
         resolve,
         reject,
         timeout: timeoutHandle,
+        customFilter,
       });
     });
   }

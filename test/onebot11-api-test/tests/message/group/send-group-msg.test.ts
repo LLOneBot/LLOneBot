@@ -6,10 +6,15 @@
  */
 
 import { OB11MessageEvent } from '@llonebot/onebot11/event';
-import { OB11MessageText, OB11MessageDataType } from '@llonebot/onebot11/types';
+import {
+  OB11MessageText,
+  OB11MessageDataType,
+  OB11MessageData,
+  OB11MessageAt
+} from '@llonebot/onebot11/types';
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
-import { Assert } from 'assert';
+import { MediaPaths } from '../../media/index.js';
 
 describe('send_group_msg - 发送群消息', () => {
   let context: MessageTestContext;
@@ -22,22 +27,21 @@ describe('send_group_msg - 发送群消息', () => {
     teardownMessageTest(context);
   });
 
-  it('测试发送群文本消息', async () => {
-    if (!context.testGroupId) {
-      console.log('Skipping test: No test group available');
-      return;
-    }
+  beforeEach(() => {
+    // 清空事件队列，避免跨测试污染
+    context.twoAccountTest.clearAllQueues();
+  });
 
-    const testMessage: OB11MessageText[] = 
-    [{
+  it('测试发送群文本消息', async () => {
+    const primaryClient = context.twoAccountTest.getClient('primary');
+
+    // 测试数组格式
+    const testMessage: OB11MessageText[] = [{
         type: OB11MessageDataType.Text,
         data: {
             text: `Test group message ${Date.now()}`
         }
-        
     }];
-    const primaryClient = context.twoAccountTest.getClient('primary');
-    const secondaryClient = context.twoAccountTest.getClient('secondary')
 
     const sendResponse = await primaryClient.call('send_group_msg', {
       group_id: context.testGroupId,
@@ -47,31 +51,401 @@ describe('send_group_msg - 发送群消息', () => {
     Assertions.assertDefined(sendResponse.data.message_id, 'Message ID should be defined');
     Assertions.assertResponseHasFields(sendResponse, ['message_id']);
 
-    const event: OB11MessageEvent = await context.twoAccountTest.secondaryListener.waitForEvent({
+    await context.twoAccountTest.secondaryListener.waitForEvent({
         post_type: 'message',
         message_type: 'group',
         sub_type: 'normal',
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
-    }, 3000);
-    Assertions.assertEqual(event.message, teardownMessageTest, '未收到发送的消息')
-  }, 60000)
-  it('发送 CQ 码', async () => {
-    if (!context.testGroupId) {
-      console.log('Skipping test: No test group available');
-      return;
-    }
-  
-    const testMessage = `[CQ:face,id=178] Test with emoji ${Date.now()}`;
+        message_id: sendResponse.data.message_id,
+    }, 10000, (event) => {
+        return JSON.stringify(event.message) === JSON.stringify(testMessage);
+    });
+
+    // 测试 CQ 码格式
+    const cqMessage = `[CQ:face,id=178,sub_type=1] Test with emoji ${Date.now()}`;
+    const cqResponse = await primaryClient.call('send_group_msg', {
+      group_id: context.testGroupId,
+      message: cqMessage,
+    });
+
+    Assertions.assertSuccess(cqResponse, 'send_group_msg');
+    await context.twoAccountTest.secondaryListener.waitForEvent({
+        post_type: 'message',
+        message_type: 'group',
+        sub_type: 'normal',
+        group_id: Number(context.testGroupId),
+        user_id: Number(context.primaryUserId),
+        message_id: cqResponse.data.message_id,
+    }, 10000, (event) => {
+        return event.raw_message === cqMessage;
+    });
+  }, 60000);
+
+  it('测试发送群图片消息', async () => {
     const primaryClient = context.twoAccountTest.getClient('primary');
-  
+
+    // 测试数组格式
+    const testMessage: OB11MessageData[] = [
+      {
+        type: OB11MessageDataType.Text,
+        data: {
+          text: `Image test ${Date.now()}`
+        }
+      },
+      {
+        type: OB11MessageDataType.Image,
+        data: {
+          file: MediaPaths.testGifUrl
+        }
+      }
+    ];
+
     const sendResponse = await primaryClient.call('send_group_msg', {
       group_id: context.testGroupId,
       message: testMessage,
     });
-  
+
+    Assertions.assertSuccess(sendResponse, 'send_group_msg');
+    Assertions.assertDefined(sendResponse.data.message_id, 'Message ID should be defined');
+
+    await context.twoAccountTest.secondaryListener.waitForEvent({
+        post_type: 'message',
+        message_type: 'group',
+        sub_type: 'normal',
+        group_id: Number(context.testGroupId),
+        user_id: Number(context.primaryUserId),
+        message_id: sendResponse.data.message_id,
+    }, 150000, (event) => {
+        const messages = Array.isArray(event.message) ? event.message : [];
+        return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Image);
+    });
+
+    // 测试 CQ 码格式
+    const cqMessage = `[CQ:image,file=${MediaPaths.testGifUrl}] Image via CQ code ${Date.now()}`;
+    const cqResponse = await primaryClient.call('send_group_msg', {
+      group_id: context.testGroupId,
+      message: cqMessage,
+    });
+
+    Assertions.assertSuccess(cqResponse, 'send_group_msg');
+
+    await context.twoAccountTest.secondaryListener.waitForEvent({
+        post_type: 'message',
+        message_type: 'group',
+        sub_type: 'normal',
+        group_id: Number(context.testGroupId),
+        user_id: Number(context.primaryUserId),
+        message_id: cqResponse.data.message_id,
+    }, 150000, (event) => {
+        const messages = Array.isArray(event.message) ? event.message : [];
+        return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Image);
+    });
+  }, 60000);
+
+  it('测试发送群语音消息', async () => {
+    const primaryClient = context.twoAccountTest.getClient('primary');
+
+    // 测试数组格式
+    const testMessage: OB11MessageData[] = [
+      {
+        type: OB11MessageDataType.Record,
+        data: {
+          file: MediaPaths.testAudioUrl
+        }
+      }
+    ];
+
+    const sendResponse = await primaryClient.call('send_group_msg', {
+      group_id: context.testGroupId,
+      message: testMessage,
+    });
+
     Assertions.assertSuccess(sendResponse, 'send_group_msg');
     Assertions.assertDefined(sendResponse.data.message_id);
+
+    await context.twoAccountTest.secondaryListener.waitForEvent({
+        post_type: 'message',
+        message_type: 'group',
+        sub_type: 'normal',
+        group_id: Number(context.testGroupId),
+        user_id: Number(context.primaryUserId),
+        message_id: sendResponse.data.message_id,
+    }, 10000, (event) => {
+        const messages = Array.isArray(event.message) ? event.message : [];
+        return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Record);
+    });
+
+    // 测试 CQ 码格式
+    const cqMessage = `[CQ:record,file=${MediaPaths.testAudioUrl}]`;
+    const cqResponse = await primaryClient.call('send_group_msg', {
+      group_id: context.testGroupId,
+      message: cqMessage,
+    });
+
+    Assertions.assertSuccess(cqResponse, 'send_group_msg');
+
+    await context.twoAccountTest.secondaryListener.waitForEvent({
+        post_type: 'message',
+        message_type: 'group',
+        sub_type: 'normal',
+        group_id: Number(context.testGroupId),
+        user_id: Number(context.primaryUserId),
+        message_id: cqResponse.data.message_id,
+    }, 150000, (event) => {
+        const messages = Array.isArray(event.message) ? event.message : [];
+        return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Record);
+    });
+  }, 60000);
+
+  it('测试发送群视频消息', async () => {
+    const primaryClient = context.twoAccountTest.getClient('primary');
+
+    // 测试数组格式
+    const testMessage: OB11MessageData[] = [
+      {
+        type: OB11MessageDataType.Video,
+        data: {
+          file: MediaPaths.testVideoUrl
+        }
+      }
+    ];
+
+    const sendResponse = await primaryClient.call('send_group_msg', {
+      group_id: context.testGroupId,
+      message: testMessage,
+    });
+
+    Assertions.assertSuccess(sendResponse, 'send_group_msg');
+    Assertions.assertDefined(sendResponse.data.message_id);
+
+    await context.twoAccountTest.secondaryListener.waitForEvent({
+        post_type: 'message',
+        message_type: 'group',
+        sub_type: 'normal',
+        group_id: Number(context.testGroupId),
+        user_id: Number(context.primaryUserId),
+        message_id: sendResponse.data.message_id,
+    }, 150000, (event) => {
+        const messages = Array.isArray(event.message) ? event.message : [];
+        return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Video);
+    });
+
+    // 测试 CQ 码格式
+    const cqMessage = `[CQ:video,file=${MediaPaths.testVideoUrl}]`;
+    const cqResponse = await primaryClient.call('send_group_msg', {
+      group_id: context.testGroupId,
+      message: cqMessage,
+    });
+
+    Assertions.assertSuccess(cqResponse, 'send_group_msg');
+
+    await context.twoAccountTest.secondaryListener.waitForEvent({
+        post_type: 'message',
+        message_type: 'group',
+        sub_type: 'normal',
+        group_id: Number(context.testGroupId),
+        user_id: Number(context.primaryUserId),
+        message_id: cqResponse.data.message_id,
+    }, 150000, (event) => {
+        const messages = Array.isArray(event.message) ? event.message : [];
+        return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Video);
+    });
+  }, 60000);
+
+  it('测试发送 @ 消息', async () => {
+    const primaryClient = context.twoAccountTest.getClient('primary');
+
+    // 测试数组格式
+    const testMessage: OB11MessageData[] = [
+      {
+        type: OB11MessageDataType.At,
+        data: {
+          qq: String(context.secondaryUserId)
+        }
+      },
+      {
+        type: OB11MessageDataType.Text,
+        data: {
+          text: ` At test ${Date.now()}`
+        }
+      }
+    ];
+
+    const sendResponse = await primaryClient.call('send_group_msg', {
+      group_id: context.testGroupId,
+      message: testMessage,
+    });
+
+    Assertions.assertSuccess(sendResponse, 'send_group_msg');
+    Assertions.assertDefined(sendResponse.data.message_id);
+
+    await context.twoAccountTest.secondaryListener.waitForEvent({
+        post_type: 'message',
+        message_type: 'group',
+        sub_type: 'normal',
+        group_id: Number(context.testGroupId),
+        user_id: Number(context.primaryUserId),
+        message_id: sendResponse.data.message_id,
+    }, 10000, (event) => {
+        const messages = Array.isArray(event.message) ? event.message : [];
+        const atMessage = messages.find((msg: OB11MessageData) => msg.type === OB11MessageDataType.At);
+        return !!atMessage && atMessage.type === OB11MessageDataType.At && atMessage.data.qq === String(context.secondaryUserId);
+    });
+
+    // 测试 CQ 码格式
+    const cqMessage = `[CQ:at,qq=${context.secondaryUserId}] At via CQ code ${Date.now()}`;
+    const cqResponse = await primaryClient.call('send_group_msg', {
+      group_id: context.testGroupId,
+      message: cqMessage,
+    });
+
+    Assertions.assertSuccess(cqResponse, 'send_group_msg');
+
+    await context.twoAccountTest.secondaryListener.waitForEvent({
+        post_type: 'message',
+        message_type: 'group',
+        sub_type: 'normal',
+        group_id: Number(context.testGroupId),
+        user_id: Number(context.primaryUserId),
+        message_id: cqResponse.data.message_id,
+    }, 10000, (event) => {
+        const messages = Array.isArray(event.message) ? event.message : [];
+        const atMessage = messages.find((msg: OB11MessageData) => msg.type === OB11MessageDataType.At);
+        return !!atMessage && atMessage.type === OB11MessageDataType.At && atMessage.data.qq === String(context.secondaryUserId);
+    });
+  }, 60000);
+
+  it('测试发送回复消息', async () => {
+    const primaryClient = context.twoAccountTest.getClient('primary');
+
+    // 先发送一条消息
+    const firstMessage = `Original message ${Date.now()}`;
+    const firstResponse = await primaryClient.call('send_group_msg', {
+      group_id: context.testGroupId,
+      message: firstMessage,
+    });
+
+    Assertions.assertSuccess(firstResponse, 'send_group_msg');
+    const originalMessageId = firstResponse.data.message_id;
+
+    // 等待消息被接收
+    await context.twoAccountTest.secondaryListener.waitForEvent({
+        post_type: 'message',
+        message_type: 'group',
+        sub_type: 'normal',
+        group_id: Number(context.testGroupId),
+        user_id: Number(context.primaryUserId),
+    }, 10000);
+
+    // 测试数组格式回复
+    const replyMessage: OB11MessageData[] = [
+      {
+        type: OB11MessageDataType.Reply,
+        data: {
+          id: String(originalMessageId)
+        }
+      },
+      {
+        type: OB11MessageDataType.Text,
+        data: {
+          text: `Reply test ${Date.now()}`
+        }
+      }
+    ];
+
+    const replyResponse = await primaryClient.call('send_group_msg', {
+      group_id: context.testGroupId,
+      message: replyMessage,
+    });
+
+    Assertions.assertSuccess(replyResponse, 'send_group_msg');
+    Assertions.assertDefined(replyResponse.data.message_id);
+
+    await context.twoAccountTest.secondaryListener.waitForEvent({
+        post_type: 'message',
+        message_type: 'group',
+        sub_type: 'normal',
+        group_id: Number(context.testGroupId),
+        user_id: Number(context.primaryUserId),
+        message_id: replyResponse.data.message_id,
+    }, 10000, (event) => {
+        const messages = Array.isArray(event.message) ? event.message : [];
+        return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Reply);
+    });
+
+    // 测试 CQ 码格式回复
+    const cqReplyMessage = `[CQ:reply,id=${originalMessageId}]Reply via CQ code ${Date.now()}`;
+    const cqReplyResponse = await primaryClient.call('send_group_msg', {
+      group_id: context.testGroupId,
+      message: cqReplyMessage,
+    });
+
+    Assertions.assertSuccess(cqReplyResponse, 'send_group_msg');
+
+    await context.twoAccountTest.secondaryListener.waitForEvent({
+        post_type: 'message',
+        message_type: 'group',
+        sub_type: 'normal',
+        group_id: Number(context.testGroupId),
+        user_id: Number(context.primaryUserId),
+        message_id: cqReplyResponse.data.message_id,
+    }, 10000, (event) => {
+        const messages = Array.isArray(event.message) ? event.message : [];
+        return messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Reply);
+    });
+  }, 60000);
+
+  it('测试发送混合消息 (文本 + @ + 图片)', async () => {
+    const testMessage: OB11MessageData[] = [
+      {
+        type: OB11MessageDataType.At,
+        data: {
+          qq: String(context.secondaryUserId)
+        }
+      },
+      {
+        type: OB11MessageDataType.Text,
+        data: {
+          text: ` Mixed message test ${Date.now()} `
+        }
+      },
+      {
+        type: OB11MessageDataType.Image,
+        data: {
+          file: MediaPaths.testGifUrl
+        }
+      }
+    ];
+    const primaryClient = context.twoAccountTest.getClient('primary');
+
+    const sendResponse = await primaryClient.call('send_group_msg', {
+      group_id: context.testGroupId,
+      message: testMessage,
+    });
+
+    Assertions.assertSuccess(sendResponse, 'send_group_msg');
+    Assertions.assertDefined(sendResponse.data.message_id);
+
+    await context.twoAccountTest.secondaryListener.waitForEvent({
+        post_type: 'message',
+        message_type: 'group',
+        sub_type: 'normal',
+        group_id: Number(context.testGroupId),
+        user_id: Number(context.primaryUserId),
+        message_id: sendResponse.data.message_id,
+    }, 150000, (event) => {
+        const messages = Array.isArray(event.message) ? event.message : [];
+        const atMessage = messages.find((msg: OB11MessageData) => msg.type === OB11MessageDataType.At);
+        const hasText = messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Text);
+        const hasImage = messages.some((msg: OB11MessageData) => msg.type === OB11MessageDataType.Image);
+        
+        return !!atMessage && 
+               atMessage.type === OB11MessageDataType.At && 
+               atMessage.data.qq === String(context.secondaryUserId) &&
+               hasText && 
+               hasImage;
+    });
   }, 60000);
 
 });
