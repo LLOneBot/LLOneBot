@@ -6,7 +6,7 @@ interface Payload {
 }
 
 export class DeleteEssenceMsg extends BaseAction<Payload, unknown> {
-  actionName = ActionName.GoCQHTTP_DelEssenceMsg
+  actionName = ActionName.GoCQHTTP_DeleteEssenceMsg
   payloadSchema = Schema.object({
     message_id: Schema.union([Number, String]).required()
   })

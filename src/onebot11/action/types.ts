@@ -109,7 +109,7 @@ export enum ActionName {
   GoCQHTTP_HandleQuickOperation = '.handle_quick_operation',
   GetGroupHonorInfo = 'get_group_honor_info',
   GoCQHTTP_SetEssenceMsg = 'set_essence_msg',
-  GoCQHTTP_DelEssenceMsg = 'delete_essence_msg',
+  GoCQHTTP_DeleteEssenceMsg = 'delete_essence_msg',
   GoCQHTTP_DelGroupFile = 'delete_group_file',
   GoCQHTTP_GetGroupSystemMsg = 'get_group_system_msg',
   GoCQHTTP_CreateGroupFileFolder = 'create_group_file_folder',
