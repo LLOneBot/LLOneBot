@@ -7,8 +7,8 @@ interface Payload {
   busid: number | string
 }
 
-export class DelGroupFile extends BaseAction<Payload, null> {
-  actionName = ActionName.GoCQHTTP_DelGroupFile
+export class DeleteGroupFile extends BaseAction<Payload, null> {
+  actionName = ActionName.GoCQHTTP_DeleteGroupFile
   payloadSchema = Schema.object({
     group_id: Schema.union([Number, String]).required(),
     file_id: Schema.string().required(),

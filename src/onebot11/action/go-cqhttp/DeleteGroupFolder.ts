@@ -6,8 +6,8 @@ interface Payload {
   folder_id: string
 }
 
-export class DelGroupFolder extends BaseAction<Payload, null> {
-  actionName = ActionName.GoCQHTTP_DelGroupFolder
+export class DeleteGroupFolder extends BaseAction<Payload, null> {
+  actionName = ActionName.GoCQHTTP_DeleteGroupFolder
   payloadSchema = Schema.object({
     group_id: Schema.union([Number, String]).required(),
     folder_id: Schema.string().required()

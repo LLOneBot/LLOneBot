@@ -53,10 +53,10 @@ import { HandleQuickOperation } from './go-cqhttp/QuickOperation'
 import { SetEssenceMsg } from './go-cqhttp/SetEssenceMsg'
 import { DeleteEssenceMsg } from './go-cqhttp/DeleteEssenceMsg'
 import { GetEvent } from './llonebot/system/GetEvent'
-import { DelGroupFile } from './go-cqhttp/DelGroupFile'
+import { DeleteGroupFile } from './go-cqhttp/DeleteGroupFile'
 import { GetGroupSystemMsg } from './go-cqhttp/GetGroupSystemMsg'
 import { CreateGroupFileFolder } from './go-cqhttp/CreateGroupFileFolder'
-import { DelGroupFolder } from './go-cqhttp/DelGroupFolder'
+import { DeleteGroupFolder } from './go-cqhttp/DeleteGroupFolder'
 import { GetGroupAtAllRemain } from './go-cqhttp/GetGroupAtAllRemain'
 import { GetGroupRootFiles } from './go-cqhttp/GetGroupRootFiles'
 import { SetOnlineStatus } from './llonebot/user/SetOnlineStatus'
@@ -214,10 +214,10 @@ export function initActionMap(adapter: Adapter) {
     new HandleQuickOperation(adapter),
     new SetEssenceMsg(adapter),
     new DeleteEssenceMsg(adapter),
-    new DelGroupFile(adapter),
+    new DeleteGroupFile(adapter),
     new GetGroupSystemMsg(adapter),
     new CreateGroupFileFolder(adapter),
-    new DelGroupFolder(adapter),
+    new DeleteGroupFolder(adapter),
     new GetGroupAtAllRemain(adapter),
     new GetGroupRootFiles(adapter),
     new SendGroupNotice(adapter),
