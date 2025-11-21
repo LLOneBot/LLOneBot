@@ -22,7 +22,7 @@ npm install
 1. 复制配置文件模板：
 ```bash
 cp config/test.config.example.json config/test.config.json
-```
+``
 
 2. 编辑 `config/test.config.json`，填入两个测试账号的连接信息：
 ```json
