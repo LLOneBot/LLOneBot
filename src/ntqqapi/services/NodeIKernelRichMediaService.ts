@@ -63,9 +63,13 @@ export interface NodeIKernelRichMediaService {
 
   deleteGroupFile(groupId: string, busIdList: number[], fileIdList: string[]): Promise<GeneralCallResult & {
     transGroupFileResult: {
-      result: unknown
-      successFileIdList: Array<unknown>
-      failFileIdList: Array<unknown>
+      result: {
+        retCode: number
+        retMsg: string
+        clientWording: string
+      }
+      successFileIdList: string[]
+      failFileIdList: string[]
     }
   }>
 
