@@ -1,0 +1,22 @@
+/**
+ * 用户相关接口测试入口
+ */
+
+export * from './get-cookie.test';
+export * from './get-friend-list.test';
+export * from './send-like.test';
+export * from './get-stranger-info.test';
+export * from './friend-poke.test';
+export * from './set-friend-add-request.test';
+export * from './set-friend-remark.test';
+export * from './delete-friend.test';
+export * from './set-online-status.test';
+export * from './get-friend-with-category.test';
+export * from './get-profile-like.test';
+export * from './get-profile-like-me.test';
+export * from './get-qq-avatar.test';
+export * from './set-qq-avatar.test';
+export * from './set-qq-profile.test';
+export * from './set-friend-category.test';
+export * from './get-doubt-friends-add-request.test';
+export * from './set-doubt-friends-add-request.test';

@@ -21,19 +21,19 @@ export class AssertionError extends Error {
    */
   toString(): string {
     let msg = `${this.name}: ${this.message}`;
-    
+
     if (this.expected !== undefined) {
       msg += `\n  Expected: ${JSON.stringify(this.expected, null, 2)}`;
     }
-    
+
     if (this.actual !== undefined) {
       msg += `\n  Actual: ${JSON.stringify(this.actual, null, 2)}`;
     }
-    
+
     if (this.details !== undefined) {
       msg += `\n  Details: ${JSON.stringify(this.details, null, 2)}`;
     }
-    
+
     return msg;
   }
 }

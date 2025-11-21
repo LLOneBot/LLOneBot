@@ -1,0 +1,17 @@
+/**
+ * 消息相关接口测试入口
+ */
+
+export * from './delete-msg.test';
+export * from './get-msg.test';
+export * from './send-msg.test';
+export * from './get-forward-msg.test';
+export * from './send-forward-msg.test';
+export * from './mark-msg-as-read.test';
+export * from './forward-single-msg.test';
+export * from './get-friend-msg-history.test';
+export * from './voice-msg-2-text.test';
+export * from './ai-record.test';
+export * from './emoji-like.test';
+export * from './fetch-custom-face.test';
+export * from './get-recommend-face.test';

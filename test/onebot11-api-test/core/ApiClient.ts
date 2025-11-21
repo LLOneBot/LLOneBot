@@ -11,6 +11,8 @@ export interface ApiResponse<T = any> {
   retcode: number;
   data: T;
   echo?: string;
+  message: string;
+  wording: string
 }
 
 /**
@@ -95,7 +97,7 @@ export class ApiClient {
     for (let attempt = 0; attempt < this.retryAttempts; attempt++) {
       try {
         const response = await this.httpClient.post(`/${action}`, params);
-        
+
         // 返回响应数据
         return response.data as ApiResponse;
       } catch (error) {
@@ -104,7 +106,7 @@ export class ApiClient {
         // 判断是否是超时错误
         if (axios.isAxiosError(error)) {
           const axiosError = error as AxiosError;
-          
+
           if (axiosError.code === 'ECONNABORTED' || axiosError.code === 'ETIMEDOUT') {
             // 超时错误，继续重试
             console.warn(`HTTP request timeout (attempt ${attempt + 1}/${this.retryAttempts}): ${action}`);
@@ -221,7 +223,7 @@ export class ApiClient {
         this.ws.on('message', (data: WebSocket.Data) => {
           try {
             const response = JSON.parse(data.toString()) as ApiResponse;
-            
+
             // 根据 echo 字段找到对应的请求
             if (response.echo) {
               const pending = this.pendingRequests.get(response.echo);
@@ -395,7 +397,7 @@ export class ApiClient {
       this.ws.close();
       this.ws = null;
     }
-    
+
     // 重置重连计数
     this.wsReconnectAttempts = this.maxWsReconnectAttempts; // 防止自动重连
   }
