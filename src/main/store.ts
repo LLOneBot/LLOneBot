@@ -26,7 +26,7 @@ declare module 'cordis' {
   }
 }
 
-interface MsgInfo {
+export interface MsgInfo {
   msgId: string
   peer: Peer
 }
@@ -143,7 +143,7 @@ class Store extends Service {
   }
 
   getShortIdByMsgInfo(peer: Peer, msgId: string) {
-    return this.cache.getValue({msgId, peer})
+    return this.cache.getValue({ msgId, peer })
   }
 
   async addFileCache(data: FileCacheV2) {
