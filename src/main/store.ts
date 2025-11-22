@@ -33,7 +33,7 @@ export interface MsgInfo {
 
 class Store extends Service {
   static inject = ['database', 'model']
-  private cache: BidiMap<MsgInfo, number>
+  private cache: BidiMap<string, number>
   private messages: Map<string, RawMessage>
 
   constructor(protected ctx: Context, public config: Store.Config) {
@@ -87,18 +87,19 @@ class Store extends Service {
       peerUid: msg.peerUid,
       guildId: ''
     }
+    const existingShortId = this.getShortIdByMsgInfo(peer, msg.msgId)
+    if (existingShortId) {
+      return existingShortId
+    }
     // QQ 本地给的 msgId 是和 Protobuf 给的不一致
     // 并且本地的 msgId 是根据一个本地保存的随机字符串 + 某种算法生成的，如果将 QQ 数据库清空了，这个随机字符串会变
     // 这就导致每次清空数据库后收到的同一条消息的 msgId 都不一样
     // 所以这里改成用 msgSeq + msgRandom 来生成 shortId，保证清空 QQ 数据库后收到同一条消息收到 shortId 都一致
     const uniqueMsgId = this.getUniqueMsgId(msg)
-    const existingShortId = this.getShortIdByMsgInfo(peer, msg.msgId)
-    if (existingShortId) {
-      return existingShortId
-    }
     const hash = createHash('md5').update(uniqueMsgId).digest()
     const shortId = hash.readInt32BE() // OneBot 11 要求 message_id 为 int32
-    this.cache.set({ msgId: msg.msgId, peer }, shortId)
+    const cacheKey = `${msg.msgId}|${peer.chatType}|${peer.peerUid}`
+    this.cache.set(cacheKey, shortId)
     this.ctx.database.upsert('message', [{
       msgId: msg.msgId,
       uniqueMsgId,
@@ -112,7 +113,15 @@ class Store extends Service {
   async getMsgInfoByShortId(shortId: number): Promise<MsgInfo | undefined> {
     const data = this.cache.getKey(shortId)
     if (data) {
-      return data
+      const [msgId, chatTypeStr, peerUid] = data.split('|')
+      return {
+        msgId,
+        peer: {
+          chatType: +chatTypeStr,
+          peerUid,
+          guildId: ''
+        }
+      }
     }
     const items = await this.ctx.database.get('message', { shortId })
     if (items?.length) {
@@ -143,7 +152,8 @@ class Store extends Service {
   }
 
   getShortIdByMsgInfo(peer: Peer, msgId: string) {
-    return this.cache.getValue({ msgId, peer })
+    const cacheKey = `${msgId}|${peer.chatType}|${peer.peerUid}`
+    return this.cache.getValue(cacheKey)
   }
 
   async addFileCache(data: FileCacheV2) {
