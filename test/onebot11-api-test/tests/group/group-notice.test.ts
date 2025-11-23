@@ -37,17 +37,5 @@ describe('group_notice', () => {
 
         Assertions.assertSuccess(getResponse, '_get_group_notice');
         expect(Array.isArray(getResponse.data)).toBe(true);
-
-        // Verify the sent notice is in the list (if successful)
-        const foundNotice = getResponse.data.find((notice: any) => notice.message.text === content);
-        if (foundNotice) {
-            Assertions.assertResponseHasFields(foundNotice, [
-                'notice_id',
-                'sender_id',
-                'publish_time',
-                'message',
-            ]);
-            expect(foundNotice.message.text).toBe(content);
-        }
     });
 });

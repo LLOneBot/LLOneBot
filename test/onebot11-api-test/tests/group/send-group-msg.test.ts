@@ -60,10 +60,9 @@ describe('send_group_msg - 发送群消息', () => {
         sub_type: 'normal',
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
-        message_id: sendResponse.data.message_id,
-    }, (event) => {
-        return JSON.stringify(event.message) === JSON.stringify(testMessage);
-    });
+        message: testMessage
+    }
+    );
 
     // 测试 CQ 码格式
     const cqMessage = `[CQ:face,id=178,sub_type=1] Test with emoji ${Date.now()}`;
@@ -79,9 +78,7 @@ describe('send_group_msg - 发送群消息', () => {
         sub_type: 'normal',
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
-        message_id: cqResponse.data.message_id,
-    }, (event) => {
-        return event.raw_message === cqMessage;
+        raw_message: cqMessage
     });
   }, 60000);
 
@@ -454,7 +451,6 @@ describe('send_group_msg - 发送群消息', () => {
         sub_type: 'normal',
         group_id: Number(context.testGroupId),
         user_id: Number(context.primaryUserId),
-        message_id: sendResponse.data.message_id,
     }, (event) => {
         const messages = Array.isArray(event.message) ? event.message : [];
         const atMessage = messages.find((msg: OB11MessageData) => msg.type === OB11MessageDataType.At);

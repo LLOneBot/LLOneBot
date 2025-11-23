@@ -22,7 +22,6 @@ export enum ActionName {
   GetRKey = "get_rkey",
   SendPB = "send_pb",
   VoiceMsg2Text = 'voice_msg_to_text',
-  SendPoke = 'send_poke',
   GetGroupIgnoreAddRequest = 'get_group_ignore_add_request',
   SetQQAvatar = 'set_qq_avatar',
   GetQQAvatar = 'get_qq_avatar',

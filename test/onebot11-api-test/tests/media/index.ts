@@ -61,6 +61,7 @@ export const MediaPaths = {
   testAudioUrl: getMediaFileUrl('test.mp3'),
   testAudio2Url: getMediaFileUrl('test2.mp3'),
   testGifUrl: getMediaFileUrl('test.gif'),
+  testImageUrl: getMediaFileUrl('test.gif'),
   testVideoUrl: getMediaFileUrl('test.mp4'),
   // 工具函数
   getPath: getMediaPath,

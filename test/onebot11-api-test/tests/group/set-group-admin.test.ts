@@ -58,7 +58,7 @@ describe('set_group_admin - 群组设置管理员', () => {
 
     // 等待一段时间让设置生效
     await new Promise(resolve => setTimeout(resolve, 2000));
-        // 账号2发条消息刷新状态
+    // 账号2发条消息刷新状态
     const secondaryClient = context.twoAccountTest.getClient('secondary');
     await secondaryClient.call(ActionName.SendGroupMsg, {
       group_id: context.testGroupId,
@@ -66,7 +66,7 @@ describe('set_group_admin - 群组设置管理员', () => {
     });
 
     // 验证管理员状态已取消
-    const memberInfo = await primaryClient.call(ActionName.GetGroupMemberInfo, {
+    const memberInfo = await secondaryClient.call(ActionName.GetGroupMemberInfo, {
       group_id: context.testGroupId,
       user_id: context.secondaryUserId,
       no_cache: true,

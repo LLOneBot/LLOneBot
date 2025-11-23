@@ -47,4 +47,6 @@ export default {
   ],
   testTimeout: 30000,
   verbose: true,
+  // 禁用并发，按顺序执行测试文件，避免共享资源冲突
+  maxWorkers: 1,
 };
