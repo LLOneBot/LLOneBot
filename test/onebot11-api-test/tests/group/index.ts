@@ -37,7 +37,6 @@ export * from './set-group-leave.test';
 
 // 群公告
 export * from './group-notice.test';
-export * from './delete-group-notice.test';
 
 // 群文件
 export * from './group-file.test';

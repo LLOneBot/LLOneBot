@@ -1,7 +1,7 @@
 /**
  * set_qq_profile 接口测试
  * 测试设置 QQ 资料功能
- * 
+ *
  * 警告：此测试会实际修改 QQ 资料，请谨慎使用
  */
 
@@ -20,14 +20,13 @@ describe('set_qq_profile - 设置 QQ 资料', () => {
     teardownMessageTest(context);
   });
 
-  it.skip('测试设置 QQ 资料 (跳过以避免误操作)', async () => {
+  it('测试设置 QQ 资料 (跳过以避免误操作)', async () => {
     // 此测试会实际修改 QQ 资料，默认跳过
     const primaryClient = context.twoAccountTest.getClient('primary');
 
     const response = await primaryClient.call(ActionName.GoCQHTTP_SetQQProfile, {
       nickname: '测试昵称',
-      longNick: '测试签名',
-      sex: 1
+      personal_note: '测试签名',
     });
 
     Assertions.assertSuccess(response, 'set_qq_profile');
