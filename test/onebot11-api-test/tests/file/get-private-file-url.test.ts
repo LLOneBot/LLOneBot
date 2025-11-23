@@ -7,6 +7,7 @@
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
 import { ActionName } from '../../../../src/onebot11/action/types';
+import { MediaPaths } from '@/tests/media'
 
 describe('get_private_file_url - 获取私聊文件 URL', () => {
   let context: MessageTestContext;
@@ -30,7 +31,7 @@ describe('get_private_file_url - 获取私聊文件 URL', () => {
 
     const uploadResponse = await primaryClient.call(ActionName.GoCQHTTP_UploadPrivateFile, {
       user_id: context.secondaryUserId,
-      file: `base64://${testContent}`,
+      file: MediaPaths.testVideoUrl,
       name: fileName
     });
 

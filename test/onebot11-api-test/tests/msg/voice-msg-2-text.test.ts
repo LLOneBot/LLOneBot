@@ -66,5 +66,5 @@ describe('voice_msg_2_text - 语音转文字', () => {
 
     Assertions.assertSuccess(textResponse, 'voice_msg_2_text');
     Assertions.assertResponseHasFields(textResponse, ['text']);
-  }, 180000);
+  }, 18000);
 });

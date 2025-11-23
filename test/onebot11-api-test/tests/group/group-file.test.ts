@@ -1,11 +1,9 @@
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
-import * as path from 'path';
-import * as fs from 'fs';
 import { MediaPaths } from '@/tests/media';
 import { ActionName } from '../../../../src/onebot11/action/types.js';
 
-describe('group_file', () => {
+describe('group_file - 群文件操作', () => {
     let context: MessageTestContext;
 
     beforeAll(async () => {

@@ -8,9 +8,7 @@ export * from './get-group-info.test';
 export * from './get-group-list.test';
 export * from './get-group-member-info.test';
 export * from './get-group-member-list.test';
-export * from './get-group-msg.test';
 export * from './get-group-msg-history.test';
-export * from './delete-group-msg.test';
 
 // 群组管理
 export * from './set-group-add-request.test';
@@ -34,6 +32,8 @@ export * from './send-group-sign.test';
 export * from './get-guild-list.test';
 export * from './group-poke.test';
 export * from './batch-delete-group-member.test';
+export * from './set-group-kick.test';
+export * from './set-group-leave.test';
 
 // 群公告
 export * from './group-notice.test';
