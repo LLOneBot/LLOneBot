@@ -4,7 +4,6 @@ import { isDeepStrictEqual } from 'node:util';
 import { ApiClient, TimeoutError } from './ApiClient.js';
 // 使用源码中定义的事件类型，避免重复定义
 import type { OB11Event } from '../../../src/onebot11/event/index.js';
-import * as console from 'node:console'
 
 /**
  * 事件过滤器接口
