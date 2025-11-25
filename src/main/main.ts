@@ -141,8 +141,8 @@ async function onLoad() {
       getConfigUtil().listenChange(c => {
         ctx.parallel('llob/config-updated', c)
       })
+      ctx.parallel('llob/config-updated', config)
       loadPluginAfterLogin()
-      ctx.webuiServer.setConfig(config)
     }
   }, 1000)
 
