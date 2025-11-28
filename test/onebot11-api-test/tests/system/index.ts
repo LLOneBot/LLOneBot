@@ -1,0 +1,14 @@
+/**
+ * 系统相关接口测试入口
+ */
+
+export * from './can-send-image.test';
+export * from './can-send-record.test';
+export * from './clean-cache.test';
+export * from './get-credentials.test';
+export * from './get-csrf-token.test';
+export * from './get-login-info.test';
+export * from './get-status.test';
+export * from './get-version-info.test';
+export * from './get-config.test';
+export * from './get-robot-uin-range.test';

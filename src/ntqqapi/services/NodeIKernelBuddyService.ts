@@ -21,7 +21,7 @@ export interface NodeIKernelBuddyService {
     friendUid: string
     reqTime: string
     accept: boolean
-  }): Promise<void>
+  }): Promise<GeneralCallResult>
 
   getBuddyRecommendContactArkJson(uid: string, phoneNumber: string): Promise<GeneralCallResult & { arkMsg: string }>
 

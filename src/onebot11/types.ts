@@ -12,15 +12,8 @@ export interface OB11User {
   birthday_day?: number
   age?: number
   // 以下是 OB11 非标准字段
-  qid: string,
-  long_nick: string
-  level: number  // 目前拿不到，一直是 0
-  // 以下字段将在2025年10月23日后彻底删除
-  longNick: string  // 个性签名
-  eMail: string
-  uid: string
-  categoryId: number
-  richTime: number // 暂时未知其含义
+  qid?: string,
+  long_nick?: string
 }
 
 export enum OB11UserSex {
@@ -106,6 +99,7 @@ export interface OB11Message {
   font: number
   post_type: EventType
   raw?: RawMessage
+  raw_pb?: string  // hex
   temp_source?: 0 | 1 | 2 | 3 | 4 | 6 | 7 | 8 | 9
   getSummaryEventName(): string
 }
@@ -383,8 +377,7 @@ export interface OB11PostSendMsg {
   user_id?: string | number
   group_id?: string | number
   message: OB11MessageMixType
-  messages?: OB11MessageMixType // 兼容 go-cqhttp
-  auto_escape?: boolean | string
+  auto_escape?: boolean
 }
 
 export interface OB11Version {

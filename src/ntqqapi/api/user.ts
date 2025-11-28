@@ -1,6 +1,6 @@
 import { MiniProfile, ProfileBizType, SimpleInfo, UserDetailInfo, UserDetailSource } from '../types'
 import { invoke } from '../ntcall'
-import { RequestUtil } from '@/common/utils/request'
+import { HttpUtil } from '@/common/utils/request'
 import { Time } from 'cosmokit'
 import { Context, Service } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
@@ -14,6 +14,8 @@ declare module 'cordis' {
 }
 
 export class NTQQUserApi extends Service {
+  static inject = ['ntGroupApi']
+
   constructor(protected ctx: Context) {
     super(ctx, 'ntUserApi', true)
   }
@@ -28,7 +30,7 @@ export class NTQQUserApi extends Service {
     )
   }
 
-  async getUidByUin(uin: string) {
+  async getUidByUin(uin: string, groupCode?: string) {
     const uid = uidUinBidiMap.getKey(uin)
     if (uid) return uid
 
@@ -43,7 +45,13 @@ export class NTQQUserApi extends Service {
         return (await invoke('nodeIKernelProfileService/getUidByUin', ['FriendsServiceImpl', [uin]]))?.get(uin)
       },
       async () => {
-        return (await this.getUserDetailInfoByUin(uin)).detail!.uid
+        return (await this.getUserDetailInfoByUin(uin)).detail.uid
+      },
+      async () => {
+        if (groupCode) {
+          const groupMembers = await this.ctx.ntGroupApi.getGroupMembers(groupCode)
+          return groupMembers.result.infos.values().find(e => e.uin === uin)?.uid
+        }
       }
     ]
 
@@ -76,7 +84,7 @@ export class NTQQUserApi extends Service {
         return uin
       },
       async () => {
-        const uin = (await this.fetchUserDetailInfo(uid))?.uin
+        const uin = (await this.fetchUserDetailInfo(uid)).detail.get(uid)?.uin
         this.ctx.logger.info('fetchUserDetailInfo', uin)
         return uin
       },
@@ -99,7 +107,7 @@ export class NTQQUserApi extends Service {
 
   // 这个会从服务器拉取，比较可靠
   async fetchUserDetailInfo(uid: string) {
-    const result = await invoke(
+    return await invoke(
       'nodeIKernelProfileService/fetchUserDetailInfo',
       [
         'BuddyProfileStore', // callFrom
@@ -108,7 +116,6 @@ export class NTQQUserApi extends Service {
         [ProfileBizType.KALL], //bizList
       ],
     )
-    return result.detail.get(uid)!
   }
 
   async getUserDetailInfoWithBizInfo(uid: string) {
@@ -163,7 +170,7 @@ export class NTQQUserApi extends Service {
     }
     const uin = selfInfo.uin
     const requestUrl = 'https://ssl.ptlogin2.qq.com/jump?ptlang=1033&clientuin=' + uin + '&clientkey=' + clientKeyData.clientKey + '&u1=https%3A%2F%2F' + domain + '%2F' + uin + '%2Finfocenter&keyindex=19%27'
-    const cookies: { [key: string]: string } = await RequestUtil.HttpsGetCookies(requestUrl)
+    const cookies: { [key: string]: string } = await HttpUtil.getCookies(requestUrl)
     return cookies
   }
 
@@ -240,7 +247,7 @@ export class NTQQUserApi extends Service {
   }
 
   async getRobotUinRange() {
-    const data = await invoke(
+    return await invoke(
       'nodeIKernelRobotService/getRobotUinRange',
       [
         {
@@ -251,7 +258,6 @@ export class NTQQUserApi extends Service {
         },
       ],
     )
-    return data.response.robotUinRanges
   }
 
   async quitAccount() {
@@ -273,7 +279,7 @@ export class NTQQUserApi extends Service {
     const funcs = [
       () => this.getUserSimpleInfo(uid, false),
       () => this.getUserSimpleInfo(uid, true),
-      async () => (await this.fetchUserDetailInfo(uid)).simpleInfo,
+      async () => (await this.fetchUserDetailInfo(uid)).detail.get(uid)?.simpleInfo,
       async () => (await this.getUserDetailInfoWithBizInfo(uid)).simpleInfo,
       async () => (await this.getCoreAndBaseInfo([uid])).get(uid)
     ]

@@ -1,0 +1,13 @@
+/**
+ * 文件相关接口测试入口
+ */
+
+export * from './get-file.test';
+export * from './get-image.test';
+export * from './get-record.test';
+export * from './download-file.test';
+export * from './ocr-image.test';
+export * from './group-file-folder.test';
+export * from './group-file-operations.test';
+export * from './get-private-file-url.test';
+export * from './get-rkey.test';

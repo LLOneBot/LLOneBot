@@ -4,13 +4,17 @@ import { SendElement } from '@/ntqqapi/entities'
 import { uri2local } from '@/common/utils'
 import { createPeer, CreatePeerMode } from '../../helper/createMessage'
 
-interface UploadPrivateFilePayload {
+interface Payload {
   user_id: number | string
   file: string
   name: string
 }
 
-export class UploadPrivateFile extends BaseAction<UploadPrivateFilePayload, null> {
+interface Response {
+  file_id: string
+}
+
+export class UploadPrivateFile extends BaseAction<Payload, Response> {
   actionName = ActionName.GoCQHTTP_UploadPrivateFile
   payloadSchema = Schema.object({
     user_id: Schema.union([Number, String]).required(),
@@ -18,7 +22,7 @@ export class UploadPrivateFile extends BaseAction<UploadPrivateFilePayload, null
     name: Schema.string()
   })
 
-  protected async _handle(payload: UploadPrivateFilePayload): Promise<null> {
+  protected async _handle(payload: Payload) {
     const { success, errMsg, path, fileName } = await uri2local(this.ctx, payload.file)
     if (!success) {
       throw new Error(errMsg)
@@ -29,7 +33,9 @@ export class UploadPrivateFile extends BaseAction<UploadPrivateFilePayload, null
     }
     const sendFileEle = await SendElement.file(this.ctx, path, name)
     const peer = await createPeer(this.ctx, payload, CreatePeerMode.Private)
-    await this.ctx.app.sendMessage(this.ctx, peer, [sendFileEle], [])
-    return null
+    const msg = await this.ctx.app.sendMessage(this.ctx, peer, [sendFileEle], [])
+    return {
+      file_id: msg.elements[0].fileElement!.fileUuid
+    }
   }
 }

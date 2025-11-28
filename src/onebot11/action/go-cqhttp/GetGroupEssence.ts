@@ -32,7 +32,7 @@ export class GetEssenceMsgList extends BaseAction<Payload, EssenceMsg[]> {
     const essence = await this.ctx.ntGroupApi.queryCachedEssenceMsg(groupCode)
     const data: EssenceMsg[] = []
     for (const item of essence.items) {
-      const {msgList} = await this.ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, String(item.msgSeq), String(0), [(await this.ctx.ntUserApi.getUidByUin(item.msgSenderUin)) as string])
+      const {msgList} = await this.ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, String(item.msgSeq), String(0), [(await this.ctx.ntUserApi.getUidByUin(item.msgSenderUin, groupCode)) as string])
       const sourceMsg = msgList.find(e => e.msgRandom === String(item.msgRandom))
       if (!sourceMsg) continue
       data.push({
@@ -42,7 +42,7 @@ export class GetEssenceMsgList extends BaseAction<Payload, EssenceMsg[]> {
         operator_id: +item.opUin,
         operator_nick: item.opNick,
         operator_time: item.opTime,
-        message_id: this.ctx.store.createMsgShortId(peer, sourceMsg.msgId)
+        message_id: this.ctx.store.createMsgShortId(sourceMsg)
       })
     }
     return data

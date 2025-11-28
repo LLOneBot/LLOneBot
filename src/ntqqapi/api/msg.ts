@@ -21,12 +21,16 @@ export class NTQQMsgApi extends Service {
     return await invoke('nodeIKernelMsgService/getTempChatInfo', [chatType, peerUid])
   }
 
+  private getEmojiIdType(emojiId: string) {
+    // https://bot.q.qq.com/wiki/develop/api-v2/openapi/emoji/model.html#EmojiType
+    return emojiId.length > 3 ? '2' : '1'
+  }
+
   async setEmojiLike(peer: Peer, msgSeq: string, emojiId: string, setEmoji: boolean) {
     // nt_qq/global/nt_data/Emoji/emoji-resource/sysface_res/apng/ 下可以看到所有QQ表情预览
     // nt_qq/global/nt_data/Emoji/emoji-resource/face_config.json 里面有所有表情的id, 自带表情id是QSid, 标准emoji表情id是QCid
     // 其实以官方文档为准是最好的，https://bot.q.qq.com/wiki/develop/api-v2/openapi/emoji/model.html#EmojiType
-    const emojiType = emojiId.length > 3 ? '2' : '1'
-    return await invoke(NTMethod.EMOJI_LIKE, [peer, msgSeq, emojiId, emojiType, setEmoji])
+    return await invoke(NTMethod.EMOJI_LIKE, [peer, msgSeq, emojiId, this.getEmojiIdType(emojiId), setEmoji])
   }
 
   async getMultiMsg(peer: Peer, rootMsgId: string, parentMsgId: string) {
@@ -47,8 +51,6 @@ export class NTQQMsgApi extends Service {
   }
 
   async getMsgsByMsgId(peer: Peer, msgIds: string[]) {
-    if (!peer) throw new Error('peer is not allowed')
-    if (!msgIds) throw new Error('msgIds is not allowed')
     return await invoke('nodeIKernelMsgService/getMsgsByMsgId', [peer, msgIds])
   }
 
@@ -62,21 +64,35 @@ export class NTQQMsgApi extends Service {
   }
 
   async sendMsg(peer: Peer, msgElements: SendMessageElement[], timeout = 10000) {
-    const msgId = await this.generateMsgUniqueId(peer.chatType)
+    const uniqueId = await this.generateMsgUniqueId(peer.chatType)
+    const msgAttributeInfos = new Map()
+    msgAttributeInfos.set(0, {
+      attrType: 0,
+      attrId: uniqueId,
+      vasMsgInfo: {
+        msgNamePlateInfo: {},
+        bubbleInfo: {},
+        avatarPendantInfo: {},
+        vasFont: {},
+        iceBreakInfo: {},
+      },
+    })
 
+    let sentMsgId: string
     const data = await invoke<RawMessage[]>(
       'nodeIKernelMsgService/sendMsg',
       [
-        msgId,
+        '0',
         peer,
         msgElements,
-        new Map(),
+        msgAttributeInfos,
       ],
       {
         resultCmd: 'nodeIKernelMsgListener/onMsgInfoListUpdate',
         resultCb: payload => {
           for (const msgRecord of payload) {
-            if (msgRecord.msgId === msgId && msgRecord.sendStatus === 2) {
+            if (msgRecord.msgAttrs.get(0)?.attrId === uniqueId && msgRecord.sendStatus === 2) {
+              sentMsgId = msgRecord.msgId
               return true
             }
           }
@@ -86,7 +102,7 @@ export class NTQQMsgApi extends Service {
       },
     )
 
-    return data.find(msgRecord => msgRecord.msgId === msgId)
+    return data.find(msgRecord => msgRecord.msgId === sentMsgId)!
   }
 
   async forwardMsg(srcPeer: Peer, destPeer: Peer, msgIds: string[]) {
@@ -210,12 +226,12 @@ export class NTQQMsgApi extends Service {
     return await invoke('nodeIKernelMsgService/setMsgRead', [peer])
   }
 
-  async getMsgEmojiLikesList(peer: Peer, msgSeq: string, emojiId: string, emojiType: string, count: number) {
+  async getMsgEmojiLikesList(peer: Peer, msgSeq: string, emojiId: string, count: number) {
     return await invoke('nodeIKernelMsgService/getMsgEmojiLikesList', [
       peer,
       msgSeq,
       emojiId,
-      emojiType,
+      this.getEmojiIdType(emojiId),
       '',
       false,
       count,

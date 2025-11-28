@@ -84,7 +84,8 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ visible, on
   return (
     <>
       <div 
-        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4"
+        style={{ zIndex: 9000 }}
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-md transform transition-all">

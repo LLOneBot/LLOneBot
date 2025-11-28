@@ -95,7 +95,7 @@ export namespace SendElement {
     }
   }
 
-  export async function file(ctx: Context, filePath: string, fileName: string, folderId = ''): Promise<SendFileElement> {
+  export async function file(ctx: Context, filePath: string, fileName: string, folderId?: string): Promise<SendFileElement> {
     const fileSize = (await stat(filePath)).size.toString()
     if (fileSize === '0') {
       ctx.logger.warn(`文件${fileName}异常，大小为 0`)
@@ -234,6 +234,10 @@ export namespace SendElement {
         fileSubId: '',
         playState: 1,
         autoConvertText: 0,
+        storeID: 0,
+        otherBusinessInfo: {
+          aiVoiceType: 0
+        }
       },
     }
   }

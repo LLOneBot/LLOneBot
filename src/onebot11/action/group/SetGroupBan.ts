@@ -15,10 +15,10 @@ export default class SetGroupBan extends BaseAction<Payload, null> {
     duration: Schema.union([Number, String]).default(30 * 60)
   })
 
-  protected async _handle(payload: Payload): Promise<null> {
+  protected async _handle(payload: Payload) {
     const groupCode = payload.group_id.toString()
     const uin = payload.user_id.toString()
-    const uid = await this.ctx.ntUserApi.getUidByUin(uin)
+    const uid = await this.ctx.ntUserApi.getUidByUin(uin, groupCode)
     if (!uid) throw new Error('无法获取用户信息')
     const res = await this.ctx.ntGroupApi.banMember(groupCode, [
       { uid, timeStamp: +payload.duration },

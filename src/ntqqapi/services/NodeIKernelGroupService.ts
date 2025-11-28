@@ -3,7 +3,8 @@ import {
   GroupMemberRole,
   GroupNotifyType,
   GroupRequestOperateTypes,
-  GroupMsgMask
+  GroupMsgMask,
+  PublishGroupBulletinReq
 } from '@/ntqqapi/types'
 import { GeneralCallResult } from './common'
 
@@ -35,7 +36,7 @@ export interface NodeIKernelGroupService {
     uids: Map<string, string>
   }>
 
-  queryCachedEssenceMsg(req: { groupCode: string, msgRandom: number, msgSeq: number }): Promise<{
+  queryCachedEssenceMsg(key: { groupCode: string, msgSeq: number, msgRandom: number }): Promise<{
     items: {
       groupCode: string
       msgSeq: number
@@ -72,13 +73,13 @@ export interface NodeIKernelGroupService {
     resultList: { uid: string, result: number }[]
   }>
 
-  modifyMemberRole(groupCode: string, uid: string, role: GroupMemberRole): void
+  modifyMemberRole(groupCode: string, uid: string, role: GroupMemberRole): Promise<GeneralCallResult>
 
-  modifyMemberCardName(groupCode: string, uid: string, cardName: string): void
+  modifyMemberCardName(groupCode: string, uid: string, cardName: string): Promise<GeneralCallResult>
 
-  modifyGroupName(groupCode: string, groupName: string, arg: false): void
+  modifyGroupName(groupCode: string, groupName: string, isConf: boolean): Promise<GeneralCallResult>
 
-  quitGroup(groupCode: string): void
+  quitGroup(groupCode: string): Promise<GeneralCallResult>
 
   getSingleScreenNotifies(force: boolean, startSeq: string, num: number): Promise<GeneralCallResult>
 
@@ -95,9 +96,9 @@ export interface NodeIKernelGroupService {
     }
   ): Promise<GeneralCallResult>
 
-  publishGroupBulletin(groupCode: string, pskey: string, data: unknown): Promise<GeneralCallResult>
+  publishGroupBulletin(groupCode: string, psKey: string, req: PublishGroupBulletinReq): Promise<GeneralCallResult>
 
-  uploadGroupBulletinPic(groupCode: string, pskey: string, imagePath: string): Promise<{
+  uploadGroupBulletinPic(groupCode: string, psKey: string, path: string): Promise<{
     errCode: number
     errMsg: string
     picInfo?: {
@@ -115,19 +116,69 @@ export interface NodeIKernelGroupService {
       RemainAtAllCountForUin: number
       RemainAtAllCountForGroup: number
       atTimesMsg: string
-      canNotAtAllMsg: ''
+      canNotAtAllMsg: string
     }
   }>
 
-  setGroupShutUp(groupCode: string, shutUp: boolean): void
+  setGroupShutUp(groupCode: string, shutUp: boolean): Promise<GeneralCallResult>
 
   setMemberShutUp(groupCode: string, memberTimes: { uid: string, timeStamp: number }[]): Promise<GeneralCallResult>
 
   getGroupRecommendContactArkJson(groupCode: string): Promise<GeneralCallResult & { arkJson: string }>
 
-  addGroupEssence(param: { groupCode: string, msgRandom: number, msgSeq: number }): Promise<unknown>
+  addGroupEssence(req: { groupCode: string, msgRandom: number, msgSeq: number }): Promise<{
+    errCode: number
+    errMsg: string
+    result: {
+      wording: string
+      digestUin: string
+      digestTime: number
+      msg: {
+        groupCode: string
+        msgSeq: number
+        msgRandom: number
+        msgContent: unknown[]
+        textSize: string
+        picSize: string
+        videoSize: string
+        senderUin: string
+        senderTime: number
+        addDigestUin: string
+        addDigestTime: number
+        startTime: number
+        latestMsgSeq: number
+        opType: number
+      },
+      errorCode: number
+    }
+  }>
 
-  removeGroupEssence(param: { groupCode: string, msgRandom: number, msgSeq: number }): Promise<unknown>
+  removeGroupEssence(req: { groupCode: string, msgSeq: number, msgRandom: number }): Promise<{
+    errCode: number
+    errMsg: string
+    result: {
+      wording: string
+      digestUin: string
+      digestTime: number
+      msg: {
+        groupCode: string
+        msgSeq: number
+        msgRandom: number
+        msgContent: unknown[]
+        textSize: string
+        picSize: string
+        videoSize: string
+        senderUin: string
+        senderTime: number
+        addDigestUin: string
+        addDigestTime: number
+        startTime: number
+        latestMsgSeq: number
+        opType: number
+      },
+      errorCode: number
+    }
+  }>
 
   setHeader(path: string, groupCode: string): Promise<GeneralCallResult>
 
@@ -154,4 +205,8 @@ export interface NodeIKernelGroupService {
   }>
 
   setGroupMsgMask(groupCode: string, msgMask: GroupMsgMask): Promise<GeneralCallResult>
+
+  deleteGroupBulletin(groupCode: string, psKey: string, feedsId: string): Promise<GeneralCallResult>
+
+  modifyGroupRemark(groupCode: string, groupRemark: string): Promise<GeneralCallResult>
 }

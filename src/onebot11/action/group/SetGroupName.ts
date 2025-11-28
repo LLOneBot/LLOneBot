@@ -13,8 +13,11 @@ export default class SetGroupName extends BaseAction<Payload, null> {
     group_name: Schema.string().required()
   })
 
-  protected async _handle(payload: Payload): Promise<null> {
-    await this.ctx.ntGroupApi.setGroupName(payload.group_id.toString(), payload.group_name)
+  protected async _handle(payload: Payload) {
+    const res = await this.ctx.ntGroupApi.setGroupName(payload.group_id.toString(), payload.group_name)
+    if (res.result !== 0) {
+      throw new Error(res.errMsg)
+    }
     return null
   }
 }

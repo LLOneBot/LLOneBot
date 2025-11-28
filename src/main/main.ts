@@ -35,6 +35,7 @@ import { WebUIServer } from '../webui/BE/server'
 import { setFFMpegPath } from '@/common/utils/ffmpeg'
 import { pmhq } from '@/ntqqapi/native/pmhq'
 import { defaultConfig } from '@/common/defaultConfig'
+import { sleep } from '@/common/utils'
 
 declare module 'cordis' {
   interface Events {
@@ -58,6 +59,8 @@ async function onLoad() {
   const ctx = new Context()
 
   let config = getConfigUtil().getConfig()
+  config.satori.enable = false
+  config.ob11.enable = false
   ctx.plugin(NTQQFileApi)
   ctx.plugin(NTQQFileCacheApi)
   ctx.plugin(NTQQFriendApi)
@@ -71,13 +74,12 @@ async function onLoad() {
     enable: config.log!,
     filename: logFileName,
   })
-
   ctx.plugin(WebUIServer, { ...config.webui, onlyLocalhost: config.onlyLocalhost })
 
   const loadPluginAfterLogin = () => {
     ctx.plugin(Database)
     ctx.plugin(SQLiteDriver, {
-      path: path.join(dbDir, `${selfInfo.uin}.db`),
+      path: path.join(dbDir, `${selfInfo.uin}.v2.db`),
     })
     ctx.plugin(Core, config)
     ctx.plugin(OneBot11Adapter, {
@@ -97,63 +99,50 @@ async function onLoad() {
     })
   }
 
-  let started = false
   let pmhqSelfInfo = { ...selfInfo }
-  try {
-    pmhqSelfInfo = await pmhq.call('getSelfInfo', [])
-    ctx.logger.info('获取账号信息状态', pmhqSelfInfo)
-  } catch (e) {
-    ctx.logger.error('获取登录状态失败，等待登录成功中...', e)
-  }
-  if (pmhqSelfInfo.online) {
-    selfInfo.uin = pmhqSelfInfo.uin
-    selfInfo.uid = pmhqSelfInfo.uid
-    selfInfo.online = true
-    ctx.ntUserApi.fetchUserDetailInfo(selfInfo.uid).then(userInfo => {
-      selfInfo.nick = userInfo.simpleInfo.coreInfo.nick
-    }).catch(e => {
-      ctx.logger.warn('获取登录号昵称失败', e)
-    })
-    config = getConfigUtil(true).getConfig()
-    getConfigUtil().listenChange(c => {
-      ctx.parallel('llob/config-updated', c)
-    })
-    loadPluginAfterLogin()
-    ctx.webuiServer.setConfig(config)
-  }
-  else {
-    config = defaultConfig
-    config.satori.enable = false
-    config.ob11.enable = false
-    // 有这个事件表示登录成功了
-    registerReceiveHook(ReceiveCmdS.INIT, (data: [code: number, unknown: string, uid: string]) => {
-      ctx.logger.info('WrapperSession init complete')
-      selfInfo.uid = data[2]
+  let checkLoginInterval: NodeJS.Timeout = setInterval(async () => {
+    try {
+      pmhqSelfInfo = await pmhq.call('getSelfInfo', [])
+    } catch (e) {
+      ctx.logger.info('获取账号信息状态失败', e)
+    }
+    if (pmhqSelfInfo.online) {
+      clearInterval(checkLoginInterval)
+      selfInfo.uin = pmhqSelfInfo.uin
+      selfInfo.uid = pmhqSelfInfo.uid
+      selfInfo.nick = pmhqSelfInfo.nick
+      if (!selfInfo.uin) {
+        let uin: string
+        // 循环 5次 获取uin
+        for (let i = 0; i < 5; i++) {
+          try {
+            uin = await ctx.ntUserApi.getUinByUid(selfInfo.uid)
+            selfInfo.uin = uin
+            break
+          } catch (e) {
+            await sleep(1000)
+          }
+        }
+      }
       selfInfo.online = true
-
-      const getSelfInfo = async () => {
-        const uin = await ctx.ntUserApi.getUinByUid(data[2])
-        selfInfo.uin = uin
-        const configUtil = getConfigUtil(true)
-        config = configUtil.getConfig()
-        ctx.parallel('llob/config-updated', config)
-        configUtil.listenChange(c => {
-          ctx.parallel('llob/config-updated', c)
-        })
-        loadPluginAfterLogin()
-        // this.ctx.database.config.path = path.join(dbDir, `${uin}.db`)
-        ctx.ntUserApi.getSelfNick().then(nick => {
-          ctx.logger.info(`获取登录号${uin}昵称成功`, nick)
-          selfInfo.nick = nick
+      if (!selfInfo.nick) {
+        ctx.ntUserApi.fetchUserDetailInfo(selfInfo.uid).then(res => {
+          if (res.result !== 0) {
+            throw new Error(res.errMsg)
+          }
+          selfInfo.nick = res.detail.get(selfInfo.uid)!.simpleInfo.coreInfo.nick
         }).catch(e => {
           ctx.logger.warn('获取登录号昵称失败', e)
         })
       }
-      getSelfInfo().catch(e => {
-        ctx.logger.error(e)
+      config = getConfigUtil(true).getConfig()
+      getConfigUtil().listenChange(c => {
+        ctx.parallel('llob/config-updated', c)
       })
-    })
-  }
+      ctx.parallel('llob/config-updated', config)
+      loadPluginAfterLogin()
+    }
+  }, 1000)
 
   ctx.logger.info(`LLTwoBot ${version}`)
   // setFFMpegPath(config.ffmpeg || '')
@@ -161,7 +150,6 @@ async function onLoad() {
   ctx.start().catch(e => {
     console.error('Start error:', e)
   })
-  started = true
 }
 
 

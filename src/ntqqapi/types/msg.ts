@@ -174,6 +174,10 @@ export interface PttElement {
   voiceType: number // 0
   waveAmplitudes: number[]
   autoConvertText: number
+  storeID: number
+  otherBusinessInfo: {
+    aiVoiceType: number
+  }
 }
 
 export interface ArkElement {
@@ -302,13 +306,17 @@ export enum JsonGrayTipBusId {
 export interface GrayTipElement {
   subElementType: GrayTipElementSubType
   revokeElement?: {
+    operatorTinyId: string
     operatorRole: string
     operatorUid: string
     operatorNick: string
     operatorRemark: string
-    operatorMemRemark?: string
-    origMsgSenderUid?: string
-    isSelfOperate?: boolean
+    operatorMemRemark: string
+    origMsgSenderUid: string
+    origMsgSenderNick: string
+    origMsgSenderRemark: string
+    origMsgSenderMemRemark: string
+    isSelfOperate: boolean
     wording: string // 自定义的撤回提示语
   }
   aioOpGrayTipElement?: TipAioOpGrayTipElement

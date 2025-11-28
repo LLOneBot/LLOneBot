@@ -1,5 +1,5 @@
 export interface NodeIKernelNodeMiscService {
-  wantWinScreenOCR(...args: unknown[]): Promise<{
+  wantWinScreenOCR(url: string): Promise<{
     code: number
     errMsg: string
     result: {
@@ -8,8 +8,16 @@ export interface NodeIKernelNodeMiscService {
         x: string
         y: string
       }
-      charBox: unknown[]
-      score: ''
+      charBox: {
+        charText: string
+        charBox: {
+          [key: `pt${number}`]: {
+            x: string
+            y: string
+          }
+        }
+      }[]
+      score: string
     }[]
   }>
 

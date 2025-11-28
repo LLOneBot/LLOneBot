@@ -3,50 +3,6 @@ import { Config, OB11Config, SatoriConfig, WebUIConfig } from '@/common/types'
 const ob11Default: OB11Config = {
   enable: true,
   connect: [
-    {
-      type: 'ws',
-      enable: true,
-      port: 3001,
-      heartInterval: 60000,
-      token: '',
-      reportSelfMessage: false,
-      reportOfflineMessage: false,
-      messageFormat: 'array',
-      debug: false
-    },
-    {
-      type: 'ws-reverse',
-      enable: false,
-      url: '',
-      heartInterval: 60000,
-      token: '',
-      reportSelfMessage: false,
-      reportOfflineMessage: false,
-      messageFormat: 'array',
-      debug: false
-    },
-    {
-      type: 'http',
-      enable: true,
-      port: 3000,
-      token: '',
-      reportSelfMessage: false,
-      reportOfflineMessage: false,
-      messageFormat: 'array',
-      debug: false
-    },
-    {
-      type: 'http-post',
-      enable: false,
-      url: '',
-      enableHeart: false,
-      heartInterval: 60000,
-      token: '',
-      reportSelfMessage: false,
-      reportOfflineMessage: false,
-      messageFormat: 'array',
-      debug: false
-    }
   ]
 }
 const satoriDefault: SatoriConfig = {
@@ -70,4 +26,5 @@ export const defaultConfig: Config = {
   musicSignUrl: 'https://llob.linyuchen.net/sign/music',
   msgCacheExpire: 120,
   ffmpeg: '',
+  rawMsgPB: false,
 }

@@ -16,16 +16,22 @@ export default class SetFriendAddRequest extends BaseAction<Payload, null> {
     remark: Schema.string()
   })
 
-  protected async _handle(payload: Payload): Promise<null> {
+  protected async _handle(payload: Payload) {
     const data = payload.flag.split('|')
     if (data.length < 2) {
       throw new Error('无效的flag')
     }
     const uid = data[0]
     const reqTime = data[1]
-    await this.ctx.ntFriendApi.handleFriendRequest(uid, reqTime, payload.approve)
+    const res = await this.ctx.ntFriendApi.handleFriendRequest(uid, reqTime, payload.approve)
+    if (res.result !== 0) {
+      throw new Error(res.errMsg)
+    }
     if (payload.remark) {
-      await this.ctx.ntFriendApi.setBuddyRemark(uid, payload.remark)
+      const res = await this.ctx.ntFriendApi.setBuddyRemark(uid, payload.remark)
+      if (res.result !== 0) {
+        throw new Error(res.errMsg)
+      }
     }
     return null
   }

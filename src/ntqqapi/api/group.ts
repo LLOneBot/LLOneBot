@@ -40,18 +40,14 @@ export class NTQQGroupApi extends Service {
     return result[1]
   }
 
-  async getGroupMembers(groupCode: string, forceFetch: boolean = true): Promise<Map<string, GroupMember>> {
-    const data = await invoke(NTMethod.GROUP_MEMBERS, [groupCode, forceFetch])
-    if (data.errCode !== 0) {
-      throw new Error('获取群成员列表出错, ' + data.errMsg)
-    }
-    return data.result.infos
+  async getGroupMembers(groupCode: string, forceFetch: boolean = true) {
+    return await invoke(NTMethod.GROUP_MEMBERS, [groupCode, forceFetch])
   }
 
   async getGroupMember(groupCode: string, uid: string, forceUpdate = false) {
     const data = await invoke<[
       groupCode: string,
-      unknown: number,
+      dataSource: number,
       members: Map<string, GroupMember>
     ]>(
       'nodeIKernelGroupService/getMemberInfo',
@@ -135,7 +131,7 @@ export class NTQQGroupApi extends Service {
   }
 
   async setGroupName(groupCode: string, groupName: string) {
-    return await invoke(NTMethod.SET_GROUP_NAME, [groupCode, groupName, false])
+    return await invoke(NTMethod.SET_GROUP_NAME, [groupCode, groupName, true])
   }
 
   async getGroupRemainAtTimes(groupCode: string) {
@@ -276,25 +272,27 @@ export class NTQQGroupApi extends Service {
   }
 
   async searchMember(groupCode: string, keyword: string) {
+    // 须在获取群成员列表后使用
     const sceneId = await invoke(NTMethod.GROUP_MEMBER_SCENE, [
       groupCode,
       'groupMemberList_MainWindow'
     ])
-    const data = await invoke<{
-      sceneId: string
-      keyword: string
+    const data = await invoke<[
+      sceneId: string,
+      keyword: string,
+      ids: { uid: string, index: number }[],
       infos: Map<string, GroupMember>
-    }>(
+    ]>(
       'nodeIKernelGroupService/searchMember',
-      [{ sceneId, keyword }],
+      [sceneId, keyword],
       {
         resultCmd: 'nodeIKernelGroupListener/onSearchMemberChange',
         resultCb: payload => {
-          return payload.sceneId === sceneId && payload.keyword === keyword
+          return payload[0] === sceneId && payload[1] === keyword
         },
       },
     )
-    return data.infos
+    return data[3]
   }
 
   async getGroupFileCount(groupId: string) {
@@ -320,13 +318,13 @@ export class NTQQGroupApi extends Service {
   }
 
   async moveGroupFile(groupId: string, fileIdList: string[], curFolderId: string, dstFolderId: string) {
-    return await invoke('nodeIKernelRichMediaService/moveGroupFile', [{
+    return await invoke('nodeIKernelRichMediaService/moveGroupFile', [
       groupId,
+      [102],
       fileIdList,
       curFolderId,
-      dstFolderId,
-      busIdList: [102],
-    }])
+      dstFolderId
+    ])
   }
 
   async getGroupShutUpMemberList(groupCode: string) {
@@ -350,5 +348,41 @@ export class NTQQGroupApi extends Service {
       folderId,
       newFolderName,
     ])
+  }
+
+  async setGroupFileForever(groupId: string, fileId: string) {
+    return await invoke('nodeIKernelRichMediaService/transGroupFile', [
+      groupId,
+      fileId
+    ])
+  }
+
+  async getGroupAlbumList(groupId: string) {
+    return await invoke('nodeIKernelAlbumService/getAlbumList', [{
+      qun_id: groupId,
+      seq: 0,
+      attach_info: '',
+      request_time_line: {
+        request_invoke_time: '0'
+      }
+    }])
+  }
+
+  async createGroupAlbum(groupId: string, name: string, desc: string) {
+    const seq = Date.now()
+    return await invoke('nodeIKernelAlbumService/addAlbum', [seq, {
+      owner: groupId,
+      name,
+      desc,
+      createTime: '0'
+    }])
+  }
+  async deleteGroupAlbum(groupId: string, albumId: string) {
+    return await invoke('nodeIKernelAlbumService/deleteAlbum', [Date.now(), groupId, albumId])
+  }
+  async deleteGroupBulletin(groupCode: string, feedsId: string) {
+    const ntUserApi = this.ctx.get('ntUserApi')!
+    const psKey = (await ntUserApi.getPSkey(['qun.qq.com'])).domainPskeyMap.get('qun.qq.com')!
+    return await invoke('nodeIKernelGroupService/deleteGroupBulletin', [groupCode, psKey, feedsId])
   }
 }

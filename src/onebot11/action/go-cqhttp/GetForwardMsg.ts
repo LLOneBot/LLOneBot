@@ -38,10 +38,11 @@ export class GetForwardMsg extends BaseAction<Payload, Response> {
     const rootMsgId = multiMsgInfo[0]?.rootMsgId ?? msgInfo.msgId
     const peer = multiMsgInfo[0]?.peerUid ? {
       ...msgInfo.peer,
+      chatType: multiMsgInfo[0].chatType,
       peerUid: multiMsgInfo[0].peerUid
     } : msgInfo.peer
     const data = await this.ctx.ntMsgApi.getMultiMsg(peer, rootMsgId, msgInfo.msgId)
-    if (data?.result !== 0) {
+    if (data.result !== 0) {
       if (data.result === 2) {
         const res = await this.ctx.ntMsgApi.getMsgsByMsgId(msgInfo.peer, [msgInfo.msgId])
         if (res.msgList.length === 0) {
@@ -54,11 +55,11 @@ export class GetForwardMsg extends BaseAction<Payload, Response> {
           if (data.app === 'com.tencent.multimsg') {
             const resId = data.meta.detail.resid
             const res = await this.ctx.app.pmhq.getMultiMsg(resId)
-            return { messages: await decodeMultiMessage(this.ctx, res as Msg.PbMultiMsgItem[]) }
+            return { messages: await decodeMultiMessage(this.ctx, res as Msg.PbMultiMsgItem[], config.messageFormat) }
           }
         }
       }
-      throw Error('找不到相关的聊天记录' + data?.errMsg)
+      throw new Error(data.errMsg)
     }
     const messages: (OB11ForwardMessage | undefined)[] = await Promise.all(
       data.msgList.map(async (msg) => {
@@ -67,7 +68,7 @@ export class GetForwardMsg extends BaseAction<Payload, Response> {
           const segments = message2List(res.message)
           for (const item of segments) {
             if (item.type === OB11MessageDataType.Forward) {
-              this.ctx.store.addMultiMsgInfo(rootMsgId, item.data.id, peer.peerUid)
+              this.ctx.store.addMultiMsgInfo(rootMsgId, item.data.id, peer)
             }
           }
           return {

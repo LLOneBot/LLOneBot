@@ -68,7 +68,8 @@ const TokenDialog: React.FC<TokenDialogProps> = ({ visible, onConfirm, onClose, 
     <>
       {/* Backdrop - 点击不关闭 */}
       <div 
-        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4"
+        style={{ zIndex: 9000 }}
         onClick={(e) => e.target === e.currentTarget && onClose?.()}
       >
         {/* Dialog */}

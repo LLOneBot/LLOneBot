@@ -49,7 +49,7 @@ class OB11Http {
       this.expressAPP.use((req, res, next) => this.authorize(req, res, next))
       this.expressAPP.use((req, res, next) => this.handleRequest(req, res, next))
       this.expressAPP.get('/', (req: Request, res: Response) => {
-        res.send(`LLTwoBot server 已启动`)
+        res.send(`ok`)
       })
       const host = this.config.onlyLocalhost ? '127.0.0.1' : ''
       this.expressAPP.get('/_events', (req: Request, res: Response) => {
@@ -186,7 +186,7 @@ class OB11Http {
     }
 
     if (clientToken !== serverToken) {
-      res.status(403).json({ message: 'token verify failed!' })
+      res.status(403).json({ message: '403' })
     } else {
       next()
     }

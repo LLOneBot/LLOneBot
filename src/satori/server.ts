@@ -10,13 +10,14 @@ import { selfInfo } from '@/common/globalVars'
 import { initActionMap } from '@/onebot11/action'
 import { OB11Response } from '@/onebot11/action/OB11Response'
 import { getAvailablePort } from '@/common/utils/port'
+import { ParseMessageConfig } from '@/onebot11/types'
 
 export class SatoriServer {
   private express: Express
   private httpServer?: Server
   private wsServer?: WebSocketServer
   private wsClients: WebSocket[] = []
-  private actionMap: Map<string, { handle: (params: any) => Promise<any> }>
+  private actionMap: Map<string, { handle: (params: any, config: ParseMessageConfig) => Promise<any> }>
 
   constructor(private ctx: Context, private config: SatoriServer.Config) {
     this.express = express()
@@ -29,7 +30,10 @@ export class SatoriServer {
     if (!handler) {
       throw new Error(`Unsupported OB11 action: ${action}`)
     }
-    return handler.handle(params)
+    return handler.handle(params, {
+      messageFormat: 'array',
+      debug: false
+    })
   }
 
   private async handleOneBotRequest(req: Request, res: Response) {
