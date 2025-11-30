@@ -1,6 +1,6 @@
 import { BaseAction } from '../action/BaseAction'
 import { Context } from 'cordis'
-import { WebSocket, WebSocketServer } from 'ws'
+import { RawData, WebSocket, WebSocketServer } from 'ws'
 import { IncomingMessage } from 'node:http'
 import { OB11Return, OB11Message } from '../types'
 import { OB11Response } from '../action/OB11Response'
@@ -143,13 +143,13 @@ class OB11WebSocket {
     }
   }
 
-  private async handleAction(socket: WebSocket, msg: string) {
+  private async handleAction(socket: WebSocket, data: RawData) {
     let receive: { action: ActionName | null; params: unknown; echo?: unknown } = { action: null, params: {} }
     try {
-      receive = JSON.parse(msg.toString())
+      receive = JSON.parse(data.toString())
       this.ctx.logger.info('收到正向 Websocket 消息', receive)
     } catch (e) {
-      return this.reply(socket, OB11Response.error('JSON 解析失败，请检查数据格式', 1400))
+      return this.reply(socket, OB11Response.error(`JSON 解析失败: ${(e as Error).message}`, 1400))
     }
     const action = this.config.actionMap.get(receive.action!)!
     if (!action) {
@@ -165,8 +165,8 @@ class OB11WebSocket {
   private connect(socket: WebSocket, req: IncomingMessage) {
     const url = req.url?.split('?').shift()
     if (['/api', '/api/', '/', undefined].includes(url)) {
-      socket.on('message', msg => {
-        this.handleAction(socket, msg.toString())
+      socket.on('message', data => {
+        this.handleAction(socket, data)
       })
     }
     if (['/event', '/event/', '/', undefined].includes(url)) {
@@ -214,7 +214,7 @@ class OB11WebSocketReverse {
   }
 
   public start() {
-    if (!this.config.enable){
+    if (!this.config.enable) {
       return
     }
     if (!this.activated) {
@@ -274,13 +274,13 @@ class OB11WebSocketReverse {
     }
   }
 
-  private async handleAction(msg: string) {
+  private async handleAction(data: RawData) {
     let receive: { action: ActionName | null; params: unknown; echo?: unknown } = { action: null, params: {} }
     try {
-      receive = JSON.parse(msg.toString())
+      receive = JSON.parse(data.toString())
       this.ctx.logger.info('收到反向 Websocket 消息', receive)
     } catch (e) {
-      return this.reply(this.wsClient!, OB11Response.error('JSON 解析失败，请检查数据格式', 1400, receive.echo))
+      return this.reply(this.wsClient!, OB11Response.error(`JSON 解析失败: ${(e as Error).message}`, 1400, receive.echo))
     }
     const action = this.config.actionMap.get(receive.action!)!
     if (!action) {
@@ -322,7 +322,7 @@ class OB11WebSocketReverse {
     this.wsClient.on('error', err => this.ctx.logger.error(err))
 
     this.wsClient.on('message', data => {
-      this.handleAction(data.toString())
+      this.handleAction(data)
     })
 
     this.wsClient.on('ping', () => {
