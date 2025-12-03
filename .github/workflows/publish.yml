@@ -59,6 +59,7 @@ jobs:
           cd llbot-desktop-win-x64
           cp ../dist/使用说明.txt ./
           cp ../dist/更新日志.txt ./
+          mkdir -p ./bin/llonebot
           cp -r ../dist ./bin/llonebot
           wget https://github.com/LLOneBot/Lucky-Lillia-Desktop/releases/latest/download/lucky-lillia-desktop-win-x64.zip
           unzip lucky-lillia-desktop-win-x64.zip
