@@ -30,26 +30,77 @@ jobs:
 
       - name: Compress dist
         run: |
-          mkdir llonebot-win-x64
+          
           sudo apt install zip -y
           cd ./dist/
-          mv 使用说明.txt ../llonebot-win-x64/
-          zip -r ../LLOneBot.zip ./*
+          
+          zip -r ../LLBot.zip ./*
 
-      - name: Compress for Windows
+      - name: Compress for Windows Cli
         run: |
-          cd llonebot-win-x64
-          mv ../dist/更新日志.txt ./
-          mv ../dist ./llonebot
+          mkdir llbot-cli-win-x64
+          cd llbot-cli-win-x64
+          cp ../dist/使用说明.txt ./
+          cp ../dist/更新日志.txt ./
+          cp ../dist ./llonebot
           wget https://github.com/linyuchen/PMHQ/releases/latest/download/pmhq-win-x64.zip
           unzip pmhq-win-x64.zip
           rm pmhq-win-x64.zip
-          mv pmhq-win-x64.exe llonebot.exe
+          mv pmhq-win-x64.exe llbot.exe
           wget https://github.com/LLOneBot/exe/releases/latest/download/node.exe -O llonebot/node.exe
-          zip -r ../LLOneBot-win-x64.zip ./*
+          # zip -r ../LLOneBot-win-x64.zip ./*
           wget https://github.com/LLOneBot/exe/releases/latest/download/ffmpeg.exe -O llonebot/ffmpeg.exe
           wget https://github.com/LLOneBot/exe/releases/latest/download/ffprobe.exe -O llonebot/ffprobe.exe
-          zip -r ../LLOneBot-win-x64-ffmpeg.zip ./*
+          zip -r ../LLBot-cli-win-x64.zip ./*
+
+      - name: Compress for Windows Desktop
+        run: |
+          mkdir llbot-desktop-win-x64
+          mkdir -p bin/llonebot
+          cd llbot-desktop-win-x64
+          cp ../dist/使用说明.txt ./
+          cp ../dist/更新日志.txt ./
+          cp ../dist ./bin/llonebot
+          wget https://github.com/LLOneBot/Lucky-Lillia-Desktop/releases/latest/download/lucky-lillia-desktop-win-x64.zip
+          unzip lucky-lillia-desktop-win-x64.zip
+          rm lucky-lillia-desktop-win-x64.zip
+          mv lucky-lillia-desktop.exe llbot.exe
+          zip -r ../LLBot-Desktop-win-x64.zip ./*
+
+      - name: Compress for Linux CLI x64
+        run: |
+          mkdir llbot-cli-linux-x64
+          cd llbot-cli-linux-x64
+          cp ../dist/使用说明.txt ./
+          cp ../dist/更新日志.txt ./
+          cp ../dist ./llbot
+          wget https://github.com/linyuchen/PMHQ/releases/latest/download/pmhq-linux-x64.zip
+          unzip pmhq-linux-x64.zip
+          rm pmhq-linux-x64.zip
+          mv pmhq-linux-x64 llbot
+          wget https://github.com/LLOneBot/exe/releases/latest/download/node-linux-x64 -O llbot/node
+          cp ../script/start-linux.sh ./start.sh
+          zip -r ../LLBot-CLI-linux-x64.zip ./*
+
+      - name: Compress for Linux CLI arm64
+        run: |
+          mkdir llbot-cli-linux-arm64
+          cd llbot-cli-linux-arm64
+          cp ../dist/使用说明.txt ./
+          cp ../dist/更新日志.txt ./
+          cp ../dist ./llbot
+          wget https://github.com/linyuchen/PMHQ/releases/latest/download/pmhq-linux-arm64.zip
+          unzip pmhq-linux-arm64.zip
+          rm pmhq-linux-arm64.zip
+          mv pmhq-linux-arm64 llbot
+          wget https://github.com/LLOneBot/exe/releases/latest/download/node-linux-arm64 -O llbot/node
+          cp ../script/start-linux.sh ./start.sh
+          zip -r ../LLBot-CLI-linux-arm64.zip ./*
+
+      - name: Compress for Docker
+        run: |
+          wget https://raw.githubusercontent.com/linyuchen/PMHQ/refs/heads/main/docker/install-llob.sh -O LLBot-Docker.sh
+          
 
       - name: Extract version from tag
         id: get-version
@@ -72,7 +123,7 @@ jobs:
       - name: Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: 'LLOneBot.zip, LLOneBot-win-x64.zip, LLOneBot-win-x64-ffmpeg.zip'
+          artifacts: 'LLBot.zip, LLBot-Desktop-win-x64.zip, LLBot-CLI-linux-x64.zip, LLBot-CLI-linux-arm64.zip， LLBot-Docker.sh'
           draft: true
           token: ${{ secrets.RELEASE_TOKEN }}
           name: LLOneBot v${{ steps.get-version.outputs.VERSION }}

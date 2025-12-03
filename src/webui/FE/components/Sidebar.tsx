@@ -36,7 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, accountInfo }
             <img src='/logo.jpg' alt='Logo' className='w-full h-full object-cover' />
           </div>
           <div className='flex-1 min-w-0'>
-            <h1 className='text-xl font-bold text-gray-800 truncate'>LLTwoBot</h1>
+            <h1 className='text-xl font-bold text-gray-800 truncate'>LLBot</h1>
             <p className='text-xs text-gray-500'>WebUI</p>
           </div>
         </div>
