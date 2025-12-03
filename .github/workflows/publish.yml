@@ -31,7 +31,7 @@ jobs:
 
       - name: Compress dist
         run: |
-          
+
           sudo apt install zip -y
           cd ./dist/
           zip -r ../LLOneBot.zip ./*
@@ -171,6 +171,6 @@ jobs:
           artifacts: 'LLOneBot.zip, LLBot-Desktop-win-x64.zip, LLBot-CLI-linux-x64.zip, LLBot-CLI-linux-arm64.zip, LLBot-Docker.sh'
           draft: true
           token: ${{ secrets.RELEASE_TOKEN }}
-          name: LLOneBot v${{ steps.get-version.outputs.VERSION }}
+          name: LuckyLilliaBot v${{ steps.get-version.outputs.VERSION }}
           body: |
             ${{ steps.changelog.outputs.BODY }}
