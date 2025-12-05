@@ -147,12 +147,8 @@ export class NTQQFileApi extends Service {
   }
 
   async getImageUrl(element: PicElement) {
-    if (!element) {
-      return ''
-    }
-    const url: string = element.originImageUrl!  // 没有域名
+    const url = element.originImageUrl  // 没有域名
     const md5HexStr = element.md5HexStr
-    const fileMd5 = element.md5HexStr
 
     if (url) {
       const parsedUrl = new URL(IMAGE_HTTP_HOST + url) //临时解析拼接
@@ -166,16 +162,16 @@ export class NTQQFileApi extends Service {
         const rkeyData = await this.rkeyManager.getRkey()
         rkey = imageAppid === '1406' ? rkeyData.private_rkey : rkeyData.group_rkey
         return IMAGE_HTTP_HOST_NT + url + rkey
+      } else if (url.startsWith('/offpic_new/')) {
+        return `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${md5HexStr.toUpperCase()}/0`
       } else {
         // 老的图片url，不需要rkey
         return IMAGE_HTTP_HOST + url
       }
-    } else if (fileMd5 || md5HexStr) {
+    } else {
       // 没有url，需要自己拼接
-      return `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${(fileMd5 || md5HexStr)!.toUpperCase()}/0`
+      return `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${md5HexStr.toUpperCase()}/0`
     }
-    this.ctx.logger.error('图片url获取失败', element)
-    return ''
   }
 
   async downloadFileForModelId(peer: Peer, fileModelId: string, timeout = 2 * Time.minute) {

@@ -211,7 +211,7 @@ export interface PicElement {
   fileSize: string
   fileName: string
   fileUuid: string
-  md5HexStr?: string
+  md5HexStr: string
 }
 
 export interface TipAioOpGrayTipElement {
