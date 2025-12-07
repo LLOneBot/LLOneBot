@@ -4,6 +4,7 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
@@ -30,32 +31,125 @@ jobs:
 
       - name: Compress dist
         run: |
-          mkdir llonebot-win-x64
+
           sudo apt install zip -y
           cd ./dist/
-          mv 使用说明.txt ../llonebot-win-x64/
           zip -r ../LLOneBot.zip ./*
 
-      - name: Compress for Windows
+      - name: Compress for Windows Cli
         run: |
-          cd llonebot-win-x64
-          mv ../dist/更新日志.txt ./
-          mv ../dist ./llonebot
+          mkdir llbot-cli-win-x64
+          cd llbot-cli-win-x64
+          cp ../dist/使用说明.txt ./
+          cp ../dist/更新日志.txt ./
+          cp -r ../dist/* ./llonebot
           wget https://github.com/linyuchen/PMHQ/releases/latest/download/pmhq-win-x64.zip
           unzip pmhq-win-x64.zip
           rm pmhq-win-x64.zip
-          mv pmhq-win-x64.exe llonebot.exe
+          mv pmhq-win-x64.exe llbot.exe
           wget https://github.com/LLOneBot/exe/releases/latest/download/node.exe -O llonebot/node.exe
-          zip -r ../LLOneBot-win-x64.zip ./*
           wget https://github.com/LLOneBot/exe/releases/latest/download/ffmpeg.exe -O llonebot/ffmpeg.exe
           wget https://github.com/LLOneBot/exe/releases/latest/download/ffprobe.exe -O llonebot/ffprobe.exe
-          zip -r ../LLOneBot-win-x64-ffmpeg.zip ./*
+          zip -r ../LLBot-CLI-win-x64.zip ./*
 
+      - name: Compress for Windows Desktop
+        run: |
+          mkdir llbot-desktop-win-x64
+          mkdir -p bin/llonebot
+          cd llbot-desktop-win-x64
+          cp ../dist/使用说明.txt ./
+          cp ../dist/更新日志.txt ./
+          mkdir -p ./bin/llonebot
+          cp -r ../dist/* ./bin/llonebot/
+          wget https://github.com/LLOneBot/Lucky-Lillia-Desktop/releases/latest/download/lucky-lillia-desktop-win-x64.zip
+          unzip lucky-lillia-desktop-win-x64.zip
+          rm lucky-lillia-desktop-win-x64.zip
+          mv lucky-lillia-desktop.exe llbot.exe
+          zip -r ../LLBot-Desktop-win-x64.zip ./*
+
+      - name: Compress for Linux CLI x64
+        run: |
+          mkdir llbot-cli-linux-x64
+          cd llbot-cli-linux-x64
+          cp ../dist/使用说明.txt ./
+          cp ../dist/更新日志.txt ./
+          cp -r ../dist ./llbot
+          wget https://github.com/linyuchen/PMHQ/releases/latest/download/pmhq-linux-x64.zip
+          unzip pmhq-linux-x64.zip
+          rm pmhq-linux-x64.zip
+          mv pmhq-linux-x64 llbot/pmhq
+          wget https://github.com/LLOneBot/exe/releases/latest/download/node-linux-x64 -O llbot/node
+          cp ../script/start-linux.sh ./start.sh
+          zip -r ../LLBot-CLI-linux-x64.zip ./*
+
+      - name: Compress for Linux CLI arm64
+        run: |
+          mkdir llbot-cli-linux-arm64
+          cd llbot-cli-linux-arm64
+          cp ../dist/使用说明.txt ./
+          cp ../dist/更新日志.txt ./
+          cp -r ../dist ./llbot
+          wget https://github.com/linyuchen/PMHQ/releases/latest/download/pmhq-linux-arm64.zip
+          unzip pmhq-linux-arm64.zip
+          rm pmhq-linux-arm64.zip
+          mv pmhq-linux-arm64 llbot/pmhq
+          wget https://github.com/LLOneBot/exe/releases/latest/download/node-linux-arm64 -O llbot/node
+          cp ../script/start-linux.sh ./start.sh
+          zip -r ../LLBot-CLI-linux-arm64.zip ./*
+
+      - name: Compress for Docker
+        run: |
+          wget https://raw.githubusercontent.com/linyuchen/PMHQ/refs/heads/main/docker/install-llob.sh -O LLBot-Docker.sh
+
+      # 手动触发时只上传 artifacts
+      - name: Upload LLOneBot.zip
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: LLOneBot
+          path: LLOneBot.zip
+          retention-days: 30
+
+      - name: Upload LLBot-Desktop-win-x64.zip
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: LLBot-Desktop-win-x64
+          path: LLBot-Desktop-win-x64.zip
+          retention-days: 30
+
+      - name: Upload LLBot-CLI-linux-x64.zip
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: LLBot-CLI-linux-x64
+          path: LLBot-CLI-linux-x64.zip
+          retention-days: 30
+
+      - name: Upload LLBot-CLI-linux-arm64.zip
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: LLBot-CLI-linux-arm64
+          path: LLBot-CLI-linux-arm64.zip
+          retention-days: 30
+
+      - name: Upload LLBot-Docker.sh
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: LLBot-Docker
+          path: LLBot-Docker.sh
+          retention-days: 30
+
+      # tag 触发时创建 release
       - name: Extract version from tag
+        if: startsWith(github.ref, 'refs/tags/')
         id: get-version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
 
       - name: Generate release body from changelog
+        if: startsWith(github.ref, 'refs/tags/')
         id: changelog
         run: |
           # 取第一个分段
@@ -70,11 +164,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: ncipollo/release-action@v1
         with:
-          artifacts: 'LLOneBot.zip, LLOneBot-win-x64.zip, LLOneBot-win-x64-ffmpeg.zip'
+          artifacts: 'LLOneBot.zip, LLBot-Desktop-win-x64.zip, LLBot-CLI-linux-x64.zip, LLBot-CLI-linux-arm64.zip, LLBot-Docker.sh'
           draft: true
           token: ${{ secrets.RELEASE_TOKEN }}
-          name: LLOneBot v${{ steps.get-version.outputs.VERSION }}
+          name: LuckyLilliaBot v${{ steps.get-version.outputs.VERSION }}
           body: |
             ${{ steps.changelog.outputs.BODY }}

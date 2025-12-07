@@ -169,11 +169,7 @@ function App() {
               {/*{activeTab === 'about' && '关于'}*/}
             </h2>
             <p className="text-white/80">
-              {activeTab === 'dashboard' && '欢迎使用 LLTwoBot'}
-              {/*{activeTab === 'onebot' && '配置 OneBot 11 协议相关设置'}*/}
-              {/*{activeTab === 'satori' && '配置 Satori 协议相关设置'}*/}
-              {/*{activeTab === 'other' && '配置全局设置和其他选项'}*/}
-              {/*{activeTab === 'about' && '关于 LLTwoBot 项目'}*/}
+              {activeTab === 'dashboard' && '欢迎使用 Lucky Lillia Bot'}
             </p>
           </div>
 
@@ -403,7 +399,7 @@ function App() {
                 <div className="w-20 h-20 rounded-3xl overflow-hidden mx-auto mb-6 shadow-lg">
                   <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover" />
                 </div>
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">Lucky Lillia TwoBot</h1>
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">Lucky Lillia Bot</h1>
                 <p className="text-gray-600 mb-6">使你的 QQNT 支持 OneBot 11 协议 和 Satori 协议进行 QQ 机器人开发</p>
                 <div className="flex items-center justify-center gap-4">
                   <a
@@ -490,7 +486,7 @@ function App() {
                     </div>
                     <div>
                       <div className="text-sm font-medium text-gray-800">版本信息</div>
-                      <div className="text-xs text-gray-500">LLTwoBot {version}</div>
+                      <div className="text-xs text-gray-500">Lucky Lillia Bot {version}</div>
                     </div>
                   </div>
                   <div className="text-sm text-gray-600">
