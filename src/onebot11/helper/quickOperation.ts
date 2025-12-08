@@ -1,6 +1,10 @@
 import { OB11Message, OB11MessageData, OB11MessageDataType } from '../types'
 import { OB11FriendRequestEvent } from '../event/request/OB11FriendRequest'
-import { OB11GroupRequestEvent } from '../event/request/OB11GroupRequest'
+import {
+  OB11GroupRequestAddEvent,
+  OB11GroupRequestEvent,
+  OB11GroupRequestInviteBotEvent,
+} from '../event/request/OB11GroupRequest'
 import { GroupRequestOperateTypes } from '@/ntqqapi/types'
 import { message2List, createSendElements, createPeer, CreatePeerMode } from '../helper/createMessage'
 import { isNullable } from 'cosmokit'
@@ -35,7 +39,7 @@ export type QuickOperation = QuickOperationPrivateMessage &
   QuickOperationFriendRequest &
   QuickOperationGroupRequest
 
-export type QuickOperationEvent = OB11Message | OB11FriendRequestEvent | OB11GroupRequestEvent;
+export type QuickOperationEvent = OB11Message | OB11FriendRequestEvent | OB11GroupRequestAddEvent | OB11GroupRequestInviteBotEvent;
 
 export async function handleQuickOperation(ctx: Context, event: QuickOperationEvent, quickAction: QuickOperation) {
   if (event.post_type === 'message') {

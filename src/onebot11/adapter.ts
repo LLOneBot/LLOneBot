@@ -10,7 +10,10 @@ import {
   Peer,
   RawMessage,
 } from '../ntqqapi/types'
-import { OB11GroupRequestEvent } from './event/request/OB11GroupRequest'
+import {
+  OB11GroupRequestAddEvent,
+  OB11GroupRequestInviteBotEvent,
+} from './event/request/OB11GroupRequest'
 import { OB11FriendRequestEvent } from './event/request/OB11FriendRequest'
 import { OB11GroupDecreaseEvent } from './event/notice/OB11GroupDecreaseEvent'
 import { selfInfo } from '../common/globalVars'
@@ -103,12 +106,11 @@ class OneBot11Adapter extends Service {
       if (notify.type === GroupNotifyType.RequestJoinNeedAdminiStratorPass && notify.status === GroupNotifyStatus.Unhandle) {
         this.ctx.logger.info('有加群请求')
         const requestUin = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
-        const event = new OB11GroupRequestEvent(
+        const event = new OB11GroupRequestAddEvent(
           parseInt(notify.group.groupCode),
           parseInt(requestUin) || 0,
           flag,
           notify.postscript,
-          'add',
         )
         this.dispatch(event)
       }
@@ -116,12 +118,11 @@ class OneBot11Adapter extends Service {
         this.ctx.logger.info('收到邀请我加群通知, 邀请人uid:', notify.user2.uid)
         const userId = await this.ctx.ntUserApi.getUinByUid(notify.user2.uid)
         this.ctx.logger.info('收到邀请我加群通知, 邀请人uin:', userId)
-        const event = new OB11GroupRequestEvent(
+        const event = new OB11GroupRequestInviteBotEvent(
           parseInt(notify.group.groupCode),
           parseInt(userId) || 0,
           flag,
           notify.postscript,
-          'invite'
         )
         this.dispatch(event)
       }
@@ -129,12 +130,11 @@ class OneBot11Adapter extends Service {
         this.ctx.logger.info('收到群员邀请加群通知')
         const userId = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
         const invitorId = await this.ctx.ntUserApi.getUinByUid(notify.user2.uid)
-        const event = new OB11GroupRequestEvent(
+        const event = new OB11GroupRequestAddEvent(
           parseInt(notify.group.groupCode),
           parseInt(userId) || 0,
           flag,
           notify.postscript,
-          'add',
           parseInt(invitorId) || 0,
         )
         this.dispatch(event)

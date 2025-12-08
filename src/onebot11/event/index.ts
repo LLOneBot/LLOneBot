@@ -30,11 +30,11 @@ export { OB11GroupRecallNoticeEvent } from './notice/OB11GroupRecallNoticeEvent'
 export { OB11GroupTitleEvent } from './notice/OB11GroupTitleEvent'
 export { OB11GroupUploadNoticeEvent } from './notice/OB11GroupUploadNoticeEvent'
 export { OB11GroupMsgEmojiLikeEvent } from './notice/OB11MsgEmojiLikeEvent'
-export { 
-  OB11FriendPokeEvent, 
+export {
+  OB11FriendPokeEvent,
   OB11GroupPokeEvent,
   OB11FriendPokeRecallEvent,
-  OB11GroupPokeRecallEvent 
+  OB11GroupPokeRecallEvent
 } from './notice/OB11PokeEvent'
 export { OB11ProfileLikeEvent } from './notice/OB11ProfileLikeEvent'
 export {
@@ -65,11 +65,11 @@ import type { OB11GroupRecallNoticeEvent } from './notice/OB11GroupRecallNoticeE
 import type { OB11GroupTitleEvent } from './notice/OB11GroupTitleEvent'
 import type { OB11GroupUploadNoticeEvent } from './notice/OB11GroupUploadNoticeEvent'
 import type { OB11GroupMsgEmojiLikeEvent } from './notice/OB11MsgEmojiLikeEvent'
-import type { 
-  OB11FriendPokeEvent, 
+import type {
+  OB11FriendPokeEvent,
   OB11GroupPokeEvent,
   OB11FriendPokeRecallEvent,
-  OB11GroupPokeRecallEvent 
+  OB11GroupPokeRecallEvent
 } from './notice/OB11PokeEvent'
 import type { OB11ProfileLikeEvent } from './notice/OB11ProfileLikeEvent'
 import type {
@@ -79,14 +79,17 @@ import type {
   OB11FlashFileUploadedEvent
 } from './notice/OB11FlashFileEvent'
 import type { OB11FriendRequestEvent } from './request/OB11FriendRequest'
-import type { OB11GroupRequestEvent } from './request/OB11GroupRequest'
+import {
+  OB11GroupRequestAddEvent,
+  OB11GroupRequestInviteBotEvent,
+} from './request/OB11GroupRequest'
 import { OB11MessageEvent } from './message/OB11MessageEvent'
 
 /**
  * 所有 OneBot11 事件的联合类型
  * 用于类型检查和事件处理
  */
-export type OB11Event = 
+export type OB11Event =
   // 消息事件
   OB11MessageEvent
   // 元事件
@@ -117,4 +120,5 @@ export type OB11Event =
   | OB11FlashFileUploadedEvent
   // 请求事件
   | OB11FriendRequestEvent
-  | OB11GroupRequestEvent
+  | OB11GroupRequestAddEvent
+  | OB11GroupRequestInviteBotEvent

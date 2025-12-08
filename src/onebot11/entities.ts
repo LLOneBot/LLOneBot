@@ -41,7 +41,7 @@ import { Dict } from 'cosmokit'
 import { Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
 import { pathToFileURL } from 'node:url'
-import { OB11GroupRequestEvent } from '@/onebot11/event/request/OB11GroupRequest'
+import { OB11GroupRequestInviteBotEvent } from '@/onebot11/event/request/OB11GroupRequest'
 import { ParseMessageConfig } from './types'
 import { msgPBMap } from '@/ntqqapi/hook'
 
@@ -544,13 +544,11 @@ export namespace OB11Entities {
           const groupCode = params.get('groupcode')
           const seq = params.get('msgseq')
           const flag = `${groupCode}|${seq}|1|0`
-          return new OB11GroupRequestEvent(
+          return new OB11GroupRequestInviteBotEvent(
             Number(groupCode),
             Number(senderUin),
             flag,
             data.meta.news.desc,
-            'invite',
-            Number(senderUin),
           )
         }
       }
