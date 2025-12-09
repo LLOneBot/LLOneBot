@@ -178,6 +178,9 @@ jobs:
           body: |
             ${{ steps.changelog.outputs.BODY }}
 
+            **Windows Desktop 版本只支持 Windows Server 2016 / Windows 10 及以上版本**
+            **Windows CLI 版本只支持 Windows server 2012 R2 / Windows 8.1 及以上版本**
+
       - name: Publish to npm
         if: startsWith(github.ref, 'refs/tags/')
         run: |
