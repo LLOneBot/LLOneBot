@@ -319,7 +319,12 @@ const GetResourceTempUrl = defineApi(
   GetResourceTempUrlOutput,
   async (ctx, payload) => {
     const buffer = Buffer.from(payload.resource_id, 'base64url')
-    const { appid } = RichMedia.FileIdInfo.decode(buffer)
+    let appid: number | undefined
+    try {
+      appid = RichMedia.FileIdInfo.decode(buffer).appid
+    } catch {
+      // decode failed, appid remains undefined
+    }
     // 1402, 1403: private record, group record
     // 1413, 1415: private video, group video
     if (appid === 1406 || appid === 1407) {
