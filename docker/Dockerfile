@@ -4,7 +4,7 @@ ARG LLONEBOT_VERSION
 
 RUN set -eux; \
     apt update; \
-    apt install --no-cache tzdata ffmpeg unzip wget; \
+    apt install -y tzdata ffmpeg unzip wget; \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime; \
     echo "Asia/Shanghai" > /etc/timezone; \
     rm -rf /var/cache/apk/*
