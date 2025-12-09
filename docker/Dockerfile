@@ -1,11 +1,8 @@
-FROM node:lts-alpine
+FROM node:lts
 
 ARG LLONEBOT_VERSION
 
 RUN set -eux; \
-    echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories; \
-    echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories; \
-    echo "https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories; \
     apk update; \
     apk add --no-cache tzdata ffmpeg; \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime; \
