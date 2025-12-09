@@ -7,7 +7,7 @@ RUN set -eux; \
     apt install -y tzdata ffmpeg unzip wget; \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime; \
     echo "Asia/Shanghai" > /etc/timezone; \
-    rm -rf /var/cache/apk/*
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app/llonebot
 
