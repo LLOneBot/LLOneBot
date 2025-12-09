@@ -4,12 +4,10 @@ ARG LLONEBOT_VERSION
 
 RUN set -eux; \
     apk update; \
-    apk add --no-cache tzdata ffmpeg; \
+    apk add --no-cache tzdata ffmpeg unzip wget; \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime; \
     echo "Asia/Shanghai" > /etc/timezone; \
     rm -rf /var/cache/apk/*
-
-RUN apk add unzip wget
 
 WORKDIR /app/llonebot
 
