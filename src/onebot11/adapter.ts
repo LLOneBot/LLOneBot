@@ -329,16 +329,16 @@ class OneBot11Adapter extends Service {
       const sysMsg = Msg.Message.decode(input)
       const { msgType, subType } = sysMsg.contentHead ?? {}
       if (msgType === 528 && subType === 39) {
-        const tip = Notify.ProfileLike.decode(sysMsg.body!.msgContent!)
+        const tip = Notify.ProfileLike.decode(sysMsg.body.msgContent)
         if (tip.msgType !== 0 || tip.subType !== 203) return
         const detail = tip.content?.msg?.detail
         if (!detail) return
         const [times] = detail.txt?.match(/\d+/) ?? ['0']
-        const event = new OB11ProfileLikeEvent(detail.uin!, detail.nickname!, +times)
+        const event = new OB11ProfileLikeEvent(detail.uin, detail.nickname, +times)
         this.dispatch(event)
       }
       else if (msgType === 33) {
-        const tip = Notify.GroupMemberChange.decode(sysMsg.body!.msgContent!)
+        const tip = Notify.GroupMemberChange.decode(sysMsg.body.msgContent)
         if (tip.type !== 130) return
         this.ctx.logger.info('群成员增加', tip)
         const memberUin = await this.ctx.ntUserApi.getUinByUid(tip.memberUid)
@@ -347,7 +347,7 @@ class OneBot11Adapter extends Service {
         this.dispatch(event)
       }
       else if (msgType === 34) {
-        const tip = Notify.GroupMemberChange.decode(sysMsg.body!.msgContent!)
+        const tip = Notify.GroupMemberChange.decode(sysMsg.body.msgContent)
         if (tip.type === 130) {
           this.ctx.logger.info('群成员减少', tip)
           const memberUin = await this.ctx.ntUserApi.getUinByUid(tip.memberUid)
@@ -502,13 +502,13 @@ class OneBot11Adapter extends Service {
       if (data.type === 'recv' && data.data.cmd === 'trpc.msg.olpush.OlPushService.MsgPush') {
         const pushMsg = Msg.PushMsg.decode(Buffer.from(data.data.pb, 'hex'))
         const { msgType, subType } = pushMsg.message?.contentHead ?? {}
-        if (msgType === 732 && subType === 16 && pushMsg.message!.body) {
-          const notify = Msg.NotifyMessageBody.decode(pushMsg.message!.body!.msgContent!.slice(7))
+        if (msgType === 732 && subType === 16 && pushMsg.message.body) {
+          const notify = Msg.NotifyMessageBody.decode(pushMsg.message.body.msgContent.subarray(7))
           if (notify.field13 === 35) {
-            this.ctx.logger.info('群表情回应', notify.reaction!.data!.body)
-            const info = notify.reaction!.data!.body!.info!
-            const target = notify.reaction!.data!.body!.target!
-            const userId = Number(await this.ctx.ntUserApi.getUinByUid(info.operatorUid!))
+            this.ctx.logger.info('群表情回应', notify.reaction.data.body)
+            const info = notify.reaction.data.body.info
+            const target = notify.reaction.data.body.target
+            const userId = Number(await this.ctx.ntUserApi.getUinByUid(info.operatorUid))
             const peer: Peer = {
               chatType: 2,
               peerUid: String(notify.groupCode),
@@ -525,7 +525,7 @@ class OneBot11Adapter extends Service {
               userId,
               messageId,
               [{
-                emoji_id: info.code!,
+                emoji_id: info.code,
                 count: 1,
               }],
               info.type === 1
