@@ -89,7 +89,15 @@ class MilkyHttpHandler {
       // Check access token for WebSocket connection
       if (this.config.accessToken) {
         const url = new URL(req.url!, `http://${req.headers.host}`)
-        const inputToken = url.searchParams.get('access_token')
+
+        let inputToken = ''
+        const authHeader = req.headers['authorization']
+        if (authHeader?.toLowerCase().startsWith('bearer ')) {
+          inputToken = authHeader.slice(7).trim()
+          this.ctx.logger.info('receive ws header token', inputToken)
+        } else {
+          inputToken = url.searchParams.get('access_token') ?? ''
+        }
 
         if (!inputToken || inputToken !== this.config.accessToken) {
           this.ctx.logger.warn('MilkyHttp', `${req.socket.remoteAddress} -> /event (Credentials invalid)`)
