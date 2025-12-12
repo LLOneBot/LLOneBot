@@ -230,7 +230,7 @@ export class MessageEncoder {
         thumb = await this.fetchFile(attrs.poster)
       }
       const element = await SendElement.video(this.ctx, path, thumb)
-      this.deleteAfterSentFiles.push(element.videoElement.filePath)
+      this.deleteAfterSentFiles.push(element.videoElement.filePath!)
       this.elements.push(element)
       await this.flush()
     } else if (type === 'file') {
