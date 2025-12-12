@@ -1,10 +1,10 @@
-import OneBot11Adapter from '../adapter'
-import { Msg, RichMedia } from '@/ntqqapi/proto/compiled'
+import { Msg, RichMedia } from '@/ntqqapi/proto'
 import { Context } from 'cordis'
 import { OB11MessageData, OB11MessageDataType } from '../types'
 import { encodeCQCode } from '../cqcode'
+import { InferProtoModel } from '@saltify/typeproto'
 
-export async function decodeMultiMessage(ctx: Context, items: Msg.PbMultiMsgItem[], messageFormat: 'string' | 'array') {
+export async function decodeMultiMessage(ctx: Context, items: InferProtoModel<typeof Msg.PbMultiMsgItem.model>[], messageFormat: 'string' | 'array') {
   return await Promise.all(items[0].buffer!.msg!.map(async msg => {
     const { body, contentHead, routingHead } = msg
     let content: string | OB11MessageData[] = messageFormat === 'string' ? '' : []

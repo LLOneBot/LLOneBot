@@ -1,9 +1,9 @@
 import { MilkyEventTypes } from '@/milky/common/event'
-import { RawMessage, GroupNotify, FriendRequest, GroupMember, GroupSimpleInfo, GroupNotifyType, GroupNotifyStatus, KickedOffLineInfo } from '@/ntqqapi/types'
+import { RawMessage, GroupNotify, FriendRequest, GroupNotifyType, GroupNotifyStatus } from '@/ntqqapi/types'
 import { transformIncomingPrivateMessage, transformIncomingGroupMessage } from './message/incoming'
 import { Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
-import { Msg, SysMsg } from '@/ntqqapi/proto/compiled'
+import { Msg, Notify } from '@/ntqqapi/proto'
 
 /**
  * Transform NTQQ message-created event to Milky message_receive event (private)
@@ -324,13 +324,13 @@ export async function transformGroupMessageEvent(
 
 export async function transformSystemMessageEvent(
   ctx: Context,
-  data: Uint8Array
+  data: Buffer
 ): Promise<{ eventType: keyof MilkyEventTypes, data: any } | null> {
   try {
     const sysMsg = Msg.Message.decode(data)
     const { msgType, subType } = sysMsg.contentHead ?? {}
     if (msgType === 33) {
-      const tip = SysMsg.GroupMemberChange.decode(sysMsg.body!.msgContent!)
+      const tip = Notify.GroupMemberChange.decode(sysMsg.body.msgContent)
       if (tip.type !== 130) return null
       return {
         eventType: 'group_member_increase',
@@ -342,7 +342,7 @@ export async function transformSystemMessageEvent(
       }
     }
     else if (msgType === 34) {
-      const tip = SysMsg.GroupMemberChange.decode(sysMsg.body!.msgContent!)
+      const tip = Notify.GroupMemberChange.decode(sysMsg.body.msgContent)
       if (tip.type === 130) {
         return {
           eventType: 'group_member_decrease',
@@ -386,16 +386,16 @@ export async function transformOlpushEvent(
 ): Promise<{ eventType: keyof MilkyEventTypes, data: any } | null> {
   try {
     const pushMsg = Msg.PushMsg.decode(data)
-    if (!pushMsg.message!.body) {
+    if (!pushMsg.message.body) {
       return null
     }
     const { msgType, subType } = pushMsg.message?.contentHead ?? {}
     if (msgType === 732 && subType === 16) {
-      const notify = Msg.NotifyMessageBody.decode(pushMsg.message!.body!.msgContent!.slice(7))
+      const notify = Msg.NotifyMessageBody.decode(pushMsg.message.body.msgContent.subarray(7))
       if (notify.field13 === 35) {
-        const info = notify.reaction!.data!.body!.info!
-        const target = notify.reaction!.data!.body!.target!
-        const userId = Number(await ctx.ntUserApi.getUinByUid(info.operatorUid!))
+        const info = notify.reaction.data.body.info
+        const target = notify.reaction.data.body.target
+        const userId = Number(await ctx.ntUserApi.getUinByUid(info.operatorUid))
         return {
           eventType: 'group_message_reaction',
           data: {

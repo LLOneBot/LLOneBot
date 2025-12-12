@@ -1,16 +1,17 @@
 import { Context } from 'cordis'
 import { OB11MessageData, OB11MessageDataType } from '../types'
-import { Msg, RichMedia } from '@/ntqqapi/proto/compiled'
+import { Msg, RichMedia } from '@/ntqqapi/proto'
 import { handleOb11RichMedia } from './createMessage'
 import { selfInfo } from '@/common/globalVars'
 import { Peer, RichMediaUploadCompleteNotify } from '@/ntqqapi/types'
 import { deflateSync } from 'node:zlib'
 import faceConfig from '@/ntqqapi/helper/face_config.json'
+import { InferProtoModelInput } from '@saltify/typeproto'
 
 export class MessageEncoder {
   static support = ['text', 'face', 'image', 'markdown', 'forward']
-  results: Msg.Message[]
-  children: Msg.Elem[]
+  results: InferProtoModelInput<typeof Msg.Message.model>[]
+  children: InferProtoModelInput<typeof Msg.Elem.model>[]
   deleteAfterSentFiles: string[]
   isGroup: boolean
   seq: number
@@ -129,7 +130,7 @@ export class MessageEncoder {
             },
             busiType
           }
-        }).finish(),
+        }),
         businessType: this.isGroup ? 20 : 10
       }
     }
@@ -204,14 +205,6 @@ export class MessageEncoder {
       const busiType = Number(segment.data.subType) || 0
       this.children.push(await this.packImage(data, busiType))
       this.preview += busiType === 1 ? '[动画表情]' : '[图片]'
-    } else if (type === OB11MessageDataType.Markdown) {
-      this.children.push({
-        commonElem: {
-          serviceType: 45,
-          pbElem: Msg.MarkdownElem.encode(data).finish(),
-          businessType: 1
-        }
-      })
     } else if (type === OB11MessageDataType.Forward) {
       this.children.push(this.packForwardMessage(data.id))
       this.preview += '[聊天记录]'

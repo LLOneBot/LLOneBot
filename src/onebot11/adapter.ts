@@ -24,7 +24,7 @@ import { OB11BaseEvent } from './event/OB11BaseEvent'
 import { initActionMap } from './action'
 import { OB11GroupAdminNoticeEvent } from './event/notice/OB11GroupAdminNoticeEvent'
 import { OB11ProfileLikeEvent } from './event/notice/OB11ProfileLikeEvent'
-import { Msg, SysMsg } from '@/ntqqapi/proto/compiled'
+import { Msg, Notify } from '@/ntqqapi/proto'
 import { OB11GroupIncreaseEvent } from './event/notice/OB11GroupIncreaseEvent'
 import { FlashFileDownloadStatus, FlashFileUploadStatus } from '@/ntqqapi/types/flashfile'
 import {
@@ -329,7 +329,7 @@ class OneBot11Adapter extends Service {
       const sysMsg = Msg.Message.decode(input)
       const { msgType, subType } = sysMsg.contentHead ?? {}
       if (msgType === 528 && subType === 39) {
-        const tip = SysMsg.ProfileLikeTip.decode(sysMsg.body!.msgContent!)
+        const tip = Notify.ProfileLike.decode(sysMsg.body!.msgContent!)
         if (tip.msgType !== 0 || tip.subType !== 203) return
         const detail = tip.content?.msg?.detail
         if (!detail) return
@@ -338,7 +338,7 @@ class OneBot11Adapter extends Service {
         this.dispatch(event)
       }
       else if (msgType === 33) {
-        const tip = SysMsg.GroupMemberChange.decode(sysMsg.body!.msgContent!)
+        const tip = Notify.GroupMemberChange.decode(sysMsg.body!.msgContent!)
         if (tip.type !== 130) return
         this.ctx.logger.info('群成员增加', tip)
         const memberUin = await this.ctx.ntUserApi.getUinByUid(tip.memberUid)
@@ -347,7 +347,7 @@ class OneBot11Adapter extends Service {
         this.dispatch(event)
       }
       else if (msgType === 34) {
-        const tip = SysMsg.GroupMemberChange.decode(sysMsg.body!.msgContent!)
+        const tip = Notify.GroupMemberChange.decode(sysMsg.body!.msgContent!)
         if (tip.type === 130) {
           this.ctx.logger.info('群成员减少', tip)
           const memberUin = await this.ctx.ntUserApi.getUinByUid(tip.memberUid)
