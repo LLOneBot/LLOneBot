@@ -415,6 +415,18 @@ export async function transformOlpushEvent(
           }
         }
       }
+    } else if (msgType === 732 && subType === 21) {
+      const notify = Msg.NotifyMessageBody.decode(pushMsg.message.body.msgContent.subarray(7))
+      if (notify.type === 27) {
+        return {
+          eventType: 'group_essence_message_change',
+          data: {
+            group_id: notify.groupCode,
+            message_seq: notify.essenceMessage.msgSequence,
+            is_set: notify.essenceMessage.setFlag === 1
+          }
+        }
+      }
     }
     return null
   } catch (error) {

@@ -36,7 +36,6 @@ import { OB11GroupRecallNoticeEvent } from './event/notice/OB11GroupRecallNotice
 import { OB11FriendPokeEvent, OB11GroupPokeEvent } from './event/notice/OB11PokeEvent'
 import { OB11BaseNoticeEvent } from './event/notice/OB11BaseNoticeEvent'
 import { GroupBanEvent } from './event/notice/OB11GroupBanEvent'
-import { GroupEssenceEvent } from './event/notice/OB11GroupEssenceEvent'
 import { Dict } from 'cosmokit'
 import { Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
@@ -583,9 +582,6 @@ export namespace OB11Entities {
               Number(param.templParam.get('uin_str2')),
               json.items
             )
-          } else if (grayTipElement.jsonGrayTipElement?.busiId === JsonGrayTipBusId.GroupEssenceMsg && json.items[2]) {
-            ctx.logger.info('收到群精华消息', json)
-            return await GroupEssenceEvent.parse(ctx, new URL(json.items[2].jp))
           } else if (grayTipElement.jsonGrayTipElement?.busiId === JsonGrayTipBusId.GroupMemberTitleChanged) {
             ctx.logger.info('收到群成员新头衔消息', json)
             const memberUin = json.items[1].param[0]

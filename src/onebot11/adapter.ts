@@ -42,6 +42,7 @@ import { OB11GroupDismissEvent } from '@/onebot11/event/notice/OB11GroupDismissE
 import { BaseAction } from './action/BaseAction'
 import { cloneObj } from '@/common/utils'
 import { OB11GroupMsgEmojiLikeEvent } from './event/notice/OB11MsgEmojiLikeEvent'
+import { GroupEssenceEvent } from './event/notice/OB11GroupEssenceEvent'
 
 declare module 'cordis' {
   interface Context {
@@ -497,8 +498,11 @@ class OneBot11Adapter extends Service {
     this.ctx.app.pmhq.addResListener(async data => {
       if (data.type === 'recv' && data.data.cmd === 'trpc.msg.olpush.OlPushService.MsgPush') {
         const pushMsg = Msg.PushMsg.decode(Buffer.from(data.data.pb, 'hex'))
+        if (!pushMsg.message.body) {
+          return null
+        }
         const { msgType, subType } = pushMsg.message?.contentHead ?? {}
-        if (msgType === 732 && subType === 16 && pushMsg.message.body) {
+        if (msgType === 732 && subType === 16) {
           const notify = Msg.NotifyMessageBody.decode(pushMsg.message.body.msgContent.subarray(7))
           if (notify.field13 === 35) {
             this.ctx.logger.info('群表情回应', notify.reaction.data.body)
@@ -525,6 +529,28 @@ class OneBot11Adapter extends Service {
                 count: 1,
               }],
               info.type === 1
+            )
+            this.dispatch(event)
+          }
+        } else if (msgType === 732 && subType === 21) {
+          const notify = Msg.NotifyMessageBody.decode(pushMsg.message.body.msgContent.subarray(7))
+          if (notify.type === 27) {
+            this.ctx.logger.info('收到群精华消息通知', notify)
+            const peer = {
+              chatType: ChatType.Group,
+              peerUid: notify.groupCode.toString(),
+              guildId: ''
+            }
+            const msg = await this.ctx.ntMsgApi.queryFirstMsgBySeq(peer, notify.essenceMessage.msgSequence.toString())
+            if (msg.msgList.length === 0) {
+              return
+            }
+            const event = new GroupEssenceEvent(
+              notify.groupCode,
+              this.ctx.store.createMsgShortId(msg.msgList[0]),
+              notify.essenceMessage.memberUin,
+              notify.essenceMessage.operatorUin,
+              notify.essenceMessage.setFlag === 1 ? 'add' : 'delete'
             )
             this.dispatch(event)
           }
