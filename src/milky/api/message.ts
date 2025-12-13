@@ -322,12 +322,16 @@ const GetResourceTempUrl = defineApi(
   async (ctx, payload) => {
     const buffer = Buffer.from(payload.resource_id, 'base64url')
     const { appid } = Media.FileIdInfo.decode(buffer)
-    // 1402, 1403: private record, group record
-    // 1413, 1415: private video, group video
-    if (appid === 1406 || appid === 1407) {
+    if (appid === 1402 || appid === 1403) {
+      const url = await ctx.ntFileApi.getPttUrl(payload.resource_id, appid === 1403)
+      return Ok({ url })
+    } else if (appid === 1406 || appid === 1407) {
       const rkeyData = await ctx.ntFileApi.rkeyManager.getRkey(true)
       const rkey = appid === 1406 ? rkeyData.private_rkey : rkeyData.group_rkey
       const url = `${IMAGE_HTTP_HOST_NT}/download?appid=${appid}&fileid=${payload.resource_id}&spec=0${rkey}`
+      return Ok({ url })
+    } else if (appid === 1413 || appid === 1415) {
+      const url = await ctx.ntFileApi.getVideoUrlByPacket(payload.resource_id, appid === 1415)
       return Ok({ url })
     } else {
       ctx.logger.warn(`GetResourceTempUrl: not yet supported appid: ${appid}`)

@@ -39,7 +39,23 @@ export class NTQQFileApi extends Service {
     this.rkeyManager = new RkeyManager(ctx, 'https://llob.linyuchen.net/rkey')
   }
 
-  async getVideoUrl(peer: Peer, msgId: string, elementId: string): Promise<string | undefined> {
+  async getVideoUrlByPacket(fileUuid: string, isGroup: boolean) {
+    if (isGroup) {
+      return await this.ctx.get('app')!.pmhq.getGroupVideoUrl(fileUuid)
+    } else {
+      return await this.ctx.get('app')!.pmhq.getPrivateVideoUrl(fileUuid)
+    }
+  }
+
+  async getPttUrl(fileUuid: string, isGroup: boolean) {
+    if (isGroup) {
+      return await this.ctx.get('app')!.pmhq.getGroupPttUrl(fileUuid)
+    } else {
+      return await this.ctx.get('app')!.pmhq.getPrivatePttUrl(fileUuid)
+    }
+  }
+
+  async getVideoUrl(peer: Peer, msgId: string, elementId: string) {
     try {
       const data = await invoke('nodeIKernelRichMediaService/getVideoPlayUrlV2', [
         peer,
@@ -54,7 +70,7 @@ export class NTQQFileApi extends Service {
       if (data.result !== 0) {
         this.ctx.logger.warn('getVideoUrl', data)
       }
-      return data.urlResult.domainUrl[0]?.url
+      return data.urlResult.domainUrl[0]?.url ?? ''
     } catch (e) {
       this.ctx.logger.warn('getVideoUrl error', e)
       return ''

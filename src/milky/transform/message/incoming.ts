@@ -104,7 +104,7 @@ export async function transformIncomingSegments(ctx: Context, message: RawMessag
           type: 'record',
           data: {
             resource_id: element.pttElement!.fileUuid,
-            temp_url: '', // TODO: 获取直链，群聊的还没写好
+            temp_url: await ctx.ntFileApi.getPttUrl(element.pttElement!.fileUuid, message.chatType === 2),
             duration: element.pttElement!.duration,
           },
         })
@@ -115,7 +115,11 @@ export async function transformIncomingSegments(ctx: Context, message: RawMessag
           type: 'video',
           data: {
             resource_id: element.videoElement!.fileUuid,
-            temp_url: element.videoElement!.filePath,
+            temp_url: await ctx.ntFileApi.getVideoUrl({
+              chatType: message.chatType,
+              peerUid: message.peerUid,
+              guildId: message.guildId
+            }, message.msgId, element.elementId),
             width: element.videoElement!.thumbWidth,
             height: element.videoElement!.thumbHeight,
             duration: element.videoElement!.fileTime,

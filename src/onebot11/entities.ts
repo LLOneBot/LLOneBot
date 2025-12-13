@@ -305,7 +305,7 @@ export namespace OB11Entities {
           type: OB11MessageDataType.Record,
           data: {
             file: pttElement.fileName,
-            url: pathToFileURL(pttElement.filePath).href,
+            url: await ctx.ntFileApi.getPttUrl(pttElement.fileUuid, msg.chatType === ChatType.Group),
             path: pttElement.filePath,
             file_size: fileSize,
           }
