@@ -184,6 +184,7 @@ jobs:
       - name: Publish to npm
         if: startsWith(github.ref, 'refs/tags/')
         run: |
+          npm install -g npm@latest
           mv dist package
           tar -czf llonebot-dist.tgz package/*
           npm publish llonebot-dist.tgz --provenance

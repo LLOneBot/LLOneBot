@@ -22,7 +22,7 @@ import {
 import z from 'zod'
 import { IMAGE_HTTP_HOST_NT, RawMessage } from '@/ntqqapi/types'
 import { randomUUID } from 'node:crypto'
-import { RichMedia } from '@/ntqqapi/proto/compiled'
+import { parseProtobufFromHex } from '@/common/utils/protobuf-parser'
 
 const SendPrivateMessage = defineApi(
   'send_private_message',
@@ -321,14 +321,14 @@ const GetResourceTempUrl = defineApi(
     const buffer = Buffer.from(payload.resource_id, 'base64url')
     let appid: number | undefined
     try {
-      appid = RichMedia.FileIdInfo.decode(buffer).appid
+      appid = parseProtobufFromHex(buffer.toString('hex'))[4]
     } catch {
       // decode failed, appid remains undefined
     }
     // 1402, 1403: private record, group record
     // 1413, 1415: private video, group video
     if (appid === 1406 || appid === 1407) {
-      const rkeyData = await ctx.ntFileApi.rkeyManager.getRkey()
+      const rkeyData = await ctx.ntFileApi.rkeyManager.getRkey(true)
       const rkey = appid === 1406 ? rkeyData.private_rkey : rkeyData.group_rkey
       const url = `${IMAGE_HTTP_HOST_NT}/download?appid=${appid}&fileid=${payload.resource_id}&spec=0${rkey}`
       return Ok({ url })

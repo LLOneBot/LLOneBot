@@ -18,8 +18,8 @@ export class RkeyManager {
     this.serverUrl = serverUrl
   }
 
-  async getRkey() {
-    if (this.isExpired()) {
+  async getRkey(refresh=false) {
+    if (this.isExpired() || refresh) {
       try {
         await this.refreshRkey()
       } catch (e) {
