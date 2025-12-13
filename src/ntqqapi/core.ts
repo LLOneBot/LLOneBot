@@ -189,16 +189,6 @@ class Core extends Service {
       Object.assign(selfInfo, { online: info.status !== 20 })
     })
 
-    registerReceiveHook<[
-      groupCode: string,
-      dataSource: number,
-      members: Set<GroupMember>
-    ]>(ReceiveCmdS.GROUP_MEMBER_INFO_UPDATE, async (payload) => {
-      const groupCode = payload[0]
-      const members = Array.from(payload[2].values())
-      this.ctx.parallel('nt/group-member-info-updated', { groupCode, members })
-    })
-
     registerReceiveHook<RawMessage[]>(ReceiveCmdS.NEW_MSG, payload => {
       this.handleMessage(payload)
     })

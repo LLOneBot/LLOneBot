@@ -16,7 +16,7 @@ export class SetQQProfile extends BaseAction<Payload, null> {
 
   async _handle(payload: Payload) {
     const old = (await this.ctx.ntUserApi.getUserDetailInfoWithBizInfo(selfInfo.uid)).simpleInfo
-    await this.ctx.ntUserApi.modifySelfProfile({
+    const res = await this.ctx.ntUserApi.modifySelfProfile({
       nick: payload.nickname ?? old.coreInfo.nick,
       longNick: payload.personal_note ?? old.baseInfo.longNick,
       sex: old.baseInfo.sex,
@@ -32,6 +32,9 @@ export class SetQQProfile extends BaseAction<Payload, null> {
         zone: ''
       },
     })
+    if (res.result !== 0) {
+      throw new Error(res.errMsg)
+    }
     return null
   }
 }
