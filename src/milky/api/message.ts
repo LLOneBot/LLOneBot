@@ -292,6 +292,7 @@ const GetHistoryMessages = defineApi(
 
     if (payload.message_scene === 'friend') {
       for (const msg of msgList) {
+        if (!msg.senderUid) continue
         const friend = await ctx.ntUserApi.getUserSimpleInfo(msg.senderUid)
         const category = await ctx.ntFriendApi.getCategoryById(friend.baseInfo.categoryId)
         transformedMessages.push(await transformIncomingPrivateMessage(ctx, friend, category, msg))
@@ -299,6 +300,7 @@ const GetHistoryMessages = defineApi(
     } else {
       const group = await ctx.ntGroupApi.getGroupAllInfo(payload.peer_id.toString())
       for (const msg of msgList) {
+        if (!msg.senderUid) continue
         const member = await ctx.ntGroupApi.getGroupMember(msg.peerUid, msg.senderUid)
         if (member) {
           transformedMessages.push(await transformIncomingGroupMessage(ctx, group, member, msg))
