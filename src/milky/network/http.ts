@@ -136,8 +136,8 @@ class MilkyHttpHandler {
 
         let inputToken = ''
         const authHeader = req.headers['authorization']
-        if (authHeader) {
-          inputToken = authHeader.split('Bearer ').pop()!
+        if (authHeader?.toLowerCase().startsWith('bearer ')) {
+          inputToken = authHeader.slice(7).trim()
           this.ctx.logger.info('receive ws header token', inputToken)
         } else {
           inputToken = url.searchParams.get('access_token') ?? ''
