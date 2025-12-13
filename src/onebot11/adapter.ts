@@ -24,7 +24,7 @@ import { OB11BaseEvent } from './event/OB11BaseEvent'
 import { initActionMap } from './action'
 import { OB11GroupAdminNoticeEvent } from './event/notice/OB11GroupAdminNoticeEvent'
 import { OB11ProfileLikeEvent } from './event/notice/OB11ProfileLikeEvent'
-import { Msg, SysMsg } from '@/ntqqapi/proto/compiled'
+import { Msg, Notify } from '@/ntqqapi/proto'
 import { OB11GroupIncreaseEvent } from './event/notice/OB11GroupIncreaseEvent'
 import { FlashFileDownloadStatus, FlashFileUploadStatus } from '@/ntqqapi/types/flashfile'
 import {
@@ -42,6 +42,7 @@ import { OB11GroupDismissEvent } from '@/onebot11/event/notice/OB11GroupDismissE
 import { BaseAction } from './action/BaseAction'
 import { cloneObj } from '@/common/utils'
 import { OB11GroupMsgEmojiLikeEvent } from './event/notice/OB11MsgEmojiLikeEvent'
+import { GroupEssenceEvent } from './event/notice/OB11GroupEssenceEvent'
 
 declare module 'cordis' {
   interface Context {
@@ -136,20 +137,6 @@ class OneBot11Adapter extends Service {
           flag,
           notify.postscript,
           parseInt(invitorId) || 0,
-        )
-        this.dispatch(event)
-      }
-      else if ([
-        GroupNotifyType.SetAdmin,
-        GroupNotifyType.CancelAdminNotifyCanceled,
-        GroupNotifyType.CancelAdminNotifyAdmin,
-      ].includes(notify.type)) {
-        this.ctx.logger.info('收到管理员变动通知')
-        const uin = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
-        const event = new OB11GroupAdminNoticeEvent(
-          notify.type === GroupNotifyType.SetAdmin ? 'set' : 'unset',
-          parseInt(notify.group.groupCode),
-          parseInt(uin),
         )
         this.dispatch(event)
       }
@@ -329,16 +316,16 @@ class OneBot11Adapter extends Service {
       const sysMsg = Msg.Message.decode(input)
       const { msgType, subType } = sysMsg.contentHead ?? {}
       if (msgType === 528 && subType === 39) {
-        const tip = SysMsg.ProfileLikeTip.decode(sysMsg.body!.msgContent!)
+        const tip = Notify.ProfileLike.decode(sysMsg.body.msgContent)
         if (tip.msgType !== 0 || tip.subType !== 203) return
         const detail = tip.content?.msg?.detail
         if (!detail) return
         const [times] = detail.txt?.match(/\d+/) ?? ['0']
-        const event = new OB11ProfileLikeEvent(detail.uin!, detail.nickname!, +times)
+        const event = new OB11ProfileLikeEvent(detail.uin, detail.nickname, +times)
         this.dispatch(event)
       }
       else if (msgType === 33) {
-        const tip = SysMsg.GroupMemberChange.decode(sysMsg.body!.msgContent!)
+        const tip = Notify.GroupMemberChange.decode(sysMsg.body.msgContent)
         if (tip.type !== 130) return
         this.ctx.logger.info('群成员增加', tip)
         const memberUin = await this.ctx.ntUserApi.getUinByUid(tip.memberUid)
@@ -347,7 +334,7 @@ class OneBot11Adapter extends Service {
         this.dispatch(event)
       }
       else if (msgType === 34) {
-        const tip = SysMsg.GroupMemberChange.decode(sysMsg.body!.msgContent!)
+        const tip = Notify.GroupMemberChange.decode(sysMsg.body.msgContent)
         if (tip.type === 130) {
           this.ctx.logger.info('群成员减少', tip)
           const memberUin = await this.ctx.ntUserApi.getUinByUid(tip.memberUid)
@@ -376,6 +363,16 @@ class OneBot11Adapter extends Service {
       }
       else if (msgType === 732 && subType === 21) {
         // 撤回群戳一戳，不再从这里解析，应从 nt/message-deleted 事件中解析
+      } else if (msgType === 44) {
+        const tip = Notify.GroupAdmin.decode(sysMsg.body.msgContent)
+        this.ctx.logger.info('收到管理员变动通知', tip)
+        const uin = await this.ctx.ntUserApi.getUinByUid(tip.isPromote ? tip.body.extraEnable!.adminUid : tip.body.extraDisable!.adminUid)
+        const event = new OB11GroupAdminNoticeEvent(
+          tip.isPromote ? 'set' : 'unset',
+          tip.groupCode,
+          +uin,
+        )
+        this.dispatch(event)
       }
     })
 
@@ -501,14 +498,17 @@ class OneBot11Adapter extends Service {
     this.ctx.app.pmhq.addResListener(async data => {
       if (data.type === 'recv' && data.data.cmd === 'trpc.msg.olpush.OlPushService.MsgPush') {
         const pushMsg = Msg.PushMsg.decode(Buffer.from(data.data.pb, 'hex'))
+        if (!pushMsg.message.body) {
+          return null
+        }
         const { msgType, subType } = pushMsg.message?.contentHead ?? {}
-        if (msgType === 732 && subType === 16 && pushMsg.message!.body) {
-          const notify = Msg.NotifyMessageBody.decode(pushMsg.message!.body!.msgContent!.slice(7))
+        if (msgType === 732 && subType === 16) {
+          const notify = Msg.NotifyMessageBody.decode(pushMsg.message.body.msgContent.subarray(7))
           if (notify.field13 === 35) {
-            this.ctx.logger.info('群表情回应', notify.reaction!.data!.body)
-            const info = notify.reaction!.data!.body!.info!
-            const target = notify.reaction!.data!.body!.target!
-            const userId = Number(await this.ctx.ntUserApi.getUinByUid(info.operatorUid!))
+            this.ctx.logger.info('群表情回应', notify.reaction.data.body)
+            const info = notify.reaction.data.body.info
+            const target = notify.reaction.data.body.target
+            const userId = Number(await this.ctx.ntUserApi.getUinByUid(info.operatorUid))
             const peer: Peer = {
               chatType: 2,
               peerUid: String(notify.groupCode),
@@ -525,10 +525,32 @@ class OneBot11Adapter extends Service {
               userId,
               messageId,
               [{
-                emoji_id: info.code!,
+                emoji_id: info.code,
                 count: 1,
               }],
               info.type === 1
+            )
+            this.dispatch(event)
+          }
+        } else if (msgType === 732 && subType === 21) {
+          const notify = Msg.NotifyMessageBody.decode(pushMsg.message.body.msgContent.subarray(7))
+          if (notify.type === 27) {
+            this.ctx.logger.info('收到群精华消息通知', notify)
+            const peer = {
+              chatType: ChatType.Group,
+              peerUid: notify.groupCode.toString(),
+              guildId: ''
+            }
+            const msg = await this.ctx.ntMsgApi.queryFirstMsgBySeq(peer, notify.essenceMessage.msgSequence.toString())
+            if (msg.msgList.length === 0) {
+              return
+            }
+            const event = new GroupEssenceEvent(
+              notify.groupCode,
+              this.ctx.store.createMsgShortId(msg.msgList[0]),
+              notify.essenceMessage.memberUin,
+              notify.essenceMessage.operatorUin,
+              notify.essenceMessage.setFlag === 1 ? 'add' : 'delete'
             )
             this.dispatch(event)
           }

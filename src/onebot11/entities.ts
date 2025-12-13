@@ -36,7 +36,6 @@ import { OB11GroupRecallNoticeEvent } from './event/notice/OB11GroupRecallNotice
 import { OB11FriendPokeEvent, OB11GroupPokeEvent } from './event/notice/OB11PokeEvent'
 import { OB11BaseNoticeEvent } from './event/notice/OB11BaseNoticeEvent'
 import { GroupBanEvent } from './event/notice/OB11GroupBanEvent'
-import { GroupEssenceEvent } from './event/notice/OB11GroupEssenceEvent'
 import { Dict } from 'cosmokit'
 import { Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
@@ -306,7 +305,7 @@ export namespace OB11Entities {
           type: OB11MessageDataType.Record,
           data: {
             file: pttElement.fileName,
-            url: pathToFileURL(pttElement.filePath).href,
+            url: await ctx.ntFileApi.getPttUrl(pttElement.fileUuid, msg.chatType === ChatType.Group),
             path: pttElement.filePath,
             file_size: fileSize,
           }
@@ -583,9 +582,6 @@ export namespace OB11Entities {
               Number(param.templParam.get('uin_str2')),
               json.items
             )
-          } else if (grayTipElement.jsonGrayTipElement?.busiId === JsonGrayTipBusId.GroupEssenceMsg && json.items[2]) {
-            ctx.logger.info('收到群精华消息', json)
-            return await GroupEssenceEvent.parse(ctx, new URL(json.items[2].jp))
           } else if (grayTipElement.jsonGrayTipElement?.busiId === JsonGrayTipBusId.GroupMemberTitleChanged) {
             ctx.logger.info('收到群成员新头衔消息', json)
             const memberUin = json.items[1].param[0]
@@ -599,10 +595,10 @@ export namespace OB11Entities {
           }
         } else if (grayTipElement.subElementType === GrayTipElementSubType.Group) {
           const groupElement = grayTipElement.groupElement!
-          if (groupElement.type === TipGroupElementType.Ban) {
+          if (groupElement.type === TipGroupElementType.ShutUp) {
             ctx.logger.info('收到群成员禁言提示', groupElement)
             return await GroupBanEvent.parse(ctx, groupElement, msg.peerUid)
-          } else if (groupElement.type === TipGroupElementType.Kicked) {
+          } else if (groupElement.type === TipGroupElementType.Quitted) {
             ctx.logger.info(`收到我被踢出或退群提示, 群${msg.peerUid}`, groupElement)
             const { adminUid } = groupElement
             return new OB11GroupDecreaseEvent(
@@ -611,7 +607,7 @@ export namespace OB11Entities {
               adminUid ? Number(await ctx.ntUserApi.getUinByUid(adminUid)) : 0,
               adminUid ? 'kick_me' : 'leave'
             )
-          } else if (groupElement.type === TipGroupElementType.MemberIncrease) {
+          } else if (groupElement.type === TipGroupElementType.MemberAdd) {
             const { memberUid, adminUid } = groupElement
             if (memberUid !== selfInfo.uid) return
             ctx.logger.info('收到群成员增加消息', groupElement)

@@ -4,6 +4,7 @@ import { Peer, ChatType } from '@/ntqqapi/types/msg'
 import { selfInfo } from '@/common/globalVars'
 import { randomBytes, randomUUID } from 'node:crypto'
 import { gunzipSync, gzipSync } from 'node:zlib'
+import { InferProtoModelInput } from '@saltify/typeproto'
 
 interface PBData {
   echo?: string
@@ -100,13 +101,6 @@ export type PMHQReq = PMHQReqSendPB | PMHQReqCall | PMHQReqTellPort
 
 interface ResListener<R extends PMHQRes> {
   (data: R): void
-}
-
-interface MultiMsgItem {
-  fileName: string
-  buffer: {
-    msg: Msg.Message[]
-  }
 }
 
 export class PMHQ {
@@ -334,33 +328,33 @@ export class PMHQ {
   }
 
   async sendFriendPoke(uin: number) {
-    const body = Oidb.SendPoke.encode({
+    const body = Oidb.SendPokeReq.encode({
       toUin: uin,
       friendUin: uin,
-    }).finish()
+    })
     const data = Oidb.Base.encode({
       command: 0xed3,
       subCommand: 1,
       body,
-    }).finish()
+    })
     return await this.wsSendPB('OidbSvcTrpcTcp.0xed3_1', data)
   }
 
   async sendGroupPoke(groupCode: number, memberUin: number) {
-    const body = Oidb.SendPoke.encode({
+    const body = Oidb.SendPokeReq.encode({
       toUin: memberUin,
       groupCode,
-    }).finish()
+    })
     const data = Oidb.Base.encode({
       command: 0xed3,
       subCommand: 1,
       body,
-    }).finish()
+    })
     return await this.wsSendPB('OidbSvcTrpcTcp.0xed3_1', data)
   }
 
   async setSpecialTitle(groupCode: number, memberUid: string, title: string) {
-    const body = Oidb.SetSpecialTitle.encode({
+    const body = Oidb.SetSpecialTitleReq.encode({
       groupCode,
       body: {
         targetUid: memberUid,
@@ -368,12 +362,12 @@ export class PMHQ {
         specialTitle: title,
         expireTime: -1,
       },
-    }).finish()
+    })
     const data = Oidb.Base.encode({
       command: 0x8fc,
       subCommand: 2,
       body,
-    }).finish()
+    })
     return await this.httpSendPB('OidbSvcTrpcTcp.0x8fc_2', data)
   }
 
@@ -382,7 +376,7 @@ export class PMHQ {
     const data = Buffer.from(hexStr, 'hex')
     const resp = await this.wsSendPB('OidbSvcTrpcTcp.0x9067_202', data)
     const rkeyBody = Oidb.Base.decode(Buffer.from(resp.pb, 'hex')).body
-    const rkeyItems = Oidb.GetRKeyResponseBody.decode(rkeyBody).result!.rkeyItems!
+    const rkeyItems = Oidb.GetRKeyResp.decode(rkeyBody).result!.rkeyItems!
     return {
       privateRKey: rkeyItems[0].rkey!,
       groupRKey: rkeyItems[1].rkey!,
@@ -390,8 +384,8 @@ export class PMHQ {
     }
   }
 
-  async uploadForward(peer: Peer, items: Msg.PbMultiMsgItem[]) {
-    const transmit = Msg.PbMultiMsgTransmit.encode({ pbItemList: items }).finish()
+  async uploadForward(peer: Peer, items: InferProtoModelInput<typeof Msg.PbMultiMsgItem>[]) {
+    const transmit = Msg.PbMultiMsgTransmit.encode({ pbItemList: items })
     const isGroup = peer.chatType === ChatType.Group
     const data = Action.SendLongMsgReq.encode({
       info: {
@@ -408,7 +402,7 @@ export class PMHQ {
         field3: 7,
         field4: 0,
       },
-    }).finish()
+    })
     const res = await this.httpSendPB('trpc.group.long_msg_interface.MsgService.SsoSendLongMsg', data)
     return Action.SendLongMsgResp.decode(Buffer.from(res.pb, 'hex')).result!.resId!
   }
@@ -422,45 +416,45 @@ export class PMHQ {
       field8: 0,
       field9: 0,
       field14: 1,
-    }).finish()
+    })
     const res = await this.httpSendPB('PicSearchSvr.PullPics', data)
     return Action.PullPicsResp.decode(Buffer.from(res.pb, 'hex'))
   }
 
   async fetchUserLevel(uin: number) {
-    const body = Oidb.FetchUserInfo.encode({
+    const body = Oidb.FetchUserInfoReq.encode({
       uin,
       keys: [{ key: 105 }],
-    }).finish()
+    })
     const data = Oidb.Base.encode({
       command: 0xfe1,
       subCommand: 2,
       body,
       isReserved: 1,
-    }).finish()
+    })
     const res = await this.httpSendPB('OidbSvcTrpcTcp.0xfe1_2', data)
     const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
-    const info = Oidb.FetchUserInfoResponse.decode(oidbRespBody)
+    const info = Oidb.FetchUserInfoResp.decode(oidbRespBody)
     return info.body!.properties!.numberProperties![0].value!
   }
 
   async fetchAiCharacterList(groupId: number, chatType: number) {
-    const body = Oidb.FetchAiCharacterList.encode({
+    const body = Oidb.FetchAiCharacterListReq.encode({
       groupId,
       chatType,
-    }).finish()
+    })
     const data = Oidb.Base.encode({
       command: 0x929d,
       subCommand: 0,
       body,
-    }).finish()
+    })
     const res = await this.httpSendPB('OidbSvcTrpcTcp.0x929d_0', data)
     const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
-    return Oidb.FetchAiCharacterListResponse.decode(oidbRespBody)
+    return Oidb.FetchAiCharacterListResp.decode(oidbRespBody)
   }
 
   async getGroupGenerateAiRecord(groupId: number, character: string, text: string, chatType: number) {
-    const body = Oidb.GetGroupGenerateAiRecord.encode({
+    const body = Oidb.GetGroupGenerateAiRecordReq.encode({
       groupId,
       voiceId: character,
       text,
@@ -468,17 +462,17 @@ export class PMHQ {
       clientMsgInfo: {
         msgRandom: randomBytes(4).readUInt32BE(0),
       },
-    }).finish()
+    })
     const data = Oidb.Base.encode({
       command: 0x929b,
       subCommand: 0,
       body,
-    }).finish()
+    })
     await this.httpSendPB('OidbSvcTrpcTcp.0x929b_0', data)
   }
 
-  async getC2cPttUrl(fileUuid: string) {
-    const body = RichMedia.NTV2RichMediaReq.encode({
+  async getPrivatePttUrl(fileUuid: string) {
+    const body = Media.NTV2RichMediaReq.encode({
       reqHead: {
         common: {
           requestId: 1,
@@ -507,15 +501,15 @@ export class PMHQ {
           type: 0,
         },
       },
-    }).finish()
+    })
     const data = Oidb.Base.encode({
       command: 0x126d,
       subCommand: 200,
       body,
-    }).finish()
+    })
     const res = await this.httpSendPB('OidbSvcTrpcTcp.0x126d_200', data)
     const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
-    const { download } = RichMedia.NTV2RichMediaResp.decode(oidbRespBody)
+    const { download } = Media.NTV2RichMediaResp.decode(oidbRespBody)
     return `https://${download?.info?.domain}${download?.info?.urlPath}${download?.rKeyParam}` // 获取到的是 AMR 音频，并非 SILK
   }
 
@@ -534,15 +528,15 @@ export class PMHQ {
         field3: 0,
         field4: 0,
       },
-    }).finish()
+    })
     const res = await this.httpSendPB('trpc.group.long_msg_interface.MsgService.SsoRecvLongMsg', data)
     const payload = Action.RecvLongMsgResp.decode(Buffer.from(res.pb, 'hex')).result?.payload
     const inflate = gunzipSync(payload!)
     return Msg.PbMultiMsgTransmit.decode(inflate).pbItemList
   }
 
-  async getGroupImageUrl(groupId: number, node: RichMedia.IndexNode) {
-    const body = RichMedia.NTV2RichMediaReq.encode({
+  async getGroupImageUrl(groupId: number, node: InferProtoModelInput<typeof Media.IndexNode>) {
+    const body = Media.NTV2RichMediaReq.encode({
       reqHead: {
         common: {
           requestId: 1,
@@ -563,20 +557,20 @@ export class PMHQ {
       download: {
         node,
       },
-    }).finish()
+    })
     const data = Oidb.Base.encode({
       command: 0x11c4,
       subCommand: 200,
       body,
-    }).finish()
+    })
     const res = await this.httpSendPB('OidbSvcTrpcTcp.0x11c4_200', data)
     const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
-    const { download } = RichMedia.NTV2RichMediaResp.decode(oidbRespBody)
+    const { download } = Media.NTV2RichMediaResp.decode(oidbRespBody)
     return `https://${download?.info?.domain}${download?.info?.urlPath}${download?.rKeyParam}`
   }
 
-  async getC2cImageUrl(node: RichMedia.IndexNode) {
-    const body = RichMedia.NTV2RichMediaReq.encode({
+  async getC2cImageUrl(node: InferProtoModelInput<typeof Media.IndexNode>) {
+    const body = Media.NTV2RichMediaReq.encode({
       reqHead: {
         common: {
           requestId: 1,
@@ -598,40 +592,40 @@ export class PMHQ {
       download: {
         node,
       },
-    }).finish()
+    })
     const data = Oidb.Base.encode({
       command: 0x11c5,
       subCommand: 200,
       body,
-    }).finish()
+    })
     const res = await this.httpSendPB('OidbSvcTrpcTcp.0x11c5_200', data)
     const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
-    const { download } = RichMedia.NTV2RichMediaResp.decode(oidbRespBody)
+    const { download } = Media.NTV2RichMediaResp.decode(oidbRespBody)
     return `https://${download?.info?.domain}${download?.info?.urlPath}${download?.rKeyParam}`
   }
 
   async getGroupFileUrl(groupCode: number, fileId: string) {
-    const body = Oidb.GroupFile.encode({
+    const body = Oidb.GetGroupFileReq.encode({
       download: {
         groupCode,
         appId: 7,
         busId: 102,
         fileId,
       },
-    }).finish()
+    })
     const data = Oidb.Base.encode({
       command: 0x6d6,
       subCommand: 2,
       body,
-    }).finish()
+    })
     const res = await this.httpSendPB('OidbSvcTrpcTcp.0x6d6_2', data)
     const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
-    const { download } = Oidb.GroupFileResponse.decode(oidbRespBody)
+    const { download } = Oidb.GetGroupFileResp.decode(oidbRespBody)
     return `https://${download?.downloadDns}/ftn_handler/${Buffer.from(download!.downloadUrl!).toString('hex')}/?fname=`
   }
 
   async getPrivateFileUrl(receiverUid: string, fileUuid: string) {
-    const body = Oidb.PrivateFile.encode({
+    const body = Oidb.GetPrivateFileReq.encode({
       subCommand: 1200,
       field2: 1,
       body: {
@@ -644,15 +638,15 @@ export class PMHQ {
       field102: 103,
       field200: 1,
       field99999: Buffer.from([0xc0, 0x85, 0x2c, 0x01]),
-    }).finish()
+    })
     const data = Oidb.Base.encode({
       command: 0xe37,
       subCommand: 1200,
       body,
-    }).finish()
+    })
     const res = await this.httpSendPB('OidbSvcTrpcTcp.0xe37_1200', data)
     const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
-    const file = Oidb.PrivateFileResponse.decode(oidbRespBody)
+    const file = Oidb.GetPrivateFileResp.decode(oidbRespBody)
     if (file.body?.field10 !== 0) {
       throw new Error(file.body!.state!)
     }
@@ -662,22 +656,22 @@ export class PMHQ {
   }
 
   async groupClockIn(groupCode: string) {
-    const body = Oidb.GroupClockIn.encode({
+    const body = Oidb.GroupClockInReq.encode({
       body: {
         uin: selfInfo.uin,
         groupCode,
       },
-    }).finish()
+    })
     const data = Oidb.Base.encode({
       command: 0xeb7,
       subCommand: 1,
       body,
-    }).finish()
+    })
     await this.httpSendPB('OidbSvcTrpcTcp.0xeb7_1', data)
   }
 
   async fetchUserLoginDays(uin: number): Promise<number> {
-    const body = Action.FetchUserLoginDays.encode({
+    const body = Action.FetchUserLoginDaysReq.encode({
       field2: 0,
       json: JSON.stringify({
         msg_req_basic_info: {
@@ -685,10 +679,134 @@ export class PMHQ {
         },
         uint32_req_login_info: 1,
       }),
-    }).finish()
+    })
     const res = await this.httpSendPB('MQUpdateSvc_com_qq_ti.web.OidbSvc.0xdef_1', body)
     const { json } = Action.FetchUserLoginDaysResp.decode(Buffer.from(res.pb, 'hex'))
     return JSON.parse(json).msg_rsp_basic_info.rpt_msg_basic_info.find((e: any) => e.uint64_uin === uin)?.uint32_login_days || 0
+  }
+
+  async getGroupPttUrl(fileUuid: string) {
+    const body = Media.NTV2RichMediaReq.encode({
+      reqHead: {
+        common: {
+          requestId: 1,
+          command: 200,
+        },
+        scene: {
+          requestType: 1,
+          businessType: 3,
+          field103: 0,
+          sceneType: 2,
+          group: {
+            groupId: 0
+          }
+        },
+        client: {
+          agentType: 2,
+        },
+      },
+      download: {
+        node: {
+          fileUuid,
+          storeID: 1,
+          uploadTime: 0,
+          expire: 0,
+          type: 0,
+        },
+      },
+    })
+    const data = Oidb.Base.encode({
+      command: 0x126e,
+      subCommand: 200,
+      body,
+    })
+    const res = await this.httpSendPB('OidbSvcTrpcTcp.0x126e_200', data)
+    const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
+    const { download } = Media.NTV2RichMediaResp.decode(oidbRespBody)
+    return `https://${download.info.domain}${download.info.urlPath}${download.rKeyParam}` // 获取到的是 AMR 音频，并非 SILK
+  }
+
+  async getGroupVideoUrl(fileUuid: string) {
+    const body = Media.NTV2RichMediaReq.encode({
+      reqHead: {
+        common: {
+          requestId: 1,
+          command: 200,
+        },
+        scene: {
+          requestType: 2,
+          businessType: 2,
+          field103: 0,
+          sceneType: 2,
+          group: {
+            groupId: 0
+          }
+        },
+        client: {
+          agentType: 2,
+        },
+      },
+      download: {
+        node: {
+          fileUuid,
+          storeID: 1,
+          uploadTime: 0,
+          expire: 0,
+          type: 0,
+        },
+      },
+    })
+    const data = Oidb.Base.encode({
+      command: 0x11ea,
+      subCommand: 200,
+      body,
+    })
+    const res = await this.httpSendPB('OidbSvcTrpcTcp.0x11ea_200', data)
+    const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
+    const { download } = Media.NTV2RichMediaResp.decode(oidbRespBody)
+    return `https://${download.info.domain}${download.info.urlPath}${download.rKeyParam}`
+  }
+
+  async getPrivateVideoUrl(fileUuid: string) {
+    const body = Media.NTV2RichMediaReq.encode({
+      reqHead: {
+        common: {
+          requestId: 1,
+          command: 200,
+        },
+        scene: {
+          requestType: 2,
+          businessType: 2,
+          field103: 0,
+          sceneType: 1,
+          c2c: {
+            accountType: 2,
+            targetUid: selfInfo.uid,
+          },
+        },
+        client: {
+          agentType: 2,
+        },
+      },
+      download: {
+        node: {
+          fileUuid,
+          storeID: 1,
+          uploadTime: 0,
+          expire: 0,
+          type: 0,
+        },
+      },
+    })
+    const data = Oidb.Base.encode({
+      command: 0x11e9,
+      subCommand: 200,
+      body,
+    })
+    const res = await this.httpSendPB('OidbSvcTrpcTcp.0x11e9_200', data)
+    const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
+    const { download } = Media.NTV2RichMediaResp.decode(oidbRespBody)
+    return `https://${download.info.domain}${download.info.urlPath}${download.rKeyParam}`
   }
 
   /**

@@ -1,9 +1,9 @@
 import { MilkyEventTypes } from '@/milky/common/event'
-import { RawMessage, GroupNotify, FriendRequest, GroupMember, GroupSimpleInfo, GroupNotifyType, GroupNotifyStatus, KickedOffLineInfo } from '@/ntqqapi/types'
+import { RawMessage, GroupNotify, FriendRequest, GroupNotifyType, GroupNotifyStatus } from '@/ntqqapi/types'
 import { transformIncomingPrivateMessage, transformIncomingGroupMessage } from './message/incoming'
 import { Context } from 'cordis'
 import { selfInfo } from '@/common/globalVars'
-import { Msg, SysMsg } from '@/ntqqapi/proto/compiled'
+import { Msg, Notify } from '@/ntqqapi/proto'
 
 /**
  * Transform NTQQ message-created event to Milky message_receive event (private)
@@ -13,6 +13,7 @@ export async function transformPrivateMessageCreated(
   message: RawMessage
 ): Promise<MilkyEventTypes['message_receive'] | null> {
   try {
+    if (!message.senderUid) return null
     const friend = await ctx.ntUserApi.getUserSimpleInfo(message.senderUid)
     const category = await ctx.ntFriendApi.getCategoryById(friend.baseInfo.categoryId)
 
@@ -31,6 +32,7 @@ export async function transformGroupMessageCreated(
   message: RawMessage
 ): Promise<MilkyEventTypes['message_receive'] | null> {
   try {
+    if (!message.senderUid) return null
     const group = await ctx.ntGroupApi.getGroupAllInfo(message.peerUid)
     const member = await ctx.ntGroupApi.getGroupMember(message.peerUin, message.senderUid)
 
@@ -165,20 +167,6 @@ export async function transformGroupNotify(
         }
       }
     }
-    else if ([
-      GroupNotifyType.SetAdmin,
-      GroupNotifyType.CancelAdminNotifyCanceled,
-      GroupNotifyType.CancelAdminNotifyAdmin,
-    ].includes(notify.type)) {
-      return {
-        eventType: 'group_admin_change',
-        data: {
-          group_id: Number(notify.group.groupCode),
-          user_id: Number(await ctx.ntUserApi.getUinByUid(notify.user1.uid)),
-          is_set: notify.type === GroupNotifyType.SetAdmin
-        }
-      }
-    }
     else {
       return null
     }
@@ -273,7 +261,7 @@ export async function transformGroupMessageEvent(
           return {
             eventType: 'group_mute',
             data: {
-              group_id: +message.peerUid,
+              group_id: Number(message.peerUid),
               user_id: Number(await ctx.ntUserApi.getUinByUid(element.grayTipElement.groupElement.shutUp!.member.uid)),
               operator_id: Number(await ctx.ntUserApi.getUinByUid(element.grayTipElement.groupElement.shutUp!.admin.uid)),
               duration: Number(element.grayTipElement.groupElement.shutUp!.duration)
@@ -283,7 +271,7 @@ export async function transformGroupMessageEvent(
           return {
             eventType: 'group_whole_mute',
             data: {
-              group_id: +message.peerUid,
+              group_id: Number(message.peerUid),
               operator_id: Number(await ctx.ntUserApi.getUinByUid(element.grayTipElement.groupElement.shutUp!.admin.uid)),
               is_mute: Number(element.grayTipElement.groupElement.shutUp!.duration) > 0
             }
@@ -313,6 +301,15 @@ export async function transformGroupMessageEvent(
             file_size: +element.fileElement.fileSize
           }
         }
+      } else if (element.grayTipElement?.groupElement?.type === 5) {
+        return {
+          eventType: 'group_name_change',
+          data: {
+            group_id: Number(message.peerUid),
+            new_group_name: element.grayTipElement.groupElement.groupName,
+            operator_id: Number(await ctx.ntUserApi.getUinByUid(element.grayTipElement.groupElement.memberUid))
+          }
+        }
       }
     }
     return null
@@ -324,13 +321,13 @@ export async function transformGroupMessageEvent(
 
 export async function transformSystemMessageEvent(
   ctx: Context,
-  data: Uint8Array
+  data: Buffer
 ): Promise<{ eventType: keyof MilkyEventTypes, data: any } | null> {
   try {
     const sysMsg = Msg.Message.decode(data)
     const { msgType, subType } = sysMsg.contentHead ?? {}
     if (msgType === 33) {
-      const tip = SysMsg.GroupMemberChange.decode(sysMsg.body!.msgContent!)
+      const tip = Notify.GroupMemberChange.decode(sysMsg.body.msgContent)
       if (tip.type !== 130) return null
       return {
         eventType: 'group_member_increase',
@@ -342,7 +339,7 @@ export async function transformSystemMessageEvent(
       }
     }
     else if (msgType === 34) {
-      const tip = SysMsg.GroupMemberChange.decode(sysMsg.body!.msgContent!)
+      const tip = Notify.GroupMemberChange.decode(sysMsg.body.msgContent)
       if (tip.type === 130) {
         return {
           eventType: 'group_member_decrease',
@@ -372,6 +369,17 @@ export async function transformSystemMessageEvent(
           }
         }
       }
+    } else if (msgType === 44) {
+      const tip = Notify.GroupAdmin.decode(sysMsg.body.msgContent)
+      const uin = await ctx.ntUserApi.getUinByUid(tip.isPromote ? tip.body.extraEnable!.adminUid : tip.body.extraDisable!.adminUid)
+      return {
+        eventType: 'group_admin_change',
+        data: {
+          group_id: tip.groupCode,
+          user_id: +uin,
+          is_set: tip.isPromote
+        }
+      }
     }
     return null
   } catch (error) {
@@ -386,16 +394,16 @@ export async function transformOlpushEvent(
 ): Promise<{ eventType: keyof MilkyEventTypes, data: any } | null> {
   try {
     const pushMsg = Msg.PushMsg.decode(data)
-    if (!pushMsg.message!.body) {
+    if (!pushMsg.message.body) {
       return null
     }
     const { msgType, subType } = pushMsg.message?.contentHead ?? {}
     if (msgType === 732 && subType === 16) {
-      const notify = Msg.NotifyMessageBody.decode(pushMsg.message!.body!.msgContent!.slice(7))
+      const notify = Msg.NotifyMessageBody.decode(pushMsg.message.body.msgContent.subarray(7))
       if (notify.field13 === 35) {
-        const info = notify.reaction!.data!.body!.info!
-        const target = notify.reaction!.data!.body!.target!
-        const userId = Number(await ctx.ntUserApi.getUinByUid(info.operatorUid!))
+        const info = notify.reaction.data.body.info
+        const target = notify.reaction.data.body.target
+        const userId = Number(await ctx.ntUserApi.getUinByUid(info.operatorUid))
         return {
           eventType: 'group_message_reaction',
           data: {
@@ -404,6 +412,18 @@ export async function transformOlpushEvent(
             message_seq: target.sequence,
             face_id: info.code,
             is_add: info.type === 1
+          }
+        }
+      }
+    } else if (msgType === 732 && subType === 21) {
+      const notify = Msg.NotifyMessageBody.decode(pushMsg.message.body.msgContent.subarray(7))
+      if (notify.type === 27) {
+        return {
+          eventType: 'group_essence_message_change',
+          data: {
+            group_id: notify.groupCode,
+            message_seq: notify.essenceMessage.msgSequence,
+            is_set: notify.essenceMessage.setFlag === 1
           }
         }
       }

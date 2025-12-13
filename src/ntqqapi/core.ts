@@ -46,7 +46,7 @@ declare module 'cordis' {
     'nt/group-quit': (input: GroupInfo) => void // 主动退群
     'nt/friend-request': (input: FriendRequest) => void
     'nt/group-member-info-updated': (input: { groupCode: string, members: GroupMember[] }) => void
-    'nt/system-message-created': (input: Uint8Array) => void
+    'nt/system-message-created': (input: Buffer) => void
     'nt/flash-file-uploading': (input: { fileSet: FlashFileSetInfo } & FlashFileUploadingInfo) => void
     'nt/flash-file-upload-status': (input: FlashFileSetInfo) => void
     'nt/flash-file-download-status': (input: { status: FlashFileDownloadStatus, info: FlashFileSetInfo }) => void
@@ -189,16 +189,6 @@ class Core extends Service {
       Object.assign(selfInfo, { online: info.status !== 20 })
     })
 
-    registerReceiveHook<[
-      groupCode: string,
-      dataSource: number,
-      members: Set<GroupMember>
-    ]>(ReceiveCmdS.GROUP_MEMBER_INFO_UPDATE, async (payload) => {
-      const groupCode = payload[0]
-      const members = Array.from(payload[2].values())
-      this.ctx.parallel('nt/group-member-info-updated', { groupCode, members })
-    })
-
     registerReceiveHook<RawMessage[]>(ReceiveCmdS.NEW_MSG, payload => {
       this.handleMessage(payload)
     })
@@ -308,7 +298,7 @@ class Core extends Service {
     })
 
     registerReceiveHook<number[]>('nodeIKernelMsgListener/onRecvSysMsg', payload => {
-      this.ctx.parallel('nt/system-message-created', Uint8Array.from(payload))
+      this.ctx.parallel('nt/system-message-created', Buffer.from(payload))
     })
 
     registerReceiveHook<[status: number, errCode: number, fileSetId: string]>(ReceiveCmdS.FLASH_FILE_DOWNLOAD_STATUS, payload => {

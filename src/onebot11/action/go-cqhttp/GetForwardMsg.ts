@@ -5,7 +5,6 @@ import { ActionName } from '../types'
 import { filterNullable } from '@/common/utils/misc'
 import { message2List } from '@/onebot11/helper/createMessage'
 import { decodeMultiMessage } from '@/onebot11/helper/decodeMultiMessage'
-import { Msg } from '@/ntqqapi/proto/compiled'
 import { ParseMessageConfig } from '@/onebot11/types'
 
 interface Payload {
@@ -55,7 +54,7 @@ export class GetForwardMsg extends BaseAction<Payload, Response> {
           if (data.app === 'com.tencent.multimsg') {
             const resId = data.meta.detail.resid
             const res = await this.ctx.app.pmhq.getMultiMsg(resId)
-            return { messages: await decodeMultiMessage(this.ctx, res as Msg.PbMultiMsgItem[], config.messageFormat) }
+            return { messages: await decodeMultiMessage(this.ctx, res, config.messageFormat) }
           }
         }
       }

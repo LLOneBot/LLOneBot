@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import fsPromise from 'node:fs/promises'
 import path from 'node:path'
 import * as fileType from 'file-type'
-import { imageSizeFromFile } from 'image-size/fromFile'
+import { imageSizeFromFile } from '../image-size/lib/fromFile'
 import { TEMP_DIR } from '../globalVars'
 import { randomUUID, createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
@@ -238,8 +238,6 @@ export async function getFileType(filePath: string) {
     }
   }
 }
-
-// const { imageSizeFromFile } = require('image-size/fromFile')
 
 export async function getImageSize(path: string){
   return await imageSizeFromFile(path)

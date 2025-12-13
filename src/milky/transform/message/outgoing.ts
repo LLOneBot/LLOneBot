@@ -7,9 +7,10 @@ import { selfInfo, TEMP_DIR } from '@/common/globalVars'
 import { unlink, writeFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import path from 'node:path'
-import { Msg, RichMedia } from '@/ntqqapi/proto/compiled'
+import { Msg, Media } from '@/ntqqapi/proto'
 import faceConfig from '@/ntqqapi/helper/face_config.json'
 import { deflateSync } from 'node:zlib'
+import { InferProtoModelInput } from '@saltify/typeproto'
 
 export async function transformOutgoingMessage(
   ctx: Context,
@@ -97,8 +98,8 @@ export async function transformOutgoingForwardMessages(
 
 class ForwardMessageEncoder {
   static support = ['text', 'face', 'image', 'markdown', 'forward']
-  results: Msg.Message[]
-  children: Msg.Elem[]
+  results: InferProtoModelInput<typeof Msg.Message>[]
+  children: InferProtoModelInput<typeof Msg.Elem>[]
   deleteAfterSentFiles: string[]
   isGroup: boolean
   seq: number
@@ -175,7 +176,7 @@ class ForwardMessageEncoder {
     return {
       commonElem: {
         serviceType: 48,
-        pbElem: RichMedia.MsgInfo.encode({
+        pbElem: Media.MsgInfo.encode({
           msgInfoBody: [{
             index: {
               info: {
@@ -217,7 +218,7 @@ class ForwardMessageEncoder {
             },
             busiType
           }
-        }).finish(),
+        }),
         businessType: this.isGroup ? 20 : 10
       }
     }

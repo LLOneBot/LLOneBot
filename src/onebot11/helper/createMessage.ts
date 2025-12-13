@@ -132,7 +132,7 @@ export async function createSendElements(
           if (uri2LocalRes.success) thumb = uri2LocalRes.path
         }
         const res = await SendElement.video(ctx, path, thumb)
-        deleteAfterSentFiles.push(res.videoElement.filePath)
+        deleteAfterSentFiles.push(res.videoElement.filePath!)
         sendElements.push(res)
       }
         break

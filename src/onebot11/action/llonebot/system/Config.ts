@@ -14,6 +14,7 @@ export class GetConfigAction extends BaseAction<{}, Config> {
 export class SetConfigAction extends BaseAction<Config, null> {
   actionName = ActionName.SetConfig
   payloadSchema = Schema.object({
+    milky: Schema.any(),
     satori: Schema.any(),
     ob11: Schema.any(),
     webui: Schema.any(),

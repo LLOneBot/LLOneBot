@@ -22,7 +22,7 @@ import {
 import z from 'zod'
 import { IMAGE_HTTP_HOST_NT, RawMessage } from '@/ntqqapi/types'
 import { randomUUID } from 'node:crypto'
-import { parseProtobufFromHex } from '@/common/utils/protobuf-parser'
+import { Media } from '@/ntqqapi/proto'
 
 const SendPrivateMessage = defineApi(
   'send_private_message',
@@ -292,6 +292,7 @@ const GetHistoryMessages = defineApi(
 
     if (payload.message_scene === 'friend') {
       for (const msg of msgList) {
+        if (!msg.senderUid) continue
         const friend = await ctx.ntUserApi.getUserSimpleInfo(msg.senderUid)
         const category = await ctx.ntFriendApi.getCategoryById(friend.baseInfo.categoryId)
         transformedMessages.push(await transformIncomingPrivateMessage(ctx, friend, category, msg))
@@ -299,6 +300,7 @@ const GetHistoryMessages = defineApi(
     } else {
       const group = await ctx.ntGroupApi.getGroupAllInfo(payload.peer_id.toString())
       for (const msg of msgList) {
+        if (!msg.senderUid) continue
         const member = await ctx.ntGroupApi.getGroupMember(msg.peerUid, msg.senderUid)
         if (member) {
           transformedMessages.push(await transformIncomingGroupMessage(ctx, group, member, msg))
@@ -319,18 +321,17 @@ const GetResourceTempUrl = defineApi(
   GetResourceTempUrlOutput,
   async (ctx, payload) => {
     const buffer = Buffer.from(payload.resource_id, 'base64url')
-    let appid: number | undefined
-    try {
-      appid = parseProtobufFromHex(buffer.toString('hex'))[4]
-    } catch {
-      // decode failed, appid remains undefined
-    }
-    // 1402, 1403: private record, group record
-    // 1413, 1415: private video, group video
-    if (appid === 1406 || appid === 1407) {
+    const { appid } = Media.FileIdInfo.decode(buffer)
+    if (appid === 1402 || appid === 1403) {
+      const url = await ctx.ntFileApi.getPttUrl(payload.resource_id, appid === 1403)
+      return Ok({ url })
+    } else if (appid === 1406 || appid === 1407) {
       const rkeyData = await ctx.ntFileApi.rkeyManager.getRkey(true)
       const rkey = appid === 1406 ? rkeyData.private_rkey : rkeyData.group_rkey
       const url = `${IMAGE_HTTP_HOST_NT}/download?appid=${appid}&fileid=${payload.resource_id}&spec=0${rkey}`
+      return Ok({ url })
+    } else if (appid === 1413 || appid === 1415) {
+      const url = await ctx.ntFileApi.getVideoUrlByPacket(payload.resource_id, appid === 1415)
       return Ok({ url })
     } else {
       ctx.logger.warn(`GetResourceTempUrl: not yet supported appid: ${appid}`)
