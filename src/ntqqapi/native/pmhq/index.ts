@@ -1,4 +1,4 @@
-import { Action, Msg, Oidb, RichMedia } from '@/ntqqapi/proto/compiled'
+import { Action, Msg, Oidb, Media } from '@/ntqqapi/proto'
 import { deepConvertMap, deepStringifyMap } from '@/ntqqapi/native/pmhq/util'
 import { Peer, ChatType } from '@/ntqqapi/types/msg'
 import { selfInfo } from '@/common/globalVars'
@@ -698,8 +698,8 @@ export class PMHQ {
           field103: 0,
           sceneType: 2,
           group: {
-            groupId: 0
-          }
+            groupId: 0,
+          },
         },
         client: {
           agentType: 2,
@@ -739,8 +739,8 @@ export class PMHQ {
           field103: 0,
           sceneType: 2,
           group: {
-            groupId: 0
-          }
+            groupId: 0,
+          },
         },
         client: {
           agentType: 2,
