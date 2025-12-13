@@ -2,8 +2,17 @@ V7.1.0
 更新时间 2025-12-13
 
 * Milky 支持 HTTP SSE
+* Milky 支持 `group_name_change` 事件
+* Milky 支持 `group_essence_message_change` 事件
+* Milky 支持 `get_resource_temp_url` API 获取语音、视频
+* Milky 支持获取接收消息段的语音、视频 temp_url
+* OneBot 支持群精华消息删除事件
+* OneBot 支持获取接收消息段的语音 url
+* 支持自身非群管理员时获取群管理员变更事件
 * WebUI 首页改版
 * 修复 Milky 协议的设置了 token 后无法启动
+* 修复 Milky 的 `get_history_messages` API 调用时可能报错
+* 修复图片元数据较大时无法发送图片
 
 =================
 V7.0.1
