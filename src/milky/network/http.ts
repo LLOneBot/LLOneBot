@@ -1,7 +1,7 @@
 import { MilkyHttpConfig } from '@/common/types'
 import type { MilkyAdapter } from '@/milky/adapter'
 import { Failed } from '@/milky/common/api'
-import express, { Express } from 'express'
+import express, { Express, Response } from 'express'
 import { WebSocketServer, WebSocket } from 'ws'
 import http from 'http'
 import cors from 'cors'
@@ -10,8 +10,28 @@ import { Context } from 'cordis'
 class MilkyHttpHandler {
   readonly app: Express
   readonly eventPushClients = new Set<WebSocket>()
+  readonly sseClients = new Set<Response>()
   private httpServer: http.Server | undefined
   private wsServer: WebSocketServer | undefined
+
+  /**
+   * Extract token from Authorization header or query parameter
+   */
+  private extractToken(headers: http.IncomingHttpHeaders, query?: Record<string, unknown>): string {
+    const authHeader = headers['authorization']
+    if (authHeader?.toLowerCase().startsWith('bearer ')) {
+      return authHeader.slice(7).trim()
+    }
+    return (query?.['access_token'] as string) ?? ''
+  }
+
+  /**
+   * Validate access token
+   */
+  private validateToken(inputToken: string): boolean {
+    if (!this.config.accessToken) return true
+    return inputToken === this.config.accessToken
+  }
 
   constructor(readonly milkyAdapter: MilkyAdapter, readonly ctx: Context, readonly config: MilkyHttpHandler.Config) {
     this.app = express()
@@ -67,10 +87,37 @@ class MilkyHttpHandler {
       )
       return res.json(response)
     })
+
+    // SSE event endpoint
+    this.app.get('/event', (req, res) => {
+      // Check access token for SSE connection
+      if (this.config.accessToken) {
+        const inputToken = this.extractToken(req.headers, req.query as Record<string, unknown>)
+        if (!this.validateToken(inputToken)) {
+          this.ctx.logger.warn('MilkyHttp', `${req.ip} -> /event SSE (Credentials invalid)`)
+          return res.status(401).json(Failed(-401, 'Unauthorized'))
+        }
+      }
+
+      // Set SSE headers
+      res.setHeader('Content-Type', 'text/event-stream; charset=utf-8')
+      res.setHeader('Cache-Control', 'no-cache')
+      res.setHeader('Connection', 'keep-alive')
+      res.setHeader('X-Accel-Buffering', 'no')
+      res.flushHeaders()
+
+      this.sseClients.add(res)
+      this.ctx.logger.info('MilkyHttp', `${req.ip} -> /event SSE (Connected)`)
+
+      req.on('close', () => {
+        this.sseClients.delete(res)
+        this.ctx.logger.info('MilkyHttp', `${req.ip} -> /event SSE (Disconnected)`)
+      })
+    })
   }
 
   start() {
-    const host = this.config.onlyLocalhost ? '127.0.0.1' : '0.0.0.0'
+    const host = this.config.onlyLocalhost ? '127.0.0.1' : ''
     this.httpServer = this.app.listen(this.config.port, host, () => {
       this.ctx.logger.info(
         'MilkyHttp',
@@ -89,18 +136,11 @@ class MilkyHttpHandler {
       // Check access token for WebSocket connection
       if (this.config.accessToken) {
         const url = new URL(req.url!, `http://${req.headers.host}`)
+        const query = Object.fromEntries(url.searchParams.entries())
+        const inputToken = this.extractToken(req.headers, query)
 
-        let inputToken = ''
-        const authHeader = req.headers['authorization']
-        if (authHeader?.toLowerCase().startsWith('bearer ')) {
-          inputToken = authHeader.slice(7).trim()
-          this.ctx.logger.info('receive ws header token', inputToken)
-        } else {
-          inputToken = url.searchParams.get('access_token') ?? ''
-        }
-
-        if (!inputToken || inputToken !== this.config.accessToken) {
-          this.ctx.logger.warn('MilkyHttp', `${req.socket.remoteAddress} -> /event (Credentials invalid)`)
+        if (!this.validateToken(inputToken)) {
+          this.ctx.logger.warn('MilkyHttp', `${req.socket.remoteAddress} -> /event WS (Credentials invalid)`)
           ws.close(1008, 'Unauthorized')
           return
         }
@@ -122,18 +162,35 @@ class MilkyHttpHandler {
   }
 
   stop() {
+    // Close all SSE connections
+    for (const res of this.sseClients) {
+      res.end()
+    }
+    this.sseClients.clear()
+
     this.wsServer?.close()
     this.httpServer?.close()
   }
 
   broadcast(msg: string) {
+    // Broadcast to WebSocket clients
     for (const ws of this.eventPushClients) {
       try {
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(msg)
         }
       } catch (e) {
-        this.ctx.logger.warn('MilkyHttp', `Failed to send message: ${e}`)
+        this.ctx.logger.warn('MilkyHttp', `Failed to send WebSocket message: ${e}`)
+      }
+    }
+
+    // Broadcast to SSE clients
+    for (const res of this.sseClients) {
+      try {
+        res.write(`data: ${msg}\n\n`)
+      } catch (e) {
+        this.ctx.logger.warn('MilkyHttp', `Failed to send SSE message: ${e}`)
+        this.sseClients.delete(res)
       }
     }
   }
