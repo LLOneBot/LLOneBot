@@ -98,8 +98,8 @@ export async function transformOutgoingForwardMessages(
 
 class ForwardMessageEncoder {
   static support = ['text', 'face', 'image', 'markdown', 'forward']
-  results: InferProtoModelInput<typeof Msg.Message.model>[]
-  children: InferProtoModelInput<typeof Msg.Elem.model>[]
+  results: InferProtoModelInput<typeof Msg.Message>[]
+  children: InferProtoModelInput<typeof Msg.Elem>[]
   deleteAfterSentFiles: string[]
   isGroup: boolean
   seq: number

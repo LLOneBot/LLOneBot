@@ -11,16 +11,16 @@ export namespace Notify {
   export const ProfileLike = ProtoMessage.of({
     msgType: ProtoField(1, 'uint32'),
     subType: ProtoField(2, 'uint32'),
-    content: ProtoField(203, () => ({
-      msg: ProtoField(14, () => ({
+    content: ProtoField(203, {
+      msg: ProtoField(14, {
         count: ProtoField(1, 'uint32'),
         time: ProtoField(2, 'uint32'),
-        detail: ProtoField(3, () => ({
+        detail: ProtoField(3, {
           txt: ProtoField(1, 'string'),
           uin: ProtoField(3, 'uint32'),
           nickname: ProtoField(5, 'string')
-        }))
-      }))
-    }))
+        })
+      })
+    })
   })
 }

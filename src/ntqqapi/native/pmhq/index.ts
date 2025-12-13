@@ -361,7 +361,7 @@ export class PMHQ {
     }
   }
 
-  async uploadForward(peer: Peer, items: InferProtoModelInput<typeof Msg.PbMultiMsgItem.model>[]) {
+  async uploadForward(peer: Peer, items: InferProtoModelInput<typeof Msg.PbMultiMsgItem>[]) {
     const transmit = Msg.PbMultiMsgTransmit.encode({ pbItemList: items })
     const isGroup = peer.chatType === ChatType.Group
     const data = Action.SendLongMsgReq.encode({
@@ -512,7 +512,7 @@ export class PMHQ {
     return Msg.PbMultiMsgTransmit.decode(inflate).pbItemList
   }
 
-  async getGroupImageUrl(groupId: number, node: InferProtoModelInput<typeof RichMedia.IndexNode.model>) {
+  async getGroupImageUrl(groupId: number, node: InferProtoModelInput<typeof RichMedia.IndexNode>) {
     const body = RichMedia.NTV2RichMediaReq.encode({
       reqHead: {
         common: {
@@ -546,7 +546,7 @@ export class PMHQ {
     return `https://${download?.info?.domain}${download?.info?.urlPath}${download?.rKeyParam}`
   }
 
-  async getC2cImageUrl(node: InferProtoModelInput<typeof RichMedia.IndexNode.model>) {
+  async getC2cImageUrl(node: InferProtoModelInput<typeof RichMedia.IndexNode>) {
     const body = RichMedia.NTV2RichMediaReq.encode({
       reqHead: {
         common: {

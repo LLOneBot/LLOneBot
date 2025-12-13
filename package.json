@@ -17,7 +17,7 @@
   "dependencies": {
     "@minatojs/driver-sqlite": "^4.6.0",
     "@saltify/milky-types": "^1.0.0",
-    "@saltify/typeproto": "^0.2.1",
+    "@saltify/typeproto": "^0.3.0",
     "@satorijs/element": "^3.1.8",
     "@satorijs/protocol": "^1.6.1",
     "compare-versions": "^6.1.1",

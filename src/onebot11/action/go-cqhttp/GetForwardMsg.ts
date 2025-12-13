@@ -5,7 +5,6 @@ import { ActionName } from '../types'
 import { filterNullable } from '@/common/utils/misc'
 import { message2List } from '@/onebot11/helper/createMessage'
 import { decodeMultiMessage } from '@/onebot11/helper/decodeMultiMessage'
-import { Msg } from '@/ntqqapi/proto'
 import { ParseMessageConfig } from '@/onebot11/types'
 
 interface Payload {

@@ -13,20 +13,20 @@ export namespace Action {
   })
 
   export const SendLongMsgReq = ProtoMessage.of({
-    info: ProtoField(2, () => ({
+    info: ProtoField(2, {
       type: ProtoField(1, 'uint32'),
-      peer: ProtoField(2, () => LongMsgPeer.model),
+      peer: ProtoField(2, LongMsgPeer),
       groupCode: ProtoField(3, 'uint32'),
       payload: ProtoField(4, 'bytes')
-    })),
-    settings: ProtoField(15, () => LongMsgSettings.model)
+    }),
+    settings: ProtoField(15, LongMsgSettings)
   })
 
   export const SendLongMsgResp = ProtoMessage.of({
-    result: ProtoField(2, () => ({
+    result: ProtoField(2, {
       resId: ProtoField(3, 'string')
-    })),
-    settings: ProtoField(15, () => LongMsgSettings.model)
+    }),
+    settings: ProtoField(15, LongMsgSettings)
   })
 
   export const PullPicsReq = ProtoMessage.of({
@@ -40,26 +40,26 @@ export namespace Action {
   })
 
   export const PullPicsResp = ProtoMessage.of({
-    info: ProtoField(3, () => ({
+    info: ProtoField(3, {
       url: ProtoField(5, 'string')
-    }), 'repeated')
+    }, 'repeated')
   })
 
   export const RecvLongMsgReq = ProtoMessage.of({
-    info: ProtoField(1, () => ({
-      peer: ProtoField(1, () => LongMsgPeer.model),
+    info: ProtoField(1, {
+      peer: ProtoField(1, LongMsgPeer),
       resId: ProtoField(2, 'string'),
       acquire: ProtoField(3, 'bool')
-    })),
-    settings: ProtoField(15, () => LongMsgSettings.model)
+    }),
+    settings: ProtoField(15, LongMsgSettings)
   })
 
   export const RecvLongMsgResp = ProtoMessage.of({
-    result: ProtoField(1, () => ({
+    result: ProtoField(1, {
       resId: ProtoField(3, 'string'),
       payload: ProtoField(4, 'bytes')
-    })),
-    settings: ProtoField(15, () => LongMsgSettings.model)
+    }),
+    settings: ProtoField(15, LongMsgSettings)
   })
 
   export const FetchUserLoginDaysReq = ProtoMessage.of({

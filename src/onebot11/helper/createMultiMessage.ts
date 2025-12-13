@@ -10,8 +10,8 @@ import { InferProtoModelInput } from '@saltify/typeproto'
 
 export class MessageEncoder {
   static support = ['text', 'face', 'image', 'markdown', 'forward']
-  results: InferProtoModelInput<typeof Msg.Message.model>[]
-  children: InferProtoModelInput<typeof Msg.Elem.model>[]
+  results: InferProtoModelInput<typeof Msg.Message>[]
+  children: InferProtoModelInput<typeof Msg.Elem>[]
   deleteAfterSentFiles: string[]
   isGroup: boolean
   seq: number
