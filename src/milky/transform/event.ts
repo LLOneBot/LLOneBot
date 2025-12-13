@@ -167,20 +167,6 @@ export async function transformGroupNotify(
         }
       }
     }
-    else if ([
-      GroupNotifyType.SetAdmin,
-      GroupNotifyType.CancelAdminNotifyCanceled,
-      GroupNotifyType.CancelAdminNotifyAdmin,
-    ].includes(notify.type)) {
-      return {
-        eventType: 'group_admin_change',
-        data: {
-          group_id: Number(notify.group.groupCode),
-          user_id: Number(await ctx.ntUserApi.getUinByUid(notify.user1.uid)),
-          is_set: notify.type === GroupNotifyType.SetAdmin
-        }
-      }
-    }
     else {
       return null
     }
@@ -381,6 +367,17 @@ export async function transformSystemMessageEvent(
             user_id: +memberUin,
             operator_id: +adminUin
           }
+        }
+      }
+    } else if (msgType === 44) {
+      const tip = Notify.GroupAdmin.decode(sysMsg.body.msgContent)
+      const uin = await ctx.ntUserApi.getUinByUid(tip.isPromote ? tip.body.extraEnable!.adminUid : tip.body.extraDisable!.adminUid)
+      return {
+        eventType: 'group_admin_change',
+        data: {
+          group_id: tip.groupCode,
+          user_id: +uin,
+          is_set: tip.isPromote
         }
       }
     }

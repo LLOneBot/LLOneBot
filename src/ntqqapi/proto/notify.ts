@@ -23,4 +23,19 @@ export namespace Notify {
       })
     })
   })
+
+  const GroupAdminExtra = ProtoMessage.of({
+    adminUid: ProtoField(1, 'string'),
+    isPromote: ProtoField(2, 'bool')
+  })
+
+  export const GroupAdmin = ProtoMessage.of({
+    groupCode: ProtoField(1, 'uint32'),
+    flag: ProtoField(2, 'uint32'),
+    isPromote: ProtoField(3, 'bool'),
+    body: ProtoField(4, {
+      extraDisable: ProtoField(1, GroupAdminExtra, 'optional'),
+      extraEnable: ProtoField(2, GroupAdminExtra, 'optional')
+    })
+  })
 }

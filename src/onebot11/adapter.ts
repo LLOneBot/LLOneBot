@@ -139,20 +139,6 @@ class OneBot11Adapter extends Service {
         )
         this.dispatch(event)
       }
-      else if ([
-        GroupNotifyType.SetAdmin,
-        GroupNotifyType.CancelAdminNotifyCanceled,
-        GroupNotifyType.CancelAdminNotifyAdmin,
-      ].includes(notify.type)) {
-        this.ctx.logger.info('收到管理员变动通知')
-        const uin = await this.ctx.ntUserApi.getUinByUid(notify.user1.uid)
-        const event = new OB11GroupAdminNoticeEvent(
-          notify.type === GroupNotifyType.SetAdmin ? 'set' : 'unset',
-          parseInt(notify.group.groupCode),
-          parseInt(uin),
-        )
-        this.dispatch(event)
-      }
     } catch (e) {
       this.ctx.logger.error('解析群通知失败', (e as Error).stack)
     }
@@ -376,6 +362,16 @@ class OneBot11Adapter extends Service {
       }
       else if (msgType === 732 && subType === 21) {
         // 撤回群戳一戳，不再从这里解析，应从 nt/message-deleted 事件中解析
+      } else if (msgType === 44) {
+        const tip = Notify.GroupAdmin.decode(sysMsg.body.msgContent)
+        this.ctx.logger.info('收到管理员变动通知', tip)
+        const uin = await this.ctx.ntUserApi.getUinByUid(tip.isPromote ? tip.body.extraEnable!.adminUid : tip.body.extraDisable!.adminUid)
+        const event = new OB11GroupAdminNoticeEvent(
+          tip.isPromote ? 'set' : 'unset',
+          tip.groupCode,
+          +uin,
+        )
+        this.dispatch(event)
       }
     })
 
