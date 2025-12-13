@@ -1,4 +1,4 @@
-import { Action, Msg, Oidb, RichMedia } from '@/ntqqapi/proto'
+import { Action, Msg, Oidb, Media } from '@/ntqqapi/proto'
 import { deepConvertMap, deepStringifyMap } from '@/ntqqapi/native/pmhq/util'
 import { Peer, ChatType } from '@/ntqqapi/types/msg'
 import { selfInfo } from '@/common/globalVars'
@@ -449,7 +449,7 @@ export class PMHQ {
   }
 
   async getC2cPttUrl(fileUuid: string) {
-    const body = RichMedia.NTV2RichMediaReq.encode({
+    const body = Media.NTV2RichMediaReq.encode({
       reqHead: {
         common: {
           requestId: 1,
@@ -486,7 +486,7 @@ export class PMHQ {
     })
     const res = await this.httpSendPB('OidbSvcTrpcTcp.0x126d_200', data)
     const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
-    const { download } = RichMedia.NTV2RichMediaResp.decode(oidbRespBody)
+    const { download } = Media.NTV2RichMediaResp.decode(oidbRespBody)
     return `https://${download?.info?.domain}${download?.info?.urlPath}${download?.rKeyParam}` // 获取到的是 AMR 音频，并非 SILK
   }
 
@@ -512,8 +512,8 @@ export class PMHQ {
     return Msg.PbMultiMsgTransmit.decode(inflate).pbItemList
   }
 
-  async getGroupImageUrl(groupId: number, node: InferProtoModelInput<typeof RichMedia.IndexNode>) {
-    const body = RichMedia.NTV2RichMediaReq.encode({
+  async getGroupImageUrl(groupId: number, node: InferProtoModelInput<typeof Media.IndexNode>) {
+    const body = Media.NTV2RichMediaReq.encode({
       reqHead: {
         common: {
           requestId: 1,
@@ -542,12 +542,12 @@ export class PMHQ {
     })
     const res = await this.httpSendPB('OidbSvcTrpcTcp.0x11c4_200', data)
     const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
-    const { download } = RichMedia.NTV2RichMediaResp.decode(oidbRespBody)
+    const { download } = Media.NTV2RichMediaResp.decode(oidbRespBody)
     return `https://${download?.info?.domain}${download?.info?.urlPath}${download?.rKeyParam}`
   }
 
-  async getC2cImageUrl(node: InferProtoModelInput<typeof RichMedia.IndexNode>) {
-    const body = RichMedia.NTV2RichMediaReq.encode({
+  async getC2cImageUrl(node: InferProtoModelInput<typeof Media.IndexNode>) {
+    const body = Media.NTV2RichMediaReq.encode({
       reqHead: {
         common: {
           requestId: 1,
@@ -577,7 +577,7 @@ export class PMHQ {
     })
     const res = await this.httpSendPB('OidbSvcTrpcTcp.0x11c5_200', data)
     const oidbRespBody = Oidb.Base.decode(Buffer.from(res.pb, 'hex')).body
-    const { download } = RichMedia.NTV2RichMediaResp.decode(oidbRespBody)
+    const { download } = Media.NTV2RichMediaResp.decode(oidbRespBody)
     return `https://${download?.info?.domain}${download?.info?.urlPath}${download?.rKeyParam}`
   }
 

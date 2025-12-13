@@ -1,5 +1,5 @@
 export * from './action'
 export * from './notify'
-export * from './RichMedia'
+export * from './media'
 export * from './oidb'
 export * from './msg'

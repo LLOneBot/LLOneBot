@@ -1,4 +1,4 @@
-import { Msg, RichMedia } from '@/ntqqapi/proto'
+import { Msg, Media } from '@/ntqqapi/proto'
 import { Context } from 'cordis'
 import { OB11MessageData, OB11MessageDataType } from '../types'
 import { encodeCQCode } from '../cqcode'
@@ -18,7 +18,7 @@ export async function decodeMultiMessage(ctx: Context, items: InferProtoModel<ty
           }
         }
       } else if (element.commonElem && element.commonElem.serviceType === 48) {
-        const richMediaInfo = RichMedia.MsgInfo.decode(element.commonElem.pbElem)
+        const richMediaInfo = Media.MsgInfo.decode(element.commonElem.pbElem)
         const infoBody = richMediaInfo.msgInfoBody[0]
         const parsedUrl = new URL('https://' + infoBody.pic!.domain + infoBody.pic!.urlPath + infoBody.pic!.ext!.originalParam)
         const imageAppid = parsedUrl.searchParams.get('appid')

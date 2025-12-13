@@ -22,7 +22,7 @@ import {
 import z from 'zod'
 import { IMAGE_HTTP_HOST_NT, RawMessage } from '@/ntqqapi/types'
 import { randomUUID } from 'node:crypto'
-import { RichMedia } from '@/ntqqapi/proto'
+import { Media } from '@/ntqqapi/proto'
 
 const SendPrivateMessage = defineApi(
   'send_private_message',
@@ -321,7 +321,7 @@ const GetResourceTempUrl = defineApi(
   GetResourceTempUrlOutput,
   async (ctx, payload) => {
     const buffer = Buffer.from(payload.resource_id, 'base64url')
-    const { appid } = RichMedia.FileIdInfo.decode(buffer)
+    const { appid } = Media.FileIdInfo.decode(buffer)
     // 1402, 1403: private record, group record
     // 1413, 1415: private video, group video
     if (appid === 1406 || appid === 1407) {

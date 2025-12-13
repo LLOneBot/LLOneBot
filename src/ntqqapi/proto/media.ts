@@ -1,6 +1,6 @@
 import { ProtoField, ProtoMessage } from '@saltify/typeproto'
 
-export namespace RichMedia {
+export namespace Media {
   export const IndexNode = ProtoMessage.of({
     info: ProtoField(1, {
       fileSize: ProtoField(1, 'uint32'),

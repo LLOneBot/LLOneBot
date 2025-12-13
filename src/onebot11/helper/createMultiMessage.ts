@@ -1,6 +1,6 @@
 import { Context } from 'cordis'
 import { OB11MessageData, OB11MessageDataType } from '../types'
-import { Msg, RichMedia } from '@/ntqqapi/proto'
+import { Msg, Media } from '@/ntqqapi/proto'
 import { handleOb11RichMedia } from './createMessage'
 import { selfInfo } from '@/common/globalVars'
 import { Peer, RichMediaUploadCompleteNotify } from '@/ntqqapi/types'
@@ -88,7 +88,7 @@ export class MessageEncoder {
     return {
       commonElem: {
         serviceType: 48,
-        pbElem: RichMedia.MsgInfo.encode({
+        pbElem: Media.MsgInfo.encode({
           msgInfoBody: [{
             index: {
               info: {

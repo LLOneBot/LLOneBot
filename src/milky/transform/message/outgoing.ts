@@ -7,7 +7,7 @@ import { selfInfo, TEMP_DIR } from '@/common/globalVars'
 import { unlink, writeFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import path from 'node:path'
-import { Msg, RichMedia } from '@/ntqqapi/proto'
+import { Msg, Media } from '@/ntqqapi/proto'
 import faceConfig from '@/ntqqapi/helper/face_config.json'
 import { deflateSync } from 'node:zlib'
 import { InferProtoModelInput } from '@saltify/typeproto'
@@ -176,7 +176,7 @@ class ForwardMessageEncoder {
     return {
       commonElem: {
         serviceType: 48,
-        pbElem: RichMedia.MsgInfo.encode({
+        pbElem: Media.MsgInfo.encode({
           msgInfoBody: [{
             index: {
               info: {
