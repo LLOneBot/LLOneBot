@@ -356,11 +356,10 @@ interface GroupMemberFull {
   nick: string
   cardName?: string
   role: number
-  memberSpecialTitle?: string
-  memberLevel?: number
-  memberRealLevel?: number
-  joinTime?: number
-  lastSpeakTime?: number
+  specialTitle?: string
+  level?: number
+  joinedAt?: number
+  lastSpokeAt?: number
 }
 
 // 获取群单个成员
@@ -820,10 +819,10 @@ export async function getUserProfile(uid?: string, uin?: string, groupCode?: str
       if (member) {
         profile.groupCard = member.cardName || ''
         profile.groupRole = member.role === 4 ? 'owner' : member.role === 3 ? 'admin' : 'member'
-        profile.groupTitle = member.memberSpecialTitle || ''
-        profile.groupLevel = member.memberRealLevel || member.memberLevel || 0
-        profile.joinTime = member.joinTime
-        profile.lastSpeakTime = member.lastSpeakTime
+        profile.groupTitle = member.specialTitle || ''
+        profile.groupLevel = member.level || 0
+        profile.joinTime = member.joinedAt
+        profile.lastSpeakTime = member.lastSpokeAt
       }
     } catch {
       // 获取群成员信息失败，忽略
