@@ -219,7 +219,8 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({ profile, loadi
                 )}
               </div>
 
-              {(profile.groupCard || profile.groupTitle || profile.groupLevel) && (
+              {/* Boolean(): groupLevel/joinTime 等数字字段为 0 时, && 会把 0 当文本节点渲染出来 */}
+              {Boolean(profile.groupCard || profile.groupTitle || profile.groupLevel || profile.joinTime || profile.lastSpeakTime) && (
                 <>
                   <div className="border-t border-theme-divider my-3" />
                   <div className="text-xs text-theme-hint mb-2">群信息</div>
@@ -242,13 +243,13 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({ profile, loadi
                         <span className="text-theme">Lv.{profile.groupLevel}</span>
                       </>
                     )}
-                    {profile.joinTime && (
+                    {Boolean(profile.joinTime) && (
                       <>
                         <span className="text-theme-hint">入群时间</span>
                         <span className="text-theme">{formatTime(profile.joinTime)}</span>
                       </>
                     )}
-                    {profile.lastSpeakTime && (
+                    {Boolean(profile.lastSpeakTime) && (
                       <>
                         <span className="text-theme-hint">最后发言</span>
                         <span className="text-theme">{formatTime(profile.lastSpeakTime)}</span>
