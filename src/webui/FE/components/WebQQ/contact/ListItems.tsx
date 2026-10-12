@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { Pin, Bell, BellOff, Archive, Ban, ChevronRight } from 'lucide-react'
 import type { FriendItem, GroupItem } from '../../../types/webqq'
 import { useWebQQStore } from '../../../stores/webqqStore'
-import { GroupMsgMask, setGroupMsgMask } from '../../../utils/webqqApi'
+import { GroupMsgMask, setGroupMsgMask, getUserAvatar } from '../../../utils/webqqApi'
 
 // 计算菜单位置，确保不超出屏幕
 export function useMenuPosition(x: number, y: number, menuRef: React.RefObject<HTMLDivElement>) {
@@ -183,7 +183,7 @@ export const FriendListItem: React.FC<FriendListItemProps> = ({ friend, isSelect
             alt={friend.nickname}
             className="w-10 h-10 rounded-full object-cover"
             onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-              e.currentTarget.src = `https://q1.qlogo.cn/g?b=qq&nk=${friend.uin}&s=640`
+              e.currentTarget.src = getUserAvatar(friend.uin)
             }}
           />
           {friend.online && (

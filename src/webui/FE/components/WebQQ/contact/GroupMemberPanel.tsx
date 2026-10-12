@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { X, Search, Crown, Shield, Loader2 } from 'lucide-react'
 import type { GroupMemberItem } from '../../../types/webqq'
-import { filterMembers, sendPoke, getUserProfile, UserProfile, getSelfUid, kickGroupMember, muteGroupMember, setMemberTitle } from '../../../utils/webqqApi'
+import { filterMembers, sendPoke, getUserProfile, UserProfile, getSelfUid, getUserAvatar, kickGroupMember, muteGroupMember, setMemberTitle } from '../../../utils/webqqApi'
 import { useWebQQStore, hasVisitedChat, hasFetchedMembers, markMembersFetched } from '../../../stores/webqqStore'
 import { showToast } from '../../common'
 import { UserProfileCard } from '../profile'
@@ -38,7 +38,7 @@ const MemberListItem: React.FC<MemberListItemProps> = ({ member, onContextMenu, 
 
   return (
     <div className="flex items-center gap-3 px-3 py-2 hover:bg-theme-item-hover transition-colors cursor-pointer" onClick={handleClick} onContextMenu={onContextMenu}>
-      <img src={member.avatar} alt={displayName} className="w-8 h-8 rounded-full object-cover flex-shrink-0" loading="lazy" onError={(e: React.SyntheticEvent<HTMLImageElement>) => { e.currentTarget.src = `https://q1.qlogo.cn/g?b=qq&nk=${member.uin}&s=640` }} />
+      <img src={member.avatar} alt={displayName} className="w-8 h-8 rounded-full object-cover flex-shrink-0" loading="lazy" onError={(e: React.SyntheticEvent<HTMLImageElement>) => { e.currentTarget.src = getUserAvatar(member.uin) }} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <span className="text-sm text-theme truncate">{displayName}</span>

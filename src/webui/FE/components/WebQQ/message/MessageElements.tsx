@@ -3,7 +3,7 @@ import { Loader2, Mic, Play, Pause, ChevronRight, X, FileText } from 'lucide-rea
 import { createPortal } from 'react-dom'
 import type { MessageElement, RawMessage } from '../../../types/webqq'
 import { getToken } from '../../../utils/api'
-import { translatePttToText, getAudioProxyUrl, getForwardMessages, getPrivateFileUrl, getSelfUid } from '../../../utils/webqqApi'
+import { translatePttToText, getAudioProxyUrl, getForwardMessages, getPrivateFileUrl, getSelfUid, getUserAvatar } from '../../../utils/webqqApi'
 import type { ForwardMessageItem, ForwardMessageSegment } from '../../../utils/webqqApi'
 import { useImageRkeyStore } from '../../../stores/imageRkeyStore'
 import { showToast } from '../common'
@@ -717,7 +717,7 @@ const ForwardMsgModal: React.FC<{ resId: string; title: string; onClose: () => v
           {!loading && !error && messages.map((msg, i) => (
             <div key={i} className="flex gap-2">
               <img
-                src={`https://q1.qlogo.cn/g?b=qq&nk=${msg.senderUin}&s=640`}
+                src={getUserAvatar(msg.senderUin)}
                 alt={msg.senderName}
                 className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-0.5"
               />

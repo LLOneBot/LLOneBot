@@ -4,7 +4,7 @@ import ChatWindow from './ChatWindow'
 import GroupMemberPanel from './contact/GroupMemberPanel'
 import GroupFilePanel from './contact/GroupFilePanel'
 import type { ChatSession, FriendItem, GroupItem, RecentChatItem, RawMessage } from '../../types/webqq'
-import { createEventSource, getLoginInfo, getSelfUin } from '../../utils/webqqApi'
+import { createEventSource, getLoginInfo, getSelfUin, getUserAvatar } from '../../utils/webqqApi'
 import { useWebQQStore, resetVisitedChats } from '../../stores/webqqStore'
 import { appendCachedMessage, updateCachedMessageEmojiReaction, markCachedMessageAsRecalled } from '../../utils/messageDb'
 import { showToast } from '../common'
@@ -240,7 +240,7 @@ const WebQQPage: React.FC<{ isFullscreen?: boolean }> = ({ isFullscreen = false 
           } else {
             // 私聊和临时会话使用发送者信息
             peerName = rawMessage.sendNickName || rawMessage.sendMemberName || undefined
-            peerAvatar = `https://q1.qlogo.cn/g?b=qq&nk=${peerId}&s=640`
+            peerAvatar = getUserAvatar(peerId)
           }
 
           updateRecentChat(chatType, peerId, lastMessage, rawMessage.msgTime * 1000, peerName, peerAvatar)

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { FriendCategory, GroupItem, RecentChatItem, ChatSession, GroupMemberItem, NotificationItem } from '../types/webqq'
-import { getFriends, getGroups, getRecentChats, getGroupNotifications, getFriendRequests, getDoubtBuddyRequests, getGroupMembers, setRecentChatTop } from '../utils/webqqApi'
+import { getFriends, getGroups, getRecentChats, getGroupNotifications, getFriendRequests, getDoubtBuddyRequests, getGroupMembers, getUserAvatar, setRecentChatTop } from '../utils/webqqApi'
 import { GroupNotifyType, GroupNotifyStatus } from '../types/webqq'
 
 const STORAGE_NAME = 'webqq-storage'
@@ -711,7 +711,7 @@ export const useWebQQStore = create<WebQQState>()(
               }
             }
             if (!avatar) {
-              avatar = `https://q1.qlogo.cn/g?b=qq&nk=${peerId}&s=640`
+              avatar = getUserAvatar(peerId)
             }
           } else if (chatType === 2) {
             // 从群组列表查找

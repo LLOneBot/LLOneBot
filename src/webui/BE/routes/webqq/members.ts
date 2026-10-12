@@ -25,7 +25,8 @@ export function createMembersRoutes(ctx: Context): Hono {
           uin: member.uin.toString(),
           nickname: member.nick,
           card: member.cardName || '',
-          avatar: `https://q1.qlogo.cn/g?b=qq&nk=${member.uin}&s=640`,
+          // not 640: that spec is missing on some accounts, see FE getUserAvatar
+          avatar: `https://q1.qlogo.cn/g?b=qq&nk=${member.uin}&s=140`,
           role,
           level: member.level,
           specialTitle: member.specialTitle

@@ -30,11 +30,13 @@ export function getSelfUin(): string | null {
   return selfUin
 }
 
-// 获取头像 URL
-export function getUserAvatar(uin: string | number): string {
-  return `https://q1.qlogo.cn/g?b=qq&nk=${uin}&s=640`
+// Only ask for a spec the account really has: an avatar that tops out at 100px
+// (animated ones do) has no 640, and the CDN serves the default penguin with a 200.
+export function getUserAvatar(uin: string | number, size = 140): string {
+  return `https://q1.qlogo.cn/g?b=qq&nk=${uin}&s=${size}`
 }
 
+// Keep 640 here -- spec 0 on group avatars is the untouched original, seen at 2MB.
 export function getGroupAvatar(groupCode: string): string {
   return `https://p.qlogo.cn/gh/${groupCode}/${groupCode}/640/`
 }
@@ -809,7 +811,7 @@ export async function getUserProfile(uid?: string, uin?: string, groupCode?: str
     qid: user.qid || '',
     level: user.level || 0,
     regTime: user.registerTime || undefined,
-    avatar: `https://q1.qlogo.cn/g?b=qq&nk=${targetUin}&s=640`
+    avatar: getUserAvatar(targetUin || '')
   }
 
   // 如果是群聊，获取群成员信息

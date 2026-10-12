@@ -156,7 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             {accountInfo && (
               <>
                 <img
-                  src={`https://thirdqq.qlogo.cn/g?b=qq&nk=${accountInfo.uin}&s=640`}
+                  src={`https://thirdqq.qlogo.cn/g?b=qq&nk=${accountInfo.uin}&s=140`}
                   alt='头像'
                   className='w-10 h-10 rounded-full object-cover ring-2 ring-white/50 dark:ring-neutral-600'
                   onError={(e) => {

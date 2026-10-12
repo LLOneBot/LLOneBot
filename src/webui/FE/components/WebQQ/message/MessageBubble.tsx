@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo } from 'react'
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import type { RawMessage, GroupMemberItem } from '../../../types/webqq'
-import { formatMessageTime, getSelfUid, getSelfUin, getUserDisplayName, setEmojiLike } from '../../../utils/webqqApi'
+import { formatMessageTime, getSelfUid, getSelfUin, getUserAvatar, getUserDisplayName, setEmojiLike } from '../../../utils/webqqApi'
 import { MessageElementRenderer, hasValidContent, isSystemTipMessage } from './MessageElements'
 import { showToast } from '../../common'
 
@@ -192,7 +192,7 @@ export const RawMessageBubble = memo<{ message: RawMessage; allMessages: RawMess
     }
   }
 
-  const senderAvatar = `https://q1.qlogo.cn/g?b=qq&nk=${message.senderUin}&s=640`
+  const senderAvatar = getUserAvatar(message.senderUin)
   const timestamp = Number(message.msgTime) * 1000
 
   // 从 msgAttrs 中获取群等级和头衔
@@ -475,7 +475,7 @@ const EmojiReactionList = memo<{ message: RawMessage; isSelf: boolean }>(({ mess
 
 export const TempMessageBubble = memo<{ message: TempMessage; onRetry: () => void }>(({ message, onRetry }) => {
   const selfUin = getSelfUin()
-  const selfAvatar = selfUin ? `https://q1.qlogo.cn/g?b=qq&nk=${selfUin}&s=640` : ''
+  const selfAvatar = selfUin ? getUserAvatar(selfUin) : ''
 
   return (
     <div className="flex gap-2 flex-row-reverse w-full">
