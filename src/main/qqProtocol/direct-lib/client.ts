@@ -152,7 +152,14 @@ export class DirectProtocolClient extends EventEmitter {
         // d2key, 会让 SA 返业务码 1001。这里强制 ESK/SA 走 EncryptEmpty, 验证"通道假设"。
         // SsoReport 等其它 o3 命令 (trpc.o3.report.*) 不受影响, 照常 enc0x01。
         // 详见 LuckyLillia.Sign/docs/Linux/sign-token-protocol-final.md "SA 1001"。
-        const enc = cmd.includes('.o3.ecdh_access.') ? EncryptType.EncryptEmpty : undefined
+        //
+        // ★例外: 登录后的 A2 分支 (SsoSecureA2Establish / SsoSecureA2Access / O3GetTail) 要登录
+        // 凭证认证, 必须 enc0x01 + d2。走零钥通道服务端回 -10005 "身份验证失败, 请你重新登录"
+        // 且跟会话是否有效无关 (PoC main.rs:479 实测; SignProxy lib.rs:1086 也注明 enc=1+d2
+        // 由发包层包装)。enc=undefined 让 sendCommand 按 session 自选: 有会话 enc0x01, 无则 enc0x02。
+        const enc = cmd.includes('.o3.ecdh_access.') && !cmd.includes('SsoSecureA2')
+          ? EncryptType.EncryptEmpty
+          : undefined
         // [SA 1001 修复] signToken 覆盖本命令的 SecInfo sf2 / 签名 token: SA 带 token1, 其它为空。
         const resp = (await this.sendCommand(cmd, req, enc, undefined, undefined, signToken || undefined)).payload
         logger.debug(`[relay] ${cmd} enc=${enc === undefined ? 'auto' : enc} signTok=${signToken ? signToken.length + 'B' : '-'}: req=${req.length}B resp=${resp.length}B reqHex=%h respHex=%h`, req, resp)
