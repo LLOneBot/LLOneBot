@@ -3,7 +3,9 @@ import { TcpConnection } from './connection'
 import { buildServicePacket, buildServicePacket13, parseServicePacket, EncryptType, PacketContext, SsoPacket } from './packet'
 import { generateEcdhKeyPair, EcdhKeyPair } from './ecdh'
 import { generateWatchEcdhKeyPair } from './watch/ecdh'
-import { requestSign, setupSign, setSignMachineGuid, acquireSignToken, acquireMacosEskOnly, startLinuxSsoReport, stopLinuxSsoReport, buildLinuxXwidBody, signLinuxXwidBurst, SignResult, type MacosEskState } from './sign'
+import { requestSign, setupSign, setSignMachineGuid, acquireSignToken, acquireMacosEskOnly, startLinuxSsoReport, stopLinuxSsoReport, buildLinuxXwidBody, signLinuxXwidBurst, startMacosSsoReport as runMacosSsoReport, macosEasyLogin as runMacosEasyLogin, SignResult, type MacosEskState } from './sign'
+import { getMacosDevice } from './macosDevice'
+import type { PersistedSession } from './session'
 import { AppInfo } from './appInfo'
 import { getActiveProfile } from './profiles'
 import { loadMachineGuidSync } from './machineGuid'
@@ -157,9 +159,13 @@ export class DirectProtocolClient extends EventEmitter {
         // 凭证认证, 必须 enc0x01 + d2。走零钥通道服务端回 -10005 "身份验证失败, 请你重新登录"
         // 且跟会话是否有效无关 (PoC main.rs:479 实测; SignProxy lib.rs:1086 也注明 enc=1+d2
         // 由发包层包装)。enc=undefined 让 sendCommand 按 session 自选: 有会话 enc0x01, 无则 enc0x02。
-        const enc = cmd.includes('.o3.ecdh_access.') && !cmd.includes('SsoSecureA2')
-          ? EncryptType.EncryptEmpty
-          : undefined
+        // macOS 的 .o3.report. 与 login.ecdh (KEX/EasyLogin) 真机也恒 enc=2 零钥 (PoC build_service_packet12)。
+        const isMacos = getActiveProfile().name === 'macos'
+        const enc =
+          (cmd.includes('.o3.ecdh_access.') && !cmd.includes('SsoSecureA2')) ||
+          (isMacos && (cmd.includes('.o3.report.') || cmd.includes('login.ecdh')))
+            ? EncryptType.EncryptEmpty
+            : undefined
         // [SA 1001 修复] signToken 覆盖本命令的 SecInfo sf2 / 签名 token: SA 带 token1, 其它为空。
         const resp = (await this.sendCommand(cmd, req, enc, undefined, undefined, signToken || undefined)).payload
         logger.debug(`[relay] ${cmd} enc=${enc === undefined ? 'auto' : enc} signTok=${signToken ? signToken.length + 'B' : '-'}: req=${req.length}B resp=${resp.length}B reqHex=%h respHex=%h`, req, resp)
@@ -178,7 +184,7 @@ export class DirectProtocolClient extends EventEmitter {
     this.emit('connected')
     this.startLoopLagMonitor()
 
-    // Send initial heartbeat (required before other commands)
+    // 初始 Heartbeat.Alive: NT 端后续命令的前置包。两者在 watch 上都自带 family 门, 见 sendHeartbeat。
     await this.sendHeartbeat()
     this.startHeartbeatAlive()
   }
@@ -228,9 +234,9 @@ export class DirectProtocolClient extends EventEmitter {
     return this.session.signToken12B ?? this.liveMacosEsk()?.token
   }
 
-  /** 周期性发 Heartbeat.Alive 保活连接层. connect() 启动, disconnect()/close 清理. 幂等. */
+  /** 周期性发 Heartbeat.Alive 保活连接层. connect() 启动, disconnect()/close 清理. 幂等. watch 不启. */
   private startHeartbeatAlive(): void {
-    if (this.heartbeatAliveTimer) return
+    if (this.heartbeatAliveTimer || getActiveProfile().family === 'watch') return
     // 真机 3.2.28 Heartbeat.Alive ~13.5s 一跳且带自然抖动。写死的 10.000s setInterval 本身是机器特征,
     // 故自调度 setTimeout 带每跳抖动 (~12-15s), 对齐真机节奏。
     const tick = () => {
@@ -376,6 +382,12 @@ export class DirectProtocolClient extends EventEmitter {
 
 
   async sendHeartbeat(): Promise<void> {
+    // watch 不发 Heartbeat.Alive: 真机建连后直接走 trans_emp, 从不发这个 type-13 裸包
+    // (LuckyLillia.Sign/src/Android/watch/poc/src/main.rs), 发了反而是指纹 tell。
+    // 二次确认: 'Heartbeat.Alive' 在 libwrapper.9.0.5.so 里一次都不出现, 而同 so 带全套
+    // status_svc.StatusService.* (SsoHeartBeat/Register/Kick/...) -- 手表侧保活只有 SSO 那层,
+    // 见 online.ts startHeartbeat。
+    if (getActiveProfile().family === 'watch') return
     if (!isCmdAllowed('Heartbeat.Alive')) return
     const seq = this.nextSeq()
     const ctx = this.getPacketContext()
@@ -630,6 +642,54 @@ export class DirectProtocolClient extends EventEmitter {
     this.startAuxTelemetryLoop()
   }
 
+  /** 上线后发 SsoReport, 按协议分派 (各自自守卫): linux 循环, macos 一次性爆发。 */
+  startSsoReport(): void {
+    void this.startLinuxSsoReportLoop()
+    void this.startMacosSsoReport()
+  }
+
+  /** macOS o3 SsoReport 登录爆发 (sec_init+channel_report+env_detect+login)。非 macos / 未登录时 no-op。 */
+  async startMacosSsoReport(): Promise<void> {
+    if (getActiveProfile().name !== 'macos' || !this.session || !this.config.authToken) return
+    let qimei36 = ''
+    try {
+      qimei36 = (await getMacosDevice(AppInfo.qua)).qimei36
+    } catch {
+      // 取不到 qimei 不阻塞遥测 (report 是 fire-and-forget)
+    }
+    await runMacosSsoReport({ guidHex: this.guid.toString('hex'), qimei36, uin: this.session.uin })
+  }
+
+  /**
+   * macOS 免扫码 EasyLogin: 存档 0x106 凭证换新票据, 组 SessionInfo。失败返 null (调用方回退)。
+   * 须在无 session 态调 (KEX/EasyLogin 走零钥帧); 内部先跑 ESK 拿握手 sign-token。
+   */
+  async macosEasyLogin(persisted: PersistedSession): Promise<{ session: SessionInfo; a1106Hex: string } | null> {
+    if (getActiveProfile().name !== 'macos' || !persisted.tempPassword) return null
+    await this.acquirePreLoginToken()
+    const q36 = await getMacosDevice(AppInfo.qua).then((d) => d.qimei36).catch(() => undefined)
+    const t = await runMacosEasyLogin({
+      uin: persisted.uin,
+      guidHex: persisted.guid,
+      a1106Hex: persisted.tempPassword,
+      seedHex: this.guid.toString('hex'),
+      qua: AppInfo.qua,
+      q36,
+    })
+    if (!t) return null
+    const session: SessionInfo = {
+      uin: persisted.uin,
+      uid: persisted.uid,
+      d2: Buffer.from(t.d2Hex, 'hex'),
+      d2Key: Buffer.from(t.d2KeyHex, 'hex'),
+      tgt: Buffer.from(t.tgtHex, 'hex'),
+      a2: Buffer.from(t.tgtHex, 'hex'),
+      a2Key: Buffer.alloc(16),
+      sKey: Buffer.alloc(0),
+    }
+    return { session, a1106Hex: t.a1106Hex }
+  }
+
   /**
    * Linux xwid 登录突发: 复刻真机登录瞬间的 xwid 连号发 (实测 ~1ms/包、~1000/s、摊 ~2.5s; 非"微秒瞬时")。
    *   1. 批量签: 一次 NAPI (signLinuxXwidBurst) 里 Rust 循环签 count 条 (sign-core ~450k/s, 各条 ts+1ms
@@ -731,6 +791,10 @@ export class DirectProtocolClient extends EventEmitter {
    * 故登录后 tryAcquireSignToken 必首拉一次。in-flight lock 防并发雪崩。
    */
   private async ensureSignTokenFresh(uin: number | undefined): Promise<void> {
+    // watch 不取: sign 后端自产 token (base64(md5(device_blob)[:9])) 随 sign 一起返回, 且 watch
+    // sign-service 没挂 /token/* (只 linux/macos 有) -> 取一趟必 404。这里拦住, 整条 acquire 链
+    // (sendCommand / sendXwidBurst / tryAcquireSignToken / awaitSignTokenAcquire) 在 watch 上全空转。
+    if (getActiveProfile().family === 'watch') return
     if (!this.session || !uin || !this.config.authToken) return
     // 有 token 且未过期 -> 复用不刷; 有 token 但已过期 -> 往下重新 acquire 续期 (TTL 生效)。
     if (this.session.signTokenExpiresAt) {

@@ -116,14 +116,22 @@ interface Native {
   // 老 .node 没这几个 export 时为 undefined, 调用前先判一下再报"请重新 build"。
   /** qimei 取号。打 StarTrail, 走**本机**网络出口 (服务端代取会把全站设备注册到同一 IP)。 */
   getMacosQimei?(args: MacosQimeiArgs): Promise<MacosQimeiResult>
-  /** 组 device_pb (34 字段设备指纹) hex, 三步 o3 共用同一份。 */
+  /** 组 device_pb (34 字段设备指纹) hex, o3 各步共用同一份。 */
   buildMacosDevicePb?(args: MacosDevicePbArgs): string
-  /** 登录前 ESK (SsoEstablishShareKey), 拿引导 token1 + 建通道。 */
-  getMacosEskToken?(args: MacosEstablishArgs): Promise<MacosO3Result>
-  /** 登录后 A2Establish, 建业务通道; token 非空 = 建成, 用它返的 aesKey/shareId。 */
-  getMacosA2EstablishToken?(args: MacosEstablishArgs): Promise<MacosO3Result>
-  /** 登录后 SA2 getToken, 复用传入通道拿业务 token。 */
-  getMacosSa2Token?(args: MacosSa2Args): Promise<MacosO3Result>
+  /** 登录前 ESK: 拿引导 token1; 通道 (aesKey/shareId) 缓存在 .node 内, 不出 Rust。 */
+  getMacosEskToken?(args: MacosEstablishArgs): Promise<MacosTokenResult>
+  /** 登录后业务 token: A2Establish + A2Access 一步跑完 (通道/密钥全在 .node 内, 复用缓存的 ESK 通道)。 */
+  getMacosLoginToken?(args: MacosEstablishArgs): Promise<MacosTokenResult>
+  /**
+   * 登录后一把发 macOS o3 SsoReport 爆发 (sec_init + channel_report + env_detect + login 埋点)。
+   * 名字跟 startSsoReportLinux 对齐; macOS 是**一次性**爆发 (非循环), 无需 stop。老 .node 无此 export 时 undefined。
+   */
+  startSsoReportMacos?(args: StartSsoReportMacosArgs): Promise<void>
+  /**
+   * macOS 免扫码 EasyLogin: SsoKeyExchange 握手 + SsoNTLoginEasyLogin, 用存档 TLV 0x106 凭证刷新
+   * d2/d2key/tgt/0x106。success=false 表示任一步失败 (不抛错), 调用方回退直接恢复 / 扫码。老 .node 无此 export 时 undefined。
+   */
+  macosEasyLogin?(args: MacosEasyLoginArgs): Promise<MacosEasyLoginResult>
 }
 
 export interface LinuxEskTokenArgs {
@@ -175,25 +183,49 @@ export interface MacosDevicePbArgs {
 
 export interface MacosEstablishArgs {
   devicePbHex: string
-  /** 毫秒时间戳。A2Establish 跟随后的 SA2 **必须传同一个值**。 */
+  /** 毫秒时间戳; 不传 = .node 用当前时间。 */
   tsMs?: number
 }
 
-export interface MacosSa2Args {
-  devicePbHex: string
-  aesKey: string
-  shareId: string
-  /** ESK 解出的 token1; 传错 server 回 1001。 */
-  currentToken?: string
-  tsMs?: number
-}
-
-export interface MacosO3Result {
-  /** 解不出是空串而不是报错 —— establish 被拒时就这样, 调用方据此选通道。 */
+export interface MacosTokenResult {
+  /** 12B token; 解不出是空串而不是报错。aesKey/shareId 不出 Rust, 这里看不到。 */
   token: string
   ttlSecs: number
-  aesKey: string
-  shareId: string
+}
+
+export interface StartSsoReportMacosArgs {
+  /** 32-hex 设备 guid (= report body arg[2], 与登录 / device_pb 同源)。 */
+  guidHex: string
+  /** 设备 qimei36 (= report body arg[3])。 */
+  qimei36: string
+  /** 账号 uin (进 login 埋点)。 */
+  uin: string
+  /** QQ.app 的 Contents/Resources/app 绝对路径; 缺省 /Applications/QQ.app/Contents/Resources/app。 */
+  appDir?: string
+}
+
+export interface MacosEasyLoginArgs {
+  uin: string
+  /** 32-hex 设备 guid (前 16B 进 KEX / EasyLogin body)。 */
+  guidHex: string
+  /** 存档 TLV 0x106 凭证 hex (= session.tempPassword, 登录响应 0x119 内层 0x106)。 */
+  a1106Hex: string
+  /** 稳定设备种子 hex (= machine guid; 派生 serial/osver, 与 device_pb 同源)。 */
+  seedHex: string
+  qua: string
+  /** 设备 qimei36 (复用 synth_device; 不影响 serial)。可省。 */
+  q36?: string
+}
+
+export interface MacosEasyLoginResult {
+  /** 全链成功才 true; 任一步失败 false (其余字段空)。 */
+  success: boolean
+  d2Hex: string
+  /** 注意 napi 命名: 数字后首字母大写, 故 d2key_hex -> d2KeyHex (跟 SessionInfo.d2Key 一致)。 */
+  d2KeyHex: string
+  tgtHex: string
+  /** 刷新后的 TLV 0x106 凭证 hex (存回 session 供下次 EasyLogin)。 */
+  a1106Hex: string
 }
 
 const triple = pickTriple()

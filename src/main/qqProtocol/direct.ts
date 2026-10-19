@@ -354,7 +354,15 @@ export class DirectQQProtocol extends QQProtocolBase {
       // session restore 之后 tryAcquireSignToken 会用 ESK 状态跑 A2+SA2 拿业务 token。
       await this.directClient.acquirePreLoginToken()
       if (this.initToken !== myToken) return
-      const session = persistedToSessionInfo(persisted)
+      // macOS 免扫码 EasyLogin: 存档 0x106 凭证刷新票据 (d2 过期也能续); 非 macos / 无凭证 / 失败均回退直接恢复。
+      let session = persistedToSessionInfo(persisted)
+      const refreshed = await this.directClient.macosEasyLogin(persisted).catch(() => null)
+      if (this.initToken !== myToken) return
+      if (refreshed) {
+        session = refreshed.session
+        this.logger.info('[EasyLogin] macOS 免扫码续期成功')
+        saveSession(session, Buffer.from(persisted.tgtgtKey ?? '', 'hex'), this.directClient.getGuid(), Buffer.from(refreshed.a1106Hex, 'hex'), persisted.nick)
+      }
       this.directClient.setSession(session)
 
       try {
@@ -369,7 +377,7 @@ export class DirectQQProtocol extends QQProtocolBase {
         this.runtimeUinOverride = persisted.uin
         this.directStopHeartbeat = startHeartbeat(this.directClient)
         // 上线后再起 SsoReport 遥测 loop (不要放 setSession, 否则报告渗进 ESK/SA 握手, verify_file 怼在 SA 后)。
-        void this.directClient.startLinuxSsoReportLoop()
+        void this.directClient.startSsoReport()
         this.maybeEmitOnline()
         // 直连 session 恢复后 nick 可能为空; 异步补查
         if (!selfInfo.nick) {
@@ -565,7 +573,7 @@ export class DirectQQProtocol extends QQProtocolBase {
     this.directStopHeartbeat = startHeartbeat(client)
     // 上线后再起 SsoReport 遥测 loop (真机时序: 握手 ESK->SA->SsoInfoSync 干净跑完再遥测;
     // 放 setSession 会让报告渗进握手、verify_file 怼在 SA 之后)。
-    void client.startLinuxSsoReportLoop()
+    void client.startSsoReport()
 
     // Update global state
     selfInfo.uin = String(uin)

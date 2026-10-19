@@ -179,12 +179,10 @@ const DEFAULT_TOKEN_TTL_SECS = 24 * 60 * 60
 
 /** macOS ESK result: token1 plus the channel keys that A2+SA2 reuse after login. */
 export interface MacosEskState {
+  /** ESK 引导 token1 (登录前 deviceToken)。aesKey/shareId 在 .node 内缓存, 不出 Rust。 */
   token: string
-  aesKey: string
-  shareId: string
-  devicePbHex: string
   ttlSecs: number
-  /** Epoch ms. Past this the channel is stale and ESK has to run again. */
+  /** Epoch ms. 过了就 channel 过期, 得重跑 ESK。 */
   expiresAt: number
 }
 
@@ -196,8 +194,8 @@ export async function acquireSignToken(uin: number, qua: string, macosEsk?: Maco
       return macosEsk ? acquireMacosA2Token(qua, macosEsk) : acquireMacosSignToken(qua)
     case 'linux':
       return acquireLinuxSignToken(uin, qua)
-    // windows / watch 维持原样。**别并进 linux 分支**: 本地 ESK 是真往 QQ 发包, 并进去 watch 就会
-    // 从手表连接上发一个 Linux 形状的 ESK; 现在经 manager 只是路由到 watch 后端 404, 无害。
+    // windows 维持原样。**别并进 linux 分支**: 本地 ESK 是真往 QQ 发包, 并进去就会从别的端的连接上
+    // 发一个 Linux 形状的 ESK。watch 到不了这里 (client.ensureSignTokenFresh 已拦) —— 它 sign 自产 token。
     default:
       return acquireViaManager(uin, qua)
   }
@@ -289,6 +287,54 @@ export function buildLinuxXwidBody(qua: string, reportId?: string): Buffer | nul
   }
 }
 
+let warnedNoMacosSsoReport = false
+
+/** macOS o3 SsoReport 登录爆发 (一次性, 非循环)。名字对齐 startLinuxSsoReport。 */
+export async function startMacosSsoReport(args: { guidHex: string; qimei36: string; uin: string; appDir?: string }): Promise<void> {
+  if (!inited) return
+  const proxy = getSignProxy()
+  if (typeof proxy.startSsoReportMacos !== 'function') {
+    if (!warnedNoMacosSsoReport) {
+      warnedNoMacosSsoReport = true
+      logger.warn('[SsoReport] sign-proxy .node 过旧 (缺 startSsoReportMacos), 跳过 macOS o3 遥测; 重新 build + sync-to-bot')
+    }
+    return
+  }
+  try {
+    await proxy.startSsoReportMacos({ guidHex: args.guidHex, qimei36: args.qimei36, uin: args.uin, appDir: args.appDir })
+    logger.info('[SsoReport] macOS o3 遥测爆发已发')
+  } catch (e) {
+    logger.warn(`[SsoReport] macOS 启动失败: ${(e as Error).message}`)
+  }
+}
+
+export interface MacosEasyLoginTickets {
+  d2Hex: string
+  d2KeyHex: string
+  tgtHex: string
+  a1106Hex: string
+}
+
+/** macOS 免扫码 EasyLogin: 存档 0x106 凭证换新票据。失败 / 老 .node 返 null (调用方回退)。 */
+export async function macosEasyLogin(args: {
+  uin: string; guidHex: string; a1106Hex: string; seedHex: string; qua: string; q36?: string
+}): Promise<MacosEasyLoginTickets | null> {
+  if (!inited) return null
+  const proxy = getSignProxy()
+  if (typeof proxy.macosEasyLogin !== 'function') {
+    logger.warn('[EasyLogin] sign-proxy .node 过旧 (缺 macosEasyLogin), 回退直接恢复; 重新 build + sync-to-bot')
+    return null
+  }
+  try {
+    const r = await proxy.macosEasyLogin(args)
+    if (!r.success) return null
+    return { d2Hex: r.d2Hex, d2KeyHex: r.d2KeyHex, tgtHex: r.tgtHex, a1106Hex: r.a1106Hex }
+  } catch (e) {
+    logger.warn(`[EasyLogin] 失败: ${(e as Error).message}`)
+    return null
+  }
+}
+
 /**
  * Linux xwid 登录突发批量签: 一次 NAPI 调用出 count 个各异 sign (取代逐条 signRequest 的 count 次往返)。
  * 老 .node 缺 signXwidBurst 时返 null (调用方跳过突发)。
@@ -322,49 +368,24 @@ export async function signLinuxXwidBurst(args: {
  * 这是三步全跑的兜底路径; 正常流程走两步: acquireMacosEskOnly (登录前) + acquireMacosA2Token (登录后)。
  */
 async function acquireMacosSignToken(qua: string): Promise<{ token: string; ttlSecs: number }> {
+  ensureMacosO3Exports()
   const proxy = getSignProxy()
-  if (
-    typeof proxy.getMacosEskToken !== 'function' ||
-    typeof proxy.getMacosA2EstablishToken !== 'function' ||
-    typeof proxy.getMacosSa2Token !== 'function'
-  ) {
-    throw new Error('sign-proxy .node 过旧 (缺 macOS o3 token 方法), 请重新 build 并 sync-to-bot')
-  }
-
   const { devicePbHex } = await getMacosDevice(qua)
-  const tsMs = Date.now()
-
-  const esk = await proxy.getMacosEskToken({ devicePbHex, tsMs })
+  // ESK 建通道 (缓存在 .node) + 拿 token1; 再 getMacosLoginToken 一步 A2+SA2 拿业务 token。
+  const esk = await proxy.getMacosEskToken!({ devicePbHex, tsMs: Date.now() })
   logger.debug(`[SignToken][macos] ESK token=${esk.token ? esk.token.length + 'B' : '空'} ttl=${esk.ttlSecs}s`)
-
-  const a2 = await proxy.getMacosA2EstablishToken({ devicePbHex, tsMs })
-  const channel = a2.token ? a2 : esk
-  logger.debug(`[SignToken][macos] A2Establish ${a2.token ? '建成, 用新通道' : '空, 回退 ESK 通道'}`)
-
-  const sa2 = await proxy.getMacosSa2Token({
-    devicePbHex,
-    aesKey: channel.aesKey,
-    shareId: channel.shareId,
-    currentToken: esk.token,
-    tsMs,
-  })
-
-  // SA2 拿到业务 token 就用它; 拿不到退回引导 token1 (总比空好)。
-  const token = sa2.token || channel.token || esk.token
-  const ttlSecs = sa2.ttlSecs || channel.ttlSecs || esk.ttlSecs || DEFAULT_TOKEN_TTL_SECS
+  const login = await proxy.getMacosLoginToken!({ devicePbHex, tsMs: Date.now() })
+  const token = login.token || esk.token
+  const ttlSecs = login.ttlSecs || esk.ttlSecs || DEFAULT_TOKEN_TTL_SECS
   if (!token) {
-    logger.warn('[SignToken][macos] 三步都没解出 token, 本轮用空 deviceToken')
+    logger.warn('[SignToken][macos] ESK + 业务 token 都没解出, 本轮用空 deviceToken')
   }
   return { token, ttlSecs }
 }
 
 function ensureMacosO3Exports(): void {
   const proxy = getSignProxy()
-  if (
-    typeof proxy.getMacosEskToken !== 'function' ||
-    typeof proxy.getMacosA2EstablishToken !== 'function' ||
-    typeof proxy.getMacosSa2Token !== 'function'
-  ) {
+  if (typeof proxy.getMacosEskToken !== 'function' || typeof proxy.getMacosLoginToken !== 'function') {
     throw new Error('sign-proxy .node 过旧 (缺 macOS o3 token 方法), 请重新 build 并 sync-to-bot')
   }
 }
@@ -381,14 +402,7 @@ export async function acquireMacosEskOnly(qua: string): Promise<MacosEskState> {
   const esk = await getSignProxy().getMacosEskToken!({ devicePbHex, tsMs: Date.now() })
   const ttlSecs = esk.ttlSecs || DEFAULT_TOKEN_TTL_SECS
   logger.debug(`[SignToken][macos] ESK token=${esk.token ? esk.token.length + 'B' : 'empty'} ttl=${ttlSecs}s`)
-  return {
-    token: esk.token,
-    aesKey: esk.aesKey,
-    shareId: esk.shareId,
-    devicePbHex,
-    ttlSecs,
-    expiresAt: Date.now() + ttlSecs * 1000,
-  }
+  return { token: esk.token, ttlSecs, expiresAt: Date.now() + ttlSecs * 1000 }
 }
 
 /**
@@ -397,23 +411,11 @@ export async function acquireMacosEskOnly(qua: string): Promise<MacosEskState> {
  */
 async function acquireMacosA2Token(qua: string, esk: MacosEskState): Promise<{ token: string; ttlSecs: number }> {
   ensureMacosO3Exports()
-  const proxy = getSignProxy()
-  const tsMs = Date.now()
-
-  const a2 = await proxy.getMacosA2EstablishToken!({ devicePbHex: esk.devicePbHex, tsMs })
-  const channel = a2.token ? a2 : { aesKey: esk.aesKey, shareId: esk.shareId, token: esk.token, ttlSecs: esk.ttlSecs }
-  logger.debug(`[SignToken][macos] A2Establish ${a2.token ? '建成, 用 A2 通道' : '空, 回退 ESK 通道'}`)
-
-  const sa2 = await proxy.getMacosSa2Token!({
-    devicePbHex: esk.devicePbHex,
-    aesKey: channel.aesKey,
-    shareId: channel.shareId,
-    currentToken: esk.token,
-    tsMs,
-  })
-
-  const token = sa2.token || channel.token || esk.token
-  const ttlSecs = sa2.ttlSecs || channel.ttlSecs || esk.ttlSecs || DEFAULT_TOKEN_TTL_SECS
+  const { devicePbHex } = await getMacosDevice(qua)
+  // A2Establish + A2Access 一步跑完; 通道 + token1 复用 .node 内缓存的 ESK 通道, bot 不碰密钥。
+  const login = await getSignProxy().getMacosLoginToken!({ devicePbHex, tsMs: Date.now() })
+  const token = login.token || esk.token
+  const ttlSecs = login.ttlSecs || esk.ttlSecs || DEFAULT_TOKEN_TTL_SECS
   if (!token) {
     logger.warn('[SignToken][macos] A2+SA2 都没解出 token, 本轮用空 deviceToken')
   }
